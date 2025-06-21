@@ -27,9 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
 import SwiftSyntax
 
-/// A Swift `catch` clause.
+/// A Swift `catch` clause for error handling.
 public struct Catch: CodeBlock {
   private let pattern: CodeBlock?
   private let body: [CodeBlock]
@@ -68,105 +69,85 @@ public struct Catch: CodeBlock {
     // Build catch items (patterns)
     var catchItems: CatchItemListSyntax?
     if let pattern = pattern {
-      let patternSyntax: PatternSyntax
+      var patternSyntax: PatternSyntax
 
       if let enumCase = pattern as? EnumCase {
-        if let associated = enumCase.caseAssociatedValue {
-          // Handle EnumCase with associated value
-          // Split the case name into type and case if needed
+        if !enumCase.caseAssociatedValues.isEmpty {
           let baseName = enumCase.caseName
           let baseParts = baseName.split(separator: ".")
           let (typeName, caseName) =
             baseParts.count == 2 ? (String(baseParts[0]), String(baseParts[1])) : ("", baseName)
-          // Build the pattern: Type.caseName(let associatedName)
+          // Build the pattern: .caseName(let a, let b)
           let memberAccess = MemberAccessExprSyntax(
             base: typeName.isEmpty
               ? nil : ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(typeName))),
             dot: .periodToken(),
             name: .identifier(caseName)
           )
-          // Build the tuple pattern: (let coinsNeeded)
-          let tuplePattern = TuplePatternSyntax(
-            leftParen: .leftParenToken(),
-            elements: TuplePatternElementListSyntax([
-              TuplePatternElementSyntax(
-                pattern: PatternSyntax(
-                  ValueBindingPatternSyntax(
-                    bindingSpecifier: .keyword(.let, trailingTrivia: .space),
-                    pattern: PatternSyntax(
-                      IdentifierPatternSyntax(identifier: .identifier(associated.name)))
-                  )
-                ),
-                trailingComma: nil
-              )
-            ]),
-            rightParen: .rightParenToken()
-          )
-          // Build the full pattern: EnumType.caseName(let coinsNeeded)
-          let enumPattern = ExpressionPatternSyntax(
-            expression: ExprSyntax(
-              MemberAccessExprSyntax(
-                base: typeName.isEmpty
-                  ? nil : ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(typeName))),
-                dot: .periodToken(),
-                name: .identifier(caseName)
+          let patternWithTuple = PatternSyntax(
+            ValueBindingPatternSyntax(
+              bindingSpecifier: .keyword(.case, trailingTrivia: .space),
+              pattern: PatternSyntax(
+                ExpressionPatternSyntax(
+                  expression: ExprSyntax(memberAccess)
+                )
               )
             )
           )
-          // Combine the enum pattern and tuple pattern
-          let patternWithAssociated = PatternSyntax(
-            TuplePatternSyntax(
-              leftParen: .leftParenToken(),
-              elements: TuplePatternElementListSyntax([
+          // Actually, Swift's catch pattern for associated values is: .caseName(let a, let b)
+          // So we want: ExpressionPatternSyntax(MemberAccessExprSyntax + tuplePattern)
+          let tuplePattern = TuplePatternSyntax(
+            leftParen: .leftParenToken(),
+            elements: TuplePatternElementListSyntax(
+              enumCase.caseAssociatedValues.enumerated().map { index, associated in
                 TuplePatternElementSyntax(
                   pattern: PatternSyntax(
                     ValueBindingPatternSyntax(
                       bindingSpecifier: .keyword(.let, trailingTrivia: .space),
                       pattern: PatternSyntax(
-                        IdentifierPatternSyntax(identifier: .identifier(associated.name)))
+                        IdentifierPatternSyntax(identifier: .identifier(associated.name))
+                      )
                     )
                   ),
-                  trailingComma: nil
+                  trailingComma: index < enumCase.caseAssociatedValues.count - 1
+                    ? .commaToken(trailingTrivia: .space) : nil
                 )
-              ]),
-              rightParen: .rightParenToken()
-            )
+              }
+            ),
+            rightParen: .rightParenToken()
           )
-          // Use a pattern that matches 'caseName(let coinsNeeded)'
-          patternSyntax = PatternSyntax(
-            ExpressionPatternSyntax(
-              expression: ExprSyntax(
-                FunctionCallExprSyntax(
-                  calledExpression: ExprSyntax(memberAccess),
-                  leftParen: .leftParenToken(),
-                  arguments: LabeledExprListSyntax([
-                    LabeledExprSyntax(
-                      label: nil,
-                      colon: nil,
-                      expression: ExprSyntax(
-                        PatternExprSyntax(
-                          pattern: PatternSyntax(
-                            ValueBindingPatternSyntax(
-                              bindingSpecifier: .keyword(.let, trailingTrivia: .space),
-                              pattern: PatternSyntax(
-                                IdentifierPatternSyntax(identifier: .identifier(associated.name)))
+          let patternSyntaxExpr = ExprSyntax(
+            FunctionCallExprSyntax(
+              calledExpression: ExprSyntax(memberAccess),
+              leftParen: .leftParenToken(),
+              arguments: LabeledExprListSyntax(
+                enumCase.caseAssociatedValues.enumerated().map { index, associated in
+                  LabeledExprSyntax(
+                    label: nil,
+                    colon: nil,
+                    expression: ExprSyntax(
+                      PatternExprSyntax(
+                        pattern: PatternSyntax(
+                          ValueBindingPatternSyntax(
+                            bindingSpecifier: .keyword(.let, trailingTrivia: .space),
+                            pattern: PatternSyntax(
+                              IdentifierPatternSyntax(identifier: .identifier(associated.name))
                             )
                           )
                         )
-                      ),
-                      trailingComma: nil
-                    )
-                  ]),
-                  rightParen: .rightParenToken()
-                )
-              )
+                      )
+                    ),
+                    trailingComma: index < enumCase.caseAssociatedValues.count - 1
+                      ? .commaToken(trailingTrivia: .space) : nil
+                  )
+                }
+              ),
+              rightParen: .rightParenToken()
             )
           )
+          patternSyntax = PatternSyntax(ExpressionPatternSyntax(expression: patternSyntaxExpr))
         } else {
-          // Handle EnumCase patterns without associated value
-          let enumCaseExpr = ExprSyntax(
-            DeclReferenceExprSyntax(baseName: .identifier(enumCase.caseName))
-          )
+          let enumCaseExpr = enumCase.asExpressionSyntax
           patternSyntax = PatternSyntax(ExpressionPatternSyntax(expression: enumCaseExpr))
         }
       } else {

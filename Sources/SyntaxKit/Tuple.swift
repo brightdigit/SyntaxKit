@@ -31,7 +31,7 @@ import SwiftSyntax
 
 /// A tuple expression, e.g. `(a, b, c)`.
 public struct Tuple: CodeBlock {
-  private let elements: [CodeBlock]
+  internal let elements: [CodeBlock]
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
 
@@ -86,7 +86,20 @@ public struct Tuple: CodeBlock {
 
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
-        let elementExpr = block.expr
+        let elementExpr: ExprSyntax
+        if isAsync {
+          // For async tuples, generate async let syntax for each element
+          // This assumes the block is a function call or expression that can be awaited
+          elementExpr = ExprSyntax(
+            AwaitExprSyntax(
+              awaitKeyword: .keyword(.await, trailingTrivia: .space),
+              expression: block.expr
+            )
+          )
+        } else {
+          elementExpr = block.expr
+        }
+
         return TupleExprElementSyntax(
           label: nil,
           colon: nil,
@@ -108,18 +121,6 @@ public struct Tuple: CodeBlock {
       return ExprSyntax(
         TryExprSyntax(
           tryKeyword: .keyword(.try, trailingTrivia: .space),
-          expression: isAsync
-            ? ExprSyntax(
-              AwaitExprSyntax(
-                awaitKeyword: .keyword(.await, trailingTrivia: .space),
-                expression: tupleExpr
-              )) : tupleExpr
-        )
-      )
-    } else if isAsync {
-      return ExprSyntax(
-        AwaitExprSyntax(
-          awaitKeyword: .keyword(.await, trailingTrivia: .space),
           expression: tupleExpr
         )
       )

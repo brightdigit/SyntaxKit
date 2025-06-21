@@ -8,19 +8,19 @@ Do {
     Call("print") {
         ParameterExp(unlabeled: Literal.string("Success! Yum."))
     }
-    } catch: {
-    Catch(EnumCase("VendingMachineError.invalidSelection")) {
+} catch: {
+    Catch(EnumCase("invalidSelection")) {
         Call("print") {
         ParameterExp(unlabeled: Literal.string("Invalid Selection."))
         }
     }
-    Catch(EnumCase("VendingMachineError.outOfStock")) {
+    Catch(EnumCase("outOfStock")) {
         Call("print") {
         ParameterExp(unlabeled: Literal.string("Out of Stock."))
         }
     }
     Catch(
-        EnumCase("VendingMachineError.insufficientFunds").associatedValue(
+        EnumCase("insufficientFunds").associatedValue(
         "coinsNeeded", type: "Int")
     ) {
         Call("print") {
@@ -46,21 +46,26 @@ Function("summarize") {
     }
 }.throws("StatisticsError")
 
-
-Variable(.let, name: "data") {
-    Call("fetchUserData") {
-        ParameterExp(name: "id", value: Literal.integer(1))
+Do {
+    Variable(.let, name: "data") {
+        Call("fetchUserData") {
+            ParameterExp(name: "id", value: Literal.integer(1))
+        }
+    }.async()
+    Variable(.let, name: "posts") {
+        Call("fetchUserPosts") {
+            ParameterExp(name: "id", value: Literal.integer(1))
+        }
+    }.async()
+    TupleAssignment(["fetchedData", "fetchedPosts"], equals: Tuple {
+        VariableExp("data")
+        VariableExp("posts")
+    }).async().throwing()
+} catch: {
+    Catch(EnumCase("fetchError")) {
+        // Example catch for async/await
     }
-}.async()
-Variable(.let, name: "posts") {
-    Call("fetchUserPosts") {
-        ParameterExp(name: "id", value: Literal.integer(1))
-    }
-}.async()
-TupleAssignment(["fetchedData", "fetchedPosts"], equals: Tuple {
-    VariableExp("data")
-    VariableExp("posts")
-}).async().throwing()
+}
 
 
 

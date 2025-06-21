@@ -29,7 +29,7 @@
 
 import Foundation
 
-/// A dictionary value that can be used as a literal.
+/// A dictionary literal value that can be used as a literal.
 public struct DictionaryLiteral: LiteralValue {
   let elements: [(Literal, Literal)]
 

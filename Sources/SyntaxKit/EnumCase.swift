@@ -7,7 +7,7 @@
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the “Software”), to deal in the Software without
+//  files (the "Software"), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -33,20 +33,19 @@ import SwiftSyntax
 public struct EnumCase: CodeBlock {
   private let name: String
   private var literalValue: Literal?
-  private var associatedValue: (name: String, type: String)?
+  private var associatedValues: [(name: String, type: String)] = []
 
   /// The name of the enum case.
   public var caseName: String { name }
 
-  /// The associated value for the enum case, if any.
-  public var caseAssociatedValue: (name: String, type: String)? { associatedValue }
+  /// The associated values for the enum case, if any.
+  public var caseAssociatedValues: [(name: String, type: String)] { associatedValues }
 
   /// Creates a `case` declaration.
   /// - Parameter name: The name of the case.
   public init(_ name: String) {
     self.name = name
     self.literalValue = nil
-    self.associatedValue = nil
   }
 
   /// Sets the associated value for the case.
@@ -56,7 +55,7 @@ public struct EnumCase: CodeBlock {
   /// - Returns: A copy of the case with the associated value set.
   public func associatedValue(_ name: String, type: String) -> Self {
     var copy = self
-    copy.associatedValue = (name: name, type: type)
+    copy.associatedValues.append((name: name, type: type))
     return copy
   }
 
@@ -92,31 +91,31 @@ public struct EnumCase: CodeBlock {
 
   /// Returns a SwiftSyntax expression for this enum case (for use in throw/return/etc).
   public var asExpressionSyntax: ExprSyntax {
-    // Support qualified (Type.case) and unqualified (.case) forms
     let parts = name.split(separator: ".", maxSplits: 1)
     let base: ExprSyntax? =
       parts.count == 2
-      ? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(String(parts[0])))) : nil
+      ? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(String(parts[0]))))
+      : nil
     let caseName = parts.count == 2 ? String(parts[1]) : name
-
     let memberAccess = MemberAccessExprSyntax(
       base: base,
       dot: .periodToken(),
       name: .identifier(caseName)
     )
-
-    if let associated = associatedValue {
-      // .caseName(associated)
+    if !associatedValues.isEmpty {
       let tuple = TupleExprSyntax(
         leftParen: .leftParenToken(),
-        elements: TupleExprElementListSyntax([
-          TupleExprElementSyntax(
-            label: nil,
-            colon: nil,
-            expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(associated.name))),
-            trailingComma: nil
-          )
-        ]),
+        elements: TupleExprElementListSyntax(
+          associatedValues.map { associated in
+            TupleExprElementSyntax(
+              label: nil,
+              colon: nil,
+              expression: ExprSyntax(
+                DeclReferenceExprSyntax(baseName: .identifier(associated.name))),
+              trailingComma: nil
+            )
+          }
+        ),
         rightParen: .rightParenToken()
       )
       return ExprSyntax(
@@ -131,21 +130,36 @@ public struct EnumCase: CodeBlock {
     }
   }
 
+  /// Returns the appropriate syntax based on context.
+  /// When used in expressions (throw, return, if bodies), returns expression syntax.
+  /// When used in declarations (enum cases), returns declaration syntax.
   public var syntax: SyntaxProtocol {
+    // Check if we're in an expression context by looking at the call stack
+    // For now, we'll use a heuristic: if this is being used in a context that expects expressions,
+    // we'll return the expression syntax. Otherwise, we'll return the declaration syntax.
+
+    // Since we can't easily determine context from here, we'll provide both options
+    // and let the calling code choose. For now, we'll default to declaration syntax
+    // and let specific contexts (like Throw) handle the conversion.
+
     let caseKeyword = TokenSyntax.keyword(.case, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
 
     var parameterClause: EnumCaseParameterClauseSyntax?
-    if let associated = associatedValue {
-      let parameter = EnumCaseParameterSyntax(
-        firstName: .identifier(associated.name),
-        secondName: .identifier(associated.name),
-        colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: TypeSyntax(IdentifierTypeSyntax(name: .identifier(associated.type)))
+    if !associatedValues.isEmpty {
+      let parameters = EnumCaseParameterListSyntax(
+        associatedValues.map { associated in
+          EnumCaseParameterSyntax(
+            firstName: .identifier(associated.name),
+            secondName: .identifier(associated.name),
+            colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
+            type: TypeSyntax(IdentifierTypeSyntax(name: .identifier(associated.type)))
+          )
+        }
       )
       parameterClause = EnumCaseParameterClauseSyntax(
         leftParen: .leftParenToken(),
-        parameters: EnumCaseParameterListSyntax([parameter]),
+        parameters: parameters,
         rightParen: .rightParenToken()
       )
     }
@@ -215,5 +229,11 @@ public struct EnumCase: CodeBlock {
         )
       ])
     )
+  }
+
+  /// Returns the expression syntax for this enum case.
+  /// This is the preferred method when using EnumCase in expression contexts.
+  public var exprSyntax: ExprSyntax {
+    asExpressionSyntax
   }
 }

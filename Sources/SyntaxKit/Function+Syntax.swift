@@ -30,6 +30,7 @@
 import SwiftSyntax
 
 extension Function {
+  /// The syntax representation of this function.
   public var syntax: SyntaxProtocol {
     let funcKeyword = TokenSyntax.keyword(.func, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)

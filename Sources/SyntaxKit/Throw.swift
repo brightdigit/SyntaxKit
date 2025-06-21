@@ -27,8 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
 import SwiftSyntax
 
+/// A Swift `throw` statement.
 public struct Throw: CodeBlock {
   private let expr: CodeBlock
 

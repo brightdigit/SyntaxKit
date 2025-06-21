@@ -44,7 +44,12 @@ extension Function {
   /// - Parameter rethrows: Pass `true` to emit `rethrows` instead of `throws`.
   public func `throws`(isRethrows: Bool = false) -> Self {
     var copy = self
-    copy.effect = .throws(isRethrows: isRethrows, errorType: nil)
+    switch effect {
+    case .async:
+      copy.effect = .asyncThrows(isRethrows: isRethrows, errorType: nil)
+    default:
+      copy.effect = .throws(isRethrows: isRethrows, errorType: nil)
+    }
     return copy
   }
 
@@ -52,7 +57,12 @@ extension Function {
   /// - Parameter errorType: The error type to specify in the throws clause.
   public func `throws`(_ errorType: String) -> Self {
     var copy = self
-    copy.effect = .throws(isRethrows: false, errorType: errorType)
+    switch effect {
+    case .async:
+      copy.effect = .asyncThrows(isRethrows: false, errorType: errorType)
+    default:
+      copy.effect = .throws(isRethrows: false, errorType: errorType)
+    }
     return copy
   }
 

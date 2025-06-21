@@ -32,14 +32,14 @@ import SwiftSyntax
 
 /// A Swift `let` or `var` declaration with an explicit type.
 public struct Variable: CodeBlock {
-  let kind: VariableKind
-  let name: String
-  let type: String
-  let defaultValue: CodeBlock?
-  var isStatic: Bool = false
-  var isAsync: Bool = false
-  var attributes: [AttributeInfo] = []
-  var explicitType: Bool = false
+  private let kind: VariableKind
+  private let name: String
+  private let type: String
+  private let defaultValue: CodeBlock?
+  private var isStatic: Bool = false
+  private var isAsync: Bool = false
+  private var attributes: [AttributeInfo] = []
+  private var explicitType: Bool = false
 
   /// Internal initializer used by extension initializers to reduce code duplication.
   /// - Parameters:
@@ -199,5 +199,17 @@ public struct Variable: CodeBlock {
     }
 
     return AttributeListSyntax(attributeElements)
+  }
+
+  public enum VariableKind {
+    case `var`
+    case `let`
+    case `static`
+    case `lazy`
+    case `weak`
+    case `unowned`
+    case `final`
+    case `override`
+    case `mutating`
   }
 }

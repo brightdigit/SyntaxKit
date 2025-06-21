@@ -43,7 +43,7 @@ public struct VariableExp: CodeBlock, PatternConvertible {
   /// - Parameter propertyName: The name of the property to access.
   /// - Returns: A ``PropertyAccessExp`` that represents the property access.
   public func property(_ propertyName: String) -> PropertyAccessExp {
-    PropertyAccessExp(baseName: name, propertyName: propertyName)
+    PropertyAccessExp(base: self, propertyName: propertyName)
   }
 
   /// Calls a method on the variable.
@@ -75,30 +75,45 @@ public struct VariableExp: CodeBlock, PatternConvertible {
 
 /// An expression that accesses a property on a base expression.
 public struct PropertyAccessExp: CodeBlock {
-  internal let baseName: String
+  internal let base: CodeBlock
   internal let propertyName: String
 
   /// Creates a property access expression.
   /// - Parameters:
-  ///  - baseName: The name of the base variable.
+  ///  - base: The base expression.
   ///  - propertyName: The name of the property to access.
-  public init(baseName: String, propertyName: String) {
-    self.baseName = baseName
+  public init(base: CodeBlock, propertyName: String) {
+    self.base = base
     self.propertyName = propertyName
+  }
+
+  /// Convenience initializer for backward compatibility (baseName as String).
+  public init(baseName: String, propertyName: String) {
+    self.base = VariableExp(baseName)
+    self.propertyName = propertyName
+  }
+
+  /// Accesses a property on the current property access expression (chaining).
+  /// - Parameter propertyName: The name of the next property to access.
+  /// - Returns: A new ``PropertyAccessExp`` representing the chained property access.
+  public func property(_ propertyName: String) -> PropertyAccessExp {
+    PropertyAccessExp(base: self, propertyName: propertyName)
   }
 
   /// Negates the property access expression.
   /// - Returns: A negated property access expression.
   public func not() -> CodeBlock {
-    NegatedPropertyAccessExp(baseName: baseName, propertyName: propertyName)
+    NegatedPropertyAccessExp(base: self)
   }
 
   public var syntax: SyntaxProtocol {
-    let base = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(baseName)))
+    let baseSyntax =
+      base.syntax.as(ExprSyntax.self)
+      ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     let property = TokenSyntax.identifier(propertyName)
     return ExprSyntax(
       MemberAccessExprSyntax(
-        base: base,
+        base: baseSyntax,
         dot: .periodToken(),
         name: property
       ))
@@ -107,27 +122,23 @@ public struct PropertyAccessExp: CodeBlock {
 
 /// An expression that negates a property access.
 public struct NegatedPropertyAccessExp: CodeBlock {
-  internal let baseName: String
-  internal let propertyName: String
+  internal let base: CodeBlock
 
   /// Creates a negated property access expression.
-  /// - Parameters:
-  ///  - baseName: The name of the base variable.
-  ///  - propertyName: The name of the property to access.
+  /// - Parameter base: The base property access expression.
+  public init(base: CodeBlock) {
+    self.base = base
+  }
+
+  /// Backward compatibility initializer for (baseName, propertyName).
   public init(baseName: String, propertyName: String) {
-    self.baseName = baseName
-    self.propertyName = propertyName
+    self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
   }
 
   public var syntax: SyntaxProtocol {
-    let base = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(baseName)))
-    let property = TokenSyntax.identifier(propertyName)
-    let memberAccess = ExprSyntax(
-      MemberAccessExprSyntax(
-        base: base,
-        dot: .periodToken(),
-        name: property
-      ))
+    let memberAccess =
+      base.syntax.as(ExprSyntax.self)
+      ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     return ExprSyntax(
       PrefixOperatorExprSyntax(
         operator: .prefixOperator("!", leadingTrivia: [], trailingTrivia: []),

@@ -27,9 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
 import SwiftSyntax
 
-/// A Swift `do-catch` statement.
+/// A Swift `do` statement for error handling.
 public struct Do: CodeBlock {
   private let body: [CodeBlock]
   private let catchClauses: CatchClauseListSyntax

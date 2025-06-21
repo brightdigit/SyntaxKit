@@ -27,14 +27,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
 import SwiftSyntax
 
-/// A tuple destructuring pattern for variable declarations.
+/// A tuple assignment statement for destructuring multiple values.
 public struct TupleAssignment: CodeBlock {
   private let elements: [String]
   private let value: CodeBlock
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
+  private var isAsyncSet: Bool = false
 
   /// Creates a tuple destructuring declaration.
   /// - Parameters:
@@ -61,7 +63,106 @@ public struct TupleAssignment: CodeBlock {
     return copy
   }
 
+  /// Marks this destructuring as concurrent async (async let set).
+  /// - Returns: A copy of the destructuring marked as async set.
+  public func asyncSet() -> Self {
+    var copy = self
+    copy.isAsyncSet = true
+    return copy
+  }
+
+  /// The syntax representation of this tuple assignment.
   public var syntax: SyntaxProtocol {
+    if isAsyncSet {
+      // Generate a single async let tuple destructuring assignment
+      guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
+        fatalError(
+          "asyncSet requires a Tuple value with the same number of elements as the assignment.")
+      }
+      // Build the tuple pattern
+      let patternElements = TuplePatternElementListSyntax(
+        elements.enumerated().map { index, element in
+          TuplePatternElementSyntax(
+            label: nil,
+            colon: nil,
+            pattern: PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(element))),
+            trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+          )
+        }
+      )
+      let tuplePattern = PatternSyntax(
+        TuplePatternSyntax(
+          leftParen: .leftParenToken(),
+          elements: patternElements,
+          rightParen: .rightParenToken()
+        )
+      )
+      let tupleExpr = ExprSyntax(
+        TupleExprSyntax(
+          leftParen: .leftParenToken(),
+          elements: LabeledExprListSyntax(
+            tuple.elements.enumerated().map { index, block in
+              LabeledExprSyntax(
+                label: nil,
+                colon: nil,
+                expression: block.expr,
+                trailingComma: index < tuple.elements.count - 1
+                  ? .commaToken(trailingTrivia: .space) : nil
+              )
+            }
+          ),
+          rightParen: .rightParenToken()
+        )
+      )
+      let valueExpr: ExprSyntax =
+        isThrowing
+        ? ExprSyntax(
+          TryExprSyntax(
+            tryKeyword: .keyword(.try, trailingTrivia: .space),
+            expression: ExprSyntax(
+              AwaitExprSyntax(
+                awaitKeyword: .keyword(.await, trailingTrivia: .space),
+                expression: tupleExpr
+              )
+            )
+          )
+        )
+        : ExprSyntax(
+          AwaitExprSyntax(
+            awaitKeyword: .keyword(.await, trailingTrivia: .space),
+            expression: tupleExpr
+          )
+        )
+      // async let (a, b) = try await (...)
+      let asyncLet = CodeBlockItemSyntax(
+        item: CodeBlockItemSyntax.Item.decl(
+          DeclSyntax(
+            VariableDeclSyntax(
+              modifiers: DeclModifierListSyntax([
+                DeclModifierSyntax(
+                  name: .keyword(.async, trailingTrivia: .space)
+                )
+              ]),
+              bindingSpecifier: .keyword(.let, trailingTrivia: .space),
+              bindings: PatternBindingListSyntax([
+                PatternBindingSyntax(
+                  pattern: tuplePattern,
+                  initializer: InitializerClauseSyntax(
+                    equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
+                    value: valueExpr
+                  )
+                )
+              ])
+            )
+          )
+        )
+      )
+      return CodeBlockSyntax(
+        leftBrace: .leftBraceToken(),
+        statements: CodeBlockItemListSyntax([asyncLet]),
+        rightBrace: .rightBraceToken()
+      )
+    }
     // Build the tuple pattern
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
@@ -85,32 +186,45 @@ public struct TupleAssignment: CodeBlock {
     // Build the value expression
     let valueExpr: ExprSyntax
     if isThrowing {
-      valueExpr = ExprSyntax(
-        TryExprSyntax(
-          tryKeyword: .keyword(.try, trailingTrivia: .space),
-          expression: isAsync
-            ? ExprSyntax(
-              AwaitExprSyntax(
-                awaitKeyword: .keyword(.await, trailingTrivia: .space),
-                expression: value.syntax.as(ExprSyntax.self)
-                  ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-              ))
-            : value.syntax.as(ExprSyntax.self)
-              ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-        )
-      )
-    } else if isAsync {
-      valueExpr = ExprSyntax(
-        AwaitExprSyntax(
-          awaitKeyword: .keyword(.await, trailingTrivia: .space),
-          expression: value.syntax.as(ExprSyntax.self)
-            ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-        )
-      )
-    } else {
-      valueExpr =
+      let baseExpr =
         value.syntax.as(ExprSyntax.self)
         ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+
+      if isAsync {
+        valueExpr = ExprSyntax(
+          TryExprSyntax(
+            tryKeyword: .keyword(.try, trailingTrivia: .space),
+            expression: ExprSyntax(
+              AwaitExprSyntax(
+                awaitKeyword: .keyword(.await, trailingTrivia: .space),
+                expression: baseExpr
+              )
+            )
+          )
+        )
+      } else {
+        valueExpr = ExprSyntax(
+          TryExprSyntax(
+            tryKeyword: .keyword(.try, trailingTrivia: .space),
+            expression: baseExpr
+          )
+        )
+      }
+    } else {
+      let baseExpr =
+        value.syntax.as(ExprSyntax.self)
+        ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+
+      if isAsync {
+        valueExpr = ExprSyntax(
+          AwaitExprSyntax(
+            awaitKeyword: .keyword(.await, trailingTrivia: .space),
+            expression: baseExpr
+          )
+        )
+      } else {
+        valueExpr = baseExpr
+      }
     }
 
     // Build the variable declaration

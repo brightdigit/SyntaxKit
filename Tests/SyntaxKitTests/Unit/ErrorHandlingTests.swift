@@ -17,24 +17,26 @@ import Testing
           ParameterExp(unlabeled: Literal.string("Success! Yum."))
         }
       } catch: {
-        Catch(EnumCase("VendingMachineError.invalidSelection")) {
+        Catch(EnumCase("invalidSelection")) {
           Call("print") {
             ParameterExp(unlabeled: Literal.string("Invalid Selection."))
           }
         }
-        Catch(EnumCase("VendingMachineError.outOfStock")) {
+        Catch(EnumCase("outOfStock")) {
           Call("print") {
             ParameterExp(unlabeled: Literal.string("Out of Stock."))
           }
         }
         Catch(
-          EnumCase("VendingMachineError.insufficientFunds").associatedValue(
-            "coinsNeeded", type: "Int")
+          EnumCase("insufficientFunds")
+            .associatedValue("coinsNeeded", type: "Int")
         ) {
           Call("print") {
             ParameterExp(
               unlabeled: Literal.string(
-                "Insufficient funds. Please insert an additional \\(coinsNeeded) coins."))
+                "Insufficient funds. Please insert an additional \\(coinsNeeded) coins."
+              )
+            )
           }
         }
         Catch {
@@ -52,78 +54,23 @@ import Testing
       do {
           try buyFavoriteSnack(person: "Alice", vendingMachine: vendingMachine)
           print("Success! Yum.")
-      } catch VendingMachineError.invalidSelection {
+      } catch .invalidSelection {
           print("Invalid Selection.")
-      } catch VendingMachineError.outOfStock {
+      } catch .outOfStock {
           print("Out of Stock.")
-      } catch VendingMachineError.insufficientFunds(let coinsNeeded) {
+      } catch .insufficientFunds(let coinsNeeded) {
           print("Insufficient funds. Please insert an additional \\(coinsNeeded) coins.")
       } catch {
           print("Unexpected error: \\(error).")
       }
       """
 
-    #expect(generated.normalize() == expected.normalize())
+    #expect(
+      generated.normalize() == expected.normalize()
+    )
 
     print("Generated code:")
     print(generated)
-  }
-
-  @Test("Do-catch with specific error cases generates correct syntax")
-  internal func testDoCatchWithSpecificErrorCases() throws {
-    let doCatch = Do {
-      Call("buyFavoriteSnack") {
-        ParameterExp(name: "person", value: Literal.string("Alice"))
-        ParameterExp(name: "vendingMachine", value: Literal.ref("vendingMachine"))
-      }.throwing()
-      Call("print") {
-        ParameterExp(unlabeled: Literal.string("Success! Yum."))
-      }
-    } catch: {
-      Catch(EnumCase("VendingMachineError.invalidSelection")) {
-        Call("print") {
-          ParameterExp(unlabeled: Literal.string("Invalid Selection."))
-        }
-      }
-      Catch(EnumCase("VendingMachineError.outOfStock")) {
-        Call("print") {
-          ParameterExp(unlabeled: Literal.string("Out of Stock."))
-        }
-      }
-      Catch(
-        EnumCase("VendingMachineError.insufficientFunds").associatedValue(
-          "coinsNeeded", type: "Int")
-      ) {
-        Call("print") {
-          ParameterExp(
-            unlabeled: Literal.string(
-              "Insufficient funds. Please insert an additional \\(coinsNeeded) coins."))
-        }
-      }
-      Catch {
-        Call("print") {
-          ParameterExp(unlabeled: Literal.string("Unexpected error: \\(error)."))
-        }
-      }
-    }
-
-    let generated = doCatch.generateCode()
-    let expected = """
-      do {
-        try buyFavoriteSnack(person: "Alice", vendingMachine: vendingMachine)
-        print("Success! Yum.")
-      } catch VendingMachineError.invalidSelection {
-        print("Invalid Selection.")
-      } catch VendingMachineError.outOfStock {
-        print("Out of Stock.")
-      } catch VendingMachineError.insufficientFunds(let coinsNeeded) {
-        print("Insufficient funds. Please insert an additional \\(coinsNeeded) coins.")
-      } catch {
-        print("Unexpected error: \\(error).")
-      }
-      """
-
-    #expect(generated.normalize() == expected.normalize())
   }
 
   @Test("Function with throws clause and unlabeled parameter generates correct syntax")

@@ -68,3 +68,33 @@ public struct Infix: CodeBlock {
     )
   }
 }
+
+// MARK: - Operator Overloads for Infix Expressions
+
+public func > (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
+  Infix(">") {
+    lhs
+    rhs
+  }
+}
+
+public func < (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
+  Infix("<") {
+    lhs
+    rhs
+  }
+}
+
+public func == (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
+  Infix("==") {
+    lhs
+    rhs
+  }
+}
+
+public func != (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
+  Infix("!=") {
+    lhs
+    rhs
+  }
+}
