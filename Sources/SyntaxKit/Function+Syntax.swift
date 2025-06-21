@@ -110,60 +110,7 @@ extension Function {
     )
 
     // Build effect specifiers (async / throws)
-    let effectSpecifiers: FunctionEffectSpecifiersSyntax? = {
-      switch effect {
-      case .none:
-        return nil
-      case .throws(let isRethrows, let errorType):
-        let throwsSpecifier: TokenSyntax
-        if let errorType = errorType {
-          throwsSpecifier = .keyword(
-            isRethrows ? .rethrows : .throws, leadingTrivia: .space)
-          return FunctionEffectSpecifiersSyntax(
-            asyncSpecifier: nil,
-            throwsClause: ThrowsClauseSyntax(
-              throwsSpecifier: throwsSpecifier,
-              leftParen: .leftParenToken(),
-              type: IdentifierTypeSyntax(name: .identifier(errorType)),
-              rightParen: .rightParenToken()
-            )
-          )
-        } else {
-          throwsSpecifier = .keyword(
-            isRethrows ? .rethrows : .throws, leadingTrivia: .space)
-          return FunctionEffectSpecifiersSyntax(
-            asyncSpecifier: nil,
-            throwsSpecifier: throwsSpecifier
-          )
-        }
-      case .async:
-        return FunctionEffectSpecifiersSyntax(
-          asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-          throwsSpecifier: nil
-        )
-      case .asyncThrows(let isRethrows, let errorType):
-        let throwsSpecifier: TokenSyntax
-        if let errorType = errorType {
-          throwsSpecifier = .keyword(.throws, leadingTrivia: .space)
-          return FunctionEffectSpecifiersSyntax(
-            asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-            throwsClause: ThrowsClauseSyntax(
-              throwsSpecifier: throwsSpecifier,
-              leftParen: .leftParenToken(),
-              type: IdentifierTypeSyntax(name: .identifier(errorType)),
-              rightParen: .rightParenToken()
-            )
-          )
-        } else {
-          throwsSpecifier = .keyword(
-            isRethrows ? .rethrows : .throws, leadingTrivia: .space)
-          return FunctionEffectSpecifiersSyntax(
-            asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-            throwsSpecifier: throwsSpecifier
-          )
-        }
-      }
-    }()
+    let effectSpecifiers = buildEffectSpecifiers()
 
     // Build modifiers
     var modifiers: DeclModifierListSyntax = []

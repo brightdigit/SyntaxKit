@@ -74,95 +74,58 @@ public struct TupleAssignment: CodeBlock {
   /// The syntax representation of this tuple assignment.
   public var syntax: SyntaxProtocol {
     if isAsyncSet {
-      // Generate a single async let tuple destructuring assignment
-      guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
-        fatalError(
-          "asyncSet requires a Tuple value with the same number of elements as the assignment.")
-      }
-      // Build the tuple pattern
-      let patternElements = TuplePatternElementListSyntax(
-        elements.enumerated().map { index, element in
-          TuplePatternElementSyntax(
-            label: nil,
-            colon: nil,
-            pattern: PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(element))),
-            trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
-          )
-        }
-      )
-      let tuplePattern = PatternSyntax(
-        TuplePatternSyntax(
-          leftParen: .leftParenToken(),
-          elements: patternElements,
-          rightParen: .rightParenToken()
-        )
-      )
-      let tupleExpr = ExprSyntax(
-        TupleExprSyntax(
-          leftParen: .leftParenToken(),
-          elements: LabeledExprListSyntax(
-            tuple.elements.enumerated().map { index, block in
-              LabeledExprSyntax(
-                label: nil,
-                colon: nil,
-                expression: block.expr,
-                trailingComma: index < tuple.elements.count - 1
-                  ? .commaToken(trailingTrivia: .space) : nil
-              )
-            }
-          ),
-          rightParen: .rightParenToken()
-        )
-      )
-      let valueExpr: ExprSyntax =
-        isThrowing
-        ? ExprSyntax(
-          TryExprSyntax(
-            tryKeyword: .keyword(.try, trailingTrivia: .space),
-            expression: ExprSyntax(
-              AwaitExprSyntax(
-                awaitKeyword: .keyword(.await, trailingTrivia: .space),
-                expression: tupleExpr
-              )
-            )
-          )
-        )
-        : ExprSyntax(
-          AwaitExprSyntax(
-            awaitKeyword: .keyword(.await, trailingTrivia: .space),
-            expression: tupleExpr
-          )
-        )
-      // async let (a, b) = try await (...)
-      let asyncLet = CodeBlockItemSyntax(
-        item: CodeBlockItemSyntax.Item.decl(
-          DeclSyntax(
-            VariableDeclSyntax(
-              modifiers: DeclModifierListSyntax([
-                DeclModifierSyntax(
-                  name: .keyword(.async, trailingTrivia: .space)
-                )
-              ]),
-              bindingSpecifier: .keyword(.let, trailingTrivia: .space),
-              bindings: PatternBindingListSyntax([
-                PatternBindingSyntax(
-                  pattern: tuplePattern,
-                  initializer: InitializerClauseSyntax(
-                    equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-                    value: valueExpr
-                  )
-                )
-              ])
-            )
-          )
-        )
-      )
-      return CodeBlockSyntax(
-        leftBrace: .leftBraceToken(),
-        statements: CodeBlockItemListSyntax([asyncLet]),
-        rightBrace: .rightBraceToken()
-      )
+      return generateAsyncSetSyntax()
     }
+    return generateRegularSyntax()
+  }
+
+  /// Generates the asyncSet tuple assignment syntax.
+  private func generateAsyncSetSyntax() -> SyntaxProtocol {
+    // Generate a single async let tuple destructuring assignment
+    guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
+      fatalError(
+        "asyncSet requires a Tuple value with the same number of elements as the assignment.")
+    }
+
+    // Use helpers from AsyncSet
+    let tuplePattern = AsyncSet.tuplePattern(elements: elements)
+    let tupleExpr = AsyncSet.tupleExpr(tuple: tuple)
+    let valueExpr = AsyncSet.valueExpr(tupleExpr: tupleExpr, isThrowing: isThrowing)
+
+    // Build the async let declaration
+    let asyncLet = CodeBlockItemSyntax(
+      item: CodeBlockItemSyntax.Item.decl(
+        DeclSyntax(
+          VariableDeclSyntax(
+            modifiers: DeclModifierListSyntax([
+              DeclModifierSyntax(
+                name: .keyword(.async, trailingTrivia: .space)
+              )
+            ]),
+            bindingSpecifier: .keyword(.let, trailingTrivia: .space),
+            bindings: PatternBindingListSyntax([
+              PatternBindingSyntax(
+                pattern: tuplePattern,
+                initializer: InitializerClauseSyntax(
+                  equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
+                  value: valueExpr
+                )
+              )
+            ])
+          )
+        )
+      )
+    )
+
+    return CodeBlockSyntax(
+      leftBrace: .leftBraceToken(),
+      statements: CodeBlockItemListSyntax([asyncLet]),
+      rightBrace: .rightBraceToken()
+    )
+  }
+
+  /// Generates the regular tuple assignment syntax.
+  private func generateRegularSyntax() -> SyntaxProtocol {
     // Build the tuple pattern
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
