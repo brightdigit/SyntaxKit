@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  SwitchLet.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,50 +27,32 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
+/// A value binding pattern for use in switch cases.
+public struct SwitchLet: PatternConvertible, CodeBlock {
+  internal let name: String
 
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
+  /// Creates a value binding pattern for a switch case.
+  /// - Parameter name: The name of the variable to bind.
+  public init(_ name: String) {
+    self.name = name
   }
-}
 
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
+  public var patternSyntax: PatternSyntax {
+    let identifier = IdentifierPatternSyntax(
+      identifier: .identifier(name)
+    )
+    return PatternSyntax(
+      ValueBindingPatternSyntax(
+        bindingSpecifier: .keyword(.let, trailingTrivia: .space),
+        pattern: identifier
+      )
+    )
   }
-}
 
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
-    }
-    """
+  public var syntax: SyntaxProtocol {
+    // For CodeBlock conformance, return the pattern syntax
+    patternSyntax
   }
 }

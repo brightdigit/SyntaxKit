@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  LetBindingPattern.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,50 +27,35 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
+// MARK: - Let binding pattern
 
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
+/// Namespace for pattern creation utilities.
+public enum Pattern {
+  /// Creates a `let` binding pattern for switch cases.
+  /// - Parameter identifier: The name of the variable to bind.
+  /// - Returns: A pattern that binds the value to the given identifier.
+  public static func `let`(_ identifier: String) -> LetBindingPattern {
+    LetBindingPattern(identifier: identifier)
   }
 }
 
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
+/// A `let` binding pattern for switch cases.
+public struct LetBindingPattern: PatternConvertible {
+  private let identifier: String
 
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
-    }
-    """
+  internal init(identifier: String) {
+    self.identifier = identifier
+  }
+
+  /// SwiftSyntax representation of the let binding pattern.
+  public var patternSyntax: PatternSyntax {
+    PatternSyntax(
+      ValueBindingPatternSyntax(
+        bindingSpecifier: .keyword(.let, trailingTrivia: .space),
+        pattern: PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(identifier)))
+      )
+    )
   }
 }

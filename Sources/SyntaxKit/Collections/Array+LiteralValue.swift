@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  Array+LiteralValue.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,48 +29,24 @@
 
 import Foundation
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
+extension Array: LiteralValue where Element == String {
+  /// The Swift type name for an array of strings.
+  public var typeName: String { "[String]" }
 
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
-  }
-}
-
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
+  /// Renders this array as a Swift literal string with proper escaping.
+  public var literalString: String {
+    let elements = self.map { element in
+      // Escape quotes and newlines
+      let escaped =
+        element
+        .replacingOccurrences(of: "\\", with: "\\\\")
+        .replacingOccurrences(of: "\"", with: "\\\"")
+        .replacingOccurrences(of: "\n", with: "\\n")
+        .replacingOccurrences(of: "\r", with: "\\r")
+        .replacingOccurrences(of: "\t", with: "\\t")
+      return "\"\(escaped)\""
     }
-    """
+    .joined(separator: ", ")
+    return "[\(elements)]"
   }
 }

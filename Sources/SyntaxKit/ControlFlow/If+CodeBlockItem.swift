@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  If+CodeBlockItem.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,50 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
-
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
-  }
-}
-
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
+extension If {
+  /// Creates a code block item from a CodeBlock.
+  internal func createCodeBlockItem(from block: CodeBlock) -> CodeBlockItemSyntax? {
+    if let enumCase = block as? EnumCase {
+      // Handle EnumCase specially - use expression syntax for enum cases in expressions
+      return CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax))
+    } else if let decl = block.syntax.as(DeclSyntax.self) {
+      return CodeBlockItemSyntax(item: .decl(decl))
+    } else if let expr = block.syntax.as(ExprSyntax.self) {
+      return CodeBlockItemSyntax(item: .expr(expr))
+    } else if let stmt = block.syntax.as(StmtSyntax.self) {
+      return CodeBlockItemSyntax(item: .stmt(stmt))
     }
-    """
+    return nil
   }
 }

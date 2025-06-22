@@ -63,15 +63,16 @@ internal final class TokenVisitor: SyntaxRewriter {
 
     let graphemeStartColumn: Int
     if let prefix = String(
-      locationConverter.sourceLines[start.line - 1].utf8.prefix(start.column - 1))
-    {
+      locationConverter.sourceLines[start.line - 1].utf8.prefix(start.column - 1)
+    ) {
       graphemeStartColumn = prefix.utf16.count + 1
     } else {
       graphemeStartColumn = start.column
     }
     let graphemeEndColumn: Int
-    if let prefix = String(locationConverter.sourceLines[end.line - 1].utf8.prefix(end.column - 1))
-    {
+    if let prefix = String(
+      locationConverter.sourceLines[end.line - 1].utf8.prefix(end.column - 1)
+    ) {
       graphemeEndColumn = prefix.utf16.count + 1
     } else {
       graphemeEndColumn = end.column
@@ -117,7 +118,8 @@ internal final class TokenVisitor: SyntaxRewriter {
           }
           guard allChildren.contains(where: { child in child.keyPathInParent == keyPath }) else {
             treeNode.structure.append(
-              StructureProperty(name: name, value: StructureValue(text: "nil")))
+              StructureProperty(name: name, value: StructureValue(text: "nil"))
+            )
             continue
           }
 
@@ -166,7 +168,10 @@ internal final class TokenVisitor: SyntaxRewriter {
         StructureProperty(name: "Element", value: StructureValue(text: "\(syntax)")))
       treeNode.structure.append(
         StructureProperty(
-          name: "Count", value: StructureValue(text: "\(node.children(viewMode: .all).count)")))
+          name: "Count",
+          value: StructureValue(text: "\(node.children(viewMode: .all).count)")
+        )
+      )
     case .choices:
       break
     }

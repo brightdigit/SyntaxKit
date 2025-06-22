@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  If+Body.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,50 +27,24 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
-
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
+extension If {
+  /// Builds the body block for the if statement.
+  internal func buildBody() -> CodeBlockSyntax {
+    CodeBlockSyntax(
+      leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
+      statements: buildBodyStatements(from: body),
+      rightBrace: .rightBraceToken(leadingTrivia: .newline)
+    )
   }
-}
 
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
-    }
-    """
+  /// Builds the statements for a code block from an array of CodeBlocks.
+  internal func buildBodyStatements(from blocks: [CodeBlock]) -> CodeBlockItemListSyntax {
+    CodeBlockItemListSyntax(
+      blocks.compactMap { block in
+        createCodeBlockItem(from: block)?.with(\.trailingTrivia, .newline)
+      }
+    )
   }
 }

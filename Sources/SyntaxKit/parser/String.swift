@@ -39,7 +39,11 @@ extension String {
     ]
     for (unescaped, escaped) in specialCharacters {
       string = string.replacingOccurrences(
-        of: unescaped, with: escaped, options: .literal, range: nil)
+        of: unescaped,
+        with: escaped,
+        options: .literal,
+        range: nil
+      )
     }
     return string
   }

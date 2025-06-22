@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  CodeBlock+Generate.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,49 +28,34 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
-
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
-  }
-}
-
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
+extension CodeBlock {
+  /// Generates the Swift code for the ``CodeBlock``.
+  /// - Returns: The generated Swift code as a string.
+  public func generateCode() -> String {
+    let statements: CodeBlockItemListSyntax
+    if let list = self.syntax.as(CodeBlockItemListSyntax.self) {
+      statements = list
+    } else if let codeBlock = self.syntax.as(CodeBlockSyntax.self) {
+      // Handle CodeBlockSyntax by extracting its statements
+      statements = codeBlock.statements
+    } else {
+      let item: CodeBlockItemSyntax.Item
+      if let convertedItem = CodeBlockItemSyntax.Item.create(from: self.syntax) {
+        item = convertedItem
+      } else {
+        fatalError(
+          "Unsupported syntax type at top level: \(type(of: self.syntax)) (\(self.syntax)) "
+            + "generating from \(self)"
+        )
+      }
+      statements = CodeBlockItemListSyntax([
+        CodeBlockItemSyntax(item: item, trailingTrivia: .newline)
+      ])
     }
-    """
+
+    let sourceFile = SourceFileSyntax(statements: statements)
+    return sourceFile.description.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 }

@@ -93,11 +93,11 @@ import Testing
           Call("print") {
             ParameterExp(
               name: "",
-              value:
-                "\"The string \"\\(possibleNumber)\" could not be converted to an integer\""
+              value: "\"The string \"\\(possibleNumber)\" could not be converted to an integer\""
             )
           }
-        })
+        }
+      )
 
       // Multiple optional bindings
       Variable(.let, name: "possibleName", type: "String?", equals: Literal.string("John"))
@@ -118,28 +118,34 @@ import Testing
       }
 
       // MARK: - Guard Statements
-      Function("greet", { Parameter(name: "person", type: "[String: String]") }) {
-        Guard {
-          Let("name", "person[\"name\"]")
-        } else: {
+      Function(
+        "greet",
+        {
+          Parameter(name: "person", type: "[String: String]")
+        },
+        {
+          Guard {
+            Let("name", "person[\"name\"]")
+          } else: {
+            Call("print") {
+              ParameterExp(name: "", value: "\"No name provided\"")
+            }
+          }
+
+          Guard {
+            Let("age", "person[\"age\"]")
+            Let("ageInt", "Int(age)")
+          } else: {
+            Call("print") {
+              ParameterExp(name: "", value: "\"Invalid age provided\"")
+            }
+          }
+
           Call("print") {
-            ParameterExp(name: "", value: "\"No name provided\"")
+            ParameterExp(name: "", value: "\"Hello \\(name), you are \\(ageInt) years old\"")
           }
         }
-
-        Guard {
-          Let("age", "person[\"age\"]")
-          Let("ageInt", "Int(age)")
-        } else: {
-          Call("print") {
-            ParameterExp(name: "", value: "\"Invalid age provided\"")
-          }
-        }
-
-        Call("print") {
-          ParameterExp(name: "", value: "\"Hello \\(name), you are \\(ageInt) years old\"")
-        }
-      }
+      )
       .comment {
         Line("MARK: - Guard Statements")
       }

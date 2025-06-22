@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  CodeBlockBuilderResult.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,48 +29,31 @@
 
 import Foundation
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
-
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
+/// A result builder for creating arrays of ``CodeBlock``s.
+@resultBuilder
+public enum CodeBlockBuilderResult {
+  /// Builds a block of ``CodeBlock``s.
+  public static func buildBlock(_ components: CodeBlock...) -> [CodeBlock] {
+    components
   }
-}
 
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
+  /// Builds an optional ``CodeBlock``.
+  public static func buildOptional(_ component: CodeBlock?) -> CodeBlock {
+    component ?? EmptyCodeBlock()
   }
-}
 
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
-    }
-    """
+  /// Builds a ``CodeBlock`` from an `if` statement.
+  public static func buildEither(first: CodeBlock) -> CodeBlock {
+    first
+  }
+
+  /// Builds a ``CodeBlock`` from an `else` statement.
+  public static func buildEither(second: CodeBlock) -> CodeBlock {
+    second
+  }
+
+  /// Builds an array of ``CodeBlock``s from a `for` loop.
+  public static func buildArray(_ components: [CodeBlock]) -> [CodeBlock] {
+    components
   }
 }
