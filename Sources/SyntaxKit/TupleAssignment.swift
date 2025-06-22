@@ -147,48 +147,7 @@ public struct TupleAssignment: CodeBlock {
     )
 
     // Build the value expression
-    let valueExpr: ExprSyntax
-    if isThrowing {
-      let baseExpr =
-        value.syntax.as(ExprSyntax.self)
-        ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-
-      if isAsync {
-        valueExpr = ExprSyntax(
-          TryExprSyntax(
-            tryKeyword: .keyword(.try, trailingTrivia: .space),
-            expression: ExprSyntax(
-              AwaitExprSyntax(
-                awaitKeyword: .keyword(.await, trailingTrivia: .space),
-                expression: baseExpr
-              )
-            )
-          )
-        )
-      } else {
-        valueExpr = ExprSyntax(
-          TryExprSyntax(
-            tryKeyword: .keyword(.try, trailingTrivia: .space),
-            expression: baseExpr
-          )
-        )
-      }
-    } else {
-      let baseExpr =
-        value.syntax.as(ExprSyntax.self)
-        ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-
-      if isAsync {
-        valueExpr = ExprSyntax(
-          AwaitExprSyntax(
-            awaitKeyword: .keyword(.await, trailingTrivia: .space),
-            expression: baseExpr
-          )
-        )
-      } else {
-        valueExpr = baseExpr
-      }
-    }
+    let valueExpr = buildValueExpression()
 
     // Build the variable declaration
     return VariableDeclSyntax(
@@ -203,5 +162,46 @@ public struct TupleAssignment: CodeBlock {
         )
       ])
     )
+  }
+
+  /// Builds the value expression based on async and throwing flags.
+  private func buildValueExpression() -> ExprSyntax {
+    let baseExpr =
+      value.syntax.as(ExprSyntax.self)
+      ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+
+    if isThrowing {
+      if isAsync {
+        return ExprSyntax(
+          TryExprSyntax(
+            tryKeyword: .keyword(.try, trailingTrivia: .space),
+            expression: ExprSyntax(
+              AwaitExprSyntax(
+                awaitKeyword: .keyword(.await, trailingTrivia: .space),
+                expression: baseExpr
+              )
+            )
+          )
+        )
+      } else {
+        return ExprSyntax(
+          TryExprSyntax(
+            tryKeyword: .keyword(.try, trailingTrivia: .space),
+            expression: baseExpr
+          )
+        )
+      }
+    } else {
+      if isAsync {
+        return ExprSyntax(
+          AwaitExprSyntax(
+            awaitKeyword: .keyword(.await, trailingTrivia: .space),
+            expression: baseExpr
+          )
+        )
+      } else {
+        return baseExpr
+      }
+    }
   }
 }

@@ -36,22 +36,13 @@ extension Function {
     case .none:
       return nil
     case .throws(let isRethrows, let errorType):
-      let throwsSpecifier: TokenSyntax
+      let throwsSpecifier = buildThrowsSpecifier(isRethrows: isRethrows)
       if let errorType = errorType {
-        throwsSpecifier = .keyword(
-          isRethrows ? .rethrows : .throws, leadingTrivia: .space)
         return FunctionEffectSpecifiersSyntax(
           asyncSpecifier: nil,
-          throwsClause: ThrowsClauseSyntax(
-            throwsSpecifier: throwsSpecifier,
-            leftParen: .leftParenToken(),
-            type: IdentifierTypeSyntax(name: .identifier(errorType)),
-            rightParen: .rightParenToken()
-          )
+          throwsClause: buildThrowsClause(throwsSpecifier: throwsSpecifier, errorType: errorType)
         )
       } else {
-        throwsSpecifier = .keyword(
-          isRethrows ? .rethrows : .throws, leadingTrivia: .space)
         return FunctionEffectSpecifiersSyntax(
           asyncSpecifier: nil,
           throwsSpecifier: throwsSpecifier
@@ -63,26 +54,35 @@ extension Function {
         throwsSpecifier: nil
       )
     case .asyncThrows(let isRethrows, let errorType):
-      let throwsSpecifier: TokenSyntax
+      let throwsSpecifier = buildThrowsSpecifier(isRethrows: isRethrows)
       if let errorType = errorType {
-        throwsSpecifier = .keyword(.throws, leadingTrivia: .space)
         return FunctionEffectSpecifiersSyntax(
           asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-          throwsClause: ThrowsClauseSyntax(
-            throwsSpecifier: throwsSpecifier,
-            leftParen: .leftParenToken(),
-            type: IdentifierTypeSyntax(name: .identifier(errorType)),
-            rightParen: .rightParenToken()
-          )
+          throwsClause: buildThrowsClause(throwsSpecifier: throwsSpecifier, errorType: errorType)
         )
       } else {
-        throwsSpecifier = .keyword(
-          isRethrows ? .rethrows : .throws, leadingTrivia: .space)
         return FunctionEffectSpecifiersSyntax(
           asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
           throwsSpecifier: throwsSpecifier
         )
       }
     }
+  }
+
+  /// Builds the throws specifier token.
+  private func buildThrowsSpecifier(isRethrows: Bool) -> TokenSyntax {
+    .keyword(isRethrows ? .rethrows : .throws, leadingTrivia: .space)
+  }
+
+  /// Builds the throws clause with error type.
+  private func buildThrowsClause(throwsSpecifier: TokenSyntax, errorType: String)
+    -> ThrowsClauseSyntax
+  {
+    ThrowsClauseSyntax(
+      throwsSpecifier: throwsSpecifier,
+      leftParen: .leftParenToken(),
+      type: IdentifierTypeSyntax(name: .identifier(errorType)),
+      rightParen: .rightParenToken()
+    )
   }
 }
