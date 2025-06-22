@@ -115,7 +115,8 @@ import Testing
 
     let generated = tupleAssignment.generateCode()
     let expected =
-      "let (user, profile, settings) = try await (await fetchUser(id: 123), await fetchProfile(userId: 123), await fetchSettings(userId: 123))"
+      "let (user, profile, settings) = try await (await fetchUser(id: 123), "
+      + "await fetchProfile(userId: 123), await fetchSettings(userId: 123))"
 
     #expect(generated.normalize() == expected.normalize())
   }

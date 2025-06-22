@@ -31,7 +31,7 @@ import Foundation
 
 /// A tuple literal value that can be used as a literal.
 public struct TupleLiteral: LiteralValue {
-  let elements: [Literal?]
+  public let elements: [Literal?]
 
   /// Creates a tuple with the given elements.
   /// - Parameter elements: The tuple elements, where `nil` represents a wildcard.

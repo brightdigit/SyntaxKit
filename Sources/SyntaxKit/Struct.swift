@@ -96,7 +96,8 @@ public struct Struct: CodeBlock {
     if !inheritance.isEmpty {
       let inheritedTypes = inheritance.map { type in
         InheritedTypeSyntax(
-          type: IdentifierTypeSyntax(name: .identifier(type)))
+          type: IdentifierTypeSyntax(name: .identifier(type))
+        )
       }
       inheritanceClause = InheritanceClauseSyntax(
         colon: .colonToken(),
@@ -119,7 +120,9 @@ public struct Struct: CodeBlock {
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       members: MemberBlockItemListSyntax(
         members.compactMap { member in
-          guard let syntax = member.syntax.as(DeclSyntax.self) else { return nil }
+          guard let syntax = member.syntax.as(DeclSyntax.self) else {
+            return nil
+          }
           return MemberBlockItemSyntax(decl: syntax, trailingTrivia: .newline)
         }
       ),

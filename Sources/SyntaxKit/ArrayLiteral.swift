@@ -29,9 +29,9 @@
 
 import Foundation
 
-/// An array value that can be used as a literal.
+/// An array literal value that can be used as a literal.
 public struct ArrayLiteral: LiteralValue {
-  let elements: [Literal]
+  public let elements: [Literal]
 
   /// Creates an array with the given elements.
   /// - Parameter elements: The array elements.

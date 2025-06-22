@@ -97,7 +97,9 @@ public struct Enum: CodeBlock {
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       members: MemberBlockItemListSyntax(
         members.compactMap { member in
-          guard let syntax = member.syntax.as(DeclSyntax.self) else { return nil }
+          guard let syntax = member.syntax.as(DeclSyntax.self) else {
+            return nil
+          }
           return MemberBlockItemSyntax(decl: syntax, trailingTrivia: .newline)
         }
       ),

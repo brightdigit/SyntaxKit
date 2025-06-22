@@ -31,7 +31,7 @@ import Foundation
 
 /// A dictionary literal value that can be used as a literal.
 public struct DictionaryLiteral: LiteralValue {
-  let elements: [(Literal, Literal)]
+  public let elements: [(Literal, Literal)]
 
   /// Creates a dictionary with the given key-value pairs.
   /// - Parameter elements: The dictionary key-value pairs.

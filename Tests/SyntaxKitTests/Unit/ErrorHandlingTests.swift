@@ -52,16 +52,16 @@ import Testing
       var vendingMachine = VendingMachine()
       vendingMachine.coinsDeposited = 8
       do {
-          try buyFavoriteSnack(person: "Alice", vendingMachine: vendingMachine)
-          print("Success! Yum.")
+      try buyFavoriteSnack(person: "Alice", vendingMachine: vendingMachine)
+      print("Success! Yum.")
       } catch .invalidSelection {
-          print("Invalid Selection.")
+      print("Invalid Selection.")
       } catch .outOfStock {
-          print("Out of Stock.")
+      print("Out of Stock.")
       } catch .insufficientFunds(let coinsNeeded) {
-          print("Insufficient funds. Please insert an additional \\(coinsNeeded) coins.")
+      print("Insufficient funds. Please insert an additional \\(coinsNeeded) coins.")
       } catch {
-          print("Unexpected error: \\(error).")
+      print("Unexpected error: \\(error).")
       }
       """
 

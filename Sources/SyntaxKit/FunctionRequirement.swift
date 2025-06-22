@@ -53,7 +53,8 @@ public struct FunctionRequirement: CodeBlock {
   ///   - returnType: Optional return type.
   ///   - params: A ParameterBuilderResult providing the parameters.
   public init(
-    _ name: String, returns returnType: String? = nil,
+    _ name: String,
+    returns returnType: String? = nil,
     @ParameterBuilderResult _ params: () -> [Parameter]
   ) {
     self.name = name
@@ -104,7 +105,8 @@ public struct FunctionRequirement: CodeBlock {
             paramSyntax = paramSyntax.with(\.trailingComma, .commaToken(trailingTrivia: .space))
           }
           return paramSyntax
-        })
+        }
+      )
     }
 
     // Return clause

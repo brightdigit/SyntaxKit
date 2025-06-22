@@ -45,7 +45,8 @@ extension Array: LiteralValue where Element == String {
         .replacingOccurrences(of: "\r", with: "\\r")
         .replacingOccurrences(of: "\t", with: "\\t")
       return "\"\(escaped)\""
-    }.joined(separator: ", ")
+    }
+    .joined(separator: ", ")
     return "[\(elements)]"
   }
 }

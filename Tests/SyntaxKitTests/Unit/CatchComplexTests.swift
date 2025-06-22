@@ -78,7 +78,11 @@ import Testing
 
     let generated = doCatch.generateCode()
     let expected = """
-      do { try someFunction(param: "test") } catch .invalidEmail { logValidationError(field: "email") let errorMessage = "Invalid email format" showError(message: errorMessage) }
+      do { try someFunction(param: "test") } catch .invalidEmail {
+        logValidationError(field: "email")
+        let errorMessage = "Invalid email format"
+        showError(message: errorMessage)
+      }
       """
 
     #expect(generated.normalize() == expected.normalize())
@@ -104,7 +108,11 @@ import Testing
 
     let generated = doCatch.generateCode()
     let expected = """
-      do { try someFunction(param: "test") } catch .connectionFailed { let retryCount = 0 attemptConnection(attempt: retryCount) incrementRetryCount(current: retryCount) }
+      do { try someFunction(param: "test") } catch .connectionFailed {
+        let retryCount = 0
+        attemptConnection(attempt: retryCount)
+        incrementRetryCount(current: retryCount)
+      }
       """
 
     #expect(generated.normalize() == expected.normalize())
