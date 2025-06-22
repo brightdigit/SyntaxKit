@@ -34,7 +34,7 @@ import Testing
     ).async()
 
     let generated = tupleAssignment.generateCode()
-    let expected = "let (result, count) = await (processData(input: \"test\"), 42)"
+    let expected = "let (result, count) = await (processData(input: \"test\"), " + "42)"
 
     #expect(generated.normalize() == expected.normalize())
   }
@@ -73,7 +73,7 @@ import Testing
 
     let generated = tupleAssignment.generateCode()
     let expected =
-      "let (data, posts) = try (await fetchUserData(id: 1), await fetchUserPosts(id: 1))"
+      "let (data, posts) = try (await fetchUserData(id: 1), " + "await fetchUserPosts(id: 1))"
 
     #expect(generated.normalize() == expected.normalize())
   }

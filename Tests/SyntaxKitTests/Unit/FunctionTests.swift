@@ -29,17 +29,19 @@ internal struct FunctionTests {
 
   @Test internal func testStaticFunction() throws {
     let function = Function(
-      "createInstance", returns: "MyType",
+      "createInstance",
+      returns: "MyType",
       {
         Parameter(name: "value", type: "String")
-      }
-    ) {
-      Return {
-        Init("MyType") {
-          ParameterExp(name: "value", value: Literal.ref("value"))
+      },
+      {
+        Return {
+          Init("MyType") {
+            ParameterExp(name: "value", value: Literal.ref("value"))
+          }
         }
       }
-    }.static()
+    ).static()
 
     let expected = """
       static func createInstance(value: String) -> MyType {
@@ -60,10 +62,11 @@ internal struct FunctionTests {
       "updateValue",
       {
         Parameter(name: "newValue", type: "String")
+      },
+      {
+        Assignment("value", Literal.ref("newValue"))
       }
-    ) {
-      Assignment("value", Literal.ref("newValue"))
-    }.mutating()
+    ).mutating()
 
     let expected = """
       mutating func updateValue(newValue: String) {

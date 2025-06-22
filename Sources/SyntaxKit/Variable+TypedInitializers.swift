@@ -59,7 +59,10 @@ extension Variable {
   ///   - equals: The initial value expression of the variable, if any.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
-    _ kind: VariableKind, name: String, type: String, equals defaultValue: CodeBlock? = nil,
+    _ kind: VariableKind,
+    name: String,
+    type: String,
+    equals defaultValue: CodeBlock? = nil,
     explicitType: Bool? = nil
   ) {
     let finalExplicitType = explicitType ?? (defaultValue == nil)
@@ -80,7 +83,10 @@ extension Variable {
   ///   - equals: A string literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
-    _ kind: VariableKind, name: String, type: String, equals value: String,
+    _ kind: VariableKind,
+    name: String,
+    type: String,
+    equals value: String,
     explicitType: Bool? = nil
   ) {
     self.init(
@@ -100,7 +106,10 @@ extension Variable {
   ///   - equals: An integer literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
-    _ kind: VariableKind, name: String, type: String, equals value: Int,
+    _ kind: VariableKind,
+    name: String,
+    type: String,
+    equals value: Int,
     explicitType: Bool? = nil
   ) {
     self.init(
@@ -120,7 +129,10 @@ extension Variable {
   ///   - equals: A boolean literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
-    _ kind: VariableKind, name: String, type: String, equals value: Bool,
+    _ kind: VariableKind,
+    name: String,
+    type: String,
+    equals value: Bool,
     explicitType: Bool? = nil
   ) {
     self.init(
@@ -140,7 +152,10 @@ extension Variable {
   ///   - equals: A double literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
-    _ kind: VariableKind, name: String, type: String, equals value: Double,
+    _ kind: VariableKind,
+    name: String,
+    type: String,
+    equals value: Double,
     explicitType: Bool? = nil
   ) {
     self.init(

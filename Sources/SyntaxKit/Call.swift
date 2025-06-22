@@ -76,7 +76,10 @@ public struct Call: CodeBlock {
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
           if index < parameters.count - 1 {
-            element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+            element = element.with(
+              \.trailingComma,
+              .commaToken(trailingTrivia: .space)
+            )
           }
           return element
         } else if let unlabeled = expr as? ExprSyntax {
@@ -84,15 +87,20 @@ public struct Call: CodeBlock {
             label: nil,
             colon: nil,
             expression: unlabeled,
-            trailingComma: index < parameters.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+            trailingComma: index < parameters.count - 1
+              ? .commaToken(trailingTrivia: .space)
+              : nil
           )
         } else {
           fatalError("ParameterExp.syntax must return LabeledExprSyntax or ExprSyntax")
         }
-      })
+      }
+    )
 
     let functionCall = FunctionCallExprSyntax(
-      calledExpression: ExprSyntax(DeclReferenceExprSyntax(baseName: function)),
+      calledExpression: ExprSyntax(
+        DeclReferenceExprSyntax(baseName: function)
+      ),
       leftParen: .leftParenToken(),
       arguments: args,
       rightParen: .rightParenToken()

@@ -63,7 +63,8 @@ extension Variable {
       // For any other LiteralValue type that doesn't conform to CodeBlock,
       // create a fallback or throw an error
       fatalError(
-        "Variable: Unsupported LiteralValue type that doesn't conform to CodeBlock: \(T.self)")
+        "Variable: Unsupported LiteralValue type that doesn't conform to CodeBlock: \(T.self)"
+      )
     }
 
     self.init(

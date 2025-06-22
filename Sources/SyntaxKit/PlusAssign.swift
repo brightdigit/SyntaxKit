@@ -67,7 +67,13 @@ public struct PlusAssign: CodeBlock {
     let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
     let assign = ExprSyntax(
       BinaryOperatorExprSyntax(
-        operator: .binaryOperator("+=", leadingTrivia: .space, trailingTrivia: .space)))
+        operator: .binaryOperator(
+          "+=",
+          leadingTrivia: .space,
+          trailingTrivia: .space
+        )
+      )
+    )
     return SequenceExprSyntax(
       elements: ExprListSyntax([
         left,

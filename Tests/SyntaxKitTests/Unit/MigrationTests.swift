@@ -82,7 +82,10 @@ internal struct MigrationTests {
     // Test that .regularExpression works instead of String.CompareOptions.regularExpression
     let testString = "public func test() { }"
     let result = testString.replacingOccurrences(
-      of: "public\\s+", with: "", options: .regularExpression)
+      of: "public\\s+",
+      with: "",
+      options: .regularExpression
+    )
     let expected = "func test() { }"
     #expect(result == expected)
   }

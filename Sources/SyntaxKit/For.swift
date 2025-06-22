@@ -118,7 +118,8 @@ public struct For: CodeBlock {
             item = CodeBlockItemSyntax(item: .stmt(stmt))
           }
           return item?.with(\.trailingTrivia, .newline)
-        }),
+        }
+      ),
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
 

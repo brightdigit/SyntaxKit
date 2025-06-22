@@ -84,7 +84,8 @@ public struct TupleAssignment: CodeBlock {
     // Generate a single async let tuple destructuring assignment
     guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
       fatalError(
-        "asyncSet requires a Tuple value with the same number of elements as the assignment.")
+        "asyncSet requires a Tuple value with the same number of elements as the assignment."
+      )
     }
 
     // Use helpers from AsyncSet
@@ -168,7 +169,9 @@ public struct TupleAssignment: CodeBlock {
   private func buildValueExpression() -> ExprSyntax {
     let baseExpr =
       value.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      ?? ExprSyntax(
+        DeclReferenceExprSyntax(baseName: .identifier(""))
+      )
 
     if isThrowing {
       if isAsync {

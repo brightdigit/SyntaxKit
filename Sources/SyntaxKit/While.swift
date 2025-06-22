@@ -80,18 +80,21 @@ public struct While: CodeBlock {
             item = CodeBlockItemSyntax(item: .stmt(stmt))
           }
           return item?.with(\.trailingTrivia, .newline)
-        }),
+        }
+      ),
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
 
     return StmtSyntax(
       WhileStmtSyntax(
         whileKeyword: .keyword(.while, trailingTrivia: .space),
-        conditions: ConditionElementListSyntax([
-          ConditionElementSyntax(
-            condition: .expression(conditionExpr)
-          )
-        ]),
+        conditions: ConditionElementListSyntax(
+          [
+            ConditionElementSyntax(
+              condition: .expression(conditionExpr)
+            )
+          ]
+        ),
         body: bodyBlock
       )
     )

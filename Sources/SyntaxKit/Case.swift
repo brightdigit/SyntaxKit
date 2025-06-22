@@ -79,7 +79,8 @@ public struct Case: CodeBlock {
           item = item.with(\.trailingComma, .commaToken(trailingTrivia: .space))
         }
         return item
-      })
+      }
+    )
 
     let statements = CodeBlockItemListSyntax(
       body.compactMap {
@@ -92,7 +93,8 @@ public struct Case: CodeBlock {
           item = CodeBlockItemSyntax(item: .stmt(stmt))
         }
         return item?.with(\.trailingTrivia, .newline)
-      })
+      }
+    )
     let label = SwitchCaseLabelSyntax(
       caseKeyword: .keyword(.case, trailingTrivia: .space),
       caseItems: caseItems,

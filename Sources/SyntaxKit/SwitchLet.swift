@@ -40,12 +40,15 @@ public struct SwitchLet: PatternConvertible, CodeBlock {
   }
 
   public var patternSyntax: PatternSyntax {
-    let identifier = IdentifierPatternSyntax(identifier: .identifier(name))
+    let identifier = IdentifierPatternSyntax(
+      identifier: .identifier(name)
+    )
     return PatternSyntax(
       ValueBindingPatternSyntax(
         bindingSpecifier: .keyword(.let, trailingTrivia: .space),
         pattern: identifier
-      ))
+      )
+    )
   }
 
   public var syntax: SyntaxProtocol {

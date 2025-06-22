@@ -65,7 +65,8 @@ extension CodeBlock {
         item = .expr(ExprSyntax(switchExpr))
       } else {
         fatalError(
-          "Unsupported syntax type at top level: \(type(of: self.syntax)) (\(self.syntax)) generating from \(self)"
+          "Unsupported syntax type at top level: \(type(of: self.syntax)) (\(self.syntax)) "
+            + "generating from \(self)"
         )
       }
       statements = CodeBlockItemListSyntax([

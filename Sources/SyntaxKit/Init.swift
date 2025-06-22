@@ -57,17 +57,24 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
           return nil
         }
         if index < parameters.count - 1 {
-          return element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+          return element.with(
+            \.trailingComma,
+            .commaToken(trailingTrivia: .space)
+          )
         }
         return element
-      })
+      }
+    )
     return ExprSyntax(
       FunctionCallExprSyntax(
-        calledExpression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(type))),
+        calledExpression: ExprSyntax(
+          DeclReferenceExprSyntax(baseName: .identifier(type))
+        ),
         leftParen: .leftParenToken(),
         arguments: args,
         rightParen: .rightParenToken()
-      ))
+      )
+    )
   }
 
   public var syntax: SyntaxProtocol {

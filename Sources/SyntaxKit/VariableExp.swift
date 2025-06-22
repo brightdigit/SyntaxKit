@@ -109,14 +109,17 @@ public struct PropertyAccessExp: CodeBlock {
   public var syntax: SyntaxProtocol {
     let baseSyntax =
       base.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      ?? ExprSyntax(
+        DeclReferenceExprSyntax(baseName: .identifier(""))
+      )
     let property = TokenSyntax.identifier(propertyName)
     return ExprSyntax(
       MemberAccessExprSyntax(
         base: baseSyntax,
         dot: .periodToken(),
         name: property
-      ))
+      )
+    )
   }
 }
 
@@ -138,10 +141,16 @@ public struct NegatedPropertyAccessExp: CodeBlock {
   public var syntax: SyntaxProtocol {
     let memberAccess =
       base.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      ?? ExprSyntax(
+        DeclReferenceExprSyntax(baseName: .identifier(""))
+      )
     return ExprSyntax(
       PrefixOperatorExprSyntax(
-        operator: .prefixOperator("!", leadingTrivia: [], trailingTrivia: []),
+        operator: .prefixOperator(
+          "!",
+          leadingTrivia: [],
+          trailingTrivia: []
+        ),
         expression: memberAccess
       )
     )
@@ -184,7 +193,10 @@ public struct FunctionCallExp: CodeBlock {
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
           if index < parameters.count - 1 {
-            element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+            element = element.with(
+              \.trailingComma,
+              .commaToken(trailingTrivia: .space)
+            )
           }
           return element
         } else if let unlabeled = expr as? ExprSyntax {
@@ -192,12 +204,15 @@ public struct FunctionCallExp: CodeBlock {
             label: nil,
             colon: nil,
             expression: unlabeled,
-            trailingComma: index < parameters.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+            trailingComma: index < parameters.count - 1
+              ? .commaToken(trailingTrivia: .space)
+              : nil
           )
         } else {
           fatalError("ParameterExp.syntax must return LabeledExprSyntax or ExprSyntax")
         }
-      })
+      }
+    )
     return ExprSyntax(
       FunctionCallExprSyntax(
         calledExpression: ExprSyntax(
@@ -205,10 +220,12 @@ public struct FunctionCallExp: CodeBlock {
             base: base,
             dot: .periodToken(),
             name: method
-          )),
+          )
+        ),
         leftParen: .leftParenToken(),
         arguments: args,
         rightParen: .rightParenToken()
-      ))
+      )
+    )
   }
 }

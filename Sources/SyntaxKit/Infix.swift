@@ -31,17 +31,17 @@ import SwiftSyntax
 
 /// A generic binary (infix) operator expression, e.g. `a + b`.
 public struct Infix: CodeBlock {
-  private let op: String
+  private let operation: String
   private let operands: [CodeBlock]
 
   /// Creates an infix operator expression.
   /// - Parameters:
-  ///   - op: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
+  ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
   ///   - content: A ``CodeBlockBuilder`` that supplies the two operand expressions.
   ///
   /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
-  public init(_ op: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.op = op
+  public init(_ operation: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+    self.operation = operation
     self.operands = content()
   }
 
@@ -55,7 +55,7 @@ public struct Infix: CodeBlock {
 
     let operatorExpr = ExprSyntax(
       BinaryOperatorExprSyntax(
-        operator: .binaryOperator(op, leadingTrivia: .space, trailingTrivia: .space)
+        operator: .binaryOperator(operation, leadingTrivia: .space, trailingTrivia: .space)
       )
     )
 

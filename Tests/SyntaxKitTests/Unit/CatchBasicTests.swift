@@ -126,7 +126,8 @@ import Testing
 
     let generated = doCatch.generateCode()
     let expected =
-      "do { try someFunction(param: \"test\") } catch { logError(error: error) print(\"Error: \\(error)\") }"
+      "do { try someFunction(param: \"test\") } catch { " + "logError(error: error) "
+      + "print(\"Error: \\(error)\") }"
 
     #expect(generated.normalize() == expected.normalize())
   }

@@ -69,10 +69,13 @@ public struct If: CodeBlock {
   public var syntax: SyntaxProtocol {
     // Build list of ConditionElements from all provided conditions
     let condList = ConditionElementListSyntax(
-      conditions.enumerated().map { index, block in
+      conditions.enumerated().map {
+        index, block in
         let needsComma = index < conditions.count - 1
 
-        func appendComma(_ element: ConditionElementSyntax) -> ConditionElementSyntax {
+        func appendComma(
+          _ element: ConditionElementSyntax
+        ) -> ConditionElementSyntax {
           needsComma ? element.with(\.trailingComma, .commaToken(trailingTrivia: .space)) : element
         }
 
@@ -80,12 +83,24 @@ public struct If: CodeBlock {
           let element = ConditionElementSyntax(
             condition: .optionalBinding(
               OptionalBindingConditionSyntax(
-                bindingSpecifier: .keyword(.let, trailingTrivia: .space),
-                pattern: IdentifierPatternSyntax(identifier: .identifier(letCond.name)),
+                bindingSpecifier: .keyword(
+                  .let,
+                  trailingTrivia: .space
+                ),
+                pattern: IdentifierPatternSyntax(
+                  identifier: .identifier(letCond.name)
+                ),
                 initializer: InitializerClauseSyntax(
-                  equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
+                  equal: .equalToken(
+                    leadingTrivia: .space,
+                    trailingTrivia: .space
+                  ),
                   value: letCond.value.syntax.as(ExprSyntax.self)
-                    ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+                    ?? ExprSyntax(
+                      DeclReferenceExprSyntax(
+                        baseName: .identifier("")
+                      )
+                    )
                 )
               )
             )
@@ -96,7 +111,11 @@ public struct If: CodeBlock {
             condition: .expression(
               ExprSyntax(
                 fromProtocol: block.syntax.as(ExprSyntax.self)
-                  ?? DeclReferenceExprSyntax(baseName: .identifier(""))))
+                  ?? DeclReferenceExprSyntax(
+                    baseName: .identifier("")
+                  )
+              )
+            )
           )
           return appendComma(element)
         }
@@ -118,7 +137,8 @@ public struct If: CodeBlock {
             item = CodeBlockItemSyntax(item: .stmt(stmt))
           }
           return item?.with(\.trailingTrivia, .newline)
-        }),
+        }
+      ),
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
     // swiftlint:disable:next closure_body_length
@@ -139,16 +159,28 @@ public struct If: CodeBlock {
               if let enumCase = element as? EnumCase {
                 // Handle EnumCase specially - use expression syntax for enum cases in expressions
                 return CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax)).with(
-                  \.trailingTrivia, .newline)
+                  \.trailingTrivia,
+                  .newline
+                )
               } else if let decl = element.syntax.as(DeclSyntax.self) {
-                return CodeBlockItemSyntax(item: .decl(decl)).with(\.trailingTrivia, .newline)
+                return CodeBlockItemSyntax(item: .decl(decl)).with(
+                  \.trailingTrivia,
+                  .newline
+                )
               } else if let expr = element.syntax.as(ExprSyntax.self) {
-                return CodeBlockItemSyntax(item: .expr(expr)).with(\.trailingTrivia, .newline)
+                return CodeBlockItemSyntax(item: .expr(expr)).with(
+                  \.trailingTrivia,
+                  .newline
+                )
               } else if let stmt = element.syntax.as(StmtSyntax.self) {
-                return CodeBlockItemSyntax(item: .stmt(stmt)).with(\.trailingTrivia, .newline)
+                return CodeBlockItemSyntax(item: .stmt(stmt)).with(
+                  \.trailingTrivia,
+                  .newline
+                )
               }
               return nil
-            })
+            }
+          )
           let codeBlock = CodeBlockSyntax(
             leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
             statements: stmts,
@@ -160,8 +192,8 @@ public struct If: CodeBlock {
           guard var ifExpr = ifBlock.syntax.as(IfExprSyntax.self) else { continue }
           if let nested = current {
             let elseChoice: IfExprSyntax.ElseBody
-            if let cb = nested.as(CodeBlockSyntax.self) {
-              elseChoice = IfExprSyntax.ElseBody(cb)
+            if let codeBlock = nested.as(CodeBlockSyntax.self) {
+              elseChoice = IfExprSyntax.ElseBody(codeBlock)
             } else if let nestedIf = nested.as(IfExprSyntax.self) {
               elseChoice = IfExprSyntax.ElseBody(nestedIf)
             } else {
@@ -192,8 +224,13 @@ public struct If: CodeBlock {
           }
           if let itm = item {
             let codeBlock = CodeBlockSyntax(
-              leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
-              statements: CodeBlockItemListSyntax([itm.with(\.trailingTrivia, .newline)]),
+              leftBrace: .leftBraceToken(
+                leadingTrivia: .space,
+                trailingTrivia: .newline
+              ),
+              statements: CodeBlockItemListSyntax(
+                [itm.with(\.trailingTrivia, .newline)]
+              ),
               rightBrace: .rightBraceToken(leadingTrivia: .newline)
             )
             current = codeBlock as SyntaxProtocol
@@ -202,8 +239,8 @@ public struct If: CodeBlock {
       }
 
       if let final = current {
-        if let cb = final.as(CodeBlockSyntax.self) {
-          return IfExprSyntax.ElseBody(cb)
+        if let codeBlock = final.as(CodeBlockSyntax.self) {
+          return IfExprSyntax.ElseBody(codeBlock)
         } else if let ifExpr = final.as(IfExprSyntax.self) {
           return IfExprSyntax.ElseBody(ifExpr)
         }

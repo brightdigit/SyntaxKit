@@ -111,7 +111,8 @@ public struct EnumCase: CodeBlock {
               label: nil,
               colon: nil,
               expression: ExprSyntax(
-                DeclReferenceExprSyntax(baseName: .identifier(associated.name))),
+                DeclReferenceExprSyntax(baseName: .identifier(associated.name))
+              ),
               trailingComma: nil
             )
           }
@@ -124,7 +125,8 @@ public struct EnumCase: CodeBlock {
           leftParen: tuple.leftParen,
           arguments: tuple.elements,
           rightParen: tuple.rightParen
-        ))
+        )
+      )
     } else {
       return ExprSyntax(memberAccess)
     }

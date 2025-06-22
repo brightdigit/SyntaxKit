@@ -39,11 +39,14 @@ extension Literal: ExprCodeBlock {
       return ExprSyntax(
         StringLiteralExprSyntax(
           openingQuote: .stringQuoteToken(),
-          segments: .init([
-            .stringSegment(.init(content: .stringSegment(value)))
-          ]),
+          segments: .init(
+            [
+              .stringSegment(.init(content: .stringSegment(value)))
+            ]
+          ),
           closingQuote: .stringQuoteToken()
-        ))
+        )
+      )
     case .float(let value):
       return ExprSyntax(FloatLiteralExprSyntax(literal: .floatLiteral(String(value))))
     case .integer(let value):
@@ -52,7 +55,10 @@ extension Literal: ExprCodeBlock {
       return ExprSyntax(NilLiteralExprSyntax(nilKeyword: .keyword(.nil)))
     case .boolean(let value):
       return ExprSyntax(
-        BooleanLiteralExprSyntax(literal: value ? .keyword(.true) : .keyword(.false)))
+        BooleanLiteralExprSyntax(
+          literal: value ? .keyword(.true) : .keyword(.false)
+        )
+      )
     case .ref(let value):
       return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(value)))
     case .tuple(let elements):
@@ -69,7 +75,9 @@ extension Literal: ExprCodeBlock {
             label: nil,
             colon: nil,
             expression: elementExpr,
-            trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+            trailingComma: index < elements.count - 1
+              ? .commaToken(trailingTrivia: .space)
+              : nil
           )
         }
       )
@@ -78,14 +86,19 @@ extension Literal: ExprCodeBlock {
           leftParen: .leftParenToken(),
           elements: tupleElements,
           rightParen: .rightParenToken()
-        ))
+        )
+      )
     case .array(let elements):
       let arrayElements = ArrayElementListSyntax(
         elements.enumerated().map { index, element in
           ArrayElementSyntax(
             expression: element.syntax.as(ExprSyntax.self)
-              ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(""))),
-            trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+              ?? ExprSyntax(
+                DeclReferenceExprSyntax(baseName: .identifier(""))
+              ),
+            trailingComma: index < elements.count - 1
+              ? .commaToken(trailingTrivia: .space)
+              : nil
           )
         }
       )
@@ -96,9 +109,15 @@ extension Literal: ExprCodeBlock {
         return ExprSyntax(
           DictionaryExprSyntax(
             leftSquare: .leftSquareToken(),
-            content: .colon(.colonToken(leadingTrivia: .init(), trailingTrivia: .init())),
+            content: .colon(
+              .colonToken(
+                leadingTrivia: .init(),
+                trailingTrivia: .init()
+              )
+            ),
             rightSquare: .rightSquareToken()
-          ))
+          )
+        )
       } else {
         let dictionaryElements = DictionaryElementListSyntax(
           elements.enumerated().map { index, keyValue in
@@ -107,11 +126,17 @@ extension Literal: ExprCodeBlock {
               keyExpression: key.exprSyntax,
               colon: .colonToken(),
               valueExpression: value.exprSyntax,
-              trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+              trailingComma: index < elements.count - 1
+                ? .commaToken(trailingTrivia: .space)
+                : nil
             )
           }
         )
-        return ExprSyntax(DictionaryExprSyntax(content: .elements(dictionaryElements)))
+        return ExprSyntax(
+          DictionaryExprSyntax(
+            content: .elements(dictionaryElements)
+          )
+        )
       }
     }
   }

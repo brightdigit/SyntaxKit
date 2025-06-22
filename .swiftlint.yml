@@ -121,6 +121,7 @@ excluded:
   - Mint
   - Examples
   - Macros
+  - Sources/SyntaxKit/parser
 indentation_width:
   indentation_width: 2
 file_name:

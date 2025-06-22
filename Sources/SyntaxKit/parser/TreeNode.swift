@@ -35,7 +35,11 @@ internal final class TreeNode: Codable {
 
   internal var text: String
   internal var range = SourceRange(
-    startRow: 0, startColumn: 0, endRow: 0, endColumn: 0)
+    startRow: 0,
+    startColumn: 0,
+    endRow: 0,
+    endColumn: 0
+  )
   internal var structure = [StructureProperty]()
   internal var type: SyntaxType
   internal var token: Token?

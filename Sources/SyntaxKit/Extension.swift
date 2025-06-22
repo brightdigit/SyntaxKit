@@ -94,7 +94,8 @@ public struct Extension: CodeBlock {
         members.compactMap { member in
           guard let syntax = member.syntax.as(DeclSyntax.self) else { return nil }
           return MemberBlockItemSyntax(decl: syntax, trailingTrivia: .newline)
-        }),
+        }
+      ),
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
 

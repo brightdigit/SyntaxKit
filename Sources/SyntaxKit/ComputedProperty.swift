@@ -61,7 +61,9 @@ public struct ComputedProperty: CodeBlock {
               item = CodeBlockItemSyntax(item: .stmt(stmt))
             }
             return item?.with(\.trailingTrivia, .newline)
-          })),
+          }
+        )
+      ),
       rightBrace: TokenSyntax.rightBraceToken(leadingTrivia: .newline)
     )
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)

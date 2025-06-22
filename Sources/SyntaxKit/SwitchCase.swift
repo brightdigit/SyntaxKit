@@ -66,7 +66,8 @@ public struct SwitchCase: CodeBlock {
         } else if let variableExp = pattern as? VariableExp {
           // Handle VariableExp specially - convert to identifier pattern
           patternSyntax = PatternSyntax(
-            IdentifierPatternSyntax(identifier: .identifier(variableExp.name)))
+            IdentifierPatternSyntax(identifier: .identifier(variableExp.name))
+          )
         } else if let codeBlock = pattern as? CodeBlock {
           // Convert CodeBlock to expression pattern
           let expr = ExprSyntax(
@@ -80,10 +81,14 @@ public struct SwitchCase: CodeBlock {
 
         var item = SwitchCaseItemSyntax(pattern: patternSyntax)
         if index < patterns.count - 1 {
-          item = item.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+          item = item.with(
+            \.trailingComma,
+            .commaToken(trailingTrivia: .space)
+          )
         }
         return item
-      })
+      }
+    )
 
     // Handle special case for multiple conditionals with let binding and where clause
     var finalCaseItems = caseItems
@@ -104,7 +109,11 @@ public struct SwitchCase: CodeBlock {
         )
 
         let whereClause = WhereClauseSyntax(
-          whereKeyword: .keyword(.where, leadingTrivia: .space, trailingTrivia: .space),
+          whereKeyword: .keyword(
+            .where,
+            leadingTrivia: .space,
+            trailingTrivia: .space
+          ),
           condition: whereExpr
         )
 

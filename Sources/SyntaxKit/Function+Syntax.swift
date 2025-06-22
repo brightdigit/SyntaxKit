@@ -51,15 +51,24 @@ extension Function {
         let secondNameToken: TokenSyntax?
 
         if param.isUnnamed {
-          firstNameToken = .wildcardToken(leadingTrivia: firstNameLeading, trailingTrivia: .space)
+          firstNameToken = .wildcardToken(
+            leadingTrivia: firstNameLeading,
+            trailingTrivia: .space
+          )
           secondNameToken = .identifier(param.name)
         } else if let label = param.label {
           firstNameToken = .identifier(
-            label, leadingTrivia: firstNameLeading, trailingTrivia: .space)
+            label,
+            leadingTrivia: firstNameLeading,
+            trailingTrivia: .space
+          )
           secondNameToken = .identifier(param.name)
         } else {
           firstNameToken = .identifier(
-            param.name, leadingTrivia: firstNameLeading, trailingTrivia: .space)
+            param.name,
+            leadingTrivia: firstNameLeading,
+            trailingTrivia: .space
+          )
           secondNameToken = nil
         }
 
@@ -71,16 +80,25 @@ extension Function {
           type: IdentifierTypeSyntax(name: .identifier(param.type)),
           defaultValue: param.defaultValue.map {
             InitializerClauseSyntax(
-              equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-              value: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier($0)))
+              equal: .equalToken(
+                leadingTrivia: .space,
+                trailingTrivia: .space
+              ),
+              value: ExprSyntax(
+                DeclReferenceExprSyntax(baseName: .identifier($0))
+              )
             )
           }
         )
         if index < parameters.count - 1 {
-          paramSyntax = paramSyntax.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+          paramSyntax = paramSyntax.with(
+            \.trailingComma,
+            .commaToken(trailingTrivia: .space)
+          )
         }
         return paramSyntax
-      })
+      }
+    )
 
     // Build return type if specified
     var returnClause: ReturnClauseSyntax?
@@ -105,7 +123,8 @@ extension Function {
             item = CodeBlockItemSyntax(item: .stmt(stmt))
           }
           return item?.with(\.trailingTrivia, .newline)
-        }),
+        }
+      ),
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
 
@@ -115,15 +134,18 @@ extension Function {
     // Build modifiers
     var modifiers: DeclModifierListSyntax = []
     if isStatic {
-      modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
-      ])
+      modifiers = DeclModifierListSyntax(
+        [
+          DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
+        ]
+      )
     }
     if isMutating {
       modifiers = DeclModifierListSyntax(
         modifiers + [
           DeclModifierSyntax(name: .keyword(.mutating, trailingTrivia: .space))
-        ])
+        ]
+      )
     }
 
     return FunctionDeclSyntax(
@@ -171,7 +193,10 @@ extension Function {
             argumentList.enumerated().map { index, expr in
               var element = LabeledExprSyntax(expression: ExprSyntax(expr))
               if index < argumentList.count - 1 {
-                element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+                element = element.with(
+                  \.trailingComma,
+                  .commaToken(trailingTrivia: .space)
+                )
               }
               return element
             }

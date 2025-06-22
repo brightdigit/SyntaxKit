@@ -46,7 +46,8 @@ public struct Function: CodeBlock {
   ///   - returnType: The return type of the function, if any.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the function.
   public init(
-    _ name: String, returns returnType: String? = nil,
+    _ name: String,
+    returns returnType: String? = nil,
     @CodeBlockBuilderResult _ content: () -> [CodeBlock]
   ) {
     self.name = name
@@ -62,7 +63,8 @@ public struct Function: CodeBlock {
   ///   - params: A ``ParameterBuilder`` that provides the parameters of the function.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the function.
   public init(
-    _ name: String, returns returnType: String? = nil,
+    _ name: String,
+    returns returnType: String? = nil,
     @ParameterBuilderResult _ params: () -> [Parameter],
     @CodeBlockBuilderResult _ content: () -> [CodeBlock]
   ) {
