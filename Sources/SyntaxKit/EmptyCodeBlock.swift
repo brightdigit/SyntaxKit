@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  EmptyCodeBlock.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,8 +30,10 @@
 import Foundation
 import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+/// An empty ``CodeBlock``.
+public struct EmptyCodeBlock: CodeBlock {
+  /// The syntax for an empty code block.
+  public var syntax: SyntaxProtocol {
+    StringSegmentSyntax(content: .unknown(""))
+  }
 }

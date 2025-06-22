@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  CodeBlockBuilderResult.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,10 +28,32 @@
 //
 
 import Foundation
-import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+/// A result builder for creating arrays of ``CodeBlock``s.
+@resultBuilder
+public enum CodeBlockBuilderResult {
+  /// Builds a block of ``CodeBlock``s.
+  public static func buildBlock(_ components: CodeBlock...) -> [CodeBlock] {
+    components
+  }
+
+  /// Builds an optional ``CodeBlock``.
+  public static func buildOptional(_ component: CodeBlock?) -> CodeBlock {
+    component ?? EmptyCodeBlock()
+  }
+
+  /// Builds a ``CodeBlock`` from an `if` statement.
+  public static func buildEither(first: CodeBlock) -> CodeBlock {
+    first
+  }
+
+  /// Builds a ``CodeBlock`` from an `else` statement.
+  public static func buildEither(second: CodeBlock) -> CodeBlock {
+    second
+  }
+
+  /// Builds an array of ``CodeBlock``s from a `for` loop.
+  public static func buildArray(_ components: [CodeBlock]) -> [CodeBlock] {
+    components
+  }
 }

@@ -69,52 +69,29 @@ public struct Infix: CodeBlock {
   }
 }
 
-// MARK: - Operator Overloads for Infix Expressions
+// MARK: - Comparison Operators
 
-/// Creates a greater-than comparison expression.
-/// - Parameters:
-///   - lhs: The left-hand side expression.
-///   - rhs: The right-hand side expression.
-/// - Returns: An infix expression representing `lhs > rhs`.
-public func > (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
-  Infix(">") {
-    lhs
-    rhs
+extension Infix {
+  /// Comparison operators that can be used in infix expressions.
+  public enum ComparisonOperator: String, CaseIterable {
+    case greaterThan = ">"
+    case lessThan = "<"
+    case equal = "=="
+    case notEqual = "!="
+
+    /// The string representation of the operator.
+    public var symbol: String {
+      rawValue
+    }
   }
-}
 
-/// Creates a less-than comparison expression.
-/// - Parameters:
-///   - lhs: The left-hand side expression.
-///   - rhs: The right-hand side expression.
-/// - Returns: An infix expression representing `lhs < rhs`.
-public func < (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
-  Infix("<") {
-    lhs
-    rhs
-  }
-}
-
-/// Creates an equality comparison expression.
-/// - Parameters:
-///   - lhs: The left-hand side expression.
-///   - rhs: The right-hand side expression.
-/// - Returns: An infix expression representing `lhs == rhs`.
-public func == (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
-  Infix("==") {
-    lhs
-    rhs
-  }
-}
-
-/// Creates an inequality comparison expression.
-/// - Parameters:
-///   - lhs: The left-hand side expression.
-///   - rhs: The right-hand side expression.
-/// - Returns: An infix expression representing `lhs != rhs`.
-public func != (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
-  Infix("!=") {
-    lhs
-    rhs
+  /// Creates an infix expression with a comparison operator.
+  /// - Parameters:
+  ///   - operator: The comparison operator to use.
+  ///   - lhs: The left-hand side expression.
+  ///   - rhs: The right-hand side expression.
+  public init(_ operator: ComparisonOperator, lhs: CodeBlock, rhs: CodeBlock) {
+    self.operation = `operator`.symbol
+    self.operands = [lhs, rhs]
   }
 }

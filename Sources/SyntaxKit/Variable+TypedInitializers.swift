@@ -31,6 +31,7 @@ import Foundation
 
 // MARK: - Variable Typed Initializers
 
+// swiftlint:disable discouraged_optional_boolean
 extension Variable {
   /// Creates a `let` or `var` declaration with an Init value, inferring the type from the Init.
   /// - Parameters:
@@ -169,3 +170,4 @@ extension Variable {
     )
   }
 }
+// swiftlint:enable discouraged_optional_boolean

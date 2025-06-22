@@ -87,7 +87,9 @@ public struct FunctionRequirement: CodeBlock {
     } else {
       paramList = FunctionParameterListSyntax(
         parameters.enumerated().compactMap { index, param in
-          guard !param.name.isEmpty, !param.type.isEmpty else { return nil }
+          guard !param.name.isEmpty, !param.type.isEmpty else {
+            return nil
+          }
           var paramSyntax = FunctionParameterSyntax(
             firstName: param.isUnnamed
               ? .wildcardToken(trailingTrivia: .space) : .identifier(param.name),

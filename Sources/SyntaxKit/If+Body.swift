@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  If+Body.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,24 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+extension If {
+  /// Builds the body block for the if statement.
+  internal func buildBody() -> CodeBlockSyntax {
+    CodeBlockSyntax(
+      leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
+      statements: buildBodyStatements(from: body),
+      rightBrace: .rightBraceToken(leadingTrivia: .newline)
+    )
+  }
+
+  /// Builds the statements for a code block from an array of CodeBlocks.
+  internal func buildBodyStatements(from blocks: [CodeBlock]) -> CodeBlockItemListSyntax {
+    CodeBlockItemListSyntax(
+      blocks.compactMap { block in
+        createCodeBlockItem(from: block)?.with(\.trailingTrivia, .newline)
+      }
+    )
+  }
 }

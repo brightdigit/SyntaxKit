@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  CodeBlockBuilder.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,10 +28,11 @@
 //
 
 import Foundation
-import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+/// A protocol for types that can build a ``CodeBlock``.
+public protocol CodeBlockBuilder {
+  /// The type of ``CodeBlock`` that this builder creates.
+  associatedtype Result: CodeBlock
+  /// Builds the ``CodeBlock``.
+  func build() -> Result
 }

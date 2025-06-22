@@ -101,7 +101,7 @@ import Testing
       Parameter(name: "id", type: "Int")
     } _: {
       Guard {
-        VariableExp("id") > Literal.integer(0)
+        Infix(.greaterThan, lhs: VariableExp("id"), rhs: Literal.integer(0))
       } else: {
         Throw(EnumCase("invalidId"))
       }
@@ -111,7 +111,7 @@ import Testing
         }
       }.async()
       Guard {
-        VariableExp("user") != Literal.nil
+        Infix(.notEqual, lhs: VariableExp("user"), rhs: Literal.nil)
       } else: {
         Throw(EnumCase("userNotFound"))
       }

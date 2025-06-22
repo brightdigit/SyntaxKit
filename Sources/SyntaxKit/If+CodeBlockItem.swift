@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  If+CodeBlockItem.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+extension If {
+  /// Creates a code block item from a CodeBlock.
+  internal func createCodeBlockItem(from block: CodeBlock) -> CodeBlockItemSyntax? {
+    if let enumCase = block as? EnumCase {
+      // Handle EnumCase specially - use expression syntax for enum cases in expressions
+      return CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax))
+    } else if let decl = block.syntax.as(DeclSyntax.self) {
+      return CodeBlockItemSyntax(item: .decl(decl))
+    } else if let expr = block.syntax.as(ExprSyntax.self) {
+      return CodeBlockItemSyntax(item: .expr(expr))
+    } else if let stmt = block.syntax.as(StmtSyntax.self) {
+      return CodeBlockItemSyntax(item: .stmt(stmt))
+    }
+    return nil
+  }
 }
