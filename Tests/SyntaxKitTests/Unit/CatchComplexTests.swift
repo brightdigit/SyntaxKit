@@ -26,7 +26,8 @@ import Testing
 
     let generated = doCatch.generateCode()
     let expected =
-      "do { try someFunction(param: \"test\") } catch .requestFailed(let statusCode, let message) { logAPIError(statusCode: statusCode, message: message) }"
+      "do { try someFunction(param: \"test\") } catch .requestFailed(let statusCode, let message) { "
+      + "logAPIError(statusCode: statusCode, message: message) }"
 
     #expect(generated.normalize() == expected.normalize())
   }

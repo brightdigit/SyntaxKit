@@ -50,7 +50,8 @@ public struct Default: CodeBlock {
           item = CodeBlockItemSyntax(item: .stmt(stmt))
         }
         return item?.with(\.trailingTrivia, .newline)
-      })
+      }
+    )
     let label = SwitchDefaultLabelSyntax(
       defaultKeyword: .keyword(.default),
       colon: .colonToken(trailingTrivia: .newline)

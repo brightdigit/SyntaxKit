@@ -71,6 +71,11 @@ public struct Infix: CodeBlock {
 
 // MARK: - Operator Overloads for Infix Expressions
 
+/// Creates a greater-than comparison expression.
+/// - Parameters:
+///   - lhs: The left-hand side expression.
+///   - rhs: The right-hand side expression.
+/// - Returns: An infix expression representing `lhs > rhs`.
 public func > (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   Infix(">") {
     lhs
@@ -78,6 +83,11 @@ public func > (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   }
 }
 
+/// Creates a less-than comparison expression.
+/// - Parameters:
+///   - lhs: The left-hand side expression.
+///   - rhs: The right-hand side expression.
+/// - Returns: An infix expression representing `lhs < rhs`.
 public func < (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   Infix("<") {
     lhs
@@ -85,6 +95,11 @@ public func < (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   }
 }
 
+/// Creates an equality comparison expression.
+/// - Parameters:
+///   - lhs: The left-hand side expression.
+///   - rhs: The right-hand side expression.
+/// - Returns: An infix expression representing `lhs == rhs`.
 public func == (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   Infix("==") {
     lhs
@@ -92,6 +107,11 @@ public func == (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   }
 }
 
+/// Creates an inequality comparison expression.
+/// - Parameters:
+///   - lhs: The left-hand side expression.
+///   - rhs: The right-hand side expression.
+/// - Returns: An infix expression representing `lhs != rhs`.
 public func != (lhs: CodeBlock, rhs: CodeBlock) -> Infix {
   Infix("!=") {
     lhs

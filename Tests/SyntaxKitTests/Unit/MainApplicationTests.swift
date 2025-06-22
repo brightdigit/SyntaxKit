@@ -116,7 +116,10 @@ internal struct MainApplicationTests {
   internal func testMainApplicationErrorResponseFormat() throws {
     // Test the error response format that the main application would generate
     let testError = NSError(
-      domain: "TestDomain", code: 1, userInfo: [NSLocalizedDescriptionKey: "Test error message"])
+      domain: "TestDomain",
+      code: 1,
+      userInfo: [NSLocalizedDescriptionKey: "Test error message"]
+    )
 
     let errorResponse = ["error": testError.localizedDescription]
     let jsonData = try JSONSerialization.data(withJSONObject: errorResponse)

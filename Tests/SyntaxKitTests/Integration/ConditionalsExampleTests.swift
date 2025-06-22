@@ -200,13 +200,15 @@ import Testing
         SwitchCase(Tuple.pattern([(-2...2), (-2...2)])) {
           Call("print") {
             ParameterExp(
-              name: "", value: "\"(\\(somePoint.0), \\(somePoint.1)) is inside the box\"")
+              name: "", value: "\"(\\(somePoint.0), \\(somePoint.1)) is inside the box\""
+            )
           }
         }
         Default {
           Call("print") {
             ParameterExp(
-              name: "", value: "\"(\\(somePoint.0), \\(somePoint.1)) is outside of the box\"")
+              name: "", value: "\"(\\(somePoint.0), \\(somePoint.1)) is outside of the box\""
+            )
           }
         }
       }
@@ -220,17 +222,23 @@ import Testing
       Switch("anotherPoint") {
         SwitchCase(Tuple.pattern([Pattern.let("x"), 0])) {
           Call("print") {
-            ParameterExp(name: "", value: "\"on the x-axis with an x value of \\(x)\"")
+            ParameterExp(
+              name: "", value: "\"on the x-axis with an x value of \\(x)\""
+            )
           }
         }
         SwitchCase(Tuple.pattern([0, Pattern.let("y")])) {
           Call("print") {
-            ParameterExp(name: "", value: "\"on the y-axis with a y value of \\(y)\"")
+            ParameterExp(
+              name: "", value: "\"on the y-axis with a y value of \\(y)\""
+            )
           }
         }
         SwitchCase(Tuple.pattern([Pattern.let("x"), Pattern.let("y")])) {
           Call("print") {
-            ParameterExp(name: "", value: "\"somewhere else at (\\(x), \\(y))\"")
+            ParameterExp(
+              name: "", value: "\"somewhere else at (\\(x), \\(y))\""
+            )
           }
         }
       }
@@ -269,7 +277,8 @@ import Testing
             value: Infix("+") {
               VariableExp("finalSquare")
               Literal.integer(1)
-            })
+            }
+          )
         }
       }
 

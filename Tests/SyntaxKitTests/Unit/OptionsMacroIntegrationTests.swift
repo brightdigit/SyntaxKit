@@ -47,7 +47,9 @@ internal struct OptionsMacroIntegrationTests {
 
     #expect(
       generated.contains(
-        "extension MockDictionaryEnum: MappedValueRepresentable, MappedValueRepresented"))
+        "extension MockDictionaryEnum: MappedValueRepresentable, MappedValueRepresented"
+      )
+    )
     #expect(generated.contains("typealias MappedType = String"))
     #expect(generated.contains("static let mappedValues: [Int: String]"))
     #expect(generated.contains("2: \"a\""))
@@ -172,7 +174,9 @@ internal struct OptionsMacroIntegrationTests {
 
     #expect(
       generated.contains(
-        "extension EmptyDictEnum: MappedValueRepresentable, MappedValueRepresented"))
+        "extension EmptyDictEnum: MappedValueRepresentable, MappedValueRepresented"
+      )
+    )
     #expect(generated.contains("typealias MappedType = String"))
     #expect(generated.contains("static let mappedValues: [Int: String] = [: ]"))
   }

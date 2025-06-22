@@ -45,6 +45,10 @@ extension Literal: DictionaryValue {
 // MARK: - CodeBlock Conformance
 
 extension CodeBlock where Self: DictionaryValue {
+  /// Converts this code block to an expression syntax.
+  /// If the code block is already an expression, returns it directly.
+  /// If it's a token, wraps it in a declaration reference expression.
+  /// Otherwise, throws a fatal error.
   public var exprSyntax: ExprSyntax {
     if let expr = self.syntax.as(ExprSyntax.self) {
       return expr

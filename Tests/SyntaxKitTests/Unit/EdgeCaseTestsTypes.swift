@@ -12,7 +12,9 @@ internal struct EdgeCaseTestsTypes {
     let generated = typeAlias.generateCode()
     #expect(
       generated.normalize().contains(
-        "typealias ComplexType = Array<Dictionary<String, Optional<Int>>>".normalize()))
+        "typealias ComplexType = Array<Dictionary<String, Optional<Int>>>".normalize()
+      )
+    )
   }
 
   @Test("TypeAlias with multiple generic parameters")
