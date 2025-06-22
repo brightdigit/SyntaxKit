@@ -42,27 +42,8 @@ extension CodeBlock {
       statements = codeBlock.statements
     } else {
       let item: CodeBlockItemSyntax.Item
-      if let decl = self.syntax.as(DeclSyntax.self) {
-        item = .decl(decl)
-      } else if let stmt = self.syntax.as(StmtSyntax.self) {
-        item = .stmt(stmt)
-      } else if let expr = self.syntax.as(ExprSyntax.self) {
-        item = .expr(expr)
-      } else if let token = self.syntax.as(TokenSyntax.self) {
-        // Wrap TokenSyntax in DeclReferenceExprSyntax and then in ExprSyntax
-        let expr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(token.text)))
-        item = .expr(expr)
-      } else if let switchCase = self.syntax.as(SwitchCaseSyntax.self) {
-        // Wrap SwitchCaseSyntax in a SwitchExprSyntax and treat it as an expression
-        // This is a fallback for when SwitchCase is used standalone
-        let switchExpr = SwitchExprSyntax(
-          switchKeyword: .keyword(.switch, trailingTrivia: .space),
-          subject: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("_"))),
-          leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
-          cases: SwitchCaseListSyntax([SwitchCaseListSyntax.Element(switchCase)]),
-          rightBrace: .rightBraceToken(leadingTrivia: .newline)
-        )
-        item = .expr(ExprSyntax(switchExpr))
+      if let convertedItem = CodeBlockItemSyntax.Item.create(from: self.syntax) {
+        item = convertedItem
       } else {
         fatalError(
           "Unsupported syntax type at top level: \(type(of: self.syntax)) (\(self.syntax)) "

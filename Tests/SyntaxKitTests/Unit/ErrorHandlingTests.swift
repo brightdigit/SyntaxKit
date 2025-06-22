@@ -3,6 +3,7 @@ import Testing
 @testable import SyntaxKit
 
 @Suite internal struct ErrorHandlingTests {
+  // swiftlint:disable function_body_length
   @Test("Error handling DSL generates expected Swift code")
   internal func testErrorHandlingExample() throws {
     let errorHandlingExample = Group {
@@ -72,6 +73,7 @@ import Testing
     print("Generated code:")
     print(generated)
   }
+  // swiftlint:enable function_body_length
 
   @Test("Function with throws clause and unlabeled parameter generates correct syntax")
   internal func testFunctionWithThrowsClauseAndUnlabeledParameter() throws {

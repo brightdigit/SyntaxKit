@@ -32,6 +32,7 @@ import Foundation
 // MARK: - Variable Literal Initializers
 
 extension Variable {
+  // swiftlint:disable cyclomatic_complexity
   /// Creates a `let` or `var` declaration with a literal value.
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
@@ -75,6 +76,8 @@ extension Variable {
       explicitType: false
     )
   }
+
+  // swiftlint:enable cyclomatic_complexity
 
   /// Creates a `let` or `var` declaration with a string literal value.
   /// - Parameters:

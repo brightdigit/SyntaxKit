@@ -40,67 +40,13 @@ extension Function {
       parameters
         .enumerated()
         .compactMap { index, param in
-          // Skip empty placeholders (possible in some builder scenarios)
-          guard !param.name.isEmpty || param.defaultValue != nil else {
-            return nil
-          }
-
-          // Attributes for parameter
+          let isLast = index >= parameters.count - 1
           let paramAttributes = buildAttributeList(from: param.attributes)
-
-          let firstNameLeading: Trivia = paramAttributes.isEmpty ? [] : .space
-
-          // Determine first & second names
-          let firstNameToken: TokenSyntax
-          let secondNameToken: TokenSyntax?
-
-          if param.isUnnamed {
-            firstNameToken = .wildcardToken(
-              leadingTrivia: firstNameLeading,
-              trailingTrivia: .space
-            )
-            secondNameToken = .identifier(param.name)
-          } else if let label = param.label {
-            firstNameToken = .identifier(
-              label,
-              leadingTrivia: firstNameLeading,
-              trailingTrivia: .space
-            )
-            secondNameToken = .identifier(param.name)
-          } else {
-            firstNameToken = .identifier(
-              param.name,
-              leadingTrivia: firstNameLeading,
-              trailingTrivia: .space
-            )
-            secondNameToken = nil
-          }
-
-          var paramSyntax = FunctionParameterSyntax(
+          return FunctionParameterSyntax.create(
+            from: param,
             attributes: paramAttributes,
-            firstName: firstNameToken,
-            secondName: secondNameToken,
-            colon: .colonToken(trailingTrivia: .space),
-            type: IdentifierTypeSyntax(name: .identifier(param.type)),
-            defaultValue: param.defaultValue.map {
-              InitializerClauseSyntax(
-                equal: .equalToken(
-                  leadingTrivia: .space,
-                  trailingTrivia: .space
-                ),
-                value: ExprSyntax(
-                  DeclReferenceExprSyntax(baseName: .identifier($0))
-                )
-              )
-            }
+            isLast: isLast
           )
-          if index < parameters.count - 1 {
-            paramSyntax = paramSyntax.with(
-              \.trailingComma,
-              .commaToken(trailingTrivia: .space)
-            )
-          }
-          return paramSyntax
         }
     )
 
