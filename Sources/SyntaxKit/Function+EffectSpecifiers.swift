@@ -35,7 +35,7 @@ extension Function {
     switch effect {
     case .none:
       return nil
-    case .throws(let isRethrows, let errorType):
+    case let .throws(isRethrows, errorType):
       let throwsSpecifier = buildThrowsSpecifier(isRethrows: isRethrows)
       if let errorType = errorType {
         return FunctionEffectSpecifiersSyntax(
@@ -53,7 +53,7 @@ extension Function {
         asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
         throwsSpecifier: nil
       )
-    case .asyncThrows(let isRethrows, let errorType):
+    case let .asyncThrows(isRethrows, errorType):
       let throwsSpecifier = buildThrowsSpecifier(isRethrows: isRethrows)
       if let errorType = errorType {
         return FunctionEffectSpecifiersSyntax(

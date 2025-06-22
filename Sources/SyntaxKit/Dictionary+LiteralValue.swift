@@ -45,7 +45,8 @@ extension Dictionary: LiteralValue where Key == Int, Value == String {
         .replacingOccurrences(of: "\r", with: "\\r")
         .replacingOccurrences(of: "\t", with: "\\t")
       return "\(key): \"\(escaped)\""
-    }.joined(separator: ", ")
+    }
+    .joined(separator: ", ")
     return "[\(elements)]"
   }
 }

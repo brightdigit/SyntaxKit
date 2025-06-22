@@ -58,9 +58,15 @@ public struct Switch: CodeBlock {
         ?? DeclReferenceExprSyntax(baseName: .identifier(""))
     )
     let casesArr: [SwitchCaseSyntax] = self.cases.compactMap {
-      if let tupleCase = $0 as? Case { return tupleCase.switchCaseSyntax }
-      if let switchCase = $0 as? SwitchCase { return switchCase.switchCaseSyntax }
-      if let switchDefault = $0 as? Default { return switchDefault.switchCaseSyntax }
+      if let tupleCase = $0 as? Case {
+        return tupleCase.switchCaseSyntax
+      }
+      if let switchCase = $0 as? SwitchCase {
+        return switchCase.switchCaseSyntax
+      }
+      if let switchDefault = $0 as? Default {
+        return switchDefault.switchCaseSyntax
+      }
       return nil
     }
     let cases = SwitchCaseListSyntax(casesArr.map { SwitchCaseListSyntax.Element($0) })

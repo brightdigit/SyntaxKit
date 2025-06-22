@@ -31,7 +31,7 @@ import SwiftSyntax
 
 extension TupleAssignment {
   internal enum AsyncSet {
-    static func tuplePattern(elements: [String]) -> PatternSyntax {
+    internal static func tuplePattern(elements: [String]) -> PatternSyntax {
       let patternElements = TuplePatternElementListSyntax(
         elements.enumerated().map { index, element in
           TuplePatternElementSyntax(
@@ -51,7 +51,7 @@ extension TupleAssignment {
       )
     }
 
-    static func tupleExpr(tuple: Tuple) -> ExprSyntax {
+    internal static func tupleExpr(tuple: Tuple) -> ExprSyntax {
       ExprSyntax(
         TupleExprSyntax(
           leftParen: .leftParenToken(),
@@ -71,7 +71,7 @@ extension TupleAssignment {
       )
     }
 
-    static func valueExpr(tupleExpr: ExprSyntax, isThrowing: Bool) -> ExprSyntax {
+    internal static func valueExpr(tupleExpr: ExprSyntax, isThrowing: Bool) -> ExprSyntax {
       isThrowing
         ? ExprSyntax(
           TryExprSyntax(

@@ -76,14 +76,18 @@ public struct DictionaryExpr: CodeBlock, LiteralValue {
         elements.enumerated().map { index, keyValue in
           let (key, value) = keyValue
           return DictionaryElementSyntax(
-            keyExpression: key.exprSyntax,
+            key: key.exprSyntax,
             colon: .colonToken(),
-            valueExpression: value.exprSyntax,
-            trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
+            value: value.exprSyntax,
+            trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .newline) : nil
           )
         }
       )
-      return DictionaryExprSyntax(content: .elements(dictionaryElements))
+      return DictionaryExprSyntax(
+        leftSquare: .leftSquareToken(trailingTrivia: .newline),
+        content: .elements(dictionaryElements),
+        rightSquare: .rightSquareToken(leadingTrivia: .newline)
+      )
     }
   }
 }

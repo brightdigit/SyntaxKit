@@ -3,9 +3,9 @@ import Testing
 @testable import SyntaxKit
 
 @Suite
-final class ForLoopTests {
+internal final class ForLoopTests {
   @Test
-  func testSimpleForInLoop() {
+  internal func testSimpleForInLoop() {
     let forLoop = For(
       VariableExp("item"),
       in: VariableExp("items"),
@@ -22,7 +22,7 @@ final class ForLoopTests {
   }
 
   @Test
-  func testForInWithWhereClause() {
+  internal func testForInWithWhereClause() {
     let forLoop = For(
       VariableExp("number"),
       in: VariableExp("numbers"),

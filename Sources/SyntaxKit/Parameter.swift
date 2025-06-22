@@ -49,14 +49,6 @@ public struct Parameter: CodeBlock {
 
   internal var attributes: [AttributeInfo] = []
 
-  /// Creates a parameter for a function or initializer.
-  /// - Parameters:
-  ///   - name: The name of the parameter.
-  ///   - type: The type of the parameter.
-  ///   - defaultValue: The default value of the parameter, if any.
-  ///   - isUnnamed: A Boolean value that indicates whether the parameter is unnamed.
-  // NOTE: The previous initializer that accepted an `isUnnamed` flag has been replaced.
-
   /// Creates an unlabeled parameter for function calls or initializers.
   /// - Parameter value: The value of the parameter.
   public init(unlabeled value: String) {

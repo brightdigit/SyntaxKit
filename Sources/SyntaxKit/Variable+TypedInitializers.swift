@@ -39,7 +39,9 @@ extension Variable {
   ///   - equals: An Init expression.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
-    _ kind: VariableKind, name: String, equals defaultValue: Init,
+    _ kind: VariableKind,
+    name: String,
+    equals defaultValue: Init,
     explicitType: Bool? = nil
   ) {
     self.init(

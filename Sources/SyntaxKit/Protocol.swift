@@ -97,7 +97,9 @@ public struct Protocol: CodeBlock {
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       members: MemberBlockItemListSyntax(
         members.compactMap { member in
-          guard let decl = member.syntax.as(DeclSyntax.self) else { return nil }
+          guard let decl = member.syntax.as(DeclSyntax.self) else {
+            return nil
+          }
           return MemberBlockItemSyntax(decl: decl, trailingTrivia: .newline)
         }
       ),

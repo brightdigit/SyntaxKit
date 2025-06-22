@@ -48,7 +48,7 @@ internal struct CodeStyleMigrationTests {
 
   // MARK: - Multiline String Formatting Tests
 
-  @Test func testMultilineStringFormatting() {
+  @Test internal func testMultilineStringFormatting() {
     let expected = """
       struct TestStruct {
         let value: String
@@ -68,7 +68,7 @@ internal struct CodeStyleMigrationTests {
     #expect(normalized == expectedNormalized)
   }
 
-  @Test func testMigrationPreservesCodeGeneration() {
+  @Test internal func testMigrationPreservesCodeGeneration() {
     // Ensure that the style changes don't break core functionality
     let group = Group {
       Return {

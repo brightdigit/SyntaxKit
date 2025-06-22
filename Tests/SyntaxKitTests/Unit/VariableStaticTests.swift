@@ -156,7 +156,8 @@ internal struct VariableStaticTests {
   @Test internal func testMultipleStaticCalls() {
     let variable = Variable(.let, name: "test", type: "String", equals: Literal.ref("value"))
       .withExplicitType()
-      .static().static()
+      .static()
+      .static()
     let generated = variable.generateCode().normalize()
 
     // Should still only have one "static" keyword

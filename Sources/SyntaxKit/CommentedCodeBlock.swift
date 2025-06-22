@@ -38,7 +38,9 @@ internal struct CommentedCodeBlock: CodeBlock {
 
   internal var syntax: SyntaxProtocol {
     // Shortcut if there are no comment lines
-    guard !lines.isEmpty else { return base.syntax }
+    guard !lines.isEmpty else {
+      return base.syntax
+    }
 
     let commentTrivia = Trivia(pieces: lines.flatMap { [$0.triviaPiece, TriviaPiece.newlines(1)] })
 

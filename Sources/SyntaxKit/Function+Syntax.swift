@@ -37,67 +37,71 @@ extension Function {
 
     // Build parameter list
     let paramList = FunctionParameterListSyntax(
-      parameters.enumerated().compactMap { index, param in
-        // Skip empty placeholders (possible in some builder scenarios)
-        guard !param.name.isEmpty || param.defaultValue != nil else { return nil }
+      parameters
+        .enumerated()
+        .compactMap { index, param in
+          // Skip empty placeholders (possible in some builder scenarios)
+          guard !param.name.isEmpty || param.defaultValue != nil else {
+            return nil
+          }
 
-        // Attributes for parameter
-        let paramAttributes = buildAttributeList(from: param.attributes)
+          // Attributes for parameter
+          let paramAttributes = buildAttributeList(from: param.attributes)
 
-        let firstNameLeading: Trivia = paramAttributes.isEmpty ? [] : .space
+          let firstNameLeading: Trivia = paramAttributes.isEmpty ? [] : .space
 
-        // Determine first & second names
-        let firstNameToken: TokenSyntax
-        let secondNameToken: TokenSyntax?
+          // Determine first & second names
+          let firstNameToken: TokenSyntax
+          let secondNameToken: TokenSyntax?
 
-        if param.isUnnamed {
-          firstNameToken = .wildcardToken(
-            leadingTrivia: firstNameLeading,
-            trailingTrivia: .space
-          )
-          secondNameToken = .identifier(param.name)
-        } else if let label = param.label {
-          firstNameToken = .identifier(
-            label,
-            leadingTrivia: firstNameLeading,
-            trailingTrivia: .space
-          )
-          secondNameToken = .identifier(param.name)
-        } else {
-          firstNameToken = .identifier(
-            param.name,
-            leadingTrivia: firstNameLeading,
-            trailingTrivia: .space
-          )
-          secondNameToken = nil
-        }
+          if param.isUnnamed {
+            firstNameToken = .wildcardToken(
+              leadingTrivia: firstNameLeading,
+              trailingTrivia: .space
+            )
+            secondNameToken = .identifier(param.name)
+          } else if let label = param.label {
+            firstNameToken = .identifier(
+              label,
+              leadingTrivia: firstNameLeading,
+              trailingTrivia: .space
+            )
+            secondNameToken = .identifier(param.name)
+          } else {
+            firstNameToken = .identifier(
+              param.name,
+              leadingTrivia: firstNameLeading,
+              trailingTrivia: .space
+            )
+            secondNameToken = nil
+          }
 
-        var paramSyntax = FunctionParameterSyntax(
-          attributes: paramAttributes,
-          firstName: firstNameToken,
-          secondName: secondNameToken,
-          colon: .colonToken(trailingTrivia: .space),
-          type: IdentifierTypeSyntax(name: .identifier(param.type)),
-          defaultValue: param.defaultValue.map {
-            InitializerClauseSyntax(
-              equal: .equalToken(
-                leadingTrivia: .space,
-                trailingTrivia: .space
-              ),
-              value: ExprSyntax(
-                DeclReferenceExprSyntax(baseName: .identifier($0))
+          var paramSyntax = FunctionParameterSyntax(
+            attributes: paramAttributes,
+            firstName: firstNameToken,
+            secondName: secondNameToken,
+            colon: .colonToken(trailingTrivia: .space),
+            type: IdentifierTypeSyntax(name: .identifier(param.type)),
+            defaultValue: param.defaultValue.map {
+              InitializerClauseSyntax(
+                equal: .equalToken(
+                  leadingTrivia: .space,
+                  trailingTrivia: .space
+                ),
+                value: ExprSyntax(
+                  DeclReferenceExprSyntax(baseName: .identifier($0))
+                )
               )
+            }
+          )
+          if index < parameters.count - 1 {
+            paramSyntax = paramSyntax.with(
+              \.trailingComma,
+              .commaToken(trailingTrivia: .space)
             )
           }
-        )
-        if index < parameters.count - 1 {
-          paramSyntax = paramSyntax.with(
-            \.trailingComma,
-            .commaToken(trailingTrivia: .space)
-          )
+          return paramSyntax
         }
-        return paramSyntax
-      }
     )
 
     // Build return type if specified
