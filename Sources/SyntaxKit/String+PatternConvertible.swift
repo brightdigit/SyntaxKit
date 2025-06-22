@@ -1,5 +1,5 @@
 //
-//  PatternConvertible.swift
+//  String+PatternConvertible.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,11 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
-public protocol PatternConvertible {
-  /// SwiftSyntax representation of the pattern.
-  var patternSyntax: PatternSyntax { get }
+extension String: PatternConvertible {
+  /// SwiftSyntax representation of the string as an identifier pattern.
+  public var patternSyntax: PatternSyntax {
+    PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(self)))
+  }
 }

@@ -1,5 +1,5 @@
 //
-//  PatternConvertible.swift
+//  Literal+PatternConvertible.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
-public protocol PatternConvertible {
-  /// SwiftSyntax representation of the pattern.
-  var patternSyntax: PatternSyntax { get }
+extension Literal: PatternConvertible {
+  /// SwiftSyntax representation of the literal as a pattern.
+  public var patternSyntax: PatternSyntax {
+    guard let expr = self.syntax.as(ExprSyntax.self) else {
+      fatalError("Literal.syntax did not return ExprSyntax")
+    }
+    return PatternSyntax(ExpressionPatternSyntax(expression: expr))
+  }
 }

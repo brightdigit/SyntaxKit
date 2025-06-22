@@ -1,5 +1,5 @@
 //
-//  PatternConvertible.swift
+//  Int+PatternConvertible.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,12 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
-public protocol PatternConvertible {
-  /// SwiftSyntax representation of the pattern.
-  var patternSyntax: PatternSyntax { get }
+extension Int: PatternConvertible {
+  /// SwiftSyntax representation of the integer as a pattern.
+  public var patternSyntax: PatternSyntax {
+    let expr = ExprSyntax(IntegerLiteralExprSyntax(literal: .integerLiteral(String(self))))
+    return PatternSyntax(ExpressionPatternSyntax(expression: expr))
+  }
 }

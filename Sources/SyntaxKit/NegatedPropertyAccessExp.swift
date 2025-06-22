@@ -1,5 +1,5 @@
 //
-//  PatternConvertible.swift
+//  NegatedPropertyAccessExp.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,38 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
-public protocol PatternConvertible {
-  /// SwiftSyntax representation of the pattern.
-  var patternSyntax: PatternSyntax { get }
+/// An expression that negates a property access.
+public struct NegatedPropertyAccessExp: CodeBlock {
+  internal let base: CodeBlock
+
+  /// Creates a negated property access expression.
+  /// - Parameter base: The base property access expression.
+  public init(base: CodeBlock) {
+    self.base = base
+  }
+
+  /// Backward compatibility initializer for (baseName, propertyName).
+  public init(baseName: String, propertyName: String) {
+    self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
+  }
+
+  public var syntax: SyntaxProtocol {
+    let memberAccess =
+      base.syntax.as(ExprSyntax.self)
+      ?? ExprSyntax(
+        DeclReferenceExprSyntax(baseName: .identifier(""))
+      )
+    return ExprSyntax(
+      PrefixOperatorExprSyntax(
+        operator: .prefixOperator(
+          "!",
+          leadingTrivia: [],
+          trailingTrivia: []
+        ),
+        expression: memberAccess
+      )
+    )
+  }
 }

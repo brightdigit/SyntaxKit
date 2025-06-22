@@ -1,5 +1,5 @@
 //
-//  PatternConvertible.swift
+//  LetBindingPattern.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,11 +27,35 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
-public protocol PatternConvertible {
-  /// SwiftSyntax representation of the pattern.
-  var patternSyntax: PatternSyntax { get }
+// MARK: - Let binding pattern
+
+/// Namespace for pattern creation utilities.
+public enum Pattern {
+  /// Creates a `let` binding pattern for switch cases.
+  /// - Parameter identifier: The name of the variable to bind.
+  /// - Returns: A pattern that binds the value to the given identifier.
+  public static func `let`(_ identifier: String) -> LetBindingPattern {
+    LetBindingPattern(identifier: identifier)
+  }
+}
+
+/// A `let` binding pattern for switch cases.
+public struct LetBindingPattern: PatternConvertible {
+  private let identifier: String
+
+  internal init(identifier: String) {
+    self.identifier = identifier
+  }
+
+  /// SwiftSyntax representation of the let binding pattern.
+  public var patternSyntax: PatternSyntax {
+    PatternSyntax(
+      ValueBindingPatternSyntax(
+        bindingSpecifier: .keyword(.let, trailingTrivia: .space),
+        pattern: PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(identifier)))
+      )
+    )
+  }
 }
