@@ -37,8 +37,8 @@ internal final class TokenVisitor: SyntaxRewriter {
   private var current: TreeNode!
   private var index = 0
 
-  private let locationConverter: SourceLocationConverter
-  private let showMissingTokens: Bool
+  internal let locationConverter: SourceLocationConverter
+  internal let showMissingTokens: Bool
 
   internal init(locationConverter: SourceLocationConverter, showMissingTokens: Bool) {
     self.locationConverter = locationConverter
@@ -205,56 +205,5 @@ internal final class TokenVisitor: SyntaxRewriter {
     } else {
       current = nil
     }
-  }
-
-  private func processToken(_ token: TokenSyntax) {
-    var kind = "\(token.tokenKind)"
-    if let index = kind.firstIndex(of: "(") {
-      kind = String(kind.prefix(upTo: index))
-    }
-    if kind.hasSuffix("Keyword") {
-      kind = "keyword"
-    }
-
-    let sourceRange = token.sourceRange(converter: locationConverter)
-    let start = sourceRange.start
-    let end = sourceRange.end
-    let text = token.presence == .present || showMissingTokens ? token.text : ""
-  }
-
-  private func processTriviaPiece(_ piece: TriviaPiece) -> String {
-    func wrapWithSpanTag(class className: String, text: String) -> String {
-      "<span class='\(className.escapeHTML())' "
-        + "data-title='\("\(piece)".escapeHTML().replaceInvisiblesWithSymbols())' "
-        + "data-content='\(className.escapeHTML().replaceInvisiblesWithHTML())' "
-        + "data-type='Trivia'>\(text.escapeHTML().replaceInvisiblesWithHTML())</span>"
-    }
-
-    var trivia = ""
-    switch piece {
-    case .spaces(let count):
-      trivia += String(repeating: "&nbsp;", count: count)
-    case .tabs(let count):
-      trivia += String(repeating: "&nbsp;", count: count * 2)
-    case .verticalTabs, .formfeeds:
-      break
-    case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
-      trivia += String(repeating: "<br/>", count: count)
-    case .lineComment(let text):
-      trivia += wrapWithSpanTag(class: "lineComment", text: text)
-    case .blockComment(let text):
-      trivia += wrapWithSpanTag(class: "blockComment", text: text)
-    case .docLineComment(let text):
-      trivia += wrapWithSpanTag(class: "docLineComment", text: text)
-    case .docBlockComment(let text):
-      trivia += wrapWithSpanTag(class: "docBlockComment", text: text)
-    case .unexpectedText(let text):
-      trivia += wrapWithSpanTag(class: "unexpectedText", text: text)
-    case .backslashes(let count):
-      trivia += String(repeating: #"\"#, count: count)
-    case .pounds(let count):
-      trivia += String(repeating: "#", count: count)
-    }
-    return trivia
   }
 }

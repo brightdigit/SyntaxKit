@@ -31,7 +31,9 @@ import SwiftSyntax
 
 /// A tuple expression, e.g. `(a, b, c)`.
 public struct Tuple: CodeBlock {
-  private let elements: [CodeBlock]
+  internal let elements: [CodeBlock]
+  private var isAsync: Bool = false
+  private var isThrowing: Bool = false
 
   /// Creates a tuple expression comprising the supplied elements.
   /// - Parameter content: A ``CodeBlockBuilder`` producing the tuple elements **in order**.
@@ -53,6 +55,30 @@ public struct Tuple: CodeBlock {
     TuplePatternCodeBlock(elements: elements)
   }
 
+  /// Marks this tuple as async.
+  /// - Returns: A copy of the tuple marked as async.
+  public func async() -> Self {
+    var copy = self
+    copy.isAsync = true
+    return copy
+  }
+
+  /// Marks this tuple as await.
+  /// - Returns: A copy of the tuple marked as await.
+  public func await() -> Self {
+    var copy = self
+    copy.isAsync = true
+    return copy
+  }
+
+  /// Marks this tuple as throwing.
+  /// - Returns: A copy of the tuple marked as throwing.
+  public func throwing() -> Self {
+    var copy = self
+    copy.isThrowing = true
+    return copy
+  }
+
   public var syntax: SyntaxProtocol {
     guard !elements.isEmpty else {
       fatalError("Tuple must contain at least one element.")
@@ -60,7 +86,20 @@ public struct Tuple: CodeBlock {
 
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
-        let elementExpr = block.expr
+        let elementExpr: ExprSyntax
+        if isAsync {
+          // For async tuples, generate async let syntax for each element
+          // This assumes the block is a function call or expression that can be awaited
+          elementExpr = ExprSyntax(
+            AwaitExprSyntax(
+              awaitKeyword: .keyword(.await, trailingTrivia: .space),
+              expression: block.expr
+            )
+          )
+        } else {
+          elementExpr = block.expr
+        }
+
         return TupleExprElementSyntax(
           label: nil,
           colon: nil,
@@ -78,6 +117,15 @@ public struct Tuple: CodeBlock {
       )
     )
 
-    return tupleExpr
+    if isThrowing {
+      return ExprSyntax(
+        TryExprSyntax(
+          tryKeyword: .keyword(.try, trailingTrivia: .space),
+          expression: tupleExpr
+        )
+      )
+    } else {
+      return tupleExpr
+    }
   }
 }

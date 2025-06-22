@@ -111,6 +111,10 @@ identifier_name:
   excluded:
     - id
     - no
+type_name:
+  excluded:
+    - If
+    - Do
 excluded:
   - DerivedData
   - .build

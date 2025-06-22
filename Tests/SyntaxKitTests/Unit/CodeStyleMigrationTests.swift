@@ -41,7 +41,8 @@ internal struct CodeStyleMigrationTests {
     // Verify proper indentation is maintained
     #expect(
       generated
-        == "struct IndentationTest { let property1: String let property2: Int func method(param: String) { let local = \"value\" return local } }"
+        == "struct IndentationTest { let property1: String let property2: Int "
+        + "func method(param: String) { let local = \"value\" return local } }"
     )
   }
 

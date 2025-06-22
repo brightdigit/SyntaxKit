@@ -29,7 +29,7 @@
 
 import Foundation
 
-/// A tuple value that can be used as a literal.
+/// A tuple literal value that can be used as a literal.
 public struct TupleLiteral: LiteralValue {
   let elements: [Literal?]
 

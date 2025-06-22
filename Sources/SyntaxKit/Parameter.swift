@@ -33,10 +33,20 @@ import SwiftSyntax
 
 /// A parameter for a function or initializer.
 public struct Parameter: CodeBlock {
+  /// The internal parameter name that is visible inside the function body.
   internal let name: String
+
+  /// The external argument label (first name) shown at call-sites.
+  /// If `nil`, the label is identical to the internal name (single-name parameter).
+  /// If the label is the underscore character "_", the parameter is treated as unnamed.
+  internal let label: String?
+
   internal let type: String
   internal let defaultValue: String?
-  internal let isUnnamed: Bool
+
+  /// Convenience flag – true when the parameter uses the underscore label.
+  internal var isUnnamed: Bool { label == "_" }
+
   internal var attributes: [AttributeInfo] = []
 
   /// Creates a parameter for a function or initializer.
@@ -45,20 +55,15 @@ public struct Parameter: CodeBlock {
   ///   - type: The type of the parameter.
   ///   - defaultValue: The default value of the parameter, if any.
   ///   - isUnnamed: A Boolean value that indicates whether the parameter is unnamed.
-  public init(name: String, type: String, defaultValue: String? = nil, isUnnamed: Bool = false) {
-    self.name = name
-    self.type = type
-    self.defaultValue = defaultValue
-    self.isUnnamed = isUnnamed
-  }
+  // NOTE: The previous initializer that accepted an `isUnnamed` flag has been replaced.
 
   /// Creates an unlabeled parameter for function calls or initializers.
   /// - Parameter value: The value of the parameter.
   public init(unlabeled value: String) {
     self.name = ""
+    self.label = "_"
     self.type = ""
     self.defaultValue = value
-    self.isUnnamed = true
   }
 
   /// Adds an attribute to the parameter declaration.
@@ -73,20 +78,64 @@ public struct Parameter: CodeBlock {
   }
 
   public var syntax: SyntaxProtocol {
-    // Not used for function signature, but for call sites (Init, etc.)
+    let callLabel = label ?? name
+
     if let defaultValue = defaultValue {
       return LabeledExprSyntax(
-        label: .identifier(name),
+        label: .identifier(callLabel),
         colon: .colonToken(),
         expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(defaultValue)))
       )
     } else {
       return LabeledExprSyntax(
-        label: .identifier(name),
+        label: .identifier(callLabel),
         colon: .colonToken(),
         expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
       )
     }
-    // Note: If you want to support attributes in parameter syntax, you would need to update the function signature generation in Function.swift to use these attributes.
+    // Note: If you want to support attributes in parameter syntax, you would need to
+    // update the function signature generation in Function.swift to use these attributes.
+  }
+
+  /// Creates a single-name parameter (same label and internal name).
+  public init(name: String, type: String, defaultValue: String? = nil) {
+    self.name = name
+    self.label = nil
+    self.type = type
+    self.defaultValue = defaultValue
+  }
+
+  /// Creates a two-name parameter where the external label differs from the internal name.
+  /// Example: `Parameter("value", labeled: "forKey", type: "String")` maps to
+  /// `forKey value: String` in the generated Swift.
+  public init(
+    _ internalName: String,
+    labeled externalLabel: String,
+    type: String,
+    defaultValue: String? = nil
+  ) {
+    self.name = internalName
+    self.label = externalLabel
+    self.type = type
+    self.defaultValue = defaultValue
+  }
+
+  /// Creates an unlabeled (anonymous) parameter using the underscore label.
+  public init(unlabeled internalName: String, type: String, defaultValue: String? = nil) {
+    self.name = internalName
+    self.label = "_"
+    self.type = type
+    self.defaultValue = defaultValue
+  }
+
+  /// Deprecated: retains source compatibility with earlier API that used an `isUnnamed` flag.
+  /// Prefer `Parameter(unlabeled:type:)` or the new labelled initialisers.
+  @available(*, deprecated, message: "Use Parameter(unlabeled:type:) or Parameter(_:labeled:type:)")
+  public init(name: String, type: String, defaultValue: String? = nil, isUnnamed: Bool) {
+    if isUnnamed {
+      self.init(unlabeled: name, type: type, defaultValue: defaultValue)
+    } else {
+      self.init(name: name, type: type, defaultValue: defaultValue)
+    }
   }
 }

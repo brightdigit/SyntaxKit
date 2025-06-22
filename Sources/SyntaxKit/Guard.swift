@@ -36,7 +36,8 @@ public struct Guard: CodeBlock {
 
   /// Creates a `guard` statement.
   /// - Parameters:
-  ///   - condition: A builder that returns one or more ``CodeBlock`` items representing the guard conditions.
+  ///   - condition: A builder that returns one or more ``CodeBlock`` items representing the guard
+  ///     conditions.
   ///   - elseBody: Builder that produces the statements inside the `else` block.
   public init(
     @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
@@ -87,7 +88,9 @@ public struct Guard: CodeBlock {
             condition: .expression(
               ExprSyntax(
                 fromProtocol: block.syntax.as(ExprSyntax.self)
-                  ?? DeclReferenceExprSyntax(baseName: .identifier(""))))
+                  ?? DeclReferenceExprSyntax(baseName: .identifier(""))
+              )
+            )
           )
           return appendComma(element)
         }
@@ -107,13 +110,14 @@ public struct Guard: CodeBlock {
     }
 
     // Automatically append a bare `return` if the user didn't provide a terminating statement.
-    let containsReturn = elseItems.contains { item in
+    let containsTerminatingStatement = elseItems.contains { item in
       if case .stmt(let stmt) = item.item {
-        return stmt.is(ReturnStmtSyntax.self)
+        return stmt.is(ReturnStmtSyntax.self) || stmt.is(ThrowStmtSyntax.self)
+          || stmt.is(BreakStmtSyntax.self) || stmt.is(ContinueStmtSyntax.self)
       }
       return false
     }
-    if !containsReturn {
+    if !containsTerminatingStatement {
       let retStmt = ReturnStmtSyntax(returnKeyword: .keyword(.return))
       elseItems.append(
         CodeBlockItemSyntax(item: .stmt(StmtSyntax(retStmt))).with(\.trailingTrivia, .newline)

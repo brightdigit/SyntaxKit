@@ -1,5 +1,5 @@
 //
-//  Variable+Initializers.swift
+//  Variable+LiteralInitializers.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,110 +29,9 @@
 
 import Foundation
 
-// MARK: - Variable Initializers
+// MARK: - Variable Literal Initializers
 
 extension Variable {
-  /// Creates a `let` or `var` declaration with an explicit type.
-  /// - Parameters:
-  ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
-  ///   - name: The name of the variable.
-  ///   - type: The type of the variable.
-  ///   - equals: The initial value expression of the variable, if any.
-  ///   - explicitType: Whether the variable has an explicit type.
-  public init(
-    _ kind: VariableKind, name: String, type: String, equals defaultValue: CodeBlock? = nil,
-    explicitType: Bool? = nil
-  ) {
-    let finalExplicitType = explicitType ?? (defaultValue == nil)
-    self.init(
-      kind: kind,
-      name: name,
-      type: type,
-      defaultValue: defaultValue,
-      explicitType: finalExplicitType
-    )
-  }
-
-  /// Creates a `let` or `var` declaration with an explicit type and string literal value.
-  /// - Parameters:
-  ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
-  ///   - name: The name of the variable.
-  ///   - type: The type of the variable.
-  ///   - equals: A string literal value.
-  ///   - explicitType: Whether the variable has an explicit type.
-  public init(
-    _ kind: VariableKind, name: String, type: String, equals value: String,
-    explicitType: Bool? = nil
-  ) {
-    self.init(
-      kind: kind,
-      name: name,
-      type: type,
-      defaultValue: Literal.string(value),
-      explicitType: explicitType ?? true
-    )
-  }
-
-  /// Creates a `let` or `var` declaration with an explicit type and integer literal value.
-  /// - Parameters:
-  ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
-  ///   - name: The name of the variable.
-  ///   - type: The type of the variable.
-  ///   - equals: An integer literal value.
-  ///   - explicitType: Whether the variable has an explicit type.
-  public init(
-    _ kind: VariableKind, name: String, type: String, equals value: Int,
-    explicitType: Bool? = nil
-  ) {
-    self.init(
-      kind: kind,
-      name: name,
-      type: type,
-      defaultValue: Literal.integer(value),
-      explicitType: explicitType ?? true
-    )
-  }
-
-  /// Creates a `let` or `var` declaration with an explicit type and boolean literal value.
-  /// - Parameters:
-  ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
-  ///   - name: The name of the variable.
-  ///   - type: The type of the variable.
-  ///   - equals: A boolean literal value.
-  ///   - explicitType: Whether the variable has an explicit type.
-  public init(
-    _ kind: VariableKind, name: String, type: String, equals value: Bool,
-    explicitType: Bool? = nil
-  ) {
-    self.init(
-      kind: kind,
-      name: name,
-      type: type,
-      defaultValue: Literal.boolean(value),
-      explicitType: explicitType ?? true
-    )
-  }
-
-  /// Creates a `let` or `var` declaration with an explicit type and double literal value.
-  /// - Parameters:
-  ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
-  ///   - name: The name of the variable.
-  ///   - type: The type of the variable.
-  ///   - equals: A double literal value.
-  ///   - explicitType: Whether the variable has an explicit type.
-  public init(
-    _ kind: VariableKind, name: String, type: String, equals value: Double,
-    explicitType: Bool? = nil
-  ) {
-    self.init(
-      kind: kind,
-      name: name,
-      type: type,
-      defaultValue: Literal.float(value),
-      explicitType: explicitType ?? true
-    )
-  }
-
   /// Creates a `let` or `var` declaration with a literal value.
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
@@ -154,8 +53,17 @@ extension Variable {
       defaultValue = Literal.array(array.map { .string($0) })
     } else if let dict = value as? [Int: String] {
       defaultValue = Literal.dictionary(dict.map { (.integer($0.key), .string($0.value)) })
+    } else if let dictExpr = value as? DictionaryExpr {
+      defaultValue = dictExpr
+    } else if let initExpr = value as? Init {
+      defaultValue = initExpr
+    } else if let codeBlock = value as? CodeBlock {
+      defaultValue = codeBlock
     } else {
-      fatalError("Variable: Only Literal types are supported for defaultValue. Got: \(T.self)")
+      // For any other LiteralValue type that doesn't conform to CodeBlock,
+      // create a fallback or throw an error
+      fatalError(
+        "Variable: Unsupported LiteralValue type that doesn't conform to CodeBlock: \(T.self)")
     }
 
     self.init(

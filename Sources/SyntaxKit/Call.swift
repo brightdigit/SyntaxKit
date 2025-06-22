@@ -33,6 +33,8 @@ import SwiftSyntax
 public struct Call: CodeBlock {
   private let functionName: String
   private let parameters: [ParameterExp]
+  private var isThrowing: Bool = false
+  private var isAsync: Bool = false
 
   /// Creates a global function call expression.
   /// - Parameter functionName: The name of the function to call.
@@ -48,6 +50,22 @@ public struct Call: CodeBlock {
   public init(_ functionName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp]) {
     self.functionName = functionName
     self.parameters = params()
+  }
+
+  /// Marks this function call as throwing.
+  /// - Returns: A copy of the call marked as throwing.
+  public func throwing() -> Self {
+    var copy = self
+    copy.isThrowing = true
+    return copy
+  }
+
+  /// Marks this function call as async.
+  /// - Returns: A copy of the call marked as async.
+  public func async() -> Self {
+    var copy = self
+    copy.isAsync = true
+    return copy
   }
 
   public var syntax: SyntaxProtocol {
@@ -73,12 +91,29 @@ public struct Call: CodeBlock {
         }
       })
 
-    return ExprSyntax(
-      FunctionCallExprSyntax(
-        calledExpression: ExprSyntax(DeclReferenceExprSyntax(baseName: function)),
-        leftParen: .leftParenToken(),
-        arguments: args,
-        rightParen: .rightParenToken()
-      ))
+    let functionCall = FunctionCallExprSyntax(
+      calledExpression: ExprSyntax(DeclReferenceExprSyntax(baseName: function)),
+      leftParen: .leftParenToken(),
+      arguments: args,
+      rightParen: .rightParenToken()
+    )
+
+    if isThrowing {
+      return ExprSyntax(
+        TryExprSyntax(
+          tryKeyword: .keyword(.try, trailingTrivia: .space),
+          expression: functionCall
+        )
+      )
+    } else if isAsync {
+      return ExprSyntax(
+        AwaitExprSyntax(
+          awaitKeyword: .keyword(.await, trailingTrivia: .space),
+          expression: functionCall
+        )
+      )
+    } else {
+      return ExprSyntax(functionCall)
+    }
   }
 }

@@ -32,6 +32,7 @@ import SwiftSyntax
 // MARK: - ExprCodeBlock conformance
 
 extension Literal: ExprCodeBlock {
+  /// The expression syntax representation of this literal.
   public var exprSyntax: ExprSyntax {
     switch self {
     case .string(let value):

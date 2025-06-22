@@ -176,7 +176,7 @@ import Testing
 
     let generated = function.syntax.description
     #expect(generated.contains("@escaping"))
-    #expect(generated.contains("data: Data"))
+    #expect(generated.contains("data : Data"))
     #expect(generated.contains("func process"))
   }
 
@@ -193,7 +193,7 @@ import Testing
     #expect(generated.contains("@available"))
     #expect(generated.contains("iOS"))
     #expect(generated.contains("17.0"))
-    #expect(generated.contains("input: String"))
+    #expect(generated.contains("input : String"))
     #expect(generated.contains("func validate"))
   }
 }

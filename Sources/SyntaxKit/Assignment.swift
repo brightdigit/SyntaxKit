@@ -71,7 +71,8 @@ public struct Assignment: CodeBlock {
         elements: ExprListSyntax([
           left,
           ExprSyntax(
-            AssignmentExprSyntax(equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space))),
+            AssignmentExprSyntax(equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space))
+          ),
           right,
         ])
       )

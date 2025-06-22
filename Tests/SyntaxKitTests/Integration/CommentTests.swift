@@ -21,7 +21,9 @@ internal struct CommentTests {
         Line(.doc, "Represents a playing card in a standard 52-card deck")
         Line(.doc)
         Line(
-          .doc, "A card has a rank (2-10, J, Q, K, A) and a suit (hearts, diamonds, clubs, spades)."
+          .doc,
+          "A card has a rank (2-10, J, Q, K, A) and a suit "
+            + "(hearts, diamonds, clubs, spades)."
         )
         Line(.doc, "Each card can be compared to other cards based on its rank.")
       }
@@ -102,7 +104,8 @@ internal struct CommentTests {
     #expect(!generated.isEmpty)
     //
     //        #expect(generated.contains("MARK: - Models"), "MARK line should be present in generated code")
-    //        #expect(generated.contains("Foo struct docs"), "Doc comment line should be present in generated code")
+    //        #expect(generated.contains("Foo struct docs"),
+    //                "Doc comment line should be present in generated code")
     //        // Ensure the struct declaration itself is still correct
     //        #expect(generated.contains("struct Foo"))
     //        #expect(generated.contains("bar"), "Variable declaration should be present")

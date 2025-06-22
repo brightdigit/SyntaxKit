@@ -107,7 +107,10 @@ public struct If: CodeBlock {
       statements: CodeBlockItemListSyntax(
         body.compactMap {
           var item: CodeBlockItemSyntax?
-          if let decl = $0.syntax.as(DeclSyntax.self) {
+          if let enumCase = $0 as? EnumCase {
+            // Handle EnumCase specially - use expression syntax for enum cases in expressions
+            item = CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax))
+          } else if let decl = $0.syntax.as(DeclSyntax.self) {
             item = CodeBlockItemSyntax(item: .decl(decl))
           } else if let expr = $0.syntax.as(ExprSyntax.self) {
             item = CodeBlockItemSyntax(item: .expr(expr))
@@ -120,7 +123,9 @@ public struct If: CodeBlock {
     )
     // swiftlint:disable:next closure_body_length
     let elseBlock: IfExprSyntax.ElseBody? = {
-      guard let elseBlocks = elseBody else { return nil }
+      guard let elseBlocks = elseBody else {
+        return nil
+      }
 
       // Build a chained else-if structure if the builder provided If blocks.
       var current: SyntaxProtocol?
@@ -131,7 +136,11 @@ public struct If: CodeBlock {
           // Leaf `else` – produce a code-block.
           let stmts = CodeBlockItemListSyntax(
             thenBlock.body.compactMap { element in
-              if let decl = element.syntax.as(DeclSyntax.self) {
+              if let enumCase = element as? EnumCase {
+                // Handle EnumCase specially - use expression syntax for enum cases in expressions
+                return CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax)).with(
+                  \.trailingTrivia, .newline)
+              } else if let decl = element.syntax.as(DeclSyntax.self) {
                 return CodeBlockItemSyntax(item: .decl(decl)).with(\.trailingTrivia, .newline)
               } else if let expr = element.syntax.as(ExprSyntax.self) {
                 return CodeBlockItemSyntax(item: .expr(expr)).with(\.trailingTrivia, .newline)
@@ -169,7 +178,10 @@ public struct If: CodeBlock {
         default:
           // Treat any other CodeBlock as part of a final code-block
           let item: CodeBlockItemSyntax?
-          if let decl = block.syntax.as(DeclSyntax.self) {
+          if let enumCase = block as? EnumCase {
+            // Handle EnumCase specially - use expression syntax for enum cases in expressions
+            item = CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax))
+          } else if let decl = block.syntax.as(DeclSyntax.self) {
             item = CodeBlockItemSyntax(item: .decl(decl))
           } else if let expr = block.syntax.as(ExprSyntax.self) {
             item = CodeBlockItemSyntax(item: .expr(expr))

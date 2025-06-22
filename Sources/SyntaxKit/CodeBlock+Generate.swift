@@ -37,6 +37,9 @@ extension CodeBlock {
     let statements: CodeBlockItemListSyntax
     if let list = self.syntax.as(CodeBlockItemListSyntax.self) {
       statements = list
+    } else if let codeBlock = self.syntax.as(CodeBlockSyntax.self) {
+      // Handle CodeBlockSyntax by extracting its statements
+      statements = codeBlock.statements
     } else {
       let item: CodeBlockItemSyntax.Item
       if let decl = self.syntax.as(DeclSyntax.self) {
@@ -62,7 +65,8 @@ extension CodeBlock {
         item = .expr(ExprSyntax(switchExpr))
       } else {
         fatalError(
-          "Unsupported syntax type at top level: \(type(of: self.syntax)) generating from \(self)")
+          "Unsupported syntax type at top level: \(type(of: self.syntax)) (\(self.syntax)) generating from \(self)"
+        )
       }
       statements = CodeBlockItemListSyntax([
         CodeBlockItemSyntax(item: item, trailingTrivia: .newline)

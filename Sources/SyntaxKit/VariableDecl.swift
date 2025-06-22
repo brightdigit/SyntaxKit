@@ -57,7 +57,8 @@ public struct VariableDecl: CodeBlock {
             openingQuote: .stringQuoteToken(),
             segments: StringLiteralSegmentListSyntax([
               .stringSegment(
-                StringSegmentSyntax(content: .stringSegment(String(value.dropFirst().dropLast()))))
+                StringSegmentSyntax(content: .stringSegment(String(value.dropFirst().dropLast())))
+              )
             ]),
             closingQuote: .stringQuoteToken()
           )
@@ -69,7 +70,8 @@ public struct VariableDecl: CodeBlock {
             openingQuote: .stringQuoteToken(),
             segments: StringLiteralSegmentListSyntax([
               .stringSegment(
-                StringSegmentSyntax(content: .stringSegment(value)))
+                StringSegmentSyntax(content: .stringSegment(value))
+              )
             ]),
             closingQuote: .stringQuoteToken()
           )

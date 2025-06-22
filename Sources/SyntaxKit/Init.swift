@@ -30,9 +30,16 @@
 import SwiftSyntax
 
 /// An initializer expression.
-public struct Init: CodeBlock, ExprCodeBlock {
+public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
   private let type: String
   private let parameters: [ParameterExp]
+
+  /// Creates an initializer expression with no parameters.
+  /// - Parameter type: The type to initialize.
+  public init(_ type: String) {
+    self.type = type
+    self.parameters = []
+  }
 
   /// Creates an initializer expression.
   /// - Parameters:
@@ -65,5 +72,15 @@ public struct Init: CodeBlock, ExprCodeBlock {
 
   public var syntax: SyntaxProtocol {
     exprSyntax
+  }
+
+  // MARK: - LiteralValue Conformance
+
+  public var typeName: String {
+    type
+  }
+
+  public var literalString: String {
+    "\(type)()"
   }
 }

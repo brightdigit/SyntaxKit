@@ -31,14 +31,32 @@ import SwiftSyntax
 
 /// A Swift `case` declaration inside an `enum`.
 public struct EnumCase: CodeBlock {
-  private let name: String
-  private var literalValue: Literal?
+  internal let name: String
+  internal var literalValue: Literal?
+  internal var associatedValues: [(name: String, type: String)] = []
+
+  /// The name of the enum case.
+  public var caseName: String { name }
+
+  /// The associated values for the enum case, if any.
+  public var caseAssociatedValues: [(name: String, type: String)] { associatedValues }
 
   /// Creates a `case` declaration.
   /// - Parameter name: The name of the case.
   public init(_ name: String) {
     self.name = name
     self.literalValue = nil
+  }
+
+  /// Sets the associated value for the case.
+  /// - Parameters:
+  ///   - name: The name of the associated value.
+  ///   - type: The type of the associated value.
+  /// - Returns: A copy of the case with the associated value set.
+  public func associatedValue(_ name: String, type: String) -> Self {
+    var copy = self
+    copy.associatedValues.append((name: name, type: type))
+    return copy
   }
 
   /// Sets the raw value of the case to a Literal.
@@ -71,74 +89,50 @@ public struct EnumCase: CodeBlock {
     self.equals(.float(value))
   }
 
-  public var syntax: SyntaxProtocol {
-    let caseKeyword = TokenSyntax.keyword(.case, trailingTrivia: .space)
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
-
-    var initializer: InitializerClauseSyntax?
-    if let literal = literalValue {
-      switch literal {
-      case .string(let value):
-        initializer = InitializerClauseSyntax(
-          equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-          value: StringLiteralExprSyntax(
-            openingQuote: .stringQuoteToken(),
-            segments: StringLiteralSegmentListSyntax([
-              .stringSegment(StringSegmentSyntax(content: .stringSegment(value)))
-            ]),
-            closingQuote: .stringQuoteToken()
-          )
-        )
-      case .float(let value):
-        initializer = InitializerClauseSyntax(
-          equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-          value: FloatLiteralExprSyntax(literal: .floatLiteral(String(value)))
-        )
-      case .integer(let value):
-        initializer = InitializerClauseSyntax(
-          equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-          value: IntegerLiteralExprSyntax(digits: .integerLiteral(String(value)))
-        )
-      case .nil:
-        initializer = InitializerClauseSyntax(
-          equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-          value: NilLiteralExprSyntax(nilKeyword: .keyword(.nil))
-        )
-      case .boolean(let value):
-        initializer = InitializerClauseSyntax(
-          equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-          value: BooleanLiteralExprSyntax(literal: value ? .keyword(.true) : .keyword(.false))
-        )
-      case .ref(let value):
-        initializer = InitializerClauseSyntax(
-          equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-          value: DeclReferenceExprSyntax(baseName: .identifier(value))
-        )
-      case .tuple:
-        fatalError("Tuple is not supported as a raw value for enum cases.")
-      case .array:
-        fatalError("Array is not supported as a raw value for enum cases.")
-      case .dictionary:
-        fatalError("Dictionary is not supported as a raw value for enum cases.")
-      }
-    }
-
-    return EnumCaseDeclSyntax(
-      caseKeyword: caseKeyword,
-      elements: EnumCaseElementListSyntax([
-        EnumCaseElementSyntax(
-          leadingTrivia: .space,
-          _: nil,
-          name: identifier,
-          _: nil,
-          parameterClause: nil,
-          _: nil,
-          rawValue: initializer,
-          _: nil,
-          trailingComma: nil,
-          trailingTrivia: .newline
-        )
-      ])
+  /// Returns a SwiftSyntax expression for this enum case (for use in throw/return/etc).
+  public var asExpressionSyntax: ExprSyntax {
+    let parts = name.split(separator: ".", maxSplits: 1)
+    let base: ExprSyntax? =
+      parts.count == 2
+      ? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(String(parts[0]))))
+      : nil
+    let caseName = parts.count == 2 ? String(parts[1]) : name
+    let memberAccess = MemberAccessExprSyntax(
+      base: base,
+      dot: .periodToken(),
+      name: .identifier(caseName)
     )
+    if !associatedValues.isEmpty {
+      let tuple = TupleExprSyntax(
+        leftParen: .leftParenToken(),
+        elements: TupleExprElementListSyntax(
+          associatedValues.map { associated in
+            TupleExprElementSyntax(
+              label: nil,
+              colon: nil,
+              expression: ExprSyntax(
+                DeclReferenceExprSyntax(baseName: .identifier(associated.name))),
+              trailingComma: nil
+            )
+          }
+        ),
+        rightParen: .rightParenToken()
+      )
+      return ExprSyntax(
+        FunctionCallExprSyntax(
+          calledExpression: ExprSyntax(memberAccess),
+          leftParen: tuple.leftParen,
+          arguments: tuple.elements,
+          rightParen: tuple.rightParen
+        ))
+    } else {
+      return ExprSyntax(memberAccess)
+    }
+  }
+
+  /// Returns the expression syntax for this enum case.
+  /// This is the preferred method when using EnumCase in expression contexts.
+  public var exprSyntax: ExprSyntax {
+    asExpressionSyntax
   }
 }

@@ -5,7 +5,8 @@
 //  Created by Leo Dion on 6/16/25.
 //
 
-/// Represents a single comment line that can be attached to a syntax node when using `.comment { ... }` in the DSL.
+/// Represents a single comment line that can be attached to a syntax node when using 
+/// `.comment { ... }` in the DSL.
 public struct Line {
   public enum Kind {
     /// Regular line comment that starts with `//`.
