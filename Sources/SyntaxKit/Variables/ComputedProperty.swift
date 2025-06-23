@@ -44,7 +44,9 @@ public struct ComputedProperty: CodeBlock {
   ///   - explicitType: Whether the type should be explicitly marked.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the getter.
   public init(
-    _ name: String, type: String, explicitType: Bool = true,
+    _ name: String,
+    type: String,
+    explicitType: Bool = true,
     @CodeBlockBuilderResult _ content: () -> [CodeBlock]
   ) {
     self.name = name
@@ -83,7 +85,9 @@ public struct ComputedProperty: CodeBlock {
       rightBrace: TokenSyntax.rightBraceToken(leadingTrivia: .newline)
     )
     let identifier = TokenSyntax.identifier(
-      name, trailingTrivia: explicitType ? (.space + .space) : .space)
+      name,
+      trailingTrivia: explicitType ? (.space + .space) : .space
+    )
     let typeAnnotation = TypeAnnotationSyntax(
       colon: TokenSyntax.colonToken(trailingTrivia: .space),
       type: IdentifierTypeSyntax(name: .identifier(type))

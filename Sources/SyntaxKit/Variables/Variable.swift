@@ -114,7 +114,9 @@ public struct Variable: CodeBlock {
   public var syntax: SyntaxProtocol {
     let bindingKeyword = TokenSyntax.keyword(kind == .let ? .let : .var, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(
-      name, trailingTrivia: explicitType ? (.space + .space) : .space)
+      name,
+      trailingTrivia: explicitType ? (.space + .space) : .space
+    )
     let typeAnnotation: TypeAnnotationSyntax? =
       (explicitType && !(type is String && (type as? String)?.isEmpty != false))
       ? TypeAnnotationSyntax(

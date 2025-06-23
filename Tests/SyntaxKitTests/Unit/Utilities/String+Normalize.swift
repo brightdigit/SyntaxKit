@@ -58,20 +58,23 @@ extension String {
       // Add newlines between sibling views (Button elements)
       result = result.replacingOccurrences(
         of: "}\\s*Button",
-        with: "}\nButton",
-        options: .regularExpression)
+        with: "}\\nButton",
+        options: .regularExpression
+      )
 
       // Add newline after method chaining
       result = result.replacingOccurrences(
         of: "\\.foregroundColor\\([^)]*\\)\\s*}",
-        with: ".foregroundColor($1)\n}",
-        options: .regularExpression)
+        with: ".foregroundColor($1)\\n}",
+        options: .regularExpression
+      )
 
       // Normalize Task closure formatting
       result = result.replacingOccurrences(
         of: "Task\\s*{\\s*@MainActor",
         with: "Task { @MainActor",
-        options: .regularExpression)
+        options: .regularExpression
+      )
     } else if options.contains(.preserveBraceNewlines) {
       // Preserve newlines after braces but normalize other whitespace
       result = result.replacingOccurrences(of: "[ ]+", with: " ", options: .regularExpression)

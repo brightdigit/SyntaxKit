@@ -29,7 +29,8 @@
 
 import SwiftSyntax
 
-/// Represents a closure expression in Swift code.
+// MARK: - Closure
+
 public struct Closure: CodeBlock {
   public let capture: [ParameterExp]
   public let parameters: [ClosureParameter]
@@ -176,18 +177,26 @@ public struct Closure: CodeBlock {
           // Handle ParameterExp by extracting its value
           if let exprBlock = paramExp.value as? ExprCodeBlock {
             return CodeBlockItemSyntax(item: .expr(exprBlock.exprSyntax)).with(
-              \.trailingTrivia, .newline)
+              \.trailingTrivia, .newline
+            )
           } else if let expr = paramExp.value.syntax.as(ExprSyntax.self) {
-            return CodeBlockItemSyntax(item: .expr(expr)).with(\.trailingTrivia, .newline)
+            return CodeBlockItemSyntax(item: .expr(expr)).with(
+              \.trailingTrivia, .newline
+            )
           } else if let paramExpr = paramExp.syntax.as(ExprSyntax.self) {
-            return CodeBlockItemSyntax(item: .expr(paramExpr)).with(\.trailingTrivia, .newline)
+            return CodeBlockItemSyntax(item: .expr(paramExpr)).with(
+              \.trailingTrivia, .newline
+            )
           }
           return nil
         } else if let exprBlock = $0 as? ExprCodeBlock {
           return CodeBlockItemSyntax(item: .expr(exprBlock.exprSyntax)).with(
-            \.trailingTrivia, .newline)
+            \.trailingTrivia, .newline
+          )
         } else if let expr = $0.syntax.as(ExprSyntax.self) {
-          return CodeBlockItemSyntax(item: .expr(expr)).with(\.trailingTrivia, .newline)
+          return CodeBlockItemSyntax(item: .expr(expr)).with(
+            \.trailingTrivia, .newline
+          )
         } else if let stmt = $0.syntax.as(StmtSyntax.self) {
           return CodeBlockItemSyntax(item: .stmt(stmt)).with(\.trailingTrivia, .newline)
         }

@@ -155,7 +155,8 @@ internal final class TokenVisitor: SyntaxRewriter {
                   name: name, value: StructureValue(text: "\(type)"), ref: "\(type)"))
             } else {
               treeNode.structure.append(
-                StructureProperty(name: name, value: StructureValue(text: "\(value)")))
+                StructureProperty(name: name, value: StructureValue(text: "\(value)"))
+              )
             }
           case .none:
             treeNode.structure.append(StructureProperty(name: name))

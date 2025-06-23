@@ -91,7 +91,9 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
       returnClause: returnClause
         ?? ReturnClauseSyntax(
           arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-          type: IdentifierTypeSyntax(name: .identifier("Void"))))
+          type: IdentifierTypeSyntax(name: .identifier("Void"))
+        )
+    )
 
     // Build attributed type if there are attributes
     if !attributes.isEmpty {
@@ -196,7 +198,9 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
       returnClause: returnClause
         ?? ReturnClauseSyntax(
           arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-          type: IdentifierTypeSyntax(name: .identifier("Void"))))
+          type: IdentifierTypeSyntax(name: .identifier("Void"))
+        )
+    )
 
     // Apply attributes if any
     if !attributes.isEmpty {
