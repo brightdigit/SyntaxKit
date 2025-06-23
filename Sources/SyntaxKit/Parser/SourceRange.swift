@@ -37,7 +37,7 @@ internal struct SourceRange: Codable, Equatable {
 }
 
 extension SourceRange: CustomStringConvertible {
-  var description: String {
+  internal var description: String {
     """
     {
       startRow: \(startRow)

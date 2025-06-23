@@ -34,7 +34,7 @@ internal struct Token: Codable, Equatable {
   internal var leadingTrivia: String
   internal var trailingTrivia: String
 
-  init(kind: String, leadingTrivia: String, trailingTrivia: String) {
+  internal init(kind: String, leadingTrivia: String, trailingTrivia: String) {
     self.kind = kind.escapeHTML()
     self.leadingTrivia = leadingTrivia
     self.trailingTrivia = trailingTrivia
@@ -42,7 +42,7 @@ internal struct Token: Codable, Equatable {
 }
 
 extension Token: CustomStringConvertible {
-  var description: String {
+  internal var description: String {
     """
     {
       kind: \(kind)

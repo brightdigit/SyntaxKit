@@ -32,9 +32,9 @@ import Testing
 
 @testable import SyntaxKit
 
-@Suite struct SwiftUIFeatureTests {
+@Suite internal struct SwiftUIFeatureTests {
   @Test("SwiftUI example DSL generates expected Swift code")
-  func testSwiftUIExample() throws {
+  internal func testSwiftUIExample() throws {
     // Test the onToggle variable with closure type and attributes
     let onToggleVariable = Variable(.let, name: "onToggle", type: "(Date) -> Void")
       .access("private")
@@ -49,7 +49,7 @@ import Testing
   }
 
   @Test("SwiftUI example with complex closure and capture list")
-  func testSwiftUIComplexClosure() throws {
+  internal func testSwiftUIComplexClosure() throws {
     // Test the Task with closure that has capture list and attributes
     let taskClosure = Closure(
       capture: {
@@ -69,7 +69,7 @@ import Testing
   }
 
   @Test("Method chaining on ConditionalOp")
-  func testMethodChainingOnConditionalOp() throws {
+  internal func testMethodChainingOnConditionalOp() throws {
     let conditional = ConditionalOp(
       if: VariableExp("item").property("isCompleted"),
       then: Literal.string("checkmark.circle.fill"),

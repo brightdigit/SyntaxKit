@@ -34,7 +34,7 @@ internal struct StructureProperty: Codable, Equatable {
   internal let value: StructureValue?
   internal let ref: String?
 
-  init(name: String, value: StructureValue? = nil, ref: String? = nil) {
+  internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
     self.name = name.escapeHTML()
     self.value = value
     self.ref = ref?.escapeHTML()
@@ -42,7 +42,7 @@ internal struct StructureProperty: Codable, Equatable {
 }
 
 extension StructureProperty: CustomStringConvertible {
-  var description: String {
+  internal var description: String {
     """
     {
       name: \(name)

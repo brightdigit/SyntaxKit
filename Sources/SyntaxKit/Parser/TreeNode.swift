@@ -44,7 +44,7 @@ internal final class TreeNode: Codable {
   internal var type: SyntaxType
   internal var token: Token?
 
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
+  internal init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
     self.id = id
     self.text = text.escapeHTML()
     self.range = range
@@ -53,14 +53,14 @@ internal final class TreeNode: Codable {
 }
 
 extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
+  internal static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
     lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
       && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
   }
 }
 
 extension TreeNode: CustomStringConvertible {
-  var description: String {
+  internal var description: String {
     """
     {
       id: \(id)

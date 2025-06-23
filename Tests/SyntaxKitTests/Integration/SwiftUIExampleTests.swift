@@ -32,9 +32,9 @@ import Testing
 
 @testable import SyntaxKit
 
-@Suite struct SwiftUIExampleTests {
+@Suite internal struct SwiftUIExampleTests {
   @Test("SwiftUI example DSL generates expected Swift code")
-  func testSwiftUIExample() throws {
+  internal func testSwiftUIExample() throws {
     // Test the onToggle variable with closure type and attributes
     let onToggleVariable = Variable(.let, name: "onToggle", type: "(Date) -> Void")
       .access("private")
@@ -45,7 +45,7 @@ import Testing
   }
 
   @Test("SwiftUI example with complex closure and capture list")
-  func testSwiftUIComplexClosure() throws {
+  internal func testSwiftUIComplexClosure() throws {
     // Test the Task with closure that has capture list and attributes
     let taskClosure = Closure(
       capture: {
@@ -65,7 +65,7 @@ import Testing
   }
 
   @Test("SwiftUI TodoItemRow DSL generates expected Swift code")
-  func testSwiftUITodoItemRowExample() throws {
+  internal func testSwiftUITodoItemRowExample() throws {
     // Use the full DSL from Examples/Completed/swiftui/dsl.swift
     let dsl = Group {
       Import("SwiftUI").access("public")

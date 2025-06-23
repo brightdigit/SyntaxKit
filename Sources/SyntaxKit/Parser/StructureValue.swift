@@ -33,14 +33,14 @@ internal struct StructureValue: Codable, Equatable {
   internal let text: String
   internal let kind: String?
 
-  init(text: String, kind: String? = nil) {
+  internal init(text: String, kind: String? = nil) {
     self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
     self.kind = kind?.escapeHTML()
   }
 }
 
 extension StructureValue: CustomStringConvertible {
-  var description: String {
+  internal var description: String {
     """
     {
       text: \(text)

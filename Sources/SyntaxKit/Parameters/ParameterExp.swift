@@ -89,7 +89,7 @@ public struct ParameterExp: CodeBlock {
     }
   }
 
-  var isUnlabeledClosure: Bool {
+  internal var isUnlabeledClosure: Bool {
     name.isEmpty && value is Closure
   }
 }

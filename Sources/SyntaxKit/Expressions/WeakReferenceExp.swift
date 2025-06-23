@@ -57,12 +57,12 @@ public struct WeakReferenceExp: CodeBlock {
   }
 
   /// Returns the reference type for use in capture lists
-  var captureSpecifier: String {
+  internal var captureSpecifier: String {
     referenceType
   }
 
   /// Returns the base expression for use in capture lists
-  var captureExpression: CodeBlock {
+  internal var captureExpression: CodeBlock {
     base
   }
 }
