@@ -165,7 +165,6 @@ import Testing
         // Generate code from DSL
         let generated = dsl.generateCode().normalizeFlexible()
         let expected = expectedCode.normalizeFlexible()
-        print("\n--- GENERATED SWIFT CODE ---\n\(dsl.generateCode())\n--- END GENERATED SWIFT CODE ---\n")
         #expect(generated == expected)
     }
     
@@ -182,7 +181,6 @@ import Testing
         }
         
         let generated = methodCall.syntax.description
-        print("Generated method call: \(generated)")
         #expect(generated.contains("foregroundColor"))
     }
 } 
