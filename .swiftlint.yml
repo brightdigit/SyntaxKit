@@ -40,7 +40,7 @@ opt_in_rules:
   - legacy_random
   - literal_expression_end_indentation
   - lower_acl_than_parent
-#  - missing_docs
+  - missing_docs
   - modifier_order
   - multiline_arguments
   - multiline_arguments_brackets
@@ -120,7 +120,7 @@ excluded:
   - Mint
   - Examples
   - Macros
-  - Sources/SyntaxKit/parser
+  - Sources/SyntaxKit/Parser
 indentation_width:
   indentation_width: 2
 file_name:
