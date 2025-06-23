@@ -79,7 +79,8 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
     if let returnType = returnType {
       returnClause = ReturnClauseSyntax(
         arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: IdentifierTypeSyntax(name: .identifier(returnType)))
+        type: IdentifierTypeSyntax(name: .identifier(returnType))
+      )
     }
 
     // Build function type
@@ -164,7 +165,8 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
       } else {
         return param.name
       }
-    }.joined(separator: ", ")
+    }
+    .joined(separator: ", ")
     let attr = attributes.map { "@\($0.name)" }.joined(separator: " ")
     let paramList = "(\(params))"
     let ret = returnType ?? "Void"
@@ -186,7 +188,8 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
     if let returnType = returnType {
       returnClause = ReturnClauseSyntax(
         arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: IdentifierTypeSyntax(name: .identifier(returnType)))
+        type: IdentifierTypeSyntax(name: .identifier(returnType))
+      )
     }
 
     // Build function type
@@ -209,7 +212,8 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
           specifiers: TypeSpecifierListSyntax([]),
           attributes: buildAttributeList(from: attributes),
           baseType: TypeSyntax(functionType)
-        ))
+        )
+      )
     } else {
       return TypeSyntax(functionType)
     }

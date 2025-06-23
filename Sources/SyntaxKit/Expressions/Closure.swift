@@ -129,7 +129,8 @@ public struct Closure: CodeBlock {
                   attributeName: IdentifierTypeSyntax(
                     name: .identifier(attr.name),
                     trailingTrivia: (capture.isEmpty || idx != attributes.count - 1)
-                      ? Trivia() : .space),
+                      ? Trivia() : .space
+                  ),
                   leftParen: nil,
                   arguments: nil,
                   rightParen: nil
@@ -157,7 +158,8 @@ public struct Closure: CodeBlock {
                 }
               ),
               rightParen: .rightParenToken()
-            )),
+            )
+          ),
         effectSpecifiers: nil,
         returnClause: returnType == nil
           ? nil

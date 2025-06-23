@@ -74,7 +74,8 @@ import Testing
         Variable(.let, name: "item", type: "TodoItem").access("private")
 
         Variable(
-          .let, name: "onToggle",
+          .let,
+          name: "onToggle",
           type:
             ClosureType(returns: "Void") {
               ClosureParameter("Date")
@@ -101,16 +102,19 @@ import Testing
                                 if: VariableExp("item").property("isCompleted"),
                                 then: Literal.string("checkmark.circle.fill"),
                                 else: Literal.string("circle")
-                              ))
+                              )
+                            )
                           }.call("foregroundColor") {
                             ParameterExp(
                               unlabeled: ConditionalOp(
                                 if: VariableExp("item").property("isCompleted"),
                                 then: EnumCase("green"),
                                 else: EnumCase("gray")
-                              ))
+                              )
+                            )
                           }
-                        })
+                        }
+                      )
                     }
                     Init("Button") {
                       ParameterExp(
@@ -127,18 +131,24 @@ import Testing
                                     ParameterExp(unlabeled: Init("Date"))
                                   }
                                 }
-                              ).attribute("MainActor"))
+                              )
+                              .attribute("MainActor")
+                            )
                           }
-                        })
+                        }
+                      )
                       ParameterExp(
                         unlabeled: Closure {
                           Init("Image") {
                             ParameterExp(name: "systemName", value: Literal.string("trash"))
                           }
-                        })
+                        }
+                      )
                     }
-                  })
-              })
+                  }
+                )
+              }
+            )
           }
         }
         .access("public")
