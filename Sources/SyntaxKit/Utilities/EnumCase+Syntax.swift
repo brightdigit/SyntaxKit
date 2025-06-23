@@ -36,15 +36,17 @@ extension EnumCase {
   public var syntax: SyntaxProtocol {
     // For enum case declarations, return EnumCaseDeclSyntax
     let caseKeyword = TokenSyntax.keyword(.case, trailingTrivia: .space)
-    
+
     // Create the enum case element
     var enumCaseElement = EnumCaseElementSyntax(
       name: .identifier(name, trailingTrivia: .space)
     )
-    
+
     // Add raw value if present
     if let literalValue = literalValue {
-      let valueSyntax = literalValue.syntax.as(ExprSyntax.self) ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      let valueSyntax =
+        literalValue.syntax.as(ExprSyntax.self)
+        ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
       enumCaseElement = enumCaseElement.with(
         \.rawValue,
         .init(
@@ -53,7 +55,7 @@ extension EnumCase {
         )
       )
     }
-    
+
     // Add associated values if present
     if !associatedValues.isEmpty {
       let parameters = associatedValues.enumerated().map { index, associated in
@@ -63,14 +65,14 @@ extension EnumCase {
           colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
           type: TypeSyntax(IdentifierTypeSyntax(name: .identifier(associated.type)))
         )
-        
+
         if index < associatedValues.count - 1 {
           parameter = parameter.with(\.trailingComma, .commaToken(trailingTrivia: .space))
         }
-        
+
         return parameter
       }
-      
+
       enumCaseElement = enumCaseElement.with(
         \.parameterClause,
         .init(
@@ -80,7 +82,7 @@ extension EnumCase {
         )
       )
     }
-    
+
     return EnumCaseDeclSyntax(
       caseKeyword: caseKeyword,
       elements: EnumCaseElementListSyntax([enumCaseElement])

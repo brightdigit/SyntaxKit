@@ -153,7 +153,7 @@ public struct Struct: CodeBlock {
       case "fileprivate":
         keyword = .fileprivate
       default:
-        keyword = .public // fallback
+        keyword = .public  // fallback
       }
       modifiers = DeclModifierListSyntax([
         DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))

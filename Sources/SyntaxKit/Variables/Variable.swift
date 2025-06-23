@@ -113,9 +113,10 @@ public struct Variable: CodeBlock {
 
   public var syntax: SyntaxProtocol {
     let bindingKeyword = TokenSyntax.keyword(kind == .let ? .let : .var, trailingTrivia: .space)
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: explicitType ? (.space + .space) : .space)
+    let identifier = TokenSyntax.identifier(
+      name, trailingTrivia: explicitType ? (.space + .space) : .space)
     let typeAnnotation: TypeAnnotationSyntax? =
-      (explicitType && !(type is String && (type as! String).isEmpty))
+      (explicitType && !(type is String && (type as? String)?.isEmpty != false))
       ? TypeAnnotationSyntax(
         colon: .colonToken(trailingTrivia: .space),
         type: type.typeSyntax
@@ -159,7 +160,7 @@ public struct Variable: CodeBlock {
       case "fileprivate":
         keyword = .fileprivate
       default:
-        keyword = .public // fallback
+        keyword = .public  // fallback
       }
       modifiers = DeclModifierListSyntax(
         modifiers + [

@@ -43,7 +43,10 @@ public struct ComputedProperty: CodeBlock {
   ///   - type: The type of the property.
   ///   - explicitType: Whether the type should be explicitly marked.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the getter.
-  public init(_ name: String, type: String, explicitType: Bool = true, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  public init(
+    _ name: String, type: String, explicitType: Bool = true,
+    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
+  ) {
     self.name = name
     self.type = type
     self.explicitType = explicitType
@@ -79,12 +82,13 @@ public struct ComputedProperty: CodeBlock {
       ),
       rightBrace: TokenSyntax.rightBraceToken(leadingTrivia: .newline)
     )
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: explicitType ? (.space + .space) : .space)
+    let identifier = TokenSyntax.identifier(
+      name, trailingTrivia: explicitType ? (.space + .space) : .space)
     let typeAnnotation = TypeAnnotationSyntax(
       colon: TokenSyntax.colonToken(trailingTrivia: .space),
       type: IdentifierTypeSyntax(name: .identifier(type))
     )
-    
+
     // Build modifiers
     var modifiers: DeclModifierListSyntax = []
     if let access = accessModifier {
@@ -99,13 +103,13 @@ public struct ComputedProperty: CodeBlock {
       case "fileprivate":
         keyword = .fileprivate
       default:
-        keyword = .public // fallback
+        keyword = .public  // fallback
       }
       modifiers = DeclModifierListSyntax([
         DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
       ])
     }
-    
+
     return VariableDeclSyntax(
       modifiers: modifiers,
       bindingSpecifier: TokenSyntax.keyword(.var, trailingTrivia: .space),

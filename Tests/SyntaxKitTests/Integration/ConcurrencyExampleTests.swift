@@ -158,7 +158,7 @@ import Testing
     #expect(generated == expected)
   }
 
-  func testSwiftUIDSLFeatures() {
+  func testSwiftUIDSLFeatures() throws {
     // Build the DSL for the SwiftUI example, matching Examples/Completed/swiftui/dsl.swift
     let dsl: [any CodeBlock] = [
       Import("SwiftUI").access("public"),
@@ -171,53 +171,62 @@ import Testing
         ).access("private")
         ComputedProperty("body", type: "some View") {
           Init("HStack") {
-            ParameterExp(unlabeled: Closure {
-              Init("Button") {
-                ParameterExp(name: "action", value: VariableExp("onToggle"))
-                ParameterExp(unlabeled: Closure {
-                  Init("Image") {
-                    ParameterExp(name: "systemName", value:
-                      FunctionCallExp(
-                        baseName: "",
-                        methodName: "foregroundColor",
-                        parameters: [
-                          ParameterExp(unlabeled: ConditionalOp(
-                            if: VariableExp("item").property("isCompleted"),
-                            then: EnumCase("green"),
-                            else: EnumCase("gray")
-                          ))
-                        ]
-                      )
-                    )
-                  }
-                })
-              }
-              Init("Button") {
-                ParameterExp(name: "action", value: Closure {
-                  Init("Task") {
-                    ParameterExp(unlabeled: Closure {
-                      Call("print") {
-                        ParameterExp(unlabeled: Literal.string("Task executed"))
+            ParameterExp(
+              unlabeled: Closure {
+                Init("Button") {
+                  ParameterExp(name: "action", value: VariableExp("onToggle"))
+                  ParameterExp(
+                    unlabeled: Closure {
+                      Init("Image") {
+                        ParameterExp(
+                          name: "systemName",
+                          value:
+                            FunctionCallExp(
+                              baseName: "",
+                              methodName: "foregroundColor",
+                              parameters: [
+                                ParameterExp(
+                                  unlabeled: ConditionalOp(
+                                    if: VariableExp("item").property("isCompleted"),
+                                    then: EnumCase("green"),
+                                    else: EnumCase("gray")
+                                  )
+                                )
+                              ]
+                            )
+                        )
                       }
-                    }.attribute("@MainActor"))
-                  }
-                })
-              }
-            })
+                    })
+                }
+                Init("Button") {
+                  ParameterExp(
+                    name: "action",
+                    value: Closure {
+                      Init("Task") {
+                        ParameterExp(
+                          unlabeled: Closure {
+                            Call("print") {
+                              ParameterExp(unlabeled: Literal.string("Task executed"))
+                            }
+                          }.attribute("@MainActor"))
+                      }
+                    })
+                }
+              })
           }
         }
       }
       .inherits("View")
-      .access("public")
+      .access("public"),
     ]
 
     // Generate Swift code
     let generated = dsl.map { $0.syntax.description }.joined(separator: "\n\n")
-    let expected = try! String(contentsOfFile: "Examples/Completed/swiftui/code.swift")
+    let expected = try String(contentsOfFile: "Examples/Completed/swiftui/code.swift")
     #expect(generated.trimmed == expected.trimmed)
   }
 }
 
-private extension String {
-  var trimmed: String { self.trimmingCharacters(in: .whitespacesAndNewlines) }
+extension String {
+  fileprivate var trimmed: String { self.trimmingCharacters(in: .whitespacesAndNewlines) }
 }

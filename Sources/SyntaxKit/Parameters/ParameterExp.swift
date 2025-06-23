@@ -77,7 +77,8 @@ public struct ParameterExp: CodeBlock {
       if let exprBlock = value as? ExprCodeBlock {
         expression = exprBlock.exprSyntax
       } else {
-        expression = value.syntax.as(ExprSyntax.self)
+        expression =
+          value.syntax.as(ExprSyntax.self)
           ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
       }
       return LabeledExprSyntax(

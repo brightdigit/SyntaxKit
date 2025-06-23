@@ -52,16 +52,17 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
 
   public var exprSyntax: ExprSyntax {
     var args = parameters
-    var trailingClosure: ClosureExprSyntax? = nil
+    var trailingClosure: ClosureExprSyntax?
 
     // If the last parameter is an unlabeled closure, use it as a trailing closure
     if let last = args.last, last.isUnlabeledClosure {
       // Flatten nested unlabeled closures
       if let closure = last.value as? Closure,
-         closure.body.count == 1,
-         let innerParam = closure.body.first as? ParameterExp,
-         innerParam.isUnlabeledClosure,
-         let innerClosure = innerParam.value as? Closure {
+        closure.body.count == 1,
+        let innerParam = closure.body.first as? ParameterExp,
+        innerParam.isUnlabeledClosure,
+        let innerClosure = innerParam.value as? Closure
+      {
         trailingClosure = innerClosure.syntax.as(ClosureExprSyntax.self)
       } else if let closure = last.value as? Closure {
         trailingClosure = closure.syntax.as(ClosureExprSyntax.self)

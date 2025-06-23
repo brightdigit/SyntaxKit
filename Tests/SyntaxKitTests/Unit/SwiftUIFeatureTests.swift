@@ -29,57 +29,58 @@
 
 import Foundation
 import Testing
+
 @testable import SyntaxKit
 
 @Suite struct SwiftUIFeatureTests {
-    
-    @Test("SwiftUI example DSL generates expected Swift code")
-    func testSwiftUIExample() throws {
-        // Test the onToggle variable with closure type and attributes
-        let onToggleVariable = Variable(.let, name: "onToggle", type: "(Date) -> Void")
-            .access("private")
-        
-        let generatedCode = onToggleVariable.generateCode()
-        let expectedCode = "private let onToggle: (Date) -> Void"
-        let normalizedGenerated = generatedCode.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\n", with: "")
-        let normalizedExpected = expectedCode.replacingOccurrences(of: " ", with: "").replacingOccurrences(of: "\n", with: "")
-        #expect(normalizedGenerated == normalizedExpected)
-    }
-    
-    @Test("SwiftUI example with complex closure and capture list")
-    func testSwiftUIComplexClosure() throws {
-        // Test the Task with closure that has capture list and attributes
-        let taskClosure = Closure(
-            capture: {
-                ParameterExp(unlabeled: VariableExp("self"))
-            },
-            body: {
-                VariableExp("self").call("onToggle") {
-                    ParameterExp(unlabeled: Init("Date"))
-                }
-            }
-        )
-        
-        let generatedCode = taskClosure.generateCode()
-        #expect(generatedCode.contains("self"))
-        #expect(generatedCode.contains("onToggle"))
-        #expect(generatedCode.contains("Date()"))
+  @Test("SwiftUI example DSL generates expected Swift code")
+  func testSwiftUIExample() throws {
+    // Test the onToggle variable with closure type and attributes
+    let onToggleVariable = Variable(.let, name: "onToggle", type: "(Date) -> Void")
+      .access("private")
+
+    let generatedCode = onToggleVariable.generateCode()
+    let expectedCode = "private let onToggle: (Date) -> Void"
+    let normalizedGenerated = generatedCode.replacingOccurrences(of: " ", with: "")
+      .replacingOccurrences(of: "\n", with: "")
+    let normalizedExpected = expectedCode.replacingOccurrences(of: " ", with: "")
+      .replacingOccurrences(of: "\n", with: "")
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
+  @Test("SwiftUI example with complex closure and capture list")
+  func testSwiftUIComplexClosure() throws {
+    // Test the Task with closure that has capture list and attributes
+    let taskClosure = Closure(
+      capture: {
+        ParameterExp(unlabeled: VariableExp("self"))
+      },
+      body: {
+        VariableExp("self").call("onToggle") {
+          ParameterExp(unlabeled: Init("Date"))
+        }
+      }
+    )
+
+    let generatedCode = taskClosure.generateCode()
+    #expect(generatedCode.contains("self"))
+    #expect(generatedCode.contains("onToggle"))
+    #expect(generatedCode.contains("Date()"))
+  }
+
+  @Test("Method chaining on ConditionalOp")
+  func testMethodChainingOnConditionalOp() throws {
+    let conditional = ConditionalOp(
+      if: VariableExp("item").property("isCompleted"),
+      then: Literal.string("checkmark.circle.fill"),
+      else: Literal.string("circle")
+    )
+
+    let methodCall = conditional.call("foregroundColor") {
+      ParameterExp(unlabeled: EnumCase("green"))
     }
 
-    
-    @Test("Method chaining on ConditionalOp")
-    func testMethodChainingOnConditionalOp() throws {
-        let conditional = ConditionalOp(
-            if: VariableExp("item").property("isCompleted"),
-            then: Literal.string("checkmark.circle.fill"),
-            else: Literal.string("circle")
-        )
-        
-        let methodCall = conditional.call("foregroundColor") {
-            ParameterExp(unlabeled: EnumCase("green"))
-        }
-        
-        let generated = methodCall.syntax.description
-        #expect(generated.contains("foregroundColor"))
-    }
-} 
+    let generated = methodCall.syntax.description
+    #expect(generated.contains("foregroundColor"))
+  }
+}

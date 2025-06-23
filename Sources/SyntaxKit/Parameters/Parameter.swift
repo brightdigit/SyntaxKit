@@ -113,7 +113,8 @@ public struct Parameter: CodeBlock {
   }
 
   /// Creates an unlabeled (anonymous) parameter using the underscore label.
-  public init(unlabeled internalName: String, type: TypeRepresentable, defaultValue: String? = nil) {
+  public init(unlabeled internalName: String, type: TypeRepresentable, defaultValue: String? = nil)
+  {
     self.name = internalName
     self.label = "_"
     self.type = type

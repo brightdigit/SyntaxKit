@@ -87,7 +87,7 @@ public struct FunctionCallExp: CodeBlock {
 
     // Trailing closure logic
     var args = parameters
-    var trailingClosure: ClosureExprSyntax? = nil
+    var trailingClosure: ClosureExprSyntax?
     if let last = args.last, last.isUnlabeledClosure {
       trailingClosure = last.syntax.as(ClosureExprSyntax.self)
       args.removeLast()
