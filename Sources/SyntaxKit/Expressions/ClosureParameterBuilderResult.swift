@@ -27,8 +27,9 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+/// A result builder for creating closure parameter lists.
 @resultBuilder
-public struct ClosureParameterBuilderResult {
+public enum ClosureParameterBuilderResult {
   /// Builds a block of closure parameters.
   /// - Parameter components: The closure parameters to combine.
   /// - Returns: An array of closure parameters.

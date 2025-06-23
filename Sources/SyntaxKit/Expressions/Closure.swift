@@ -29,8 +29,7 @@
 
 import SwiftSyntax
 
-// MARK: - Closure
-
+/// Represents a closure expression in Swift code.
 public struct Closure: CodeBlock {
   public let capture: [ParameterExp]
   public let parameters: [ClosureParameter]
