@@ -83,4 +83,66 @@ import Testing
     let generated = methodCall.syntax.description
     #expect(generated.contains("foregroundColor"))
   }
+
+  @Test("Reference method supports different reference types")
+  internal func testReferenceMethodSupportsDifferentTypes() throws {
+    // Test weak reference
+    let weakRef = VariableExp("self").reference("weak")
+    // The ReferenceExp itself just shows the base variable name
+    let weakGenerated = weakRef.syntax.description
+    #expect(weakGenerated.contains("self"))
+
+    // Test unowned reference
+    let unownedRef = VariableExp("self").reference("unowned")
+    let unownedGenerated = unownedRef.syntax.description
+    #expect(unownedGenerated.contains("self"))
+
+    // Verify that the reference types are stored correctly
+    if let weakRefExp = weakRef as? ReferenceExp {
+      #expect(weakRefExp.captureReferenceType == "weak")
+    } else {
+      #expect(false, "Expected ReferenceExp type")
+    }
+
+    if let unownedRefExp = unownedRef as? ReferenceExp {
+      #expect(unownedRefExp.captureReferenceType == "unowned")
+    } else {
+      #expect(false, "Expected ReferenceExp type")
+    }
+  }
+
+  @Test("Reference method generates correct capture list syntax")
+  internal func testReferenceMethodGeneratesCorrectCaptureList() throws {
+    // Test weak reference in closure capture
+    let weakClosure = Closure(
+      capture: {
+        ParameterExp(unlabeled: VariableExp("self").reference("weak"))
+      },
+      body: {
+        VariableExp("self").optional().call("handleData") {
+          ParameterExp(unlabeled: VariableExp("data"))
+        }
+      }
+    )
+
+    let weakGenerated = weakClosure.syntax.description
+    print("Weak closure generated:\n\(weakGenerated)")
+    #expect(weakGenerated.contains("[weak self]"))
+
+    // Test unowned reference in closure capture
+    let unownedClosure = Closure(
+      capture: {
+        ParameterExp(unlabeled: VariableExp("self").reference("unowned"))
+      },
+      body: {
+        VariableExp("self").call("handleData") {
+          ParameterExp(unlabeled: VariableExp("data"))
+        }
+      }
+    )
+
+    let unownedGenerated = unownedClosure.syntax.description
+    print("Unowned closure generated:\n\(unownedGenerated)")
+    #expect(unownedGenerated.contains("[unowned self]"))
+  }
 }

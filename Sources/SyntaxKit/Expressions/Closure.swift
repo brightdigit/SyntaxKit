@@ -64,16 +64,27 @@ public struct Closure: CodeBlock {
         leftSquare: .leftSquareToken(),
         items: ClosureCaptureListSyntax(
           capture.map { param in
-            // Handle weak references properly
+            // Handle reference expressions properly
             let specifier: ClosureCaptureSpecifierSyntax?
             let name: TokenSyntax
 
-            if let weakRef = param.value as? WeakReferenceExp {
+            if let refExp = param.value as? ReferenceExp {
+              // Create the appropriate specifier based on reference type
+              let keyword: Keyword
+              switch refExp.captureReferenceType.lowercased() {
+              case "weak":
+                keyword = .weak
+              case "unowned":
+                keyword = .unowned
+              default:
+                keyword = .weak  // fallback to weak
+              }
+
               specifier = ClosureCaptureSpecifierSyntax(
-                specifier: .keyword(.weak, trailingTrivia: .space)
+                specifier: .keyword(keyword, trailingTrivia: .space)
               )
-              // Extract the identifier from the weak reference base
-              if let varExp = weakRef.captureExpression as? VariableExp {
+              // Extract the identifier from the reference base
+              if let varExp = refExp.captureExpression as? VariableExp {
                 name = .identifier(varExp.name)
               } else {
                 name = .identifier("self")  // fallback

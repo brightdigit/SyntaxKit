@@ -230,16 +230,4 @@ public struct Variable: CodeBlock {
 
     return AttributeListSyntax(attributeElements)
   }
-
-  public enum VariableKind {
-    case `var`
-    case `let`
-    case `static`
-    case `lazy`
-    case `weak`
-    case `unowned`
-    case `final`
-    case `override`
-    case `mutating`
-  }
 }
