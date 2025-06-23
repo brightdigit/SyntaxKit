@@ -30,8 +30,9 @@
 import SwiftSyntax
 
 extension If {
-  /// Builds the body block for the if statement.
-  internal func buildBody() -> CodeBlockSyntax {
+  /// Builds the body of the if expression.
+  /// - Returns: The code block syntax for the body.
+  public func buildBody() -> CodeBlockSyntax {
     CodeBlockSyntax(
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       statements: buildBodyStatements(from: body),
@@ -39,8 +40,10 @@ extension If {
     )
   }
 
-  /// Builds the statements for a code block from an array of CodeBlocks.
-  internal func buildBodyStatements(from blocks: [CodeBlock]) -> CodeBlockItemListSyntax {
+  /// Builds the body statements from an array of code blocks.
+  /// - Parameter blocks: The code blocks to convert to statements.
+  /// - Returns: The code block item list syntax.
+  public func buildBodyStatements(from blocks: [CodeBlock]) -> CodeBlockItemListSyntax {
     CodeBlockItemListSyntax(
       blocks.compactMap { block in
         createCodeBlockItem(from: block)?.with(\.trailingTrivia, .newline)

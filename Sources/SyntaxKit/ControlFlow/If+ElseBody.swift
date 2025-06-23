@@ -30,8 +30,9 @@
 import SwiftSyntax
 
 extension If {
-  /// Builds the else body for the if statement, handling else-if chains.
-  internal func buildElseBody() -> IfExprSyntax.ElseBody? {
+  /// Builds the else body for the if expression.
+  /// - Returns: The else body syntax or nil if no else body exists.
+  public func buildElseBody() -> IfExprSyntax.ElseBody? {
     guard let elseBlocks = elseBody else {
       return nil
     }

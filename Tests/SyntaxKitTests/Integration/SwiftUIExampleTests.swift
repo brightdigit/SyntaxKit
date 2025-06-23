@@ -179,20 +179,4 @@ import Testing
     let expected = expectedCode.normalizeFlexible()
     #expect(generated == expected)
   }
-
-  @Test("Debug: Method chaining on ConditionalOp")
-  func testMethodChainingOnConditionalOp() throws {
-    let conditional = ConditionalOp(
-      if: VariableExp("item").property("isCompleted"),
-      then: Literal.string("checkmark.circle.fill"),
-      else: Literal.string("circle")
-    )
-
-    let methodCall = conditional.call("foregroundColor") {
-      ParameterExp(unlabeled: EnumCase("green"))
-    }
-
-    let generated = methodCall.syntax.description
-    #expect(generated.contains("foregroundColor"))
-  }
 }

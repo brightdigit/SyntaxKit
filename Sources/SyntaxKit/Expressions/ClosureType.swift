@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift closure type (e.g., `(Date) -> Void`).
-public struct ClosureType: CodeBlock {
+public struct ClosureType: CodeBlock, TypeRepresentable {
   private let parameters: [ClosureParameter]
   private let returnType: String?
   private var attributes: [AttributeInfo] = []
@@ -79,8 +79,7 @@ public struct ClosureType: CodeBlock {
     if let returnType = returnType {
       returnClause = ReturnClauseSyntax(
         arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: IdentifierTypeSyntax(name: .identifier(returnType))
-      )
+        type: IdentifierTypeSyntax(name: .identifier(returnType)))
     }
 
     // Build function type
@@ -92,9 +91,7 @@ public struct ClosureType: CodeBlock {
       returnClause: returnClause
         ?? ReturnClauseSyntax(
           arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-          type: IdentifierTypeSyntax(name: .identifier("Void"))
-        )
-    )
+          type: IdentifierTypeSyntax(name: .identifier("Void"))))
 
     // Build attributed type if there are attributes
     if !attributes.isEmpty {
@@ -156,9 +153,8 @@ public struct ClosureType: CodeBlock {
     }
     return AttributeListSyntax(attributeElements)
   }
-}
 
-extension ClosureType: CustomStringConvertible {
+  /// A string representation of the closure type.
   public var description: String {
     let params = parameters.map { param in
       if let type = param.type {
@@ -173,9 +169,8 @@ extension ClosureType: CustomStringConvertible {
     let typeString = "\(paramList) -> \(ret)"
     return attr.isEmpty ? typeString : "\(attr) \(typeString)"
   }
-}
 
-extension ClosureType: TypeRepresentable {
+  /// The SwiftSyntax representation of this closure type.
   public var typeSyntax: TypeSyntax {
     // Build parameters
     let paramList = parameters.map { param in
@@ -189,8 +184,7 @@ extension ClosureType: TypeRepresentable {
     if let returnType = returnType {
       returnClause = ReturnClauseSyntax(
         arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: IdentifierTypeSyntax(name: .identifier(returnType))
-      )
+        type: IdentifierTypeSyntax(name: .identifier(returnType)))
     }
 
     // Build function type
@@ -202,9 +196,7 @@ extension ClosureType: TypeRepresentable {
       returnClause: returnClause
         ?? ReturnClauseSyntax(
           arrow: .arrowToken(leadingTrivia: .space, trailingTrivia: .space),
-          type: IdentifierTypeSyntax(name: .identifier("Void"))
-        )
-    )
+          type: IdentifierTypeSyntax(name: .identifier("Void"))))
 
     // Apply attributes if any
     if !attributes.isEmpty {

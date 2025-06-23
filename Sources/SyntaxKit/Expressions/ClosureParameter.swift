@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  ClosureParameter.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,32 +27,37 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+/// Represents a parameter in a closure signature.
+public struct ClosureParameter: TypeRepresentable {
+  public var name: String
+  public var type: String?
+  internal var attributes: [AttributeInfo]
 
-  /// Calls a method on this code block with the given name and parameters.
-  /// - Parameters:
-  ///   - name: The name of the method to call.
-  ///   - parameters: A closure that returns the parameters for the method call.
-  /// - Returns: A code block representing the method call.
-  func call(_ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp])
-    -> CodeBlock
-}
+  public init(_ name: String, type: String? = nil) {
+    self.name = name
+    self.type = type
+    self.attributes = []
+  }
 
-extension CodeBlock {
-  /// Calls a method on this code block with the given name and parameters.
-  /// - Parameters:
-  ///   - name: The name of the method to call.
-  ///   - parameters: A closure that returns the parameters for the method call.
-  /// - Returns: A code block representing the method call.
-  public func call(
-    _ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp] = { [] }
-  ) -> CodeBlock {
-    FunctionCallExp(base: self, methodName: name, parameters: parameters())
+  internal init(_ name: String, type: String? = nil, attributes: [AttributeInfo]) {
+    self.name = name
+    self.type = type
+    self.attributes = attributes
+  }
+
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
+  }
+
+  public var typeSyntax: TypeSyntax {
+    if let type = type {
+      return TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
+    } else {
+      return TypeSyntax(IdentifierTypeSyntax(name: .identifier("Any")))
+    }
   }
 }

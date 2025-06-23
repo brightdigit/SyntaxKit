@@ -57,16 +57,21 @@ extension String {
 
       // Add newlines between sibling views (Button elements)
       result = result.replacingOccurrences(
-        of: "}\\s*Button", with: "}\nButton", options: .regularExpression)
+        of: "}\\s*Button",
+        with: "}\nButton",
+        options: .regularExpression)
 
       // Add newline after method chaining
       result = result.replacingOccurrences(
-        of: "\\.foregroundColor\\([^)]*\\)\\s*}", with: ".foregroundColor($1)\n}",
+        of: "\\.foregroundColor\\([^)]*\\)\\s*}",
+        with: ".foregroundColor($1)\n}",
         options: .regularExpression)
 
       // Normalize Task closure formatting
       result = result.replacingOccurrences(
-        of: "Task\\s*{\\s*@MainActor", with: "Task { @MainActor", options: .regularExpression)
+        of: "Task\\s*{\\s*@MainActor",
+        with: "Task { @MainActor",
+        options: .regularExpression)
     } else if options.contains(.preserveBraceNewlines) {
       // Preserve newlines after braces but normalize other whitespace
       result = result.replacingOccurrences(of: "[ ]+", with: " ", options: .regularExpression)
@@ -98,9 +103,21 @@ extension String {
   /// Useful for comparing the actual code content
   internal func normalizeContent() -> String {
     self
-      .replacingOccurrences(of: "//.*$", with: "", options: .regularExpression)  // Remove single-line comments
-      .replacingOccurrences(of: "/\\*.*?\\*/", with: "", options: .regularExpression)  // Remove multi-line comments
-      .replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)  // Remove all whitespace
+      .replacingOccurrences(
+        of: "//.*$",
+        with: "",
+        options: .regularExpression
+      )  // Remove single-line comments
+      .replacingOccurrences(
+        of: "/\\*.*?\\*/",
+        with: "",
+        options: .regularExpression
+      )  // Remove multi-line comments
+      .replacingOccurrences(
+        of: "\\s+",
+        with: "",
+        options: .regularExpression
+      )  // Remove all whitespace
       .trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
@@ -108,15 +125,51 @@ extension String {
   /// Useful for tests that should be resilient to formatting changes
   internal func normalizeFlexible() -> String {
     self
-      .replacingOccurrences(of: "\\s*:\\s*", with: ":", options: .regularExpression)  // Normalize colons
-      .replacingOccurrences(of: "\\s*=\\s*", with: "=", options: .regularExpression)  // Normalize equals
-      .replacingOccurrences(of: "\\s*->\\s*", with: "->", options: .regularExpression)  // Normalize arrows
-      .replacingOccurrences(of: "\\s*,\\s*", with: ",", options: .regularExpression)  // Normalize commas
-      .replacingOccurrences(of: "\\s*\\(\\s*", with: "(", options: .regularExpression)  // Normalize opening parens
-      .replacingOccurrences(of: "\\s*\\)\\s*", with: ")", options: .regularExpression)  // Normalize closing parens
-      .replacingOccurrences(of: "\\s*{\\s*", with: "{", options: .regularExpression)  // Normalize opening braces
-      .replacingOccurrences(of: "\\s*}\\s*", with: "}", options: .regularExpression)  // Normalize closing braces
-      .replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)  // Remove remaining whitespace
+      .replacingOccurrences(
+        of: "\\s*:\\s*",
+        with: ":",
+        options: .regularExpression
+      )  // Normalize colons
+      .replacingOccurrences(
+        of: "\\s*=\\s*",
+        with: "=",
+        options: .regularExpression
+      )  // Normalize equals
+      .replacingOccurrences(
+        of: "\\s*->\\s*",
+        with: "->",
+        options: .regularExpression
+      )  // Normalize arrows
+      .replacingOccurrences(
+        of: "\\s*,\\s*",
+        with: ",",
+        options: .regularExpression
+      )  // Normalize commas
+      .replacingOccurrences(
+        of: "\\s*\\(\\s*",
+        with: "(",
+        options: .regularExpression
+      )  // Normalize opening parens
+      .replacingOccurrences(
+        of: "\\s*\\)\\s*",
+        with: ")",
+        options: .regularExpression
+      )  // Normalize closing parens
+      .replacingOccurrences(
+        of: "\\s*{\\s*",
+        with: "{",
+        options: .regularExpression
+      )  // Normalize opening braces
+      .replacingOccurrences(
+        of: "\\s*}\\s*",
+        with: "}",
+        options: .regularExpression
+      )  // Normalize closing braces
+      .replacingOccurrences(
+        of: "\\s+",
+        with: "",
+        options: .regularExpression
+      )  // Remove remaining whitespace
       .trimmingCharacters(in: .whitespacesAndNewlines)
   }
 }

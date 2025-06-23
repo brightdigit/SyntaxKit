@@ -1,5 +1,5 @@
 //
-//  CodeBlock.swift
+//  TypeRepresentable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,32 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
 import SwiftSyntax
 
-/// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
-  /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
-
-  /// Calls a method on this code block with the given name and parameters.
-  /// - Parameters:
-  ///   - name: The name of the method to call.
-  ///   - parameters: A closure that returns the parameters for the method call.
-  /// - Returns: A code block representing the method call.
-  func call(_ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp])
-    -> CodeBlock
+/// A protocol that represents a type that can be converted to SwiftSyntax.
+public protocol TypeRepresentable {
+  /// The SwiftSyntax representation of this type.
+  var typeSyntax: TypeSyntax { get }
 }
 
-extension CodeBlock {
-  /// Calls a method on this code block with the given name and parameters.
-  /// - Parameters:
-  ///   - name: The name of the method to call.
-  ///   - parameters: A closure that returns the parameters for the method call.
-  /// - Returns: A code block representing the method call.
-  public func call(
-    _ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp] = { [] }
-  ) -> CodeBlock {
-    FunctionCallExp(base: self, methodName: name, parameters: parameters())
-  }
+extension String: TypeRepresentable {
+  public var typeSyntax: TypeSyntax { TypeSyntax(IdentifierTypeSyntax(name: .identifier(self))) }
 }

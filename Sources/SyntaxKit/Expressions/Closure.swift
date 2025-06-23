@@ -29,55 +29,7 @@
 
 import SwiftSyntax
 
-// MARK: - ClosureParameter
-
-public struct ClosureParameter {
-  public var name: String
-  public var type: String?
-  internal var attributes: [AttributeInfo]
-
-  public init(_ name: String, type: String? = nil) {
-    self.name = name
-    self.type = type
-    self.attributes = []
-  }
-
-  internal init(_ name: String, type: String? = nil, attributes: [AttributeInfo]) {
-    self.name = name
-    self.type = type
-    self.attributes = attributes
-  }
-
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-}
-
-// MARK: - ClosureParameterBuilderResult
-
-@resultBuilder
-public enum ClosureParameterBuilderResult {
-  public static func buildBlock(_ components: ClosureParameter...) -> [ClosureParameter] {
-    components
-  }
-  public static func buildOptional(_ component: [ClosureParameter]?) -> [ClosureParameter] {
-    component ?? []
-  }
-  public static func buildEither(first component: [ClosureParameter]) -> [ClosureParameter] {
-    component
-  }
-  public static func buildEither(second component: [ClosureParameter]) -> [ClosureParameter] {
-    component
-  }
-  public static func buildArray(_ components: [[ClosureParameter]]) -> [ClosureParameter] {
-    components.flatMap { $0 }
-  }
-}
-
-// MARK: - Closure
-
+/// Represents a closure expression in Swift code.
 public struct Closure: CodeBlock {
   public let capture: [ParameterExp]
   public let parameters: [ClosureParameter]
