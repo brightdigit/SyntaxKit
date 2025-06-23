@@ -66,7 +66,7 @@ internal struct CommentedCodeBlock: CodeBlock {
     let newFirstToken = firstToken.with(\.leadingTrivia, commentTrivia + firstToken.leadingTrivia)
 
     let rewriter = FirstTokenRewriter(newToken: newFirstToken)
-    let rewritten = rewriter.visit(Syntax(base.syntax))
+    let rewritten = rewriter.rewrite(Syntax(base.syntax))
     return rewritten
   }
 }

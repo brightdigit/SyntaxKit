@@ -51,12 +51,41 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
   }
 
   public var exprSyntax: ExprSyntax {
-    let args = LabeledExprListSyntax(
-      parameters.enumerated().compactMap { index, param in
-        guard let element = param.syntax as? LabeledExprSyntax else {
+    var args = parameters
+    var trailingClosure: ClosureExprSyntax? = nil
+
+    // If the last parameter is an unlabeled closure, use it as a trailing closure
+    if let last = args.last, last.isUnlabeledClosure {
+      // Flatten nested unlabeled closures
+      if let closure = last.value as? Closure,
+         closure.body.count == 1,
+         let innerParam = closure.body.first as? ParameterExp,
+         innerParam.isUnlabeledClosure,
+         let innerClosure = innerParam.value as? Closure {
+        trailingClosure = innerClosure.syntax.as(ClosureExprSyntax.self)
+      } else if let closure = last.value as? Closure {
+        trailingClosure = closure.syntax.as(ClosureExprSyntax.self)
+      } else {
+        trailingClosure = last.syntax.as(ClosureExprSyntax.self)
+      }
+      args.removeLast()
+    }
+
+    let labeledArgs = LabeledExprListSyntax(
+      args.enumerated().compactMap { index, param in
+        let element: LabeledExprSyntax
+        if let labeled = param.syntax as? LabeledExprSyntax {
+          element = labeled
+        } else if let unlabeled = param.syntax.as(ExprSyntax.self) {
+          element = LabeledExprSyntax(
+            label: nil,
+            colon: nil,
+            expression: unlabeled
+          )
+        } else {
           return nil
         }
-        if index < parameters.count - 1 {
+        if index < args.count - 1 {
           return element.with(
             \.trailingComma,
             .commaToken(trailingTrivia: .space)
@@ -65,20 +94,41 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
         return element
       }
     )
+
+    let requiresParanthesis = !labeledArgs.isEmpty || trailingClosure == nil
     return ExprSyntax(
       FunctionCallExprSyntax(
         calledExpression: ExprSyntax(
           DeclReferenceExprSyntax(baseName: .identifier(type))
         ),
-        leftParen: .leftParenToken(),
-        arguments: args,
-        rightParen: .rightParenToken()
+        leftParen: requiresParanthesis ? .leftParenToken() : nil,
+        arguments: labeledArgs,
+        rightParen: requiresParanthesis ? .rightParenToken() : nil,
+        trailingClosure: trailingClosure
       )
     )
   }
 
   public var syntax: SyntaxProtocol {
     exprSyntax
+  }
+
+  /// Calls a method on the initialized object.
+  /// - Parameter methodName: The name of the method to call.
+  /// - Returns: A ``FunctionCallExp`` that represents the method call.
+  public func call(_ methodName: String) -> CodeBlock {
+    FunctionCallExp(base: self, methodName: methodName)
+  }
+
+  /// Calls a method on the initialized object with parameters.
+  /// - Parameters:
+  ///  - methodName: The name of the method to call.
+  ///  - params: A ``ParameterExpBuilder`` that provides the parameters for the method call.
+  /// - Returns: A ``FunctionCallExp`` that represents the method call.
+  public func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp])
+    -> CodeBlock
+  {
+    FunctionCallExp(base: self, methodName: methodName, parameters: params())
   }
 
   // MARK: - LiteralValue Conformance

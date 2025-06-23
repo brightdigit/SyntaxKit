@@ -64,6 +64,19 @@ public struct VariableExp: CodeBlock, PatternConvertible {
     FunctionCallExp(baseName: name, methodName: methodName, parameters: params())
   }
 
+  /// Creates a weak reference to this variable.
+  /// - Parameter referenceType: The type of reference (e.g., "weak", "unowned").
+  /// - Returns: A weak reference expression.
+  public func reference(_ referenceType: String) -> CodeBlock {
+    WeakReferenceExp(base: self, referenceType: referenceType)
+  }
+
+  /// Creates an optional chaining expression for this variable.
+  /// - Returns: An optional chaining expression.
+  public func optional() -> CodeBlock {
+    OptionalChainingExp(base: self)
+  }
+
   public var syntax: SyntaxProtocol {
     ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
   }

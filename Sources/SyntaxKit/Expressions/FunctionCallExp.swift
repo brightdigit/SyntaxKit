@@ -34,37 +34,71 @@ public struct FunctionCallExp: CodeBlock {
   internal let baseName: String
   internal let methodName: String
   internal let parameters: [ParameterExp]
+  private let base: CodeBlock?
 
-  /// Creates a function call expression.
-  /// - Parameters:
-  ///   - baseName: The name of the base variable.
-  ///   - methodName: The name of the method to call.
+  /// Creates a function call expression on a variable name.
   public init(baseName: String, methodName: String) {
     self.baseName = baseName
     self.methodName = methodName
     self.parameters = []
+    self.base = nil
   }
 
-  /// Creates a function call expression with parameters.
-  /// - Parameters:
-  ///  - baseName: The name of the base variable.
-  ///  - methodName: The name of the method to call.
-  ///  - parameters: The parameters for the method call.
+  /// Creates a function call expression with parameters on a variable name.
   public init(baseName: String, methodName: String, parameters: [ParameterExp]) {
     self.baseName = baseName
     self.methodName = methodName
     self.parameters = parameters
+    self.base = nil
+  }
+
+  /// Creates a function call expression on an arbitrary base expression.
+  public init(base: CodeBlock, methodName: String, parameters: [ParameterExp] = []) {
+    self.baseName = ""
+    self.methodName = methodName
+    self.parameters = parameters
+    self.base = base
   }
 
   public var syntax: SyntaxProtocol {
-    let base = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(baseName)))
-    let method = TokenSyntax.identifier(methodName)
-    let args = LabeledExprListSyntax(
-      parameters.enumerated().map { index, param in
+    let baseExpr: ExprSyntax
+    if let base = base {
+      if let exprSyntax = base.syntax.as(ExprSyntax.self) {
+        // If the base is a ConditionalOp, wrap it in parentheses for proper precedence
+        if base is ConditionalOp {
+          baseExpr = ExprSyntax(
+            TupleExprSyntax(
+              leftParen: .leftParenToken(),
+              elements: LabeledExprListSyntax([
+                LabeledExprSyntax(expression: exprSyntax)
+              ]),
+              rightParen: .rightParenToken()
+            )
+          )
+        } else {
+          baseExpr = exprSyntax
+        }
+      } else {
+        baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
+    } else {
+      baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(baseName)))
+    }
+
+    // Trailing closure logic
+    var args = parameters
+    var trailingClosure: ClosureExprSyntax? = nil
+    if let last = args.last, last.isUnlabeledClosure {
+      trailingClosure = last.syntax.as(ClosureExprSyntax.self)
+      args.removeLast()
+    }
+
+    let labeledArgs = LabeledExprListSyntax(
+      args.enumerated().map { index, param in
         let expr = param.syntax
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
-          if index < parameters.count - 1 {
+          if index < args.count - 1 {
             element = element.with(
               \.trailingComma,
               .commaToken(trailingTrivia: .space)
@@ -72,11 +106,11 @@ public struct FunctionCallExp: CodeBlock {
           }
           return element
         } else if let unlabeled = expr as? ExprSyntax {
-          return TupleExprElementSyntax(
+          return LabeledExprSyntax(
             label: nil,
             colon: nil,
             expression: unlabeled,
-            trailingComma: index < parameters.count - 1
+            trailingComma: index < args.count - 1
               ? .commaToken(trailingTrivia: .space)
               : nil
           )
@@ -85,19 +119,21 @@ public struct FunctionCallExp: CodeBlock {
         }
       }
     )
-    return ExprSyntax(
-      FunctionCallExprSyntax(
-        calledExpression: ExprSyntax(
-          MemberAccessExprSyntax(
-            base: base,
-            dot: .periodToken(),
-            name: method
-          )
-        ),
-        leftParen: .leftParenToken(),
-        arguments: args,
-        rightParen: .rightParenToken()
-      )
+
+    var functionCall = FunctionCallExprSyntax(
+      calledExpression: ExprSyntax(
+        MemberAccessExprSyntax(
+          base: baseExpr,
+          dot: .periodToken(),
+          name: .identifier(methodName)
+        )
+      ),
+      leftParen: .leftParenToken(),
+      arguments: labeledArgs,
+      rightParen: .rightParenToken(),
+      trailingClosure: trailingClosure
     )
+
+    return ExprSyntax(functionCall)
   }
 }

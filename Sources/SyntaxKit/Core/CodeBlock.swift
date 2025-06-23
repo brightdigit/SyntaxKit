@@ -34,4 +34,25 @@ import SwiftSyntax
 public protocol CodeBlock {
   /// The SwiftSyntax representation of the code block.
   var syntax: SyntaxProtocol { get }
+  
+  /// Calls a method on this code block.
+  /// - Parameters:
+  ///   - methodName: The name of the method to call.
+  ///   - params: A closure that returns the parameters for the method call.
+  /// - Returns: A FunctionCallExp representing the method call.
+  func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp]) -> CodeBlock
+}
+
+extension CodeBlock {
+  public func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp] = { [] }) -> CodeBlock {
+    FunctionCallExp(base: self, methodName: methodName, parameters: params())
+  }
+}
+
+public protocol TypeRepresentable {
+    var typeSyntax: TypeSyntax { get }
+}
+
+extension String: TypeRepresentable {
+    public var typeSyntax: TypeSyntax { TypeSyntax(IdentifierTypeSyntax(name: .identifier(self))) }
 }

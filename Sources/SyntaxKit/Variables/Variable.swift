@@ -34,12 +34,13 @@ import SwiftSyntax
 public struct Variable: CodeBlock {
   private let kind: VariableKind
   private let name: String
-  private let type: String
+  private let type: TypeRepresentable
   private let defaultValue: CodeBlock?
   private var isStatic: Bool = false
   private var isAsync: Bool = false
   private var attributes: [AttributeInfo] = []
   private var explicitType: Bool = false
+  private var accessModifier: String?
 
   /// Internal initializer used by extension initializers to reduce code duplication.
   /// - Parameters:
@@ -51,14 +52,12 @@ public struct Variable: CodeBlock {
   internal init(
     kind: VariableKind,
     name: String,
-    type: String? = nil,
+    type: TypeRepresentable? = nil,
     defaultValue: CodeBlock? = nil,
     explicitType: Bool = false
   ) {
     self.kind = kind
     self.name = name
-
-    // If type is provided, use it; otherwise try to infer from defaultValue
     if let providedType = type {
       self.type = providedType
     } else if let initValue = defaultValue as? Init {
@@ -66,7 +65,6 @@ public struct Variable: CodeBlock {
     } else {
       self.type = ""
     }
-
     self.defaultValue = defaultValue
     self.explicitType = explicitType
   }
@@ -84,6 +82,15 @@ public struct Variable: CodeBlock {
   public func async() -> Self {
     var copy = self
     copy.isAsync = true
+    return copy
+  }
+
+  /// Sets the access modifier for the variable declaration.
+  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Returns: A copy of the variable with the access modifier set.
+  public func access(_ access: String) -> Self {
+    var copy = self
+    copy.accessModifier = access
     return copy
   }
 
@@ -106,12 +113,12 @@ public struct Variable: CodeBlock {
 
   public var syntax: SyntaxProtocol {
     let bindingKeyword = TokenSyntax.keyword(kind == .let ? .let : .var, trailingTrivia: .space)
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
+    let identifier = TokenSyntax.identifier(name, trailingTrivia: explicitType ? (.space + .space) : .space)
     let typeAnnotation: TypeAnnotationSyntax? =
-      (explicitType && !type.isEmpty)
+      (explicitType && !(type is String && (type as! String).isEmpty))
       ? TypeAnnotationSyntax(
-        colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: IdentifierTypeSyntax(name: .identifier(type))
+        colon: .colonToken(trailingTrivia: .space),
+        type: type.typeSyntax
       ) : nil
     let initializer = defaultValue.map { value in
       let expr: ExprSyntax
@@ -137,6 +144,26 @@ public struct Variable: CodeBlock {
       modifiers = DeclModifierListSyntax(
         modifiers + [
           DeclModifierSyntax(name: .keyword(.async, trailingTrivia: .space))
+        ]
+      )
+    }
+    if let access = accessModifier {
+      let keyword: Keyword
+      switch access {
+      case "public":
+        keyword = .public
+      case "private":
+        keyword = .private
+      case "internal":
+        keyword = .internal
+      case "fileprivate":
+        keyword = .fileprivate
+      default:
+        keyword = .public // fallback
+      }
+      modifiers = DeclModifierListSyntax(
+        modifiers + [
+          DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
         ]
       )
     }

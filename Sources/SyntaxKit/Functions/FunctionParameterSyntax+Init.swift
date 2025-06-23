@@ -88,7 +88,7 @@ extension FunctionParameterSyntax {
       firstName: parameterNames.firstNameToken,
       secondName: parameterNames.secondNameToken,
       colon: .colonToken(trailingTrivia: .space),
-      type: IdentifierTypeSyntax(name: .identifier(parameter.type)),
+      type: parameter.type.typeSyntax,
       defaultValue: parameter.defaultValue.map {
         InitializerClauseSyntax(
           equal: .equalToken(
@@ -105,7 +105,7 @@ extension FunctionParameterSyntax {
     if !isLast {
       paramSyntax = paramSyntax.with(
         \.trailingComma,
-        .commaToken(trailingTrivia: .space)
+        TokenSyntax.commaToken(trailingTrivia: .space)
       )
     }
 

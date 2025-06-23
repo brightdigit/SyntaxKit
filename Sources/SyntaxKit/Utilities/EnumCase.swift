@@ -92,6 +92,17 @@ public struct EnumCase: CodeBlock {
   /// Returns a SwiftSyntax expression for this enum case (for use in throw/return/etc).
   public var asExpressionSyntax: ExprSyntax {
     let parts = name.split(separator: ".", maxSplits: 1)
+    let hasAssociated = !associatedValues.isEmpty
+    if parts.count == 1 && !hasAssociated {
+      // Only a case name, no type, no associated values: generate `.caseName`
+      return ExprSyntax(
+        MemberAccessExprSyntax(
+          base: nil as ExprSyntax?,
+          dot: .periodToken(),
+          name: .identifier(name)
+        )
+      )
+    }
     let base: ExprSyntax? =
       parts.count == 2
       ? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(String(parts[0]))))
@@ -99,10 +110,10 @@ public struct EnumCase: CodeBlock {
     let caseName = parts.count == 2 ? String(parts[1]) : name
     let memberAccess = MemberAccessExprSyntax(
       base: base,
-      dot: .periodToken(),
-      name: .identifier(caseName)
+      period: .periodToken(),
+      declName: DeclReferenceExprSyntax(baseName: .identifier(caseName))
     )
-    if !associatedValues.isEmpty {
+    if hasAssociated {
       let tuple = TupleExprSyntax(
         leftParen: .leftParenToken(),
         elements: TupleExprElementListSyntax(

@@ -87,7 +87,7 @@ public struct FunctionRequirement: CodeBlock {
     } else {
       paramList = FunctionParameterListSyntax(
         parameters.enumerated().compactMap { index, param in
-          guard !param.name.isEmpty, !param.type.isEmpty else {
+          guard !param.name.isEmpty else {
             return nil
           }
           var paramSyntax = FunctionParameterSyntax(
@@ -95,7 +95,7 @@ public struct FunctionRequirement: CodeBlock {
               ? .wildcardToken(trailingTrivia: .space) : .identifier(param.name),
             secondName: param.isUnnamed ? .identifier(param.name) : nil,
             colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
-            type: IdentifierTypeSyntax(name: .identifier(param.type)),
+            type: param.type.typeSyntax,
             defaultValue: param.defaultValue.map {
               InitializerClauseSyntax(
                 equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
