@@ -101,29 +101,6 @@ extension String {
       .replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
       .trimmingCharacters(in: .whitespacesAndNewlines)
   }
-
-  /// Content-only comparison - removes comments, whitespace, and formatting
-  /// Useful for comparing the actual code content
-  internal func normalizeContent() -> String {
-    self
-      .replacingOccurrences(
-        of: "//.*$",
-        with: "",
-        options: .regularExpression
-      )  // Remove single-line comments
-      .replacingOccurrences(
-        of: "/\\*.*?\\*/",
-        with: "",
-        options: .regularExpression
-      )  // Remove multi-line comments
-      .replacingOccurrences(
-        of: "\\s+",
-        with: "",
-        options: .regularExpression
-      )  // Remove all whitespace
-      .trimmingCharacters(in: .whitespacesAndNewlines)
-  }
-
   /// Flexible comparison - allows for minor formatting differences
   /// Useful for tests that should be resilient to formatting changes
   internal func normalizeFlexible() -> String {

@@ -99,49 +99,4 @@ public struct Task: CodeBlock {
       return ExprSyntax(taskExpr)
     }
   }
-
-  private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
-    if attributes.isEmpty {
-      return AttributeListSyntax([])
-    }
-    let attributeElements = attributes.map { attributeInfo in
-      let arguments = attributeInfo.arguments
-
-      var leftParen: TokenSyntax?
-      var rightParen: TokenSyntax?
-      var argumentsSyntax: AttributeSyntax.Arguments?
-
-      if !arguments.isEmpty {
-        leftParen = .leftParenToken()
-        rightParen = .rightParenToken()
-
-        let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
-        }
-
-        argumentsSyntax = .argumentList(
-          LabeledExprListSyntax(
-            argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
-              if index < argumentList.count - 1 {
-                element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
-              }
-              return element
-            }
-          )
-        )
-      }
-
-      return AttributeListSyntax.Element(
-        AttributeSyntax(
-          atSign: .atSignToken(),
-          attributeName: IdentifierTypeSyntax(name: .identifier(attributeInfo.name)),
-          leftParen: leftParen,
-          arguments: argumentsSyntax,
-          rightParen: rightParen
-        )
-      )
-    }
-    return AttributeListSyntax(attributeElements)
-  }
 }

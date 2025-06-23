@@ -41,12 +41,6 @@ public struct ClosureParameter: TypeRepresentable {
     self.attributes = []
   }
 
-  internal init(_ name: String, type: String? = nil, attributes: [AttributeInfo]) {
-    self.name = name
-    self.type = type
-    self.attributes = attributes
-  }
-
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
