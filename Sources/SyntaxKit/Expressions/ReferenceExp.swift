@@ -46,10 +46,16 @@ public struct ReferenceExp: CodeBlock {
   public var syntax: SyntaxProtocol {
     // For capture lists, we need to create a proper reference
     // This will be handled by the Closure syntax when used in capture lists
-    let baseExpr = ExprSyntax(
-      fromProtocol: base.syntax.as(ExprSyntax.self)
-        ?? DeclReferenceExprSyntax(baseName: .identifier(""))
-    )
+    let baseExpr: ExprSyntax
+    if let enumCase = base as? EnumCase {
+      // Handle EnumCase specially - use expression syntax for enum cases in expressions
+      baseExpr = enumCase.asExpressionSyntax
+    } else {
+      baseExpr = ExprSyntax(
+        fromProtocol: base.syntax.as(ExprSyntax.self)
+          ?? DeclReferenceExprSyntax(baseName: .identifier(""))
+      )
+    }
 
     // Create a custom expression that represents a reference
     // This will be used by the Closure to create proper capture syntax
