@@ -85,9 +85,7 @@ public struct While: CodeBlock {
     @CodeBlockBuilderResult then: () throws -> [CodeBlock]
   ) rethrows {
     let conditionBlocks = try condition()
-    guard let firstCondition = conditionBlocks.first as? any ExprCodeBlock else {
-      fatalError("While condition must conform to ExprCodeBlock protocol")
-    }
+    let firstCondition = conditionBlocks.first as? any ExprCodeBlock ?? Literal.boolean(true)
     self.condition = firstCondition
     self.body = try then()
     self.kind = kind
