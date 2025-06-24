@@ -6,7 +6,7 @@ import Testing
 internal final class ForLoopTests {
   @Test
   internal func testSimpleForInLoop() throws {
-    let forLoop = try For(
+    let forLoop = For(
       VariableExp("item"),
       in: VariableExp("items"),
       then: {

@@ -24,7 +24,7 @@ import Testing
         Line("Simple for-in loop over an array")
       }
 
-      try For(
+      For(
         VariableExp("name"),
         in: VariableExp("names"),
         then: {
@@ -42,7 +42,7 @@ import Testing
         Line("MARK: - For-in with Enumerated")
         Line("For-in loop with enumerated() to get index and value")
       }
-      try For(
+      For(
         Tuple.patternCodeBlock([
           VariableExp("index"),
           VariableExp("name"),
@@ -117,7 +117,7 @@ import Testing
         ])
       )
 
-      try For(
+      For(
         Tuple.patternCodeBlock([
           VariableExp("name"),
           VariableExp("score"),

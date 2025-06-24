@@ -29,7 +29,7 @@ internal struct FrameworkCompatibilityTests {
 
   // MARK: - Error Handling Compatibility Tests
 
-  @Test internal func testThrowingTestCompatibility() throws {
+  @Test internal func testThrowingTestCompatibility() {
     // Ensure throws declaration works properly with @Test
     let function = Function("throwingFunction", returns: "String") {
       Parameter(name: "input", type: "String")
@@ -39,7 +39,7 @@ internal struct FrameworkCompatibilityTests {
       }
     }
 
-    let generated = try function.syntax.description
+    let generated = function.syntax.description
     #expect(generated.contains("func throwingFunction"))
   }
 

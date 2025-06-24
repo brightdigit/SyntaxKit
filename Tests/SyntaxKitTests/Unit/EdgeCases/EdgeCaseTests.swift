@@ -33,7 +33,7 @@ internal struct EdgeCaseTests {
 
   @Test("If with no conditions uses true as default")
   internal func testIfWithNoConditionsUsesTrueAsDefault() throws {
-    let ifStatement = try If {
+    let ifStatement = If {
       Return {
         Literal.string("executed")
       }
@@ -46,7 +46,7 @@ internal struct EdgeCaseTests {
 
   @Test("Guard with no conditions uses true as default")
   internal func testGuardWithNoConditionsUsesTrueAsDefault() throws {
-    let guardStatement = try Guard {
+    let guardStatement = Guard {
       Return {
         Literal.string("executed")
       }

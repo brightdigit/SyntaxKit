@@ -101,7 +101,7 @@ import Testing
             Literal.integer(1)
           }
           Assignment("inventory[name]", .ref("newItem"))
-          try Call("print") {
+          Call("print") {
             ParameterExp(unlabeled: Literal.string("Dispensing \\(name)"))
           }
         }

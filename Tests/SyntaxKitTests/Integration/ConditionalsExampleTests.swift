@@ -38,7 +38,7 @@ import Testing
           Literal.integer(90)
         }
       } then: {
-        try Call("print") {
+        Call("print") {
           ParameterExp(unlabeled: "\"Excellent!\"")
         }
       } else: {
@@ -48,7 +48,7 @@ import Testing
             Literal.integer(80)
           }
         } then: {
-          try Call("print") {
+          Call("print") {
             ParameterExp(unlabeled: "\"Good job!\"")
           }
         } else: {
@@ -58,11 +58,11 @@ import Testing
               Literal.integer(70)
             }
           } then: {
-            try Call("print") {
+            Call("print") {
               ParameterExp(unlabeled: "\"Passing\"")
             }
           } else: {
-            try Call("print") {
+            Call("print") {
               ParameterExp(unlabeled: "\"Needs improvement\"")
             }
           }
