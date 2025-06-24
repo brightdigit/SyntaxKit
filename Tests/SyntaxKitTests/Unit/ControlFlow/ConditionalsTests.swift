@@ -6,11 +6,11 @@ import Testing
   @Test("If / else-if / else chain generates correct syntax")
   internal func testIfElseChain() throws {
     // Arrange: build the DSL example using the updated APIs
-    let conditional = Group {
+    let conditional = try Group {
       Variable(.let, name: "score", type: "Int", equals: "85")
 
-      If {
-        try! Infix(">=") {
+      try If {
+        try Infix(">=") {
           VariableExp("score")
           Literal.integer(90)
         }
@@ -19,8 +19,8 @@ import Testing
           ParameterExp(name: "", value: "\"Excellent!\"")
         }
       } else: {
-        If {
-          try! Infix(">=") {
+        try If {
+          try Infix(">=") {
             VariableExp("score")
             Literal.integer(80)
           }

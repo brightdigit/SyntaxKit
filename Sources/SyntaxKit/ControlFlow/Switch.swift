@@ -38,7 +38,9 @@ public struct Switch: CodeBlock {
   /// - Parameters:
   ///   - expression: The expression to switch on.
   ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
-  public init(_ expression: CodeBlock, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(_ expression: CodeBlock, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
+    rethrows
+  {
     self.expression = expression
     self.cases = try content()
   }
@@ -47,7 +49,9 @@ public struct Switch: CodeBlock {
   /// - Parameters:
   ///   - expression: The string expression to switch on.
   ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
-  public init(_ expression: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(_ expression: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
+    rethrows
+  {
     self.expression = VariableExp(expression)
     self.cases = try content()
   }

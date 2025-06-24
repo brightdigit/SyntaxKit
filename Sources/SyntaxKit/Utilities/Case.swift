@@ -41,7 +41,9 @@ public struct Case: CodeBlock {
   /// - Parameters:
   ///   - patterns: The patterns for the case.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(_ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]) rethrows {
+  public init(
+    _ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]
+  ) rethrows {
     self.patterns = patterns
     self.body = try content()
     self.isEnumCase = false

@@ -40,7 +40,9 @@ public struct Extension: CodeBlock {
   /// - Parameters:
   ///   - extendedType: The type being extended.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the extension.
-  public init(_ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(_ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
+    rethrows
+  {
     self.extendedType = extendedType
     self.members = try content()
   }

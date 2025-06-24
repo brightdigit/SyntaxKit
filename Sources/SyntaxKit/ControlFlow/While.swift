@@ -41,10 +41,10 @@ public struct While: CodeBlock {
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
     _ condition: any ExprCodeBlock,
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
     self.condition = condition
-    self.body = then()
+    self.body = try then()
     self.isRepeatWhile = false
   }
 
@@ -53,11 +53,11 @@ public struct While: CodeBlock {
   ///   - condition: A `CodeBlockBuilder` that produces exactly one condition expression.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
-    @ExprCodeBlockBuilder _ condition: () -> any ExprCodeBlock,
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    self.condition = condition()
-    self.body = then()
+    @ExprCodeBlockBuilder _ condition: () throws -> any ExprCodeBlock,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    self.condition = try condition()
+    self.body = try then()
     self.isRepeatWhile = false
   }
 

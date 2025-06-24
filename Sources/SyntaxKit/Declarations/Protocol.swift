@@ -40,7 +40,8 @@ public struct Protocol: CodeBlock {
   /// - Parameters:
   ///   - name: The name of the protocol.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the protocol.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
     self.members = try content()
   }

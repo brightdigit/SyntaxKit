@@ -83,7 +83,7 @@ import Testing
               try Call("VendingMachineError.insufficientFunds") {
                 ParameterExp(
                   name: "coinsNeeded",
-                  value: try! Infix("-") {
+                  value: try Infix("-") {
                     VariableExp("item").property("price")
                     VariableExp("coinsDeposited")
                   }
@@ -91,12 +91,12 @@ import Testing
               }
             )
           }
-          try! Infix("-=") {
+          try Infix("-=") {
             VariableExp("coinsDeposited")
             VariableExp("item").property("price")
           }
           Variable(.var, name: "newItem", equals: Literal.ref("item"))
-          try! Infix("-=") {
+          try Infix("-=") {
             VariableExp("newItem").property("count")
             Literal.integer(1)
           }

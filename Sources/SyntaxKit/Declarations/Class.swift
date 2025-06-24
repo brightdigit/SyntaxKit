@@ -42,7 +42,8 @@ public struct Class: CodeBlock {
   /// - Parameters:
   ///   - name: The name of the class.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the class.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
     self.members = try content()
   }

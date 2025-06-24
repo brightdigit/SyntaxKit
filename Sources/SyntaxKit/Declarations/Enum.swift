@@ -40,7 +40,8 @@ public struct Enum: CodeBlock {
   /// - Parameters:
   ///   - name: The name of the enum.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the enum.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
     self.members = try content()
   }

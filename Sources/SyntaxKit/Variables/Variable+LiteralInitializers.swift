@@ -173,14 +173,14 @@ extension Variable {
   public init(
     _ kind: VariableKind,
     name: String,
-    @CodeBlockBuilderResult value: () -> [CodeBlock],
+    @CodeBlockBuilderResult value: () throws -> [CodeBlock],
     explicitType: Bool? = nil
-  ) {
+  ) rethrows {
     self.init(
       kind: kind,
       name: name,
       type: "",
-      defaultValue: value().first ?? EmptyCodeBlock(),
+      defaultValue: try value().first ?? EmptyCodeBlock(),
       explicitType: explicitType ?? false
     )
   }

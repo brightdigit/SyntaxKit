@@ -94,7 +94,7 @@ public struct FunctionCallExp: CodeBlock {
     }
 
     let labeledArgs = LabeledExprListSyntax(
-      args.enumerated().map { index, param in
+      args.enumerated().compactMap { index, param in
         let expr = param.syntax
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
@@ -105,9 +105,9 @@ public struct FunctionCallExp: CodeBlock {
             )
           }
           return element
-        } else {
+        } else if let unlabeled = expr as? ExprSyntax {
           // ParameterExp.syntax is guaranteed to return either LabeledExprSyntax or ExprSyntax
-          let unlabeled = expr as! ExprSyntax
+
           return LabeledExprSyntax(
             label: nil,
             colon: nil,
@@ -116,6 +116,8 @@ public struct FunctionCallExp: CodeBlock {
               ? .commaToken(trailingTrivia: .space)
               : nil
           )
+        } else {
+          return nil
         }
       }
     )

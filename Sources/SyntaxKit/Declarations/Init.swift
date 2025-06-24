@@ -45,9 +45,11 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
   /// - Parameters:
   ///   - type: The type to initialize.
   ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the initializer.
-  public init(_ type: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp]) {
+  public init(_ type: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp])
+    rethrows
+  {
     self.type = type
-    self.parameters = params()
+    self.parameters = try params()
   }
 
   public var exprSyntax: ExprSyntax {

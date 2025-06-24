@@ -39,7 +39,9 @@ public struct SwitchCase: CodeBlock {
   ///   - patterns: The patterns to match for the case. Can be `PatternConvertible`,
   ///     `CodeBlock`, or `SwitchLet` for value binding.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(_ patterns: Any..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]) rethrows {
+  public init(_ patterns: Any..., @CodeBlockBuilderResult content: () throws -> [CodeBlock])
+    rethrows
+  {
     self.patterns = patterns
     self.body = try content()
   }
@@ -48,7 +50,10 @@ public struct SwitchCase: CodeBlock {
   /// - Parameters:
   ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(@CodeBlockBuilderResult conditional: () throws -> [CodeBlock], @CodeBlockBuilderResult content: () throws -> [CodeBlock]) rethrows {
+  public init(
+    @CodeBlockBuilderResult conditional: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult content: () throws -> [CodeBlock]
+  ) rethrows {
     self.patterns = try conditional()
     self.body = try content()
   }

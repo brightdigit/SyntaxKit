@@ -25,7 +25,7 @@ public struct StringifyMacro: ExpressionMacro {
       }
       
       return Tuple{
-        try! Infix("+") {
+        try Infix("+") {
           VariableExp(first.description)
           VariableExp(second.description)
         }

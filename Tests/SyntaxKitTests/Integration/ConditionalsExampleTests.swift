@@ -273,12 +273,12 @@ import Testing
           Line("MARK: - Labeled Statements")
           Line("Using labeled statements with break")
         }
-      Variable(.var, name: "board") {
-        Init("[Int]") {
+      try Variable(.var, name: "board") {
+        try Init("[Int]") {
           ParameterExp(name: "repeating", value: Literal.integer(0))
           ParameterExp(
             name: "count",
-            value: try! Infix("+") {
+            value: try Infix("+") {
               VariableExp("finalSquare")
               Literal.integer(1)
             }
@@ -298,23 +298,23 @@ import Testing
 
       Variable(.var, name: "square", equals: Literal.integer(0))
       Variable(.var, name: "diceRoll", equals: Literal.integer(0))
-      While(
-        try! Infix("!=") {
+      try While(
+        try Infix("!=") {
           VariableExp("square")
           VariableExp("finalSquare")
         }
       ) {
         PlusAssign("diceRoll", 1)
-        If {
-          try! Infix("==") {
+        try If {
+          try Infix("==") {
             VariableExp("diceRoll")
             Literal.integer(7)
           }
         } then: {
           Assignment("diceRoll", 1)
         }
-        Switch(
-          try! Infix("+") {
+        try Switch(
+          try Infix("+") {
             VariableExp("square")
             VariableExp("diceRoll")
           }
@@ -322,21 +322,21 @@ import Testing
           SwitchCase("finalSquare") {
             Break()
           }
-          SwitchCase {
+          try SwitchCase {
             SwitchLet("newSquare")
-            try! Infix(">") {
+            try Infix(">") {
               VariableExp("newSquare")
               VariableExp("finalSquare")
             }
           } content: {
             Continue()
           }
-          Default {
-            try! Infix("+=") {
+          try Default {
+            try Infix("+=") {
               VariableExp("square")
               VariableExp("diceRoll")
             }
-            try! Infix("+=") {
+            try Infix("+=") {
               VariableExp("square")
               VariableExp("board[square]")
             }
@@ -499,7 +499,7 @@ import Testing
 
   @Test("Conditionals example generates correct syntax")
   internal func testConditionalsExample() throws {
-    let ifStatement = try If {
+    _ = try If {
       try Infix(">") {
         VariableExp("temperature")
         Literal.integer(30)

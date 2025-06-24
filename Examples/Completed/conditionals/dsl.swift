@@ -23,7 +23,7 @@ Group {
             Call("print", "Good job!")
         }
         If {
-            try! Infix("score", ">=", 70)
+            try Infix("score", ">=", 70)
         } then: {
             Call("print", "Passing")
         }
@@ -172,24 +172,24 @@ Infix("board[24]", "-=", 8)
 Variable(.var, name: "square", equals: 0)
 Variable(.var, name: "diceRoll", equals: 0)
 While {
-    try! Infix("square", "!=", "finalSquare")
+    try Infix("square", "!=", "finalSquare")
 } then: {
     Assignment("diceRoll", "+", 1)
     If {
-        try! Infix("diceRoll", "==", 7)
+        try Infix("diceRoll", "==", 7)
     } then: {
         Assignment("diceRoll", 1)
     }
-    Switch(try! Infix("square", "+", "diceRoll")) {
+    Switch(try Infix("square", "+", "diceRoll")) {
         SwitchCase("finalSquare") {
             Break()
         }
-        SwitchCase(try! Infix("newSquare", ">", "finalSquare")) {
+        SwitchCase(try Infix("newSquare", ">", "finalSquare")) {
             Continue()
         }
         Default {
-            try! Infix("square", "+=", "diceRoll")
-            try! Infix("square", "+=", "board[square]")
+            try Infix("square", "+=", "diceRoll")
+            try Infix("square", "+=", "board[square]")
         }
     }
 }
@@ -216,7 +216,7 @@ For {
 } in: {
     Literal.array([Literal.integer(1), Literal.integer(2), Literal.integer(3), Literal.integer(4), Literal.integer(5), Literal.integer(6), Literal.integer(7), Literal.integer(8), Literal.integer(9), Literal.integer(10)])
 } where: {
-    try! Infix("number", "%", 2)
+    try Infix("number", "%", 2)
 } then: {
     Call("print", "Even number: \\(number)")
 }

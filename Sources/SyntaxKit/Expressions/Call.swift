@@ -47,7 +47,9 @@ public struct Call: CodeBlock {
   /// - Parameters:
   ///   - functionName: The name of the function to call.
   ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the function call.
-  public init(_ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]) rethrows {
+  public init(
+    _ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]
+  ) rethrows {
     self.functionName = functionName
     self.parameters = try params()
   }
@@ -71,7 +73,7 @@ public struct Call: CodeBlock {
   public var syntax: SyntaxProtocol {
     let function = TokenSyntax.identifier(functionName)
     let args = LabeledExprListSyntax(
-      parameters.enumerated().map { index, param in
+      parameters.enumerated().compactMap { index, param in
         let expr = param.syntax
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
@@ -82,8 +84,7 @@ public struct Call: CodeBlock {
             )
           }
           return element
-        } else {
-          let unlabeled = expr as! ExprSyntax
+        } else if let unlabeled = expr as? ExprSyntax {
           return LabeledExprSyntax(
             label: nil,
             colon: nil,
@@ -92,6 +93,8 @@ public struct Call: CodeBlock {
               ? .commaToken(trailingTrivia: .space)
               : nil
           )
+        } else {
+          return nil
         }
       }
     )
