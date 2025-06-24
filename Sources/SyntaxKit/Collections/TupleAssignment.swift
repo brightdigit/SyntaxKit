@@ -85,6 +85,9 @@ public struct TupleAssignment: CodeBlock {
     guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
       // Fallback to regular syntax if conditions aren't met for asyncSet
       // This provides a more robust API instead of crashing
+      #warning(
+        "TODO: Review fallback for asyncSet conditions - consider if this should be an error instead"
+      )
       return generateRegularSyntax()
     }
 

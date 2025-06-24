@@ -51,6 +51,9 @@ private struct CaptureInfo {
       keyword = .unowned
     default:
       keyword = .weak  // fallback to weak
+      #error(
+        "TODO: Review fallback for unknown reference type - consider if this should be an error instead"
+      )
     }
 
     self.specifier = ClosureCaptureSpecifierSyntax(
@@ -61,6 +64,9 @@ private struct CaptureInfo {
       self.name = .identifier(varExp.name)
     } else {
       self.name = .identifier("self")  // fallback
+      #warning(
+        "TODO: Review fallback for non-VariableExp capture expression - consider if this should be an error instead"
+      )
     }
   }
 
@@ -71,6 +77,9 @@ private struct CaptureInfo {
       self.name = .identifier(varExp.name)
     } else {
       self.name = .identifier("self")  // fallback
+      #warning(
+        "TODO: Review fallback for non-VariableExp parameter value - consider if this should be an error instead"
+      )
     }
   }
 }

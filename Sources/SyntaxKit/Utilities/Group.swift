@@ -55,6 +55,9 @@ public struct Group: CodeBlock {
       } else {
         // Skip unsupported syntax types instead of crashing
         // This allows the group to continue processing other valid blocks
+        #warning(
+          "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
+        )
         return []
       }
       return [CodeBlockItemSyntax(item: item, trailingTrivia: .newline)]

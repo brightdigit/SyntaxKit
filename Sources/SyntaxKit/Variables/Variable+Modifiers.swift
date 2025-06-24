@@ -73,6 +73,9 @@ extension Variable {
       keyword = .fileprivate
     default:
       keyword = .public  // fallback
+      #error(
+        "TODO: Review fallback for unknown access modifier - consider if this should be an error instead"
+      )
     }
 
     return DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))

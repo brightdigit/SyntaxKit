@@ -108,6 +108,9 @@ public struct ComputedProperty: CodeBlock {
         keyword = .fileprivate
       default:
         keyword = .public  // fallback
+        #error(
+          "TODO: Review fallback for unknown access modifier - consider if this should be an error instead"
+        )
       }
       modifiers = DeclModifierListSyntax([
         DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))

@@ -47,6 +47,9 @@ extension CodeBlock {
       } else {
         // Fallback for unsupported syntax types - create an empty code block
         // This prevents crashes while still allowing code generation to continue
+        #warning(
+          "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
+        )
         let emptyExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
         item = .expr(emptyExpr)
       }

@@ -55,6 +55,9 @@ public struct Return: CodeBlock {
         exprSyntax = syntax
       } else {
         // fallback: no valid expression
+        #warning(
+          "TODO: Review fallback for no valid expression - consider if this should be an error instead"
+        )
         return ReturnStmtSyntax(
           returnKeyword: .keyword(.return, trailingTrivia: .space)
         )

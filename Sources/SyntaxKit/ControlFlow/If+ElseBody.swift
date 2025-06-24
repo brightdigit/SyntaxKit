@@ -84,6 +84,8 @@ extension If {
       return IfExprSyntax.ElseBody(nestedIf)
     } else {
       // Fallback to empty code block
+      #warning(
+        "TODO: Review fallback to empty code block - consider if this should be an error instead")
       return IfExprSyntax.ElseBody(
         CodeBlockSyntax(
           leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
