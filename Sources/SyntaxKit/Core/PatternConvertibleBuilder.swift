@@ -68,18 +68,4 @@ public enum PatternConvertibleBuilder {
   {
     second
   }
-
-  //  public static func buildOptional(_ pattern: (any CodeBlock & PatternConvertible)?)
-  //    -> any CodeBlock & PatternConvertible
-  //  {
-  //    // This should never be called in practice since we require exactly one pattern
-  //    fatalError("PatternConvertibleBuilder requires exactly one pattern")
-  //  }
-  //
-  //  public static func buildArray(_ patterns: [any CodeBlock & PatternConvertible]) -> any CodeBlock
-  //    & PatternConvertible
-  //  {
-  //    // This should never be called in practice since we require exactly one pattern
-  //    fatalError("PatternConvertibleBuilder requires exactly one pattern")
-  //  }
 }

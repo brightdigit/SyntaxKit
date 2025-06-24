@@ -60,14 +60,4 @@ public enum ExprCodeBlockBuilder {
   public static func buildEither(second: any ExprCodeBlock) -> any ExprCodeBlock {
     second
   }
-  //
-  //  public static func buildOptional(_ expression: (any ExprCodeBlock)?) -> any ExprCodeBlock {
-  //    // This should never be called in practice since we require exactly one expression
-  //    fatalError("ExprCodeBlockBuilder requires exactly one expression")
-  //  }
-  //
-  //  public static func buildArray(_ expressions: [any ExprCodeBlock]) -> any ExprCodeBlock {
-  //    // This should never be called in practice since we require exactly one expression
-  //    fatalError("ExprCodeBlockBuilder requires exactly one expression")
-  //  }
 }
