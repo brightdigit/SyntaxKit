@@ -79,24 +79,16 @@ internal struct OptionsMacroIntegrationTests {
 
   @Test internal func testCompleteOptionsMacroWorkflow() {
     // This test demonstrates the complete workflow that the Options macro would use
+    // for an enum WITH raw values
 
-    // Step 1: Determine if enum has raw values (simulated)
-    let hasRawValues = true
     let enumName = "TestEnum"
 
-    // Step 2: Create the appropriate mappedValues variable
-    let mappedValuesVariable: Variable
-    if hasRawValues {
-      let keyValues: [Int: String] = [1: "first", 2: "second", 3: "third"]
-      mappedValuesVariable = Variable(.let, name: "mappedValues", equals: keyValues)
-        .withExplicitType().static()
-    } else {
-      let caseNames: [String] = ["first", "second", "third"]
-      mappedValuesVariable = Variable(.let, name: "mappedValues", equals: caseNames)
-        .withExplicitType().static()
-    }
+    // Create the mappedValues variable for enum with raw values
+    let keyValues: [Int: String] = [1: "first", 2: "second", 3: "third"]
+    let mappedValuesVariable = Variable(.let, name: "mappedValues", equals: keyValues)
+      .withExplicitType().static()
 
-    // Step 3: Create the extension
+    // Create the extension
     let extensionDecl = Extension(enumName) {
       TypeAlias("MappedType", equals: "String")
       mappedValuesVariable
@@ -117,19 +109,12 @@ internal struct OptionsMacroIntegrationTests {
   @Test internal func testOptionsMacroWorkflowWithoutRawValues() {
     // Test the workflow for enums without raw values
 
-    let hasRawValues = false
     let enumName = "SimpleEnum"
 
-    let mappedValuesVariable: Variable
-    if hasRawValues {
-      let keyValues: [Int: String] = [1: "first", 2: "second"]
-      mappedValuesVariable = Variable(.let, name: "mappedValues", equals: keyValues)
-        .withExplicitType().static()
-    } else {
-      let caseNames: [String] = ["first", "second"]
-      mappedValuesVariable = Variable(.let, name: "mappedValues", equals: caseNames)
-        .withExplicitType().static()
-    }
+    // Create the mappedValues variable for enum without raw values
+    let caseNames: [String] = ["first", "second"]
+    let mappedValuesVariable = Variable(.let, name: "mappedValues", equals: caseNames)
+      .withExplicitType().static()
 
     let extensionDecl = Extension(enumName) {
       TypeAlias("MappedType", equals: "String")

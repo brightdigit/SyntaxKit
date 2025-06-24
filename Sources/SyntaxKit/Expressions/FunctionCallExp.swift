@@ -122,7 +122,7 @@ public struct FunctionCallExp: CodeBlock {
       }
     )
 
-    var functionCall = FunctionCallExprSyntax(
+    let functionCall = FunctionCallExprSyntax(
       calledExpression: ExprSyntax(
         MemberAccessExprSyntax(
           base: baseExpr,
