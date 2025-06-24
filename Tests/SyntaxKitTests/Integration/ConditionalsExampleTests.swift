@@ -22,11 +22,7 @@ import Testing
         }
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "\"It's hot!\"")
-        }
-      } else: {
-        Call("print") {
-          ParameterExp(unlabeled: "\"It's not hot\"")
+          ParameterExp(unlabeled: "\"It's hot outside!\"")
         }
       }
 
@@ -43,7 +39,7 @@ import Testing
         }
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "\"A\"")
+          ParameterExp(unlabeled: "\"Excellent!\"")
         }
       } else: {
         If {
@@ -53,27 +49,23 @@ import Testing
           }
         } then: {
           Call("print") {
-            ParameterExp(unlabeled: "\"B\"")
+            ParameterExp(unlabeled: "\"Good job!\"")
           }
         } else: {
-          Call("print") {
-            ParameterExp(unlabeled: "\"C\"")
+          If {
+            try! Infix(">=") {
+              VariableExp("score")
+              Literal.integer(70)
+            }
+          } then: {
+            Call("print") {
+              ParameterExp(unlabeled: "\"Passing\"")
+            }
+          } else: {
+            Call("print") {
+              ParameterExp(unlabeled: "\"Needs improvement\"")
+            }
           }
-        }
-      }
-
-      If {
-        try! Infix(">=") {
-          VariableExp("score")
-          Literal.integer(70)
-        }
-      } then: {
-        Call("print") {
-          ParameterExp(unlabeled: "\"Passing\"")
-        }
-      } else: {
-        Call("print") {
-          ParameterExp(unlabeled: "\"Failing\"")
         }
       }
 

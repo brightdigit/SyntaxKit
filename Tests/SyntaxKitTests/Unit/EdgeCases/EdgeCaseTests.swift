@@ -5,19 +5,28 @@ import Testing
 internal struct EdgeCaseTests {
   // MARK: - Error Handling Tests
 
-  @Test("Infix with wrong number of operands throws fatal error")
+  @Test("Infix with wrong number of operands throws error")
   internal func testInfixWrongOperandCount() throws {
-    // This test documents the expected behavior
-    // In a real scenario, this would cause a fatal error
-    // We can't easily test fatalError in unit tests, but we can document it
-    let infix = try Infix("+") {
-      // Only one operand - should cause fatal error
-      VariableExp("x")
+    // Test that Infix throws an error when given wrong number of operands
+    do {
+      _ = try Infix("+") {
+        // Only one operand - should throw error
+        VariableExp("x")
+      }
+      // If we reach here, no error was thrown, which is unexpected
+      #expect(false, "Expected error to be thrown for wrong operand count")
+    } catch let error as Infix.InfixError {
+      // Verify it's the correct error type
+      switch error {
+      case .wrongOperandCount(let expected, let got):
+        #expect(expected == 2)
+        #expect(got == 1)
+      case .nonExprCodeBlockOperand:
+        #expect(false, "Expected wrongOperandCount error, got nonExprCodeBlockOperand")
+      }
+    } catch {
+      #expect(false, "Expected InfixError, got \(type(of: error))")
     }
-
-    // The fatal error would occur when accessing .syntax
-    // This test documents the expected behavior
-    #expect(true)  // Placeholder - fatal errors can't be easily tested
   }
 
   // MARK: - Default Condition Tests
