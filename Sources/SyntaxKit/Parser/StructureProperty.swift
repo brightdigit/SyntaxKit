@@ -1,5 +1,5 @@
 //
-//  StructureValue.swift
+//  StructureProperty.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,22 +29,25 @@
 
 import Foundation
 
-internal struct StructureValue: Codable, Equatable {
-  internal let text: String
-  internal let kind: String?
+internal struct StructureProperty: Codable, Equatable {
+  internal let name: String
+  internal let value: StructureValue?
+  internal let ref: String?
 
-  init(text: String, kind: String? = nil) {
-    self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
-    self.kind = kind?.escapeHTML()
+  internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
+    self.name = name.escapeHTML()
+    self.value = value
+    self.ref = ref?.escapeHTML()
   }
 }
 
-extension StructureValue: CustomStringConvertible {
-  var description: String {
+extension StructureProperty: CustomStringConvertible {
+  internal var description: String {
     """
     {
-      text: \(text)
-      kind: \(String(describing: kind))
+      name: \(name)
+      value: \(String(describing: value))
+      ref: \(String(describing: ref))
     }
     """
   }

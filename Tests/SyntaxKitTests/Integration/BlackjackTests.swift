@@ -62,10 +62,9 @@ internal struct BlackjackTests {
       }
       """
 
-    // Normalize whitespace, remove comments and modifiers, and normalize colon spacing
-    let normalizedGenerated = syntax.syntax.description.normalize()
-
-    let normalizedExpected = expected.normalize()
+    // Use structural comparison to focus on code structure rather than formatting
+    let normalizedGenerated = syntax.syntax.description.normalizeStructural()
+    let normalizedExpected = expected.normalizeStructural()
 
     #expect(normalizedGenerated == normalizedExpected)
   }
@@ -200,10 +199,9 @@ internal struct BlackjackTests {
       }
       """
 
-    // Normalize whitespace, remove comments and modifiers, and normalize colon spacing
-    let normalizedGenerated = syntax.syntax.description.normalize()
-
-    let normalizedExpected = expected.normalize()
+    // Use structural comparison to focus on code structure rather than formatting
+    let normalizedGenerated = syntax.syntax.description.normalizeStructural()
+    let normalizedExpected = expected.normalizeStructural()
 
     #expect(normalizedGenerated == normalizedExpected)
   }

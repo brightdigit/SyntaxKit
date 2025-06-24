@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  TypeRepresentable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,50 +27,15 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
-
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
-  }
+/// A protocol that represents a type that can be converted to SwiftSyntax.
+public protocol TypeRepresentable {
+  /// Returns the SwiftSyntax representation of the conforming type.
+  var typeSyntax: TypeSyntax { get }
 }
 
-extension TreeNode: Equatable {
-  static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
-    }
-    """
-  }
+extension String: TypeRepresentable {
+  /// Returns the SwiftSyntax representation of the conforming type.
+  public var typeSyntax: TypeSyntax { TypeSyntax(IdentifierTypeSyntax(name: .identifier(self))) }
 }

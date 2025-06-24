@@ -30,8 +30,9 @@
 import SwiftSyntax
 
 extension If {
-  /// Builds the condition elements for the if statement.
-  internal func buildConditions() -> ConditionElementListSyntax {
+  /// Builds the conditions for the if expression.
+  /// - Returns: The condition element list syntax.
+  public func buildConditions() -> ConditionElementListSyntax {
     ConditionElementListSyntax(
       conditions.enumerated().map { index, block in
         let needsComma = index < conditions.count - 1

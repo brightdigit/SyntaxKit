@@ -31,7 +31,7 @@ import Foundation
 import SwiftSyntax
 
 extension TokenVisitor {
-  func processToken(_ token: TokenSyntax) {
+  internal func processToken(_ token: TokenSyntax) {
     var kind = "\(token.tokenKind)"
     if let index = kind.firstIndex(of: "(") {
       kind = String(kind.prefix(upTo: index))
@@ -46,7 +46,7 @@ extension TokenVisitor {
     let text = token.presence == .present || showMissingTokens ? token.text : ""
   }
 
-  func processTriviaPiece(_ piece: TriviaPiece) -> String {
+  internal func processTriviaPiece(_ piece: TriviaPiece) -> String {
     func wrapWithSpanTag(class className: String, text: String) -> String {
       "<span class='\(className.escapeHTML())' "
         + "data-title='\("\(piece)".escapeHTML().replaceInvisiblesWithSymbols())' "

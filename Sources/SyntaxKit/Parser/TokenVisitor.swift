@@ -152,10 +152,15 @@ internal final class TokenVisitor: SyntaxRewriter {
               let type = "\(value.syntaxNodeType)"
               treeNode.structure.append(
                 StructureProperty(
-                  name: name, value: StructureValue(text: "\(type)"), ref: "\(type)"))
+                  name: name,
+                  value: StructureValue(text: "\(type)"),
+                  ref: "\(type)"
+                )
+              )
             } else {
               treeNode.structure.append(
-                StructureProperty(name: name, value: StructureValue(text: "\(value)")))
+                StructureProperty(name: name, value: StructureValue(text: "\(value)"))
+              )
             }
           case .none:
             treeNode.structure.append(StructureProperty(name: name))
@@ -165,7 +170,11 @@ internal final class TokenVisitor: SyntaxRewriter {
     case .collection(let syntax):
       treeNode.type = .collection
       treeNode.structure.append(
-        StructureProperty(name: "Element", value: StructureValue(text: "\(syntax)")))
+        StructureProperty(
+          name: "Element",
+          value: StructureValue(text: "\(syntax)")
+        )
+      )
       treeNode.structure.append(
         StructureProperty(
           name: "Count",

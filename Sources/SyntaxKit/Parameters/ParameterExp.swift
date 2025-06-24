@@ -66,15 +66,30 @@ public struct ParameterExp: CodeBlock {
 
   public var syntax: SyntaxProtocol {
     if name.isEmpty {
-      return value.syntax.as(ExprSyntax.self)
-        ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      if let exprBlock = value as? ExprCodeBlock {
+        return exprBlock.exprSyntax
+      } else {
+        return value.syntax.as(ExprSyntax.self)
+          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
     } else {
+      let expression: ExprSyntax
+      if let exprBlock = value as? ExprCodeBlock {
+        expression = exprBlock.exprSyntax
+      } else {
+        expression =
+          value.syntax.as(ExprSyntax.self)
+          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
       return LabeledExprSyntax(
         label: .identifier(name),
-        colon: .colonToken(),
-        expression: value.syntax.as(ExprSyntax.self)
-          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+        colon: .colonToken(trailingTrivia: .init()),
+        expression: expression
       )
     }
+  }
+
+  internal var isUnlabeledClosure: Bool {
+    name.isEmpty && value is Closure
   }
 }

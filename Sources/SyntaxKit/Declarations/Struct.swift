@@ -36,6 +36,7 @@ public struct Struct: CodeBlock {
   private var genericParameter: String?
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
+  private var accessModifier: String?
 
   /// Creates a `struct` declaration.
   /// - Parameters:
@@ -61,6 +62,15 @@ public struct Struct: CodeBlock {
   public func inherits(_ inheritance: String...) -> Self {
     var copy = self
     copy.inheritance = inheritance
+    return copy
+  }
+
+  /// Sets the access modifier for the struct declaration.
+  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Returns: A copy of the struct with the access modifier set.
+  public func access(_ access: String) -> Self {
+    var copy = self
+    copy.accessModifier = access
     return copy
   }
 
@@ -129,8 +139,30 @@ public struct Struct: CodeBlock {
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
 
+    // Build access modifier
+    var modifiers: DeclModifierListSyntax = []
+    if let access = accessModifier {
+      let keyword: Keyword
+      switch access {
+      case "public":
+        keyword = .public
+      case "private":
+        keyword = .private
+      case "internal":
+        keyword = .internal
+      case "fileprivate":
+        keyword = .fileprivate
+      default:
+        keyword = .public  // fallback
+      }
+      modifiers = DeclModifierListSyntax([
+        DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
+      ])
+    }
+
     return StructDeclSyntax(
       attributes: buildAttributeList(from: attributes),
+      modifiers: modifiers,
       structKeyword: structKeyword,
       name: identifier,
       genericParameterClause: genericParameterClause,

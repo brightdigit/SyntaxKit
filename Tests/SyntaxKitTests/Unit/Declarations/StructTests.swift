@@ -58,8 +58,8 @@ internal struct StructTests {
       }
       """
 
-    let normalizedGenerated = stackStruct.generateCode().normalize()
-    let normalizedExpected = expectedCode.normalize()
+    let normalizedGenerated = stackStruct.generateCode().normalizeStructural()
+    let normalizedExpected = expectedCode.normalizeStructural()
     #expect(normalizedGenerated == normalizedExpected)
   }
 
@@ -74,8 +74,8 @@ internal struct StructTests {
       }
       """
 
-    let normalizedGenerated = containerStruct.generateCode().normalize()
-    let normalizedExpected = expectedCode.normalize()
+    let normalizedGenerated = containerStruct.generateCode().normalizeStructural()
+    let normalizedExpected = expectedCode.normalizeStructural()
     #expect(normalizedGenerated == normalizedExpected)
   }
 
@@ -92,8 +92,8 @@ internal struct StructTests {
       }
       """
 
-    let normalizedGenerated = simpleStruct.generateCode().normalize()
-    let normalizedExpected = expectedCode.normalize()
+    let normalizedGenerated = simpleStruct.generateCode().normalizeStructural()
+    let normalizedExpected = expectedCode.normalizeStructural()
     #expect(normalizedGenerated == normalizedExpected)
   }
 }

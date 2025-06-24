@@ -169,5 +169,29 @@ extension Variable {
       explicitType: explicitType ?? true
     )
   }
+
+  /// Creates a `let` or `var` declaration with an explicit type (TypeRepresentable).
+  /// - Parameters:
+  ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
+  ///   - name: The name of the variable.
+  ///   - type: The type of the variable (TypeRepresentable).
+  ///   - equals: The initial value expression of the variable, if any.
+  ///   - explicitType: Whether the variable has an explicit type.
+  public init(
+    _ kind: VariableKind,
+    name: String,
+    type: TypeRepresentable,
+    equals defaultValue: CodeBlock? = nil,
+    explicitType: Bool? = nil
+  ) {
+    let finalExplicitType = explicitType ?? (defaultValue == nil)
+    self.init(
+      kind: kind,
+      name: name,
+      type: type,
+      defaultValue: defaultValue,
+      explicitType: finalExplicitType
+    )
+  }
 }
 // swiftlint:enable discouraged_optional_boolean

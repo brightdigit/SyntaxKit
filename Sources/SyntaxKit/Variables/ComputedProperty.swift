@@ -34,16 +34,34 @@ public struct ComputedProperty: CodeBlock {
   private let name: String
   private let type: String
   private let body: [CodeBlock]
+  private var accessModifier: String?
+  private let explicitType: Bool
 
   /// Creates a computed property declaration.
   /// - Parameters:
   ///   - name: The name of the property.
   ///   - type: The type of the property.
+  ///   - explicitType: Whether the type should be explicitly marked.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the getter.
-  public init(_ name: String, type: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  public init(
+    _ name: String,
+    type: String,
+    explicitType: Bool = true,
+    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
+  ) {
     self.name = name
     self.type = type
+    self.explicitType = explicitType
     self.body = content()
+  }
+
+  /// Sets the access modifier for the computed property declaration.
+  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Returns: A copy of the computed property with the access modifier set.
+  public func access(_ access: String) -> Self {
+    var copy = self
+    copy.accessModifier = access
+    return copy
   }
 
   public var syntax: SyntaxProtocol {
@@ -66,12 +84,38 @@ public struct ComputedProperty: CodeBlock {
       ),
       rightBrace: TokenSyntax.rightBraceToken(leadingTrivia: .newline)
     )
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
+    let identifier = TokenSyntax.identifier(
+      name,
+      trailingTrivia: explicitType ? (.space + .space) : .space
+    )
     let typeAnnotation = TypeAnnotationSyntax(
-      colon: TokenSyntax.colonToken(leadingTrivia: .space, trailingTrivia: .space),
+      colon: TokenSyntax.colonToken(trailingTrivia: .space),
       type: IdentifierTypeSyntax(name: .identifier(type))
     )
+
+    // Build modifiers
+    var modifiers: DeclModifierListSyntax = []
+    if let access = accessModifier {
+      let keyword: Keyword
+      switch access {
+      case "public":
+        keyword = .public
+      case "private":
+        keyword = .private
+      case "internal":
+        keyword = .internal
+      case "fileprivate":
+        keyword = .fileprivate
+      default:
+        keyword = .public  // fallback
+      }
+      modifiers = DeclModifierListSyntax([
+        DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
+      ])
+    }
+
     return VariableDeclSyntax(
+      modifiers: modifiers,
       bindingSpecifier: TokenSyntax.keyword(.var, trailingTrivia: .space),
       bindings: PatternBindingListSyntax([
         PatternBindingSyntax(

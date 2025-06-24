@@ -1,5 +1,5 @@
 //
-//  StructureProperty.swift
+//  OptionalChainingExp.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,28 +27,32 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal struct StructureProperty: Codable, Equatable {
-  internal let name: String
-  internal let value: StructureValue?
-  internal let ref: String?
+/// A Swift optional chaining expression (e.g., `self?`).
+public struct OptionalChainingExp: CodeBlock {
+  private let base: CodeBlock
 
-  init(name: String, value: StructureValue? = nil, ref: String? = nil) {
-    self.name = name.escapeHTML()
-    self.value = value
-    self.ref = ref?.escapeHTML()
+  /// Creates an optional chaining expression.
+  /// - Parameter base: The base expression to make optional.
+  public init(base: CodeBlock) {
+    self.base = base
   }
-}
 
-extension StructureProperty: CustomStringConvertible {
-  var description: String {
-    """
-    {
-      name: \(name)
-      value: \(String(describing: value))
-      ref: \(String(describing: ref))
+  public var syntax: SyntaxProtocol {
+    // Convert base.syntax to ExprSyntax more safely
+    let baseExpr: ExprSyntax
+    if let exprSyntax = base.syntax.as(ExprSyntax.self) {
+      baseExpr = exprSyntax
+    } else {
+      // Fallback to a default expression if conversion fails
+      baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     }
-    """
+
+    // Add optional chaining operator
+    return PostfixOperatorExprSyntax(
+      expression: baseExpr,
+      operator: .postfixOperator("?", trailingTrivia: [])
+    )
   }
 }

@@ -41,7 +41,7 @@ public struct Parameter: CodeBlock {
   /// If the label is the underscore character "_", the parameter is treated as unnamed.
   internal let label: String?
 
-  internal let type: String
+  internal let type: TypeRepresentable
   internal let defaultValue: String?
 
   /// Convenience flag – true when the parameter uses the underscore label.
@@ -90,7 +90,7 @@ public struct Parameter: CodeBlock {
   }
 
   /// Creates a single-name parameter (same label and internal name).
-  public init(name: String, type: String, defaultValue: String? = nil) {
+  public init(name: String, type: TypeRepresentable, defaultValue: String? = nil) {
     self.name = name
     self.label = nil
     self.type = type
@@ -103,7 +103,7 @@ public struct Parameter: CodeBlock {
   public init(
     _ internalName: String,
     labeled externalLabel: String,
-    type: String,
+    type: TypeRepresentable,
     defaultValue: String? = nil
   ) {
     self.name = internalName
@@ -113,7 +113,8 @@ public struct Parameter: CodeBlock {
   }
 
   /// Creates an unlabeled (anonymous) parameter using the underscore label.
-  public init(unlabeled internalName: String, type: String, defaultValue: String? = nil) {
+  public init(unlabeled internalName: String, type: TypeRepresentable, defaultValue: String? = nil)
+  {
     self.name = internalName
     self.label = "_"
     self.type = type
@@ -123,7 +124,7 @@ public struct Parameter: CodeBlock {
   /// Deprecated: retains source compatibility with earlier API that used an `isUnnamed` flag.
   /// Prefer `Parameter(unlabeled:type:)` or the new labelled initialisers.
   @available(*, deprecated, message: "Use Parameter(unlabeled:type:) or Parameter(_:labeled:type:)")
-  public init(name: String, type: String, defaultValue: String? = nil, isUnnamed: Bool) {
+  public init(name: String, type: TypeRepresentable, defaultValue: String? = nil, isUnnamed: Bool) {
     if isUnnamed {
       self.init(unlabeled: name, type: type, defaultValue: defaultValue)
     } else {

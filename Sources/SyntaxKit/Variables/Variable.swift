@@ -34,12 +34,13 @@ import SwiftSyntax
 public struct Variable: CodeBlock {
   private let kind: VariableKind
   private let name: String
-  private let type: String
+  private let type: TypeRepresentable
   private let defaultValue: CodeBlock?
-  private var isStatic: Bool = false
-  private var isAsync: Bool = false
+  internal var isStatic: Bool = false
+  internal var isAsync: Bool = false
   private var attributes: [AttributeInfo] = []
   private var explicitType: Bool = false
+  internal var accessModifier: String?
 
   /// Internal initializer used by extension initializers to reduce code duplication.
   /// - Parameters:
@@ -51,14 +52,12 @@ public struct Variable: CodeBlock {
   internal init(
     kind: VariableKind,
     name: String,
-    type: String? = nil,
+    type: TypeRepresentable? = nil,
     defaultValue: CodeBlock? = nil,
     explicitType: Bool = false
   ) {
     self.kind = kind
     self.name = name
-
-    // If type is provided, use it; otherwise try to infer from defaultValue
     if let providedType = type {
       self.type = providedType
     } else if let initValue = defaultValue as? Init {
@@ -66,7 +65,6 @@ public struct Variable: CodeBlock {
     } else {
       self.type = ""
     }
-
     self.defaultValue = defaultValue
     self.explicitType = explicitType
   }
@@ -84,6 +82,15 @@ public struct Variable: CodeBlock {
   public func async() -> Self {
     var copy = self
     copy.isAsync = true
+    return copy
+  }
+
+  /// Sets the access modifier for the variable declaration.
+  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Returns: A copy of the variable with the access modifier set.
+  public func access(_ access: String) -> Self {
+    var copy = self
+    copy.accessModifier = access
     return copy
   }
 
@@ -105,41 +112,12 @@ public struct Variable: CodeBlock {
   }
 
   public var syntax: SyntaxProtocol {
-    let bindingKeyword = TokenSyntax.keyword(kind == .let ? .let : .var, trailingTrivia: .space)
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
-    let typeAnnotation: TypeAnnotationSyntax? =
-      (explicitType && !type.isEmpty)
-      ? TypeAnnotationSyntax(
-        colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
-        type: IdentifierTypeSyntax(name: .identifier(type))
-      ) : nil
-    let initializer = defaultValue.map { value in
-      let expr: ExprSyntax
-      if let exprBlock = value as? ExprCodeBlock {
-        expr = exprBlock.exprSyntax
-      } else if let exprSyntax = value.syntax.as(ExprSyntax.self) {
-        expr = exprSyntax
-      } else {
-        expr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-      }
-      return InitializerClauseSyntax(
-        equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-        value: expr
-      )
-    }
-    var modifiers: DeclModifierListSyntax = []
-    if isStatic {
-      modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
-      ])
-    }
-    if isAsync {
-      modifiers = DeclModifierListSyntax(
-        modifiers + [
-          DeclModifierSyntax(name: .keyword(.async, trailingTrivia: .space))
-        ]
-      )
-    }
+    let bindingKeyword = buildBindingKeyword()
+    let identifier = buildIdentifier()
+    let typeAnnotation = buildTypeAnnotation()
+    let initializer = buildInitializer()
+    let modifiers = buildModifiers()
+
     return VariableDeclSyntax(
       attributes: buildAttributeList(from: attributes),
       modifiers: modifiers,
@@ -154,62 +132,51 @@ public struct Variable: CodeBlock {
     )
   }
 
-  private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
-    if attributes.isEmpty {
-      return AttributeListSyntax([])
-    }
+  // MARK: - Private Helper Methods
 
-    let attributeElements = attributes.map { attributeInfo in
-      let arguments = attributeInfo.arguments
-
-      var leftParen: TokenSyntax?
-      var rightParen: TokenSyntax?
-      var argumentsSyntax: AttributeSyntax.Arguments?
-
-      if !arguments.isEmpty {
-        leftParen = .leftParenToken()
-        rightParen = .rightParenToken()
-
-        let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
-        }
-
-        argumentsSyntax = .argumentList(
-          LabeledExprListSyntax(
-            argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
-              if index < argumentList.count - 1 {
-                element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
-              }
-              return element
-            }
-          )
-        )
-      }
-
-      return AttributeListSyntax.Element(
-        AttributeSyntax(
-          atSign: .atSignToken(),
-          attributeName: IdentifierTypeSyntax(name: .identifier(attributeInfo.name)),
-          leftParen: leftParen,
-          arguments: argumentsSyntax,
-          rightParen: rightParen
-        )
-      )
-    }
-
-    return AttributeListSyntax(attributeElements)
+  private func buildBindingKeyword() -> TokenSyntax {
+    TokenSyntax.keyword(kind == .let ? .let : .var, trailingTrivia: .space)
   }
 
-  public enum VariableKind {
-    case `var`
-    case `let`
-    case `static`
-    case `lazy`
-    case `weak`
-    case `unowned`
-    case `final`
-    case `override`
-    case `mutating`
+  private func buildIdentifier() -> TokenSyntax {
+    TokenSyntax.identifier(
+      name,
+      trailingTrivia: explicitType ? (.space + .space) : .space
+    )
+  }
+
+  private func buildTypeAnnotation() -> TypeAnnotationSyntax? {
+    let shouldShowType = explicitType && !(type is String && (type as? String)?.isEmpty != false)
+    guard shouldShowType else {
+      return nil
+    }
+
+    return TypeAnnotationSyntax(
+      colon: .colonToken(trailingTrivia: .space),
+      type: type.typeSyntax
+    )
+  }
+
+  private func buildInitializer() -> InitializerClauseSyntax? {
+    guard let defaultValue = defaultValue else {
+      return nil
+    }
+
+    let expr = buildExpressionFromValue(defaultValue)
+
+    return InitializerClauseSyntax(
+      equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
+      value: expr
+    )
+  }
+
+  private func buildExpressionFromValue(_ value: CodeBlock) -> ExprSyntax {
+    if let exprBlock = value as? ExprCodeBlock {
+      return exprBlock.exprSyntax
+    } else if let exprSyntax = value.syntax.as(ExprSyntax.self) {
+      return exprSyntax
+    } else {
+      return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+    }
   }
 }
