@@ -35,6 +35,36 @@ public struct If: CodeBlock {
   internal let body: [CodeBlock]
   internal let elseBody: [CodeBlock]?
 
+  /// Convenience initializer that keeps the previous API: pass the condition directly.
+  public init(
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init({ Literal.boolean(true) }, then: then)
+  }
+
+  /// Convenience initializer that keeps the previous API: pass the condition directly.
+  public init(
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init({ Literal.boolean(true) }, then: then, else: elseBody)
+  }
+
+  /// Creates an `if` statement with optional `else`.
+  /// - Parameters:
+  ///   - condition: A single `CodeBlock` produced by the builder that describes the `if` condition.
+  ///   - then: Builder that produces the body for the `if` branch.
+  public init(
+    @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
+    @CodeBlockBuilderResult then: () -> [CodeBlock]
+  ) {
+    self.init(
+      condition,
+      then: then,
+      else: [CodeBlock].init
+    )
+  }
+
   /// Creates an `if` statement with optional `else`.
   /// - Parameters:
   ///   - condition: A single `CodeBlock` produced by the builder that describes the `if` condition.
@@ -45,13 +75,15 @@ public struct If: CodeBlock {
   public init(
     @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
     @CodeBlockBuilderResult then: () -> [CodeBlock],
-    @CodeBlockBuilderResult else elseBody: () -> [CodeBlock] = { [] }
+    @CodeBlockBuilderResult else elseBody: () -> [CodeBlock]
   ) {
     let allConditions = condition()
-    guard !allConditions.isEmpty else {
-      fatalError("If requires at least one condition CodeBlock")
+    if allConditions.isEmpty {
+      // Use true as default condition when no conditions are provided
+      self.conditions = [Literal.boolean(true)]
+    } else {
+      self.conditions = allConditions
     }
-    self.conditions = allConditions
     self.body = then()
     let generatedElse = elseBody()
     self.elseBody = generatedElse.isEmpty ? nil : generatedElse
@@ -60,10 +92,86 @@ public struct If: CodeBlock {
   /// Convenience initializer that keeps the previous API: pass the condition directly.
   public init(
     _ condition: CodeBlock,
-    @CodeBlockBuilderResult then: () -> [CodeBlock],
-    @CodeBlockBuilderResult else elseBody: () -> [CodeBlock] = { [] }
-  ) {
-    self.init({ condition }, then: then, else: elseBody)
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init({ condition }, then: then)
+  }
+
+  /// Convenience initializer that keeps the previous API: pass the condition directly.
+  public init(
+    _ condition: CodeBlock,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init({ condition }, then: then, else: elseBody)
+  }
+
+  /// Creates an `if` statement.
+  /// - Parameters:
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
+  public init(
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      condition,
+      then: then,
+      else: [CodeBlock].init
+    )
+  }
+
+  /// Creates an `if` statement.
+  /// - Parameters:
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    let allConditions = try condition()
+    if allConditions.isEmpty {
+      // Use true as default condition when no conditions are provided
+      self.conditions = [Literal.boolean(true)]
+    } else {
+      self.conditions = allConditions
+    }
+    self.body = try then()
+    let generatedElse = try elseBody()
+    self.elseBody = generatedElse.isEmpty ? nil : generatedElse
+  }
+
+  /// Creates an `if` statement with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
+  public init(
+    _ condition: String,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      condition,
+      then: then,
+      else: [CodeBlock].init
+    )
+  }
+
+  /// Creates an `if` statement with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    _ condition: String,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    self.conditions = [VariableExp(condition)]
+    self.body = try then()
+    let generatedElse = try elseBody()
+    self.elseBody = generatedElse.isEmpty ? nil : generatedElse
   }
 
   public var syntax: SyntaxProtocol {

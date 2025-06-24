@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// An expression that accesses a property on a base expression.
-public struct PropertyAccessExp: CodeBlock {
+public struct PropertyAccessExp: CodeBlock, ExprCodeBlock {
   internal let base: CodeBlock
   internal let propertyName: String
 
@@ -62,7 +62,7 @@ public struct PropertyAccessExp: CodeBlock {
     NegatedPropertyAccessExp(base: self)
   }
 
-  public var syntax: SyntaxProtocol {
+  public var exprSyntax: ExprSyntax {
     let baseSyntax =
       base.syntax.as(ExprSyntax.self)
       ?? ExprSyntax(
@@ -76,5 +76,9 @@ public struct PropertyAccessExp: CodeBlock {
         name: property
       )
     )
+  }
+
+  public var syntax: SyntaxProtocol {
+    exprSyntax
   }
 }

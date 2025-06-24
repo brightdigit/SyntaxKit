@@ -35,6 +35,13 @@ public struct Do: CodeBlock {
   private let body: [CodeBlock]
   private let catchClauses: CatchClauseListSyntax
 
+  /// Creates a `do` statement.
+  /// - Parameter body: A ``CodeBlockBuilder`` that provides the body of the `do` block.
+  public init(@CodeBlockBuilderResult _ body: () throws -> [CodeBlock]) rethrows {
+    self.body = try body()
+    self.catchClauses = CatchClauseListSyntax([])
+  }
+
   /// Creates a `do-catch` statement.
   /// - Parameters:
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the do block.

@@ -6,11 +6,11 @@ import Testing
   @Test("If / else-if / else chain generates correct syntax")
   internal func testIfElseChain() throws {
     // Arrange: build the DSL example using the updated APIs
-    let conditional = Group {
+    let conditional = try Group {
       Variable(.let, name: "score", type: "Int", equals: "85")
 
-      If {
-        Infix(">=") {
+      try If {
+        try Infix(">=") {
           VariableExp("score")
           Literal.integer(90)
         }
@@ -19,8 +19,8 @@ import Testing
           ParameterExp(name: "", value: "\"Excellent!\"")
         }
       } else: {
-        If {
-          Infix(">=") {
+        try If {
+          try Infix(">=") {
             VariableExp("score")
             Literal.integer(80)
           }
@@ -46,5 +46,33 @@ import Testing
     #expect(generated.contains("if score >= 90".normalize()))
     #expect(generated.contains("else if score >= 80".normalize()))
     #expect(generated.contains("else {".normalize()))
+  }
+
+  @Test("If with multiple conditions generates correct syntax")
+  internal func testIfWithMultipleConditions() throws {
+    let ifStatement = try If {
+      try Infix(">=") {
+        VariableExp("score")
+        Literal.integer(90)
+      }
+    } then: {
+      Call("print") {
+        ParameterExp(unlabeled: "Excellent!")
+      }
+    } else: {
+      try If {
+        try Infix(">=") {
+          VariableExp("score")
+          Literal.integer(80)
+        }
+      } then: {
+        Call("print") {
+          ParameterExp(unlabeled: "Good!")
+        }
+      }
+    }
+    let generated = ifStatement.generateCode()
+    #expect(generated.contains("if score >= 90"))
+    #expect(generated.contains("else if score >= 80"))
   }
 }

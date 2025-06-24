@@ -36,13 +36,14 @@ public struct Enum: CodeBlock {
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
-  /// Creates an `enum` declaration.
+  /// Creates an enum declaration.
   /// - Parameters:
   ///   - name: The name of the enum.
-  ///   - content: A ``CodeBlockBuilder`` that provides the members of the enum.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the enum.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
-    self.members = content()
+    self.members = try content()
   }
 
   /// Sets the inheritance for the enum.

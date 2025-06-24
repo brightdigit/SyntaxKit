@@ -60,21 +60,7 @@ extension Variable {
   }
 
   /// Builds an access modifier.
-  private func buildAccessModifier(_ access: String) -> DeclModifierSyntax {
-    let keyword: Keyword
-    switch access {
-    case "public":
-      keyword = .public
-    case "private":
-      keyword = .private
-    case "internal":
-      keyword = .internal
-    case "fileprivate":
-      keyword = .fileprivate
-    default:
-      keyword = .public  // fallback
-    }
-
-    return DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
+  private func buildAccessModifier(_ access: AccessModifier) -> DeclModifierSyntax {
+    DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
   }
 }

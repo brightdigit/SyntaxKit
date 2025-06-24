@@ -39,10 +39,12 @@ public struct Extension: CodeBlock {
   /// Creates an extension declaration.
   /// - Parameters:
   ///   - extendedType: The type being extended.
-  ///   - content: A ``CodeBlockBuilder`` that provides the members of the extension.
-  public init(_ extendedType: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the extension.
+  public init(_ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
+    rethrows
+  {
     self.extendedType = extendedType
-    self.members = content()
+    self.members = try content()
   }
 
   /// Sets one or more inherited protocols.

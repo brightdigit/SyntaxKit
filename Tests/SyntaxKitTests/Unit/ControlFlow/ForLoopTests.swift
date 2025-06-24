@@ -5,7 +5,7 @@ import Testing
 @Suite
 internal final class ForLoopTests {
   @Test
-  internal func testSimpleForInLoop() {
+  internal func testSimpleForInLoop() throws {
     let forLoop = For(
       VariableExp("item"),
       in: VariableExp("items"),
@@ -22,12 +22,12 @@ internal final class ForLoopTests {
   }
 
   @Test
-  internal func testForInWithWhereClause() {
-    let forLoop = For(
+  internal func testForInWithWhereClause() throws {
+    let forLoop = try For(
       VariableExp("number"),
       in: VariableExp("numbers"),
       where: {
-        Infix("%") {
+        try Infix("%") {
           VariableExp("number")
           Literal.integer(2)
         }

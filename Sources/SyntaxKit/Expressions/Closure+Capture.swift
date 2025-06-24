@@ -43,15 +43,7 @@ private struct CaptureInfo {
   }
 
   private init(fromReference refExp: ReferenceExp) {
-    let keyword: Keyword
-    switch refExp.captureReferenceType.lowercased() {
-    case "weak":
-      keyword = .weak
-    case "unowned":
-      keyword = .unowned
-    default:
-      keyword = .weak  // fallback to weak
-    }
+    let keyword = refExp.captureReferenceType.keyword
 
     self.specifier = ClosureCaptureSpecifierSyntax(
       specifier: .keyword(keyword, trailingTrivia: .space)
@@ -61,6 +53,9 @@ private struct CaptureInfo {
       self.name = .identifier(varExp.name)
     } else {
       self.name = .identifier("self")  // fallback
+      #warning(
+        "TODO: Review fallback for non-VariableExp capture expression - consider if this should be an error instead"
+      )
     }
   }
 
@@ -71,6 +66,9 @@ private struct CaptureInfo {
       self.name = .identifier(varExp.name)
     } else {
       self.name = .identifier("self")  // fallback
+      #warning(
+        "TODO: Review fallback for non-VariableExp parameter value - consider if this should be an error instead"
+      )
     }
   }
 }

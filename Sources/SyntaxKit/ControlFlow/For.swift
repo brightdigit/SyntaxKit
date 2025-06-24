@@ -40,45 +40,37 @@ public struct For: CodeBlock {
   /// - Parameters:
   ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
   ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
+  ///   - whereClause: A `CodeBlockBuilder` that produces the where clause condition.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
     _ pattern: any CodeBlock & PatternConvertible,
     in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () -> [CodeBlock] = { [] },
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult where whereClause: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
     self.pattern = pattern
     self.sequence = sequence
-    let whereBlocks = whereClause()
+    let whereBlocks = try whereClause()
     self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
-    self.body = then()
+    self.body = try then()
   }
 
-  /// Creates a `for-in` loop statement with a closure-based pattern.
+  /// Creates a `for-in` loop statement without a where clause.
   /// - Parameters:
-  ///   - pattern: A `CodeBlockBuilder` that produces the pattern for the loop variable(s).
+  ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
   ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
-    @CodeBlockBuilderResult _ pattern: () -> [CodeBlock],
+    _ pattern: any CodeBlock & PatternConvertible,
     in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () -> [CodeBlock] = { [] },
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    let patterns = pattern()
-    guard patterns.count == 1 else {
-      fatalError("For requires exactly one pattern CodeBlock")
-    }
-    guard let patternBlock = patterns[0] as? (any CodeBlock & PatternConvertible) else {
-      fatalError("For pattern must implement both CodeBlock and PatternConvertible protocols")
-    }
-    self.pattern = patternBlock
-    self.sequence = sequence
-    let whereBlocks = whereClause()
-    self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
-    self.body = then()
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      pattern,
+      in: sequence,
+      where: [CodeBlock].init,
+      then: then
+    )
   }
 
   public var syntax: SyntaxProtocol {

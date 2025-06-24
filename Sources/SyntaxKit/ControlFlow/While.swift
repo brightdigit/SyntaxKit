@@ -31,41 +31,87 @@ import SwiftSyntax
 
 /// A `while` loop statement.
 public struct While: CodeBlock {
-  private let condition: CodeBlock
-  private let body: [CodeBlock]
-
-  /// Creates a `while` loop statement.
-  /// - Parameters:
-  ///   - condition: A `CodeBlockBuilder` that produces the condition expression.
-  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  public init(
-    @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    let conditions = condition()
-    guard conditions.count == 1 else {
-      fatalError("While requires exactly one condition CodeBlock")
-    }
-    self.condition = conditions[0]
-    self.body = then()
+  public enum Kind {
+    case `while`
+    case repeatWhile
   }
 
-  /// Convenience initializer that accepts a single condition directly.
+  private let condition: any ExprCodeBlock
+  private let body: [CodeBlock]
+  private let kind: Kind
+
+  /// Creates a `while` loop statement with an expression condition.
   /// - Parameters:
-  ///   - condition: The condition expression.
+  ///   - condition: The condition expression that conforms to ExprCodeBlock.
+  ///   - kind: The kind of loop (default is `.while`).
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
-    _ condition: CodeBlock,
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    self.init({ condition }, then: then)
+    _ condition: any ExprCodeBlock,
+    kind: Kind = .while,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    self.condition = condition
+    self.body = try then()
+    self.kind = kind
+  }
+
+  /// Creates a `while` loop statement with a builder closure for the condition.
+  /// - Parameters:
+  ///   - condition: A `CodeBlockBuilder` that produces exactly one condition expression.
+  ///   - kind: The kind of loop (default is `.while`).
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    kind: Kind = .while,
+    @ExprCodeBlockBuilder _ condition: () throws -> any ExprCodeBlock,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    self.condition = try condition()
+    self.body = try then()
+    self.kind = kind
+  }
+
+  /// Creates a `while` loop.
+  /// - Parameters:
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - kind: The kind of loop (default is `.while`).
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  @available(
+    *, deprecated,
+    message: "Use While(kind:condition:) with ExprCodeBlockBuilder instead for better type safety"
+  )
+  public init(
+    kind: Kind = .while,
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    let conditionBlocks = try condition()
+    let firstCondition = conditionBlocks.first as? any ExprCodeBlock ?? Literal.boolean(true)
+    self.condition = firstCondition
+    self.body = try then()
+    self.kind = kind
+  }
+
+  /// Creates a `while` loop with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - kind: The kind of loop (default is `.while`).
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  @available(
+    *, deprecated,
+    message: "Use While(VariableExp(condition), kind:then:) instead for better type safety"
+  )
+  public init(
+    _ condition: String,
+    kind: Kind = .while,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    self.condition = VariableExp(condition)
+    self.body = try then()
+    self.kind = kind
   }
 
   public var syntax: SyntaxProtocol {
-    let conditionExpr = ExprSyntax(
-      fromProtocol: condition.syntax.as(ExprSyntax.self)
-        ?? DeclReferenceExprSyntax(baseName: .identifier(""))
-    )
+    let conditionExpr = condition.exprSyntax
 
     let bodyBlock = CodeBlockSyntax(
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
@@ -85,18 +131,30 @@ public struct While: CodeBlock {
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
 
-    return StmtSyntax(
-      WhileStmtSyntax(
-        whileKeyword: .keyword(.while, trailingTrivia: .space),
-        conditions: ConditionElementListSyntax(
-          [
-            ConditionElementSyntax(
-              condition: .expression(conditionExpr)
-            )
-          ]
-        ),
-        body: bodyBlock
+    switch kind {
+    case .repeatWhile:
+      return StmtSyntax(
+        RepeatWhileStmtSyntax(
+          repeatKeyword: .keyword(.repeat, trailingTrivia: .space),
+          body: bodyBlock,
+          whileKeyword: .keyword(.while, trailingTrivia: .space),
+          condition: conditionExpr
+        )
       )
-    )
+    case .while:
+      return StmtSyntax(
+        WhileStmtSyntax(
+          whileKeyword: .keyword(.while, trailingTrivia: .space),
+          conditions: ConditionElementListSyntax(
+            [
+              ConditionElementSyntax(
+                condition: .expression(conditionExpr)
+              )
+            ]
+          ),
+          body: bodyBlock
+        )
+      )
+    }
   }
 }

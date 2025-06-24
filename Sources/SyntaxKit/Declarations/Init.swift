@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// An initializer expression.
-public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
+public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable {
   private let type: String
   private let parameters: [ParameterExp]
 
@@ -45,9 +45,16 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue {
   /// - Parameters:
   ///   - type: The type to initialize.
   ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the initializer.
-  public init(_ type: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp]) {
+  public init(_ type: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp])
+    rethrows
+  {
     self.type = type
-    self.parameters = params()
+    self.parameters = try params()
+  }
+
+  /// The code block representation of this initializer expression.
+  public var codeBlock: CodeBlock {
+    self
   }
 
   public var exprSyntax: ExprSyntax {

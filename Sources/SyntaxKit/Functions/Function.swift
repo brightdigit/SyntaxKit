@@ -48,12 +48,12 @@ public struct Function: CodeBlock {
   public init(
     _ name: String,
     returns returnType: String? = nil,
-    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
+  ) rethrows {
     self.name = name
     self.parameters = []
     self.returnType = returnType
-    self.body = content()
+    self.body = try content()
   }
 
   /// Creates a `func` declaration.
@@ -66,12 +66,12 @@ public struct Function: CodeBlock {
     _ name: String,
     returns returnType: String? = nil,
     @ParameterBuilderResult _ params: () -> [Parameter],
-    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
+  ) rethrows {
     self.name = name
     self.parameters = params()
     self.returnType = returnType
-    self.body = content()
+    self.body = try content()
   }
 
   /// Creates a `func` declaration with parameters and body using the DSL syntax.
@@ -82,11 +82,11 @@ public struct Function: CodeBlock {
   public init(
     _ name: String,
     @ParameterBuilderResult _ params: () -> [Parameter],
-    @CodeBlockBuilderResult _ body: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult _ body: () throws -> [CodeBlock]
+  ) rethrows {
     self.name = name
     self.parameters = params()
     self.returnType = nil
-    self.body = body()
+    self.body = try body()
   }
 }

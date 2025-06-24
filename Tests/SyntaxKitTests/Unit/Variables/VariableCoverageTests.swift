@@ -44,7 +44,7 @@ internal final class VariableCoverageTests {
   internal func testBuildAccessModifierPublic() {
     // Test the "public" case in buildAccessModifier
     let variable = Variable(.let, name: "test", equals: "value")
-      .access("public")
+      .access(.public)
 
     let syntax = variable.syntax
     let description = syntax.description
@@ -58,7 +58,7 @@ internal final class VariableCoverageTests {
   internal func testBuildAccessModifierInternal() {
     // Test the "internal" case in buildAccessModifier
     let variable = Variable(.let, name: "test", equals: "value")
-      .access("internal")
+      .access(.internal)
 
     let syntax = variable.syntax
     let description = syntax.description
@@ -72,27 +72,13 @@ internal final class VariableCoverageTests {
   internal func testBuildAccessModifierFileprivate() {
     // Test the "fileprivate" case in buildAccessModifier
     let variable = Variable(.let, name: "test", equals: "value")
-      .access("fileprivate")
+      .access(.fileprivate)
 
     let syntax = variable.syntax
     let description = syntax.description
 
     // Verify that the fileprivate access modifier is properly included
     #expect(description.contains("fileprivate let test  = \"value\""))
-  }
-
-  /// Tests the default case in buildAccessModifier (unknown access modifier).
-  @Test("Build access modifier default")
-  internal func testBuildAccessModifierDefault() {
-    // Test the default case in buildAccessModifier (unknown access modifier)
-    let variable = Variable(.let, name: "test", equals: "value")
-      .access("unknown")
-
-    let syntax = variable.syntax
-    let description = syntax.description
-
-    // Should fallback to public
-    #expect(description.contains("public let test  = \"value\""))
   }
 
   // MARK: - Variable.swift Coverage Tests

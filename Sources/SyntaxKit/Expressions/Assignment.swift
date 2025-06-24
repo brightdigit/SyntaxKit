@@ -34,13 +34,16 @@ public struct Assignment: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
 
+  /// Creates an assignment where the value is an expression.
+  public init(_ target: String, _ value: any ExprCodeBlock) {
+    self.target = target
+    self.valueExpr = value.exprSyntax
+  }
+
   /// Creates an assignment where the value is a literal.
   public init(_ target: String, _ literal: Literal) {
     self.target = target
-    guard let expr = literal.syntax.as(ExprSyntax.self) else {
-      fatalError("Literal.syntax did not produce ExprSyntax")
-    }
-    self.valueExpr = expr
+    self.valueExpr = literal.exprSyntax
   }
 
   /// Creates an assignment with an integer literal value.

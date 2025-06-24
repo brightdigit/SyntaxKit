@@ -41,16 +41,133 @@ public struct Closure: CodeBlock {
     !parameters.isEmpty || returnType != nil || !capture.isEmpty || !attributes.isEmpty
   }
 
+  /// Creates a closure with all parameters.
+  /// - Parameters:
+  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
+  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - returnType: The return type of the closure.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
-    @ParameterExpBuilderResult capture: () -> [ParameterExp] = { [] },
-    @ClosureParameterBuilderResult parameters: () -> [ClosureParameter] = { [] },
-    returns returnType: String? = nil,
-    @CodeBlockBuilderResult body: () -> [CodeBlock]
-  ) {
+    @ParameterExpBuilderResult capture: () -> [ParameterExp],
+    @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
+    returns returnType: String?,
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
     self.capture = capture()
     self.parameters = parameters()
     self.returnType = returnType
-    self.body = body()
+    self.body = try body()
+  }
+
+  /// Creates a closure without a return type.
+  /// - Parameters:
+  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
+  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    @ParameterExpBuilderResult capture: () -> [ParameterExp],
+    @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(capture: capture, parameters: parameters, returns: nil, body: body)
+  }
+
+  /// Creates a closure without parameters.
+  /// - Parameters:
+  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
+  ///   - returnType: The return type of the closure.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    @ParameterExpBuilderResult capture: () -> [ParameterExp],
+    returns returnType: String?,
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      capture: capture,
+      parameters: [ClosureParameter].init,
+      returns: returnType,
+      body: body
+    )
+  }
+
+  /// Creates a closure without parameters and return type.
+  /// - Parameters:
+  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    @ParameterExpBuilderResult capture: () -> [ParameterExp],
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      capture: capture,
+      parameters: [ClosureParameter].init,
+      returns: nil,
+      body: body
+    )
+  }
+
+  /// Creates a closure without capture list and return type.
+  /// - Parameters:
+  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      capture: [ParameterExp].init,
+      parameters: parameters,
+      returns: nil,
+      body: body
+    )
+  }
+
+  /// Creates a closure without capture list.
+  /// - Parameters:
+  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - returnType: The return type of the closure.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
+    returns returnType: String?,
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      capture: [ParameterExp].init,
+      parameters: parameters,
+      returns: returnType,
+      body: body
+    )
+  }
+
+  /// Creates a simple closure with only a body.
+  /// - Parameters:
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      capture: [ParameterExp].init,
+      parameters: [ClosureParameter].init,
+      returns: nil,
+      body: body
+    )
+  }
+
+  /// Creates a closure without capture list and parameters.
+  /// - Parameters:
+  ///   - returnType: The return type of the closure.
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  public init(
+    returns returnType: String?,
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      capture: [ParameterExp].init,
+      parameters: [ClosureParameter].init,
+      returns: returnType,
+      body: body
+    )
   }
 
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {

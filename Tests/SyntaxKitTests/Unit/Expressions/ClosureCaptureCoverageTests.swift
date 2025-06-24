@@ -39,34 +39,12 @@ import Testing
 internal final class ClosureCaptureCoverageTests {
   // MARK: - Closure+Capture.swift Coverage Tests
 
-  /// Tests fallback cases in CaptureInfo initializers.
-  @Test("Capture info fallback cases")
-  internal func testCaptureInfoFallbackCases() {
-    // Test fallback cases in CaptureInfo initializers
-
-    // Test with unknown reference type (should fallback to weak)
-    let unknownRef = ReferenceExp(base: VariableExp("self"), referenceType: "unknown")
-    let paramWithUnknownRef = ParameterExp(name: "self", value: unknownRef)
-    let closure = Closure(
-      capture: { paramWithUnknownRef },
-      body: {
-        Variable(.let, name: "result", equals: "value")
-      }
-    )
-
-    let syntax = closure.syntax
-    let description = syntax.description
-
-    // Should fallback to weak
-    #expect(description.contains("[weak self]"))
-  }
-
   /// Tests CaptureInfo with non-VariableExp capture expression.
   @Test("Capture info with non VariableExp")
   internal func testCaptureInfoWithNonVariableExp() {
     // Test CaptureInfo with non-VariableExp capture expression
     let initBlock = Init("String")
-    let ref = ReferenceExp(base: initBlock, referenceType: "weak")
+    let ref = ReferenceExp(base: initBlock, referenceType: .weak)
     let param = ParameterExp(name: "self", value: ref)
     let closure = Closure(
       capture: { param },

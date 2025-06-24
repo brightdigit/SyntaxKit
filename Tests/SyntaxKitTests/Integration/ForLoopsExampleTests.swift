@@ -8,7 +8,7 @@ import Testing
   internal func testCompletedForLoopsExample() throws {
     // Build DSL equivalent of Examples/Completed/for_loops/dsl.swift
 
-    let program = Group {
+    let program = try Group {
       // MARK: - Basic For-in Loop
       Variable(
         .let,
@@ -80,12 +80,12 @@ import Testing
         ])
       )
 
-      For(
+      try For(
         VariableExp("number"),
         in: VariableExp("numbers"),
         where: {
-          Infix("==") {
-            Infix("%") {
+          try Infix("==") {
+            try Infix("%") {
               VariableExp("number")
               Literal.integer(2)
             }

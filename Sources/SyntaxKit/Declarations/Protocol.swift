@@ -36,13 +36,14 @@ public struct Protocol: CodeBlock {
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a `protocol` declaration.
+  /// Creates a protocol declaration.
   /// - Parameters:
   ///   - name: The name of the protocol.
-  ///   - content: A ``CodeBlockBuilder`` that provides the members of the protocol.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the protocol.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
-    self.members = content()
+    self.members = try content()
   }
 
   /// Sets one or more inherited protocols.

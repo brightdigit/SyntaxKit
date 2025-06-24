@@ -47,9 +47,11 @@ public struct Call: CodeBlock {
   /// - Parameters:
   ///   - functionName: The name of the function to call.
   ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the function call.
-  public init(_ functionName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp]) {
+  public init(
+    _ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]
+  ) rethrows {
     self.functionName = functionName
-    self.parameters = params()
+    self.parameters = try params()
   }
 
   /// Marks this function call as throwing.
@@ -71,7 +73,7 @@ public struct Call: CodeBlock {
   public var syntax: SyntaxProtocol {
     let function = TokenSyntax.identifier(functionName)
     let args = LabeledExprListSyntax(
-      parameters.enumerated().map { index, param in
+      parameters.enumerated().compactMap { index, param in
         let expr = param.syntax
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
@@ -92,7 +94,7 @@ public struct Call: CodeBlock {
               : nil
           )
         } else {
-          fatalError("ParameterExp.syntax must return LabeledExprSyntax or ExprSyntax")
+          return nil
         }
       }
     )

@@ -42,14 +42,14 @@ internal final class ReferenceExpBasicTests {
   internal func testBasicWeakReference() {
     let reference = ReferenceExp(
       base: VariableExp("self"),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("self"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests basic unowned reference expression.
@@ -57,14 +57,14 @@ internal final class ReferenceExpBasicTests {
   internal func testBasicUnownedReference() {
     let reference = ReferenceExp(
       base: VariableExp("self"),
-      referenceType: "unowned"
+      referenceType: .unowned
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("self"))
-    #expect(reference.captureReferenceType == "unowned")
+    #expect(reference.captureReferenceType == .unowned)
   }
 
   /// Tests reference expression with variable base.
@@ -72,26 +72,24 @@ internal final class ReferenceExpBasicTests {
   internal func testReferenceWithVariableBase() {
     let reference = ReferenceExp(
       base: VariableExp("delegate"),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("delegate"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with different reference types.
   @Test("Reference expression with different reference types generates correct syntax")
   internal func testReferenceWithDifferentReferenceTypes() {
-    let weakRef = ReferenceExp(base: VariableExp("self"), referenceType: "weak")
-    let unownedRef = ReferenceExp(base: VariableExp("self"), referenceType: "unowned")
-    let strongRef = ReferenceExp(base: VariableExp("self"), referenceType: "strong")
+    let weakRef = ReferenceExp(base: VariableExp("self"), referenceType: .weak)
+    let unownedRef = ReferenceExp(base: VariableExp("self"), referenceType: .unowned)
 
-    #expect(weakRef.captureReferenceType == "weak")
-    #expect(unownedRef.captureReferenceType == "unowned")
-    #expect(strongRef.captureReferenceType == "strong")
+    #expect(weakRef.captureReferenceType == .weak)
+    #expect(unownedRef.captureReferenceType == .unowned)
   }
 
   /// Tests capture expression property access.
@@ -100,7 +98,7 @@ internal final class ReferenceExpBasicTests {
     let base = VariableExp("self")
     let reference = ReferenceExp(
       base: base,
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     #expect(reference.captureExpression.syntax.description == base.syntax.description)
@@ -111,39 +109,9 @@ internal final class ReferenceExpBasicTests {
   internal func testCaptureReferenceTypePropertyAccess() {
     let reference = ReferenceExp(
       base: VariableExp("self"),
-      referenceType: "unowned"
+      referenceType: .unowned
     )
 
-    #expect(reference.captureReferenceType == "unowned")
-  }
-
-  /// Tests reference expression with empty string reference type.
-  @Test("Reference expression with empty string reference type generates correct syntax")
-  internal func testReferenceWithEmptyStringReferenceType() {
-    let reference = ReferenceExp(
-      base: VariableExp("self"),
-      referenceType: ""
-    )
-
-    let syntax = reference.syntax
-    let description = syntax.description
-
-    #expect(description.contains("self"))
-    #expect(reference.captureReferenceType.isEmpty)
-  }
-
-  /// Tests reference expression with custom reference type.
-  @Test("Reference expression with custom reference type generates correct syntax")
-  internal func testReferenceWithCustomReferenceType() {
-    let reference = ReferenceExp(
-      base: VariableExp("self"),
-      referenceType: "custom"
-    )
-
-    let syntax = reference.syntax
-    let description = syntax.description
-
-    #expect(description.contains("self"))
-    #expect(reference.captureReferenceType == "custom")
+    #expect(reference.captureReferenceType == .unowned)
   }
 }

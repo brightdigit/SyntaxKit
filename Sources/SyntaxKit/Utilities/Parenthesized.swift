@@ -30,18 +30,18 @@
 import SwiftSyntax
 
 /// A code block that wraps its content in parentheses.
-public struct Parenthesized: CodeBlock {
+public struct Parenthesized: CodeBlock, ExprCodeBlock {
   private let content: CodeBlock
 
   /// Creates a parenthesized code block.
   /// - Parameter content: The code block to wrap in parentheses.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    let blocks = content()
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    let blocks = try content()
     precondition(blocks.count == 1, "Parenthesized expects exactly one code block.")
     self.content = blocks[0]
   }
 
-  public var syntax: SyntaxProtocol {
+  public var exprSyntax: ExprSyntax {
     ExprSyntax(
       TupleExprSyntax(
         leftParen: .leftParenToken(),
@@ -51,5 +51,9 @@ public struct Parenthesized: CodeBlock {
         rightParen: .rightParenToken()
       )
     )
+  }
+
+  public var syntax: SyntaxProtocol {
+    exprSyntax
   }
 }

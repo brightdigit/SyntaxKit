@@ -35,8 +35,8 @@ public struct Group: CodeBlock {
 
   /// Creates a group of code blocks.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the members of the group.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.members = content()
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.members = try content()
   }
 
   public var syntax: SyntaxProtocol {
@@ -53,7 +53,12 @@ public struct Group: CodeBlock {
       } else if let expr = block.syntax.as(ExprSyntax.self) {
         item = .expr(expr)
       } else {
-        fatalError("Unsupported syntax type in group: \(type(of: block.syntax)) from \(block)")
+        // Skip unsupported syntax types instead of crashing
+        // This allows the group to continue processing other valid blocks
+        #warning(
+          "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
+        )
+        return []
       }
       return [CodeBlockItemSyntax(item: item, trailingTrivia: .newline)]
     }

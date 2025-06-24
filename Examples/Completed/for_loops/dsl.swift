@@ -40,8 +40,8 @@ Group {
     Variable(.let, name: "numbers", equals: Literal.array([Literal.integer(1), Literal.integer(2), Literal.integer(3), Literal.integer(4), Literal.integer(5), Literal.integer(6), Literal.integer(7), Literal.integer(8), Literal.integer(9), Literal.integer(10)]))
     
     For(VariableExp("number"), in: VariableExp("numbers"), where: {
-        Infix("==") {
-            Infix("%") {
+        try Infix("==") {
+            try Infix("%") {
                 VariableExp("number")
                 Literal.integer(2)
             }

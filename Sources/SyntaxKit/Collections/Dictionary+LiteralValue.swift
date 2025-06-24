@@ -29,9 +29,14 @@
 
 import Foundation
 
-extension Dictionary: LiteralValue where Key == Int, Value == String {
+extension Dictionary: LiteralValue, CodeBlockable where Key == Int, Value == String {
   /// The Swift type name for a dictionary mapping integers to strings.
   public var typeName: String { "[Int: String]" }
+
+  /// The code block representation of this dictionary.
+  public var codeBlock: CodeBlock {
+    Literal.dictionary(self.map { (.integer($0.key), .string($0.value)) })
+  }
 
   /// Renders this dictionary as a Swift literal string with proper escaping.
   public var literalString: String {

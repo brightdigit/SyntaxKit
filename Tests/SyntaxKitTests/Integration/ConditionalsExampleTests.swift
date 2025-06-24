@@ -8,21 +8,21 @@ import Testing
   internal func testCompletedConditionalsExample() throws {
     // Build DSL equivalent of Examples/Completed/conditionals/dsl.swift
 
-    let program = Group {
+    let program = try Group {
       // MARK: Basic If Statements
       Variable(.let, name: "temperature", equals: 25)
         .comment {
           Line("Simple if statement")
         }
 
-      If {
-        Infix(">") {
+      try If {
+        try Infix(">") {
           VariableExp("temperature")
           Literal.integer(30)
         }
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"It's hot outside!\"")
+          ParameterExp(unlabeled: "\"It's hot outside!\"")
         }
       }
 
@@ -32,41 +32,39 @@ import Testing
           Line("If-else statement")
         }
 
-      If {
-        Infix(">=") {
+      try If {
+        try Infix(">=") {
           VariableExp("score")
           Literal.integer(90)
         }
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"Excellent!\"")
+          ParameterExp(unlabeled: "\"Excellent!\"")
         }
       } else: {
-        If {
-          Infix(">=") {
+        try If {
+          try Infix(">=") {
             VariableExp("score")
             Literal.integer(80)
           }
         } then: {
           Call("print") {
-            ParameterExp(name: "", value: "\"Good job!\"")
+            ParameterExp(unlabeled: "\"Good job!\"")
           }
-        }
-
-        If {
-          Infix(">=") {
-            VariableExp("score")
-            Literal.integer(70)
-          }
-        } then: {
-          Call("print") {
-            ParameterExp(name: "", value: "\"Passing\"")
-          }
-        }
-
-        Then {
-          Call("print") {
-            ParameterExp(name: "", value: "\"Needs improvement\"")
+        } else: {
+          try If {
+            try Infix(">=") {
+              VariableExp("score")
+              Literal.integer(70)
+            }
+          } then: {
+            Call("print") {
+              ParameterExp(unlabeled: "\"Passing\"")
+            }
+          } else: {
+            Call("print") {
+              ParameterExp(unlabeled: "\"Needs improvement\"")
+            }
           }
         }
       }
@@ -118,7 +116,7 @@ import Testing
       }
 
       // MARK: - Guard Statements
-      Function(
+      try Function(
         "greet",
         {
           Parameter(name: "person", type: "[String: String]")
@@ -275,12 +273,12 @@ import Testing
           Line("MARK: - Labeled Statements")
           Line("Using labeled statements with break")
         }
-      Variable(.var, name: "board") {
-        Init("[Int]") {
+      try Variable(.var, name: "board") {
+        try Init("[Int]") {
           ParameterExp(name: "repeating", value: Literal.integer(0))
           ParameterExp(
             name: "count",
-            value: Infix("+") {
+            value: try Infix("+") {
               VariableExp("finalSquare")
               Literal.integer(1)
             }
@@ -300,45 +298,45 @@ import Testing
 
       Variable(.var, name: "square", equals: Literal.integer(0))
       Variable(.var, name: "diceRoll", equals: Literal.integer(0))
-      While {
-        Infix("!=") {
+      try While(
+        try Infix("!=") {
           VariableExp("square")
           VariableExp("finalSquare")
         }
-      } then: {
+      ) {
         PlusAssign("diceRoll", 1)
-        If {
-          Infix("==") {
+        try If {
+          try Infix("==") {
             VariableExp("diceRoll")
             Literal.integer(7)
           }
         } then: {
           Assignment("diceRoll", 1)
         }
-        Switch(
-          Infix("+") {
+        try Switch(
+          try Infix("+") {
             VariableExp("square")
             VariableExp("diceRoll")
           }
         ) {
-          SwitchCase(VariableExp("finalSquare")) {
+          SwitchCase("finalSquare") {
             Break()
           }
-          SwitchCase {
+          try SwitchCase {
             SwitchLet("newSquare")
-            Infix(">") {
+            try Infix(">") {
               VariableExp("newSquare")
               VariableExp("finalSquare")
             }
           } content: {
             Continue()
           }
-          Default {
-            Infix("+=") {
+          try Default {
+            try Infix("+=") {
               VariableExp("square")
               VariableExp("diceRoll")
             }
-            Infix("+=") {
+            try Infix("+=") {
               VariableExp("square")
               VariableExp("board[square]")
             }
@@ -497,5 +495,57 @@ import Testing
       .normalize()
 
     #expect(generated == expected)
+  }
+
+  @Test("Conditionals example generates correct syntax")
+  internal func testConditionalsExample() throws {
+    _ = try If {
+      try Infix(">") {
+        VariableExp("temperature")
+        Literal.integer(30)
+      }
+    } then: {
+      Call("print") {
+        ParameterExp(unlabeled: "It's hot!")
+      }
+    } else: {
+      try If {
+        try Infix(">=") {
+          VariableExp("score")
+          Literal.integer(90)
+        }
+      } then: {
+        Call("print") {
+          ParameterExp(unlabeled: "Excellent!")
+        }
+      } else: {
+        try If {
+          try Infix(">=") {
+            VariableExp("score")
+            Literal.integer(80)
+          }
+        } then: {
+          Call("print") {
+            ParameterExp(unlabeled: "Good!")
+          }
+        } else: {
+          try If {
+            try Infix(">=") {
+              VariableExp("score")
+              Literal.integer(70)
+            }
+          } then: {
+            Call("print") {
+              ParameterExp(unlabeled: "Pass")
+            }
+          } else: {
+            Call("print") {
+              ParameterExp(unlabeled: "Fail")
+            }
+          }
+        }
+      }
+    }
+    // ... rest of the test ...
   }
 }

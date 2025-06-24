@@ -37,7 +37,7 @@ import Testing
   internal func testSwiftUIExample() throws {
     // Test the onToggle variable with closure type and attributes
     let onToggleVariable = Variable(.let, name: "onToggle", type: "(Date) -> Void")
-      .access("private")
+      .access(.private)
 
     let generatedCode = onToggleVariable.generateCode()
     #expect(generatedCode.contains("private let onToggle"))
@@ -68,10 +68,10 @@ import Testing
   internal func testSwiftUITodoItemRowExample() throws {
     // Use the full DSL from Examples/Completed/swiftui/dsl.swift
     let dsl = Group {
-      Import("SwiftUI").access("public")
+      Import("SwiftUI").access(.public)
 
       Struct("TodoItemRow") {
-        Variable(.let, name: "item", type: "TodoItem").access("private")
+        Variable(.let, name: "item", type: "TodoItem").access(.private)
 
         Variable(
           .let,
@@ -83,7 +83,7 @@ import Testing
             .attribute("MainActor")
             .attribute("Sendable")
         )
-        .access("private")
+        .access(.private)
 
         ComputedProperty("body", type: "some View") {
           Init("HStack") {
@@ -124,7 +124,7 @@ import Testing
                             ParameterExp(
                               unlabeled: Closure(
                                 capture: {
-                                  ParameterExp(unlabeled: VariableExp("self").reference("weak"))
+                                  ParameterExp(unlabeled: VariableExp("self").reference(.weak))
                                 },
                                 body: {
                                   VariableExp("self").optional().call("onToggle") {
@@ -151,10 +151,10 @@ import Testing
             )
           }
         }
-        .access("public")
+        .access(.public)
       }
       .inherits("View")
-      .access("public")
+      .access(.public)
     }
 
     // Expected Swift code from Examples/Completed/swiftui/code.swift

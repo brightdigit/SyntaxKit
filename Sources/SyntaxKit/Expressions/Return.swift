@@ -35,22 +35,43 @@ public struct Return: CodeBlock {
 
   /// Creates a `return` statement.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the expression to return.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.exprs = content()
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.exprs = try content()
   }
   public var syntax: SyntaxProtocol {
-    guard let expr = exprs.first else {
-      fatalError("Return must have at least one expression.")
-    }
-    if let varExp = expr as? VariableExp {
+    if let expr = exprs.first {
+      if let varExp = expr as? VariableExp {
+        return ReturnStmtSyntax(
+          returnKeyword: .keyword(.return, trailingTrivia: .space),
+          expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(varExp.name)))
+        )
+      }
+
+      // Try to get ExprSyntax from the expression
+      let exprSyntax: ExprSyntax
+      if let exprCodeBlock = expr as? ExprCodeBlock {
+        exprSyntax = exprCodeBlock.exprSyntax
+      } else if let syntax = expr.syntax.as(ExprSyntax.self) {
+        exprSyntax = syntax
+      } else {
+        // fallback: no valid expression
+        #warning(
+          "TODO: Review fallback for no valid expression - consider if this should be an error instead"
+        )
+        return ReturnStmtSyntax(
+          returnKeyword: .keyword(.return, trailingTrivia: .space)
+        )
+      }
+
       return ReturnStmtSyntax(
         returnKeyword: .keyword(.return, trailingTrivia: .space),
-        expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(varExp.name)))
+        expression: exprSyntax
+      )
+    } else {
+      // Bare return
+      return ReturnStmtSyntax(
+        returnKeyword: .keyword(.return, trailingTrivia: .space)
       )
     }
-    return ReturnStmtSyntax(
-      returnKeyword: .keyword(.return, trailingTrivia: .space),
-      expression: ExprSyntax(expr.syntax)
-    )
   }
 }

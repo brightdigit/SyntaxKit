@@ -37,7 +37,7 @@ import Testing
   internal func testSwiftUIExample() throws {
     // Test the onToggle variable with closure type and attributes
     let onToggleVariable = Variable(.let, name: "onToggle", type: "(Date) -> Void")
-      .access("private")
+      .access(.private)
 
     let generatedCode = onToggleVariable.generateCode()
     let expectedCode = "private let onToggle: (Date) -> Void"
@@ -87,25 +87,25 @@ import Testing
   @Test("Reference method supports different reference types")
   internal func testReferenceMethodSupportsDifferentTypes() throws {
     // Test weak reference
-    let weakRef = VariableExp("self").reference("weak")
+    let weakRef = VariableExp("self").reference(.weak)
     // The ReferenceExp itself just shows the base variable name
     let weakGenerated = weakRef.syntax.description
     #expect(weakGenerated.contains("self"))
 
     // Test unowned reference
-    let unownedRef = VariableExp("self").reference("unowned")
+    let unownedRef = VariableExp("self").reference(.unowned)
     let unownedGenerated = unownedRef.syntax.description
     #expect(unownedGenerated.contains("self"))
 
     // Verify that the reference types are stored correctly
     if let weakRefExp = weakRef as? ReferenceExp {
-      #expect(weakRefExp.captureReferenceType == "weak")
+      #expect(weakRefExp.captureReferenceType == .weak)
     } else {
       #expect(false, "Expected ReferenceExp type")
     }
 
     if let unownedRefExp = unownedRef as? ReferenceExp {
-      #expect(unownedRefExp.captureReferenceType == "unowned")
+      #expect(unownedRefExp.captureReferenceType == .unowned)
     } else {
       #expect(false, "Expected ReferenceExp type")
     }
@@ -116,7 +116,7 @@ import Testing
     // Test weak reference in closure capture
     let weakClosure = Closure(
       capture: {
-        ParameterExp(unlabeled: VariableExp("self").reference("weak"))
+        ParameterExp(unlabeled: VariableExp("self").reference(.weak))
       },
       body: {
         VariableExp("self").optional().call("handleData") {
@@ -126,13 +126,12 @@ import Testing
     )
 
     let weakGenerated = weakClosure.syntax.description
-    print("Weak closure generated:\n\(weakGenerated)")
     #expect(weakGenerated.contains("[weak self]"))
 
     // Test unowned reference in closure capture
     let unownedClosure = Closure(
       capture: {
-        ParameterExp(unlabeled: VariableExp("self").reference("unowned"))
+        ParameterExp(unlabeled: VariableExp("self").reference(.unowned))
       },
       body: {
         VariableExp("self").call("handleData") {
@@ -142,7 +141,6 @@ import Testing
     )
 
     let unownedGenerated = unownedClosure.syntax.description
-    print("Unowned closure generated:\n\(unownedGenerated)")
     #expect(unownedGenerated.contains("[unowned self]"))
   }
 }

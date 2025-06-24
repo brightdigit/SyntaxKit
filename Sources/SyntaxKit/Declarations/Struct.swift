@@ -36,15 +36,16 @@ public struct Struct: CodeBlock {
   private var genericParameter: String?
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
-  private var accessModifier: String?
+  private var accessModifier: AccessModifier?
 
-  /// Creates a `struct` declaration.
+  /// Creates a struct declaration.
   /// - Parameters:
   ///   - name: The name of the struct.
-  ///   - content: A ``CodeBlockBuilder`` that provides the members of the struct.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the struct.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
-    self.members = content()
+    self.members = try content()
   }
 
   /// Sets the generic parameter for the struct.
@@ -66,9 +67,9 @@ public struct Struct: CodeBlock {
   }
 
   /// Sets the access modifier for the struct declaration.
-  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Parameter access: The access modifier.
   /// - Returns: A copy of the struct with the access modifier set.
-  public func access(_ access: String) -> Self {
+  public func access(_ access: AccessModifier) -> Self {
     var copy = self
     copy.accessModifier = access
     return copy
@@ -142,21 +143,8 @@ public struct Struct: CodeBlock {
     // Build access modifier
     var modifiers: DeclModifierListSyntax = []
     if let access = accessModifier {
-      let keyword: Keyword
-      switch access {
-      case "public":
-        keyword = .public
-      case "private":
-        keyword = .private
-      case "internal":
-        keyword = .internal
-      case "fileprivate":
-        keyword = .fileprivate
-      default:
-        keyword = .public  // fallback
-      }
       modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
       ])
     }
 

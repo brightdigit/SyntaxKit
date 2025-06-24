@@ -32,13 +32,13 @@ import SwiftSyntax
 /// A Swift reference expression (e.g., `weak self`, `unowned self`).
 public struct ReferenceExp: CodeBlock {
   private let base: CodeBlock
-  private let referenceType: String
+  private let referenceType: CaptureReferenceType
 
   /// Creates a reference expression.
   /// - Parameters:
   ///   - base: The base expression to reference.
-  ///   - referenceType: The type of reference (e.g., "weak", "unowned").
-  public init(base: CodeBlock, referenceType: String) {
+  ///   - referenceType: The type of reference.
+  public init(base: CodeBlock, referenceType: CaptureReferenceType) {
     self.base = base
     self.referenceType = referenceType
   }
@@ -68,7 +68,7 @@ public struct ReferenceExp: CodeBlock {
   }
 
   /// Returns the reference type for use in capture lists
-  internal var captureReferenceType: String {
+  internal var captureReferenceType: CaptureReferenceType {
     referenceType
   }
 }

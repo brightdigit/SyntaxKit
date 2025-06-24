@@ -1,5 +1,5 @@
 //
-//  NegatedPropertyAccessExp.swift
+//  AccessModifier.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,40 +29,35 @@
 
 import SwiftSyntax
 
-/// An expression that negates a property access.
-public struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
-  internal let base: CodeBlock
+/// Represents Swift access modifiers.
+public enum AccessModifier: CaseIterable {
+  case `public`
+  case `private`
+  case `internal`
+  case `fileprivate`
+  case `open`
 
-  /// Creates a negated property access expression.
-  /// - Parameter base: The base property access expression.
-  public init(base: CodeBlock) {
-    self.base = base
+  /// Returns the corresponding SwiftSyntax Keyword for this access modifier.
+  public var keyword: Keyword {
+    switch self {
+    case .public:
+      return .public
+    case .private:
+      return .private
+    case .internal:
+      return .internal
+    case .fileprivate:
+      return .fileprivate
+    case .open:
+      return .open
+    }
   }
+}
 
-  /// Backward compatibility initializer for (baseName, propertyName).
-  public init(baseName: String, propertyName: String) {
-    self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
-  }
-
-  public var exprSyntax: ExprSyntax {
-    let memberAccess =
-      base.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(
-        DeclReferenceExprSyntax(baseName: .identifier(""))
-      )
-    return ExprSyntax(
-      PrefixOperatorExprSyntax(
-        operator: .prefixOperator(
-          "!",
-          leadingTrivia: [],
-          trailingTrivia: []
-        ),
-        expression: memberAccess
-      )
-    )
-  }
-
-  public var syntax: SyntaxProtocol {
-    exprSyntax
+extension Keyword {
+  /// Creates a Keyword from an AccessModifier.
+  /// - Parameter accessModifier: The access modifier to convert.
+  public init(_ accessModifier: AccessModifier) {
+    self = accessModifier.keyword
   }
 }

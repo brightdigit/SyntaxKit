@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// An expression that refers to a variable.
-public struct VariableExp: CodeBlock, PatternConvertible {
+public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {
   internal let name: String
 
   /// Creates a variable expression.
@@ -65,9 +65,9 @@ public struct VariableExp: CodeBlock, PatternConvertible {
   }
 
   /// Creates a reference to this variable.
-  /// - Parameter referenceType: The type of reference (e.g., "weak", "unowned").
+  /// - Parameter referenceType: The type of reference.
   /// - Returns: A reference expression.
-  public func reference(_ referenceType: String) -> CodeBlock {
+  public func reference(_ referenceType: CaptureReferenceType) -> CodeBlock {
     ReferenceExp(base: self, referenceType: referenceType)
   }
 
@@ -78,6 +78,10 @@ public struct VariableExp: CodeBlock, PatternConvertible {
   }
 
   public var syntax: SyntaxProtocol {
+    ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
+  }
+
+  public var exprSyntax: ExprSyntax {
     ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
   }
 

@@ -94,7 +94,7 @@ public struct FunctionCallExp: CodeBlock {
     }
 
     let labeledArgs = LabeledExprListSyntax(
-      args.enumerated().map { index, param in
+      args.enumerated().compactMap { index, param in
         let expr = param.syntax
         if let labeled = expr as? LabeledExprSyntax {
           var element = labeled
@@ -106,6 +106,8 @@ public struct FunctionCallExp: CodeBlock {
           }
           return element
         } else if let unlabeled = expr as? ExprSyntax {
+          // ParameterExp.syntax is guaranteed to return either LabeledExprSyntax or ExprSyntax
+
           return LabeledExprSyntax(
             label: nil,
             colon: nil,
@@ -115,12 +117,12 @@ public struct FunctionCallExp: CodeBlock {
               : nil
           )
         } else {
-          fatalError("ParameterExp.syntax must return LabeledExprSyntax or ExprSyntax")
+          return nil
         }
       }
     )
 
-    var functionCall = FunctionCallExprSyntax(
+    let functionCall = FunctionCallExprSyntax(
       calledExpression: ExprSyntax(
         MemberAccessExprSyntax(
           base: baseExpr,

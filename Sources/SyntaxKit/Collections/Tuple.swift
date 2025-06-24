@@ -35,12 +35,10 @@ public struct Tuple: CodeBlock {
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
 
-  /// Creates a tuple expression comprising the supplied elements.
-  /// - Parameter content: A ``CodeBlockBuilder`` producing the tuple elements **in order**.
-  /// Elements may be any `CodeBlock` that can be represented as an expression (see
-  /// `CodeBlock.expr`).
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.elements = content()
+  /// Creates a tuple.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the elements of the tuple.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.elements = try content()
   }
 
   /// Creates a tuple pattern for switch cases.
@@ -80,10 +78,6 @@ public struct Tuple: CodeBlock {
   }
 
   public var syntax: SyntaxProtocol {
-    guard !elements.isEmpty else {
-      fatalError("Tuple must contain at least one element.")
-    }
-
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
         let elementExpr: ExprSyntax

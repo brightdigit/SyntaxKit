@@ -60,6 +60,7 @@ internal struct CommentedCodeBlock: CodeBlock {
 
     guard let firstToken = base.syntax.firstToken(viewMode: .sourceAccurate) else {
       // Fallback – no tokens? return original syntax
+      #warning("TODO: Review fallback for no tokens - consider if this should be an error instead")
       return base.syntax
     }
 

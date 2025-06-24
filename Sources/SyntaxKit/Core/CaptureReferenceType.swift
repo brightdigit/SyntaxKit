@@ -1,5 +1,5 @@
 //
-//  NegatedPropertyAccessExp.swift
+//  CaptureReferenceType.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,40 +29,26 @@
 
 import SwiftSyntax
 
-/// An expression that negates a property access.
-public struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
-  internal let base: CodeBlock
+/// Represents Swift capture reference types for closures.
+public enum CaptureReferenceType: CaseIterable {
+  case weak
+  case unowned
 
-  /// Creates a negated property access expression.
-  /// - Parameter base: The base property access expression.
-  public init(base: CodeBlock) {
-    self.base = base
+  /// Returns the corresponding SwiftSyntax Keyword for this capture reference type.
+  public var keyword: Keyword {
+    switch self {
+    case .weak:
+      return .weak
+    case .unowned:
+      return .unowned
+    }
   }
+}
 
-  /// Backward compatibility initializer for (baseName, propertyName).
-  public init(baseName: String, propertyName: String) {
-    self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
-  }
-
-  public var exprSyntax: ExprSyntax {
-    let memberAccess =
-      base.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(
-        DeclReferenceExprSyntax(baseName: .identifier(""))
-      )
-    return ExprSyntax(
-      PrefixOperatorExprSyntax(
-        operator: .prefixOperator(
-          "!",
-          leadingTrivia: [],
-          trailingTrivia: []
-        ),
-        expression: memberAccess
-      )
-    )
-  }
-
-  public var syntax: SyntaxProtocol {
-    exprSyntax
+extension Keyword {
+  /// Creates a Keyword from a CaptureReferenceType.
+  /// - Parameter captureReferenceType: The capture reference type to convert.
+  public init(_ captureReferenceType: CaptureReferenceType) {
+    self = captureReferenceType.keyword
   }
 }

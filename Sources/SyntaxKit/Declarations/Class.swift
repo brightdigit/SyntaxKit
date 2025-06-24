@@ -38,13 +38,14 @@ public struct Class: CodeBlock {
   private var isFinal: Bool = false
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a `class` declaration.
+  /// Creates a class declaration.
   /// - Parameters:
   ///   - name: The name of the class.
-  ///   - content: A ``CodeBlockBuilder`` that provides the members of the class.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the class.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  {
     self.name = name
-    self.members = content()
+    self.members = try content()
   }
 
   /// Sets the generic parameters for the class.

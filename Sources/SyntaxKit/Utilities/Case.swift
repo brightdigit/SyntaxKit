@@ -37,14 +37,15 @@ public struct Case: CodeBlock {
   private let enumCaseName: String?
   private var associatedValue: (name: String, type: String)?
 
-  /// Creates a `case` for a `switch` statement.
+  /// Creates a case declaration.
   /// - Parameters:
-  ///   - patterns: The patterns to match for the case.
+  ///   - patterns: The patterns for the case.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(_ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () -> [CodeBlock])
-  {
+  public init(
+    _ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]
+  ) rethrows {
     self.patterns = patterns
-    self.body = content()
+    self.body = try content()
     self.isEnumCase = false
     self.enumCaseName = nil
     self.associatedValue = nil
