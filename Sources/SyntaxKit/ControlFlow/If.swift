@@ -59,11 +59,10 @@ public struct If: CodeBlock {
     @CodeBlockBuilderResult then: () -> [CodeBlock]
   ) {
     self.init(
-      condition, then: then,
-      else: {
-        // Return empty array using the result builder
-        []
-      })
+      condition,
+      then: then,
+      else: [CodeBlock].init
+    )
   }
 
   /// Creates an `if` statement with optional `else`.
@@ -116,11 +115,10 @@ public struct If: CodeBlock {
     @CodeBlockBuilderResult then: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      condition, then: then,
-      else: {
-        // Return empty array using the result builder
-        []
-      })
+      condition,
+      then: then,
+      else: [CodeBlock].init
+    )
   }
 
   /// Creates an `if` statement.
@@ -154,11 +152,10 @@ public struct If: CodeBlock {
     @CodeBlockBuilderResult then: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      condition, then: then,
-      else: {
-        // Return empty array using the result builder
-        []
-      })
+      condition,
+      then: then,
+      else: [CodeBlock].init
+    )
   }
 
   /// Creates an `if` statement with a string condition.

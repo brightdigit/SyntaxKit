@@ -21,7 +21,7 @@ import Testing
           Literal.integer(30)
         }
       } then: {
-        try Call("print") {
+        Call("print") {
           ParameterExp(unlabeled: "\"It's hot outside!\"")
         }
       }
@@ -76,10 +76,10 @@ import Testing
           Line("Using if let for optional binding")
         }
 
-      try If(
+      If(
         Let("actualNumber", "Int(possibleNumber)"),
         then: {
-          try Call("print") {
+          Call("print") {
             ParameterExp(
               name: "",
               value:
@@ -88,7 +88,7 @@ import Testing
           }
         },
         else: {
-          try Call("print") {
+          Call("print") {
             ParameterExp(
               name: "",
               value: "\"The string \"\\(possibleNumber)\" could not be converted to an integer\""
@@ -106,17 +106,17 @@ import Testing
       Variable(.let, name: "possibleAge", type: "Int?", equals: Literal.integer(30))
         .withExplicitType()
 
-      try If {
+      If {
         Let("name", "possibleName")
         Let("age", "possibleAge")
       } then: {
-        try Call("print") {
+        Call("print") {
           ParameterExp(name: "", value: "\"\\(name) is \\(age) years old\"")
         }
       }
 
       // MARK: - Guard Statements
-      Function(
+      try Function(
         "greet",
         {
           Parameter(name: "person", type: "[String: String]")
@@ -505,7 +505,7 @@ import Testing
         Literal.integer(30)
       }
     } then: {
-      try Call("print") {
+      Call("print") {
         ParameterExp(unlabeled: "It's hot!")
       }
     } else: {
@@ -515,7 +515,7 @@ import Testing
           Literal.integer(90)
         }
       } then: {
-        try Call("print") {
+        Call("print") {
           ParameterExp(unlabeled: "Excellent!")
         }
       } else: {
@@ -525,7 +525,7 @@ import Testing
             Literal.integer(80)
           }
         } then: {
-          try Call("print") {
+          Call("print") {
             ParameterExp(unlabeled: "Good!")
           }
         } else: {
@@ -535,11 +535,11 @@ import Testing
               Literal.integer(70)
             }
           } then: {
-            try Call("print") {
+            Call("print") {
               ParameterExp(unlabeled: "Pass")
             }
           } else: {
-            try Call("print") {
+            Call("print") {
               ParameterExp(unlabeled: "Fail")
             }
           }

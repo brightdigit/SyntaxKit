@@ -84,10 +84,10 @@ public struct Closure: CodeBlock {
   ) rethrows {
     try self.init(
       capture: capture,
-      parameters: {
-        // Return empty array using the result builder
-        []
-      }, returns: returnType, body: body)
+      parameters: [ClosureParameter].init,
+      returns: returnType,
+      body: body
+    )
   }
 
   /// Creates a closure without parameters and return type.
@@ -100,10 +100,10 @@ public struct Closure: CodeBlock {
   ) rethrows {
     try self.init(
       capture: capture,
-      parameters: {
-        // Return empty array using the result builder
-        []
-      }, returns: nil, body: body)
+      parameters: [ClosureParameter].init,
+      returns: nil,
+      body: body
+    )
   }
 
   /// Creates a closure without capture list and return type.
@@ -115,10 +115,11 @@ public struct Closure: CodeBlock {
     @CodeBlockBuilderResult body: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      capture: {
-        // Return empty array using the result builder
-        []
-      }, parameters: parameters, returns: nil, body: body)
+      capture: [ParameterExp].init,
+      parameters: parameters,
+      returns: nil,
+      body: body
+    )
   }
 
   /// Creates a closure without capture list.
@@ -132,10 +133,11 @@ public struct Closure: CodeBlock {
     @CodeBlockBuilderResult body: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      capture: {
-        // Return empty array using the result builder
-        []
-      }, parameters: parameters, returns: returnType, body: body)
+      capture: [ParameterExp].init,
+      parameters: parameters,
+      returns: returnType,
+      body: body
+    )
   }
 
   /// Creates a simple closure with only a body.
@@ -145,14 +147,11 @@ public struct Closure: CodeBlock {
     @CodeBlockBuilderResult body: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      capture: {
-        // Return empty array using the result builder
-        []
-      },
-      parameters: {
-        // Return empty array using the result builder
-        []
-      }, returns: nil, body: body)
+      capture: [ParameterExp].init,
+      parameters: [ClosureParameter].init,
+      returns: nil,
+      body: body
+    )
   }
 
   /// Creates a closure without capture list and parameters.
@@ -164,14 +163,11 @@ public struct Closure: CodeBlock {
     @CodeBlockBuilderResult body: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      capture: {
-        // Return empty array using the result builder
-        []
-      },
-      parameters: {
-        // Return empty array using the result builder
-        []
-      }, returns: returnType, body: body)
+      capture: [ParameterExp].init,
+      parameters: [ClosureParameter].init,
+      returns: returnType,
+      body: body
+    )
   }
 
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {

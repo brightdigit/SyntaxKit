@@ -66,11 +66,11 @@ public struct For: CodeBlock {
     @CodeBlockBuilderResult then: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      pattern, in: sequence,
-      where: {
-        // Return empty array using the result builder
-        []
-      }, then: then)
+      pattern,
+      in: sequence,
+      where: [CodeBlock].init,
+      then: then
+    )
   }
 
   public var syntax: SyntaxProtocol {

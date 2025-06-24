@@ -59,10 +59,9 @@ public struct Guard: CodeBlock {
     @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
   ) rethrows {
     try self.init(
-      {
-        // Return empty array using the result builder
-        []
-      }, else: elseBody)
+      [CodeBlock].init,
+      else: elseBody
+    )
   }
 
   /// Creates a `guard` statement with a string condition.
