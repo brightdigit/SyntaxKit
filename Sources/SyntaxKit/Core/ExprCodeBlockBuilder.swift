@@ -32,7 +32,7 @@ import SwiftSyntax
 /// A result builder that produces exactly one `ExprCodeBlock`.
 /// This ensures compile-time type safety for expression-based constructs.
 @resultBuilder
-public struct ExprCodeBlockBuilder {
+public enum ExprCodeBlockBuilder {
   public static func buildBlock(_ expression: any ExprCodeBlock) -> any ExprCodeBlock {
     expression
   }
@@ -48,14 +48,14 @@ public struct ExprCodeBlockBuilder {
   public static func buildEither(second: any ExprCodeBlock) -> any ExprCodeBlock {
     second
   }
-
-  public static func buildOptional(_ expression: (any ExprCodeBlock)?) -> any ExprCodeBlock {
-    // This should never be called in practice since we require exactly one expression
-    fatalError("ExprCodeBlockBuilder requires exactly one expression")
-  }
-
-  public static func buildArray(_ expressions: [any ExprCodeBlock]) -> any ExprCodeBlock {
-    // This should never be called in practice since we require exactly one expression
-    fatalError("ExprCodeBlockBuilder requires exactly one expression")
-  }
+//
+//  public static func buildOptional(_ expression: (any ExprCodeBlock)?) -> any ExprCodeBlock {
+//    // This should never be called in practice since we require exactly one expression
+//    fatalError("ExprCodeBlockBuilder requires exactly one expression")
+//  }
+//
+//  public static func buildArray(_ expressions: [any ExprCodeBlock]) -> any ExprCodeBlock {
+//    // This should never be called in practice since we require exactly one expression
+//    fatalError("ExprCodeBlockBuilder requires exactly one expression")
+//  }
 }

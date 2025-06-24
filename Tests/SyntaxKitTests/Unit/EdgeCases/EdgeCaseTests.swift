@@ -18,7 +18,7 @@ internal struct EdgeCaseTests {
     } catch let error as Infix.InfixError {
       // Verify it's the correct error type
       switch error {
-      case .wrongOperandCount(let expected, let got):
+      case let .wrongOperandCount( expected, got):
         #expect(expected == 2)
         #expect(got == 1)
       case .nonExprCodeBlockOperand:
@@ -45,8 +45,8 @@ internal struct EdgeCaseTests {
   }
 
   @Test("Guard with no conditions uses true as default")
-  internal func testGuardWithNoConditionsUsesTrueAsDefault() {
-    let guardStatement = Guard({}) {
+  internal func testGuardWithNoConditionsUsesTrueAsDefault() throws {
+    let guardStatement = try Guard {
       Return {
         Literal.string("executed")
       }

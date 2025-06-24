@@ -32,7 +32,7 @@ import SwiftSyntax
 /// A result builder that produces exactly one `CodeBlock & PatternConvertible`.
 /// This ensures compile-time type safety for pattern-based constructs.
 @resultBuilder
-public struct PatternConvertibleBuilder {
+public enum PatternConvertibleBuilder {
   public static func buildBlock(_ pattern: any CodeBlock & PatternConvertible) -> any CodeBlock
     & PatternConvertible
   {
@@ -57,17 +57,17 @@ public struct PatternConvertibleBuilder {
     second
   }
 
-  public static func buildOptional(_ pattern: (any CodeBlock & PatternConvertible)?)
-    -> any CodeBlock & PatternConvertible
-  {
-    // This should never be called in practice since we require exactly one pattern
-    fatalError("PatternConvertibleBuilder requires exactly one pattern")
-  }
-
-  public static func buildArray(_ patterns: [any CodeBlock & PatternConvertible]) -> any CodeBlock
-    & PatternConvertible
-  {
-    // This should never be called in practice since we require exactly one pattern
-    fatalError("PatternConvertibleBuilder requires exactly one pattern")
-  }
+//  public static func buildOptional(_ pattern: (any CodeBlock & PatternConvertible)?)
+//    -> any CodeBlock & PatternConvertible
+//  {
+//    // This should never be called in practice since we require exactly one pattern
+//    fatalError("PatternConvertibleBuilder requires exactly one pattern")
+//  }
+//
+//  public static func buildArray(_ patterns: [any CodeBlock & PatternConvertible]) -> any CodeBlock
+//    & PatternConvertible
+//  {
+//    // This should never be called in practice since we require exactly one pattern
+//    fatalError("PatternConvertibleBuilder requires exactly one pattern")
+//  }
 }
