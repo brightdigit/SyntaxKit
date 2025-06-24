@@ -32,52 +32,22 @@ import Foundation
 // MARK: - Variable Literal Initializers
 
 extension Variable {
-  // swiftlint:disable cyclomatic_complexity
   /// Creates a `let` or `var` declaration with a literal value.
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - equals: A literal value that conforms to ``LiteralValue``.
-  public init<T: LiteralValue>(
+  public init<T: CodeBlockable & LiteralValue>(
     _ kind: VariableKind, name: String, equals value: T
   ) {
-    let defaultValue: CodeBlock
-    if let literal = value as? Literal {
-      defaultValue = literal
-    } else if let tuple = value as? TupleLiteral {
-      defaultValue = Literal.tuple(tuple.elements)
-    } else if let array = value as? ArrayLiteral {
-      defaultValue = Literal.array(array.elements)
-    } else if let dict = value as? DictionaryLiteral {
-      defaultValue = Literal.dictionary(dict.elements)
-    } else if let array = value as? [String] {
-      defaultValue = Literal.array(array.map { .string($0) })
-    } else if let dict = value as? [Int: String] {
-      defaultValue = Literal.dictionary(dict.map { (.integer($0.key), .string($0.value)) })
-    } else if let dictExpr = value as? DictionaryExpr {
-      defaultValue = dictExpr
-    } else if let initExpr = value as? Init {
-      defaultValue = initExpr
-    } else if let codeBlock = value as? CodeBlock {
-      defaultValue = codeBlock
-    } else {
-      // For any other LiteralValue type that doesn't conform to CodeBlock,
-      // create a fallback or throw an error
-      fatalError(
-        "Variable: Unsupported LiteralValue type that doesn't conform to CodeBlock: \(T.self)"
-      )
-    }
-
     self.init(
       kind: kind,
       name: name,
       type: value.typeName,
-      defaultValue: defaultValue,
+      defaultValue: value.codeBlock,
       explicitType: false
     )
   }
-
-  // swiftlint:enable cyclomatic_complexity
 
   /// Creates a `let` or `var` declaration with a string literal value.
   /// - Parameters:

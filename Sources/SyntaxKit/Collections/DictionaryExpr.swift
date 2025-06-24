@@ -30,13 +30,18 @@
 import SwiftSyntax
 
 /// A dictionary expression that can contain both Literal types and CodeBlock types.
-public struct DictionaryExpr: CodeBlock, LiteralValue {
+public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {
   private let elements: [(DictionaryValue, DictionaryValue)]
 
   /// Creates a dictionary expression with the given key-value pairs.
   /// - Parameter elements: The dictionary key-value pairs.
   public init(_ elements: [(DictionaryValue, DictionaryValue)]) {
     self.elements = elements
+  }
+
+  /// The code block representation of this dictionary expression.
+  public var codeBlock: CodeBlock {
+    self
   }
 
   /// The Swift type name for this dictionary.

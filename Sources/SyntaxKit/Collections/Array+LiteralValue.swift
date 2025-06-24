@@ -29,9 +29,14 @@
 
 import Foundation
 
-extension Array: LiteralValue where Element == String {
+extension Array: LiteralValue, CodeBlockable where Element == String {
   /// The Swift type name for an array of strings.
   public var typeName: String { "[String]" }
+
+  /// The code block representation of this array of strings.
+  public var codeBlock: CodeBlock {
+    Literal.array(self.map { .string($0) })
+  }
 
   /// Renders this array as a Swift literal string with proper escaping.
   public var literalString: String {

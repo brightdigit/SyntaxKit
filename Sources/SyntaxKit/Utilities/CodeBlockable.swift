@@ -1,5 +1,5 @@
 //
-//  Dictionary+LiteralValue.swift
+//  CodeBlockable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,31 +27,8 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-
-extension Dictionary: LiteralValue, CodeBlockable where Key == Int, Value == String {
-  /// The Swift type name for a dictionary mapping integers to strings.
-  public var typeName: String { "[Int: String]" }
-
-  /// The code block representation of this dictionary.
-  public var codeBlock: CodeBlock {
-    Literal.dictionary(self.map { (.integer($0.key), .string($0.value)) })
-  }
-
-  /// Renders this dictionary as a Swift literal string with proper escaping.
-  public var literalString: String {
-    let elements = self.map { key, value in
-      // Escape quotes and newlines
-      let escaped =
-        value
-        .replacingOccurrences(of: "\\", with: "\\\\")
-        .replacingOccurrences(of: "\"", with: "\\\"")
-        .replacingOccurrences(of: "\n", with: "\\n")
-        .replacingOccurrences(of: "\r", with: "\\r")
-        .replacingOccurrences(of: "\t", with: "\\t")
-      return "\(key): \"\(escaped)\""
-    }
-    .joined(separator: ", ")
-    return "[\(elements)]"
-  }
+/// Can export a `CodeBlock`.
+public protocol CodeBlockable {
+  /// Returns a `CodeBlock`.
+  var codeBlock: CodeBlock { get }
 }

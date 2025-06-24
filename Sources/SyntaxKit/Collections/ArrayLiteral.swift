@@ -30,13 +30,18 @@
 import Foundation
 
 /// An array literal value that can be used as a literal.
-public struct ArrayLiteral: LiteralValue {
+public struct ArrayLiteral: LiteralValue, CodeBlockable {
   public let elements: [Literal]
 
   /// Creates an array with the given elements.
   /// - Parameter elements: The array elements.
   public init(_ elements: [Literal]) {
     self.elements = elements
+  }
+
+  /// The code block representation of this array literal.
+  public var codeBlock: CodeBlock {
+    Literal.array(elements)
   }
 
   /// The Swift type name for this array.

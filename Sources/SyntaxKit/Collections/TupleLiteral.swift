@@ -30,13 +30,18 @@
 import Foundation
 
 /// A tuple literal value that can be used as a literal.
-public struct TupleLiteral: LiteralValue {
+public struct TupleLiteral: LiteralValue, CodeBlockable {
   public let elements: [Literal?]
 
   /// Creates a tuple with the given elements.
   /// - Parameter elements: The tuple elements, where `nil` represents a wildcard.
   public init(_ elements: [Literal?]) {
     self.elements = elements
+  }
+
+  /// The code block representation of this tuple literal.
+  public var codeBlock: CodeBlock {
+    Literal.tuple(elements)
   }
 
   /// The Swift type name for this tuple.

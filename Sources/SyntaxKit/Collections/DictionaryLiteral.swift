@@ -30,13 +30,18 @@
 import Foundation
 
 /// A dictionary literal value that can be used as a literal.
-public struct DictionaryLiteral: LiteralValue {
+public struct DictionaryLiteral: LiteralValue, CodeBlockable {
   public let elements: [(Literal, Literal)]
 
   /// Creates a dictionary with the given key-value pairs.
   /// - Parameter elements: The dictionary key-value pairs.
   public init(_ elements: [(Literal, Literal)]) {
     self.elements = elements
+  }
+
+  /// The code block representation of this dictionary literal.
+  public var codeBlock: CodeBlock {
+    Literal.dictionary(elements)
   }
 
   /// The Swift type name for this dictionary.

@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A literal value.
-public enum Literal: CodeBlock {
+public enum Literal: CodeBlock, CodeBlockable {
   /// A string literal.
   case string(String)
   /// A floating-point literal.
@@ -49,6 +49,11 @@ public enum Literal: CodeBlock {
   case array([Literal])
   /// A dictionary literal.
   case dictionary([(Literal, Literal)])
+
+  /// The code block representation of this literal.
+  public var codeBlock: CodeBlock {
+    self
+  }
 
   /// The Swift type name for this literal.
   public var typeName: String {
