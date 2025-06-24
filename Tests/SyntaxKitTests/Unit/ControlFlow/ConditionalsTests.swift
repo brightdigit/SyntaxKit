@@ -10,7 +10,7 @@ import Testing
       Variable(.let, name: "score", type: "Int", equals: "85")
 
       If {
-        Infix(">=") {
+        try! Infix(">=") {
           VariableExp("score")
           Literal.integer(90)
         }
@@ -20,7 +20,7 @@ import Testing
         }
       } else: {
         If {
-          Infix(">=") {
+          try! Infix(">=") {
             VariableExp("score")
             Literal.integer(80)
           }

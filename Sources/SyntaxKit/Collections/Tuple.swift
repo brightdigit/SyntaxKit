@@ -80,10 +80,6 @@ public struct Tuple: CodeBlock {
   }
 
   public var syntax: SyntaxProtocol {
-    guard !elements.isEmpty else {
-      fatalError("Tuple must contain at least one element.")
-    }
-
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
         let elementExpr: ExprSyntax

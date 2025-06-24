@@ -44,10 +44,12 @@ public struct Guard: CodeBlock {
     @CodeBlockBuilderResult else elseBody: () -> [CodeBlock]
   ) {
     let allConditions = condition()
-    guard !allConditions.isEmpty else {
-      fatalError("Guard requires at least one condition CodeBlock")
+    if allConditions.isEmpty {
+      // Use true as default condition when no conditions are provided
+      self.conditions = [Literal.boolean(true)]
+    } else {
+      self.conditions = allConditions
     }
-    self.conditions = allConditions
     self.elseBody = elseBody()
   }
 

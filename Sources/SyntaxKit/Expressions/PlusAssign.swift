@@ -34,13 +34,16 @@ public struct PlusAssign: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
 
+  /// Creates a `+=` expression with an expression value.
+  public init(_ target: String, _ value: any ExprCodeBlock) {
+    self.target = target
+    self.valueExpr = value.exprSyntax
+  }
+
   /// Creates a `+=` expression with a literal value.
   public init(_ target: String, _ literal: Literal) {
     self.target = target
-    guard let expr = literal.syntax.as(ExprSyntax.self) else {
-      fatalError("Literal.syntax did not produce ExprSyntax")
-    }
-    self.valueExpr = expr
+    self.valueExpr = literal.exprSyntax
   }
 
   /// Creates a `+=` expression with an integer literal value.

@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// An expression that negates a property access.
-public struct NegatedPropertyAccessExp: CodeBlock {
+public struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
   internal let base: CodeBlock
 
   /// Creates a negated property access expression.
@@ -44,7 +44,7 @@ public struct NegatedPropertyAccessExp: CodeBlock {
     self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
   }
 
-  public var syntax: SyntaxProtocol {
+  public var exprSyntax: ExprSyntax {
     let memberAccess =
       base.syntax.as(ExprSyntax.self)
       ?? ExprSyntax(
@@ -60,5 +60,9 @@ public struct NegatedPropertyAccessExp: CodeBlock {
         expression: memberAccess
       )
     )
+  }
+
+  public var syntax: SyntaxProtocol {
+    exprSyntax
   }
 }

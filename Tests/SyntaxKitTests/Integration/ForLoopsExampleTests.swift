@@ -84,8 +84,8 @@ import Testing
         VariableExp("number"),
         in: VariableExp("numbers"),
         where: {
-          Infix("==") {
-            Infix("%") {
+          try! Infix("==") {
+            try! Infix("%") {
               VariableExp("number")
               Literal.integer(2)
             }

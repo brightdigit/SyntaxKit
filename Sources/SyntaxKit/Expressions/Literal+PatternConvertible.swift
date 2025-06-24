@@ -32,9 +32,7 @@ import SwiftSyntax
 extension Literal: PatternConvertible {
   /// SwiftSyntax representation of the literal as a pattern.
   public var patternSyntax: PatternSyntax {
-    guard let expr = self.syntax.as(ExprSyntax.self) else {
-      fatalError("Literal.syntax did not return ExprSyntax")
-    }
+    let expr = self.exprSyntax
     return PatternSyntax(ExpressionPatternSyntax(expression: expr))
   }
 }

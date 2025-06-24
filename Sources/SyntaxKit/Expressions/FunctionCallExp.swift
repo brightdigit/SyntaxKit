@@ -105,7 +105,9 @@ public struct FunctionCallExp: CodeBlock {
             )
           }
           return element
-        } else if let unlabeled = expr as? ExprSyntax {
+        } else {
+          // ParameterExp.syntax is guaranteed to return either LabeledExprSyntax or ExprSyntax
+          let unlabeled = expr as! ExprSyntax
           return LabeledExprSyntax(
             label: nil,
             colon: nil,
@@ -114,8 +116,6 @@ public struct FunctionCallExp: CodeBlock {
               ? .commaToken(trailingTrivia: .space)
               : nil
           )
-        } else {
-          fatalError("ParameterExp.syntax must return LabeledExprSyntax or ExprSyntax")
         }
       }
     )

@@ -31,13 +31,38 @@ import SwiftSyntax
 
 /// A `while` loop statement.
 public struct While: CodeBlock {
-  private let condition: CodeBlock
+  private let condition: any ExprCodeBlock
   private let body: [CodeBlock]
 
-  /// Creates a `while` loop statement.
+  /// Creates a `while` loop statement with an expression condition.
+  /// - Parameters:
+  ///   - condition: The condition expression that conforms to ExprCodeBlock.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    _ condition: any ExprCodeBlock,
+    @CodeBlockBuilderResult then: () -> [CodeBlock]
+  ) {
+    self.condition = condition
+    self.body = then()
+  }
+
+  /// Creates a `while` loop statement with a builder closure for the condition.
+  /// - Parameters:
+  ///   - condition: A `CodeBlockBuilder` that produces exactly one condition expression.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    @ExprCodeBlockBuilder _ condition: () -> any ExprCodeBlock,
+    @CodeBlockBuilderResult then: () -> [CodeBlock]
+  ) {
+    self.condition = condition()
+    self.body = then()
+  }
+
+  /// Legacy initializer for backward compatibility.
   /// - Parameters:
   ///   - condition: A `CodeBlockBuilder` that produces the condition expression.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  @available(*, deprecated, message: "Use ExprCodeBlockBuilder instead for compile-time safety")
   public init(
     @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
     @CodeBlockBuilderResult then: () -> [CodeBlock]
@@ -46,26 +71,15 @@ public struct While: CodeBlock {
     guard conditions.count == 1 else {
       fatalError("While requires exactly one condition CodeBlock")
     }
-    self.condition = conditions[0]
+    guard let exprCondition = conditions[0] as? any ExprCodeBlock else {
+      fatalError("While condition must conform to ExprCodeBlock protocol")
+    }
+    self.condition = exprCondition
     self.body = then()
   }
 
-  /// Convenience initializer that accepts a single condition directly.
-  /// - Parameters:
-  ///   - condition: The condition expression.
-  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  public init(
-    _ condition: CodeBlock,
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    self.init({ condition }, then: then)
-  }
-
   public var syntax: SyntaxProtocol {
-    let conditionExpr = ExprSyntax(
-      fromProtocol: condition.syntax.as(ExprSyntax.self)
-        ?? DeclReferenceExprSyntax(baseName: .identifier(""))
-    )
+    let conditionExpr = condition.exprSyntax
 
     let bodyBlock = CodeBlockSyntax(
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),

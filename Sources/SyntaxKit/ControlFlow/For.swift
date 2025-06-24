@@ -57,10 +57,32 @@ public struct For: CodeBlock {
 
   /// Creates a `for-in` loop statement with a closure-based pattern.
   /// - Parameters:
+  ///   - pattern: A `CodeBlockBuilder` that produces exactly one pattern for the loop variable(s).
+  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
+  ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    @PatternConvertibleBuilder _ pattern: () -> any CodeBlock & PatternConvertible,
+    in sequence: CodeBlock,
+    @CodeBlockBuilderResult where whereClause: () -> [CodeBlock] = { [] },
+    @CodeBlockBuilderResult then: () -> [CodeBlock]
+  ) {
+    self.pattern = pattern()
+    self.sequence = sequence
+    let whereBlocks = whereClause()
+    self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
+    self.body = then()
+  }
+
+  /// Legacy initializer for backward compatibility.
+  /// - Parameters:
   ///   - pattern: A `CodeBlockBuilder` that produces the pattern for the loop variable(s).
   ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
   ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  @available(
+    *, deprecated, message: "Use PatternConvertibleBuilder instead for compile-time safety"
+  )
   public init(
     @CodeBlockBuilderResult _ pattern: () -> [CodeBlock],
     in sequence: CodeBlock,

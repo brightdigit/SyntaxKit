@@ -64,7 +64,7 @@ import Testing
             Throw(VariableExp("VendingMachineError.invalidSelection"))
           }
           Guard {
-            Infix(">") {
+            try! Infix(">") {
               VariableExp("item").property("count")
               Literal.integer(0)
             }
@@ -72,7 +72,7 @@ import Testing
             Throw(VariableExp("VendingMachineError.outOfStock"))
           }
           Guard {
-            Infix("<=") {
+            try! Infix("<=") {
               VariableExp("item").property("price")
               VariableExp("coinsDeposited")
             }
@@ -81,7 +81,7 @@ import Testing
               Call("VendingMachineError.insufficientFunds") {
                 ParameterExp(
                   name: "coinsNeeded",
-                  value: Infix("-") {
+                  value: try! Infix("-") {
                     VariableExp("item").property("price")
                     VariableExp("coinsDeposited")
                   }
@@ -89,12 +89,12 @@ import Testing
               }
             )
           }
-          Infix("-=") {
+          try! Infix("-=") {
             VariableExp("coinsDeposited")
             VariableExp("item").property("price")
           }
           Variable(.var, name: "newItem", equals: Literal.ref("item"))
-          Infix("-=") {
+          try! Infix("-=") {
             VariableExp("newItem").property("count")
             Literal.integer(1)
           }

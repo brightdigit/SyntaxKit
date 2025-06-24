@@ -39,18 +39,36 @@ public struct Return: CodeBlock {
     self.exprs = content()
   }
   public var syntax: SyntaxProtocol {
-    guard let expr = exprs.first else {
-      fatalError("Return must have at least one expression.")
-    }
-    if let varExp = expr as? VariableExp {
+    if let expr = exprs.first {
+      if let varExp = expr as? VariableExp {
+        return ReturnStmtSyntax(
+          returnKeyword: .keyword(.return, trailingTrivia: .space),
+          expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(varExp.name)))
+        )
+      }
+
+      // Try to get ExprSyntax from the expression
+      let exprSyntax: ExprSyntax
+      if let exprCodeBlock = expr as? ExprCodeBlock {
+        exprSyntax = exprCodeBlock.exprSyntax
+      } else if let syntax = expr.syntax.as(ExprSyntax.self) {
+        exprSyntax = syntax
+      } else {
+        // fallback: no valid expression
+        return ReturnStmtSyntax(
+          returnKeyword: .keyword(.return, trailingTrivia: .space)
+        )
+      }
+
       return ReturnStmtSyntax(
         returnKeyword: .keyword(.return, trailingTrivia: .space),
-        expression: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(varExp.name)))
+        expression: exprSyntax
+      )
+    } else {
+      // Bare return
+      return ReturnStmtSyntax(
+        returnKeyword: .keyword(.return, trailingTrivia: .space)
       )
     }
-    return ReturnStmtSyntax(
-      returnKeyword: .keyword(.return, trailingTrivia: .space),
-      expression: ExprSyntax(expr.syntax)
-    )
   }
 }

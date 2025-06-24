@@ -82,7 +82,8 @@ public struct Call: CodeBlock {
             )
           }
           return element
-        } else if let unlabeled = expr as? ExprSyntax {
+        } else {
+          let unlabeled = expr as! ExprSyntax
           return LabeledExprSyntax(
             label: nil,
             colon: nil,
@@ -91,8 +92,6 @@ public struct Call: CodeBlock {
               ? .commaToken(trailingTrivia: .space)
               : nil
           )
-        } else {
-          fatalError("ParameterExp.syntax must return LabeledExprSyntax or ExprSyntax")
         }
       }
     )

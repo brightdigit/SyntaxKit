@@ -16,13 +16,17 @@ import Testing
         }
 
       If {
-        Infix(">") {
+        try! Infix(">") {
           VariableExp("temperature")
           Literal.integer(30)
         }
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"It's hot outside!\"")
+          ParameterExp(unlabeled: "\"It's hot!\"")
+        }
+      } else: {
+        Call("print") {
+          ParameterExp(unlabeled: "\"It's not hot\"")
         }
       }
 
@@ -33,41 +37,43 @@ import Testing
         }
 
       If {
-        Infix(">=") {
+        try! Infix(">=") {
           VariableExp("score")
           Literal.integer(90)
         }
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"Excellent!\"")
+          ParameterExp(unlabeled: "\"A\"")
         }
       } else: {
         If {
-          Infix(">=") {
+          try! Infix(">=") {
             VariableExp("score")
             Literal.integer(80)
           }
         } then: {
           Call("print") {
-            ParameterExp(name: "", value: "\"Good job!\"")
+            ParameterExp(unlabeled: "\"B\"")
+          }
+        } else: {
+          Call("print") {
+            ParameterExp(unlabeled: "\"C\"")
           }
         }
+      }
 
-        If {
-          Infix(">=") {
-            VariableExp("score")
-            Literal.integer(70)
-          }
-        } then: {
-          Call("print") {
-            ParameterExp(name: "", value: "\"Passing\"")
-          }
+      If {
+        try! Infix(">=") {
+          VariableExp("score")
+          Literal.integer(70)
         }
-
-        Then {
-          Call("print") {
-            ParameterExp(name: "", value: "\"Needs improvement\"")
-          }
+      } then: {
+        Call("print") {
+          ParameterExp(unlabeled: "\"Passing\"")
+        }
+      } else: {
+        Call("print") {
+          ParameterExp(unlabeled: "\"Failing\"")
         }
       }
 
@@ -280,7 +286,7 @@ import Testing
           ParameterExp(name: "repeating", value: Literal.integer(0))
           ParameterExp(
             name: "count",
-            value: Infix("+") {
+            value: try! Infix("+") {
               VariableExp("finalSquare")
               Literal.integer(1)
             }
@@ -300,15 +306,15 @@ import Testing
 
       Variable(.var, name: "square", equals: Literal.integer(0))
       Variable(.var, name: "diceRoll", equals: Literal.integer(0))
-      While {
-        Infix("!=") {
+      While(
+        try! Infix("!=") {
           VariableExp("square")
           VariableExp("finalSquare")
         }
-      } then: {
+      ) {
         PlusAssign("diceRoll", 1)
         If {
-          Infix("==") {
+          try! Infix("==") {
             VariableExp("diceRoll")
             Literal.integer(7)
           }
@@ -316,17 +322,17 @@ import Testing
           Assignment("diceRoll", 1)
         }
         Switch(
-          Infix("+") {
+          try! Infix("+") {
             VariableExp("square")
             VariableExp("diceRoll")
           }
         ) {
-          SwitchCase(VariableExp("finalSquare")) {
+          SwitchCase("finalSquare") {
             Break()
           }
           SwitchCase {
             SwitchLet("newSquare")
-            Infix(">") {
+            try! Infix(">") {
               VariableExp("newSquare")
               VariableExp("finalSquare")
             }
@@ -334,11 +340,11 @@ import Testing
             Continue()
           }
           Default {
-            Infix("+=") {
+            try! Infix("+=") {
               VariableExp("square")
               VariableExp("diceRoll")
             }
-            Infix("+=") {
+            try! Infix("+=") {
               VariableExp("square")
               VariableExp("board[square]")
             }

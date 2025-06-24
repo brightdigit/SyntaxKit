@@ -48,10 +48,12 @@ public struct If: CodeBlock {
     @CodeBlockBuilderResult else elseBody: () -> [CodeBlock] = { [] }
   ) {
     let allConditions = condition()
-    guard !allConditions.isEmpty else {
-      fatalError("If requires at least one condition CodeBlock")
+    if allConditions.isEmpty {
+      // Use true as default condition when no conditions are provided
+      self.conditions = [Literal.boolean(true)]
+    } else {
+      self.conditions = allConditions
     }
-    self.conditions = allConditions
     self.body = then()
     let generatedElse = elseBody()
     self.elseBody = generatedElse.isEmpty ? nil : generatedElse

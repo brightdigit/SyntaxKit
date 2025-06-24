@@ -30,28 +30,63 @@
 import SwiftSyntax
 
 /// A generic binary (infix) operator expression, e.g. `a + b`.
-public struct Infix: CodeBlock {
+public struct Infix: CodeBlock, ExprCodeBlock {
+  public enum InfixError: Error, CustomStringConvertible {
+    case wrongOperandCount(expected: Int, got: Int)
+    case nonExprCodeBlockOperand
+
+    public var description: String {
+      switch self {
+      case let .wrongOperandCount(expected, got):
+        return "Infix expects exactly \(expected) operands, got \(got)."
+      case .nonExprCodeBlockOperand:
+        return "Infix operands must conform to ExprCodeBlock protocol"
+      }
+    }
+  }
+
   private let operation: String
-  private let operands: [CodeBlock]
+  private let leftOperand: any ExprCodeBlock
+  private let rightOperand: any ExprCodeBlock
 
   /// Creates an infix operator expression.
   /// - Parameters:
   ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
-  ///   - content: A ``CodeBlockBuilder`` that supplies the two operand expressions.
-  ///
-  /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
-  public init(_ operation: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - lhs: The left-hand side expression that conforms to ExprCodeBlock.
+  ///   - rhs: The right-hand side expression that conforms to ExprCodeBlock.
+  public init(_ operation: String, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
     self.operation = operation
-    self.operands = content()
+    self.leftOperand = lhs
+    self.rightOperand = rhs
   }
 
-  public var syntax: SyntaxProtocol {
-    guard operands.count == 2 else {
-      fatalError("Infix expects exactly two operands, got \(operands.count).")
-    }
+  /// Creates an infix operator expression with a builder closure.
+  /// - Parameters:
+  ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
+  ///   - content: A ``CodeBlockBuilder`` that supplies exactly two operand expressions.
+  ///
+  /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
+  /// Each operand must conform to ExprCodeBlock.
+  @available(*, deprecated, message: "Use separate lhs and rhs parameters for compile-time safety")
+  public init(_ operation: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) throws {
+    self.operation = operation
+    let operands = content()
 
-    let left = operands[0].expr
-    let right = operands[1].expr
+    guard operands.count == 2 else {
+      throw InfixError.wrongOperandCount(expected: 2, got: operands.count)
+    }
+    guard let lhs = operands[0] as? any ExprCodeBlock,
+      let rhs = operands[1] as? any ExprCodeBlock
+    else {
+      throw InfixError.nonExprCodeBlockOperand
+    }
+    self.leftOperand = lhs
+    self.rightOperand = rhs
+  }
+
+  public var exprSyntax: ExprSyntax {
+    let left = leftOperand.exprSyntax
+    let right = rightOperand.exprSyntax
 
     let operatorExpr = ExprSyntax(
       BinaryOperatorExprSyntax(
@@ -59,13 +94,19 @@ public struct Infix: CodeBlock {
       )
     )
 
-    return SequenceExprSyntax(
-      elements: ExprListSyntax([
-        left,
-        operatorExpr,
-        right,
-      ])
+    return ExprSyntax(
+      SequenceExprSyntax(
+        elements: ExprListSyntax([
+          left,
+          operatorExpr,
+          right,
+        ])
+      )
     )
+  }
+
+  public var syntax: SyntaxProtocol {
+    exprSyntax
   }
 }
 
@@ -90,8 +131,9 @@ extension Infix {
   ///   - operator: The comparison operator to use.
   ///   - lhs: The left-hand side expression.
   ///   - rhs: The right-hand side expression.
-  public init(_ operator: ComparisonOperator, lhs: CodeBlock, rhs: CodeBlock) {
+  public init(_ operator: ComparisonOperator, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
     self.operation = `operator`.symbol
-    self.operands = [lhs, rhs]
+    self.leftOperand = lhs
+    self.rightOperand = rhs
   }
 }

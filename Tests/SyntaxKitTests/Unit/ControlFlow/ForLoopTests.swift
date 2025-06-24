@@ -27,7 +27,7 @@ internal final class ForLoopTests {
       VariableExp("number"),
       in: VariableExp("numbers"),
       where: {
-        Infix("%") {
+        try! Infix("%") {
           VariableExp("number")
           Literal.integer(2)
         }
