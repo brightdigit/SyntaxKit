@@ -48,14 +48,14 @@ internal final class ReferenceExpComplexTests {
 
     let reference = ReferenceExp(
       base: conditional,
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("isEnabled ? enabledValue : disabledValue"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with closure base.
@@ -64,14 +64,14 @@ internal final class ReferenceExpComplexTests {
     let closure = Closure(body: { VariableExp("result") })
     let reference = ReferenceExp(
       base: closure,
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description.normalize()
 
     #expect(description.contains("{ result }".normalize()))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with enum case base.
@@ -80,13 +80,13 @@ internal final class ReferenceExpComplexTests {
     let enumCase = EnumCase("active")
     let reference = ReferenceExp(
       base: enumCase,
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description.normalize()
 
     #expect(description.contains(".active".normalize()))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 }

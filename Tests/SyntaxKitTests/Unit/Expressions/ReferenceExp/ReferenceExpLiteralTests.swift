@@ -42,14 +42,14 @@ internal final class ReferenceExpLiteralTests {
   internal func testReferenceWithLiteralBase() {
     let reference = ReferenceExp(
       base: Literal.ref("constant"),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("constant"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with array literal base.
@@ -57,14 +57,14 @@ internal final class ReferenceExpLiteralTests {
   internal func testReferenceWithArrayLiteralBase() {
     let reference = ReferenceExp(
       base: Literal.array([Literal.string("item1"), Literal.string("item2")]),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("[\"item1\", \"item2\"]"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with dictionary literal base.
@@ -72,14 +72,14 @@ internal final class ReferenceExpLiteralTests {
   internal func testReferenceWithDictionaryLiteralBase() {
     let reference = ReferenceExp(
       base: Literal.dictionary([(Literal.string("key"), Literal.string("value"))]),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description.replacingOccurrences(of: " ", with: "")
 
     #expect(description.contains("[\"key\":\"value\"]".replacingOccurrences(of: " ", with: "")))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with tuple literal base.
@@ -87,13 +87,13 @@ internal final class ReferenceExpLiteralTests {
   internal func testReferenceWithTupleLiteralBase() {
     let reference = ReferenceExp(
       base: Literal.tuple([Literal.string("first"), Literal.string("second")]),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("(\"first\", \"second\")"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 }

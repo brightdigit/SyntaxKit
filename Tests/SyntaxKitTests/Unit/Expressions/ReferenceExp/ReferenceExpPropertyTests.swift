@@ -42,14 +42,14 @@ internal final class ReferenceExpPropertyTests {
   internal func testReferenceWithPropertyAccessBase() {
     let reference = ReferenceExp(
       base: PropertyAccessExp(base: VariableExp("viewController"), propertyName: "delegate"),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("viewController.delegate"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with nested property access base.
@@ -60,14 +60,14 @@ internal final class ReferenceExpPropertyTests {
         base: PropertyAccessExp(base: VariableExp("user"), propertyName: "profile"),
         propertyName: "settings"
       ),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("user.profile.settings"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with complex base expression.
@@ -78,14 +78,14 @@ internal final class ReferenceExpPropertyTests {
         base: Call("getUserManager"),
         propertyName: "currentUser"
       ),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("getUserManager().currentUser"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with complex nested expression base.
@@ -96,13 +96,13 @@ internal final class ReferenceExpPropertyTests {
         base: Call("getUserManager"),
         propertyName: "currentUser"
       ),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("getUserManager().currentUser"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 }

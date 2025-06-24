@@ -1,5 +1,5 @@
 //
-//  Variable+Modifiers.swift
+//  CaptureReferenceType.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,38 +29,26 @@
 
 import SwiftSyntax
 
-extension Variable {
-  /// Builds the modifiers for the variable declaration.
-  internal func buildModifiers() -> DeclModifierListSyntax {
-    var modifiers: [DeclModifierSyntax] = []
+/// Represents Swift capture reference types for closures.
+public enum CaptureReferenceType: CaseIterable {
+  case weak
+  case unowned
 
-    if isStatic {
-      modifiers.append(buildStaticModifier())
+  /// Returns the corresponding SwiftSyntax Keyword for this capture reference type.
+  public var keyword: Keyword {
+    switch self {
+    case .weak:
+      return .weak
+    case .unowned:
+      return .unowned
     }
-
-    if isAsync {
-      modifiers.append(buildAsyncModifier())
-    }
-
-    if let access = accessModifier {
-      modifiers.append(buildAccessModifier(access))
-    }
-
-    return DeclModifierListSyntax(modifiers)
   }
+}
 
-  /// Builds a static modifier.
-  private func buildStaticModifier() -> DeclModifierSyntax {
-    DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
-  }
-
-  /// Builds an async modifier.
-  private func buildAsyncModifier() -> DeclModifierSyntax {
-    DeclModifierSyntax(name: .keyword(.async, trailingTrivia: .space))
-  }
-
-  /// Builds an access modifier.
-  private func buildAccessModifier(_ access: AccessModifier) -> DeclModifierSyntax {
-    DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
+extension Keyword {
+  /// Creates a Keyword from a CaptureReferenceType.
+  /// - Parameter captureReferenceType: The capture reference type to convert.
+  public init(_ captureReferenceType: CaptureReferenceType) {
+    self = captureReferenceType.keyword
   }
 }

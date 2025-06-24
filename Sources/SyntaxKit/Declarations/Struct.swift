@@ -36,7 +36,7 @@ public struct Struct: CodeBlock {
   private var genericParameter: String?
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
-  private var accessModifier: String?
+  private var accessModifier: AccessModifier?
 
   /// Creates a struct declaration.
   /// - Parameters:
@@ -67,9 +67,9 @@ public struct Struct: CodeBlock {
   }
 
   /// Sets the access modifier for the struct declaration.
-  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Parameter access: The access modifier.
   /// - Returns: A copy of the struct with the access modifier set.
-  public func access(_ access: String) -> Self {
+  public func access(_ access: AccessModifier) -> Self {
     var copy = self
     copy.accessModifier = access
     return copy
@@ -143,24 +143,8 @@ public struct Struct: CodeBlock {
     // Build access modifier
     var modifiers: DeclModifierListSyntax = []
     if let access = accessModifier {
-      let keyword: Keyword
-      switch access {
-      case "public":
-        keyword = .public
-      case "private":
-        keyword = .private
-      case "internal":
-        keyword = .internal
-      case "fileprivate":
-        keyword = .fileprivate
-      default:
-        keyword = .public  // fallback
-        #error(
-          "TODO: Review fallback for unknown access modifier - consider if this should be an error instead"
-        )
-      }
       modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
       ])
     }
 

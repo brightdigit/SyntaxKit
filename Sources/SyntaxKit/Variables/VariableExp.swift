@@ -65,9 +65,9 @@ public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {
   }
 
   /// Creates a reference to this variable.
-  /// - Parameter referenceType: The type of reference (e.g., "weak", "unowned").
+  /// - Parameter referenceType: The type of reference.
   /// - Returns: A reference expression.
-  public func reference(_ referenceType: String) -> CodeBlock {
+  public func reference(_ referenceType: CaptureReferenceType) -> CodeBlock {
     ReferenceExp(base: self, referenceType: referenceType)
   }
 

@@ -1,5 +1,5 @@
 //
-//  Variable+Modifiers.swift
+//  AccessModifier.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,38 +29,35 @@
 
 import SwiftSyntax
 
-extension Variable {
-  /// Builds the modifiers for the variable declaration.
-  internal func buildModifiers() -> DeclModifierListSyntax {
-    var modifiers: [DeclModifierSyntax] = []
+/// Represents Swift access modifiers.
+public enum AccessModifier: CaseIterable {
+  case `public`
+  case `private`
+  case `internal`
+  case `fileprivate`
+  case `open`
 
-    if isStatic {
-      modifiers.append(buildStaticModifier())
+  /// Returns the corresponding SwiftSyntax Keyword for this access modifier.
+  public var keyword: Keyword {
+    switch self {
+    case .public:
+      return .public
+    case .private:
+      return .private
+    case .internal:
+      return .internal
+    case .fileprivate:
+      return .fileprivate
+    case .open:
+      return .open
     }
-
-    if isAsync {
-      modifiers.append(buildAsyncModifier())
-    }
-
-    if let access = accessModifier {
-      modifiers.append(buildAccessModifier(access))
-    }
-
-    return DeclModifierListSyntax(modifiers)
   }
+}
 
-  /// Builds a static modifier.
-  private func buildStaticModifier() -> DeclModifierSyntax {
-    DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
-  }
-
-  /// Builds an async modifier.
-  private func buildAsyncModifier() -> DeclModifierSyntax {
-    DeclModifierSyntax(name: .keyword(.async, trailingTrivia: .space))
-  }
-
-  /// Builds an access modifier.
-  private func buildAccessModifier(_ access: AccessModifier) -> DeclModifierSyntax {
-    DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
+extension Keyword {
+  /// Creates a Keyword from an AccessModifier.
+  /// - Parameter accessModifier: The access modifier to convert.
+  public init(_ accessModifier: AccessModifier) {
+    self = accessModifier.keyword
   }
 }

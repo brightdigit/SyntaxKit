@@ -42,14 +42,14 @@ internal final class ReferenceExpFunctionTests {
   internal func testReferenceWithFunctionCallBase() {
     let reference = ReferenceExp(
       base: Call("getCurrentUser"),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("getCurrentUser()"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with method call base.
@@ -57,14 +57,14 @@ internal final class ReferenceExpFunctionTests {
   internal func testReferenceWithMethodCallBase() {
     let reference = ReferenceExp(
       base: Call("getData"),
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("getData()"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 
   /// Tests reference expression with init call base.
@@ -73,13 +73,13 @@ internal final class ReferenceExpFunctionTests {
     let initCall = Init("String")
     let reference = ReferenceExp(
       base: initCall,
-      referenceType: "weak"
+      referenceType: .weak
     )
 
     let syntax = reference.syntax
     let description = syntax.description
 
     #expect(description.contains("String()"))
-    #expect(reference.captureReferenceType == "weak")
+    #expect(reference.captureReferenceType == .weak)
   }
 }

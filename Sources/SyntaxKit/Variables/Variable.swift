@@ -40,7 +40,7 @@ public struct Variable: CodeBlock {
   internal var isAsync: Bool = false
   private var attributes: [AttributeInfo] = []
   private var explicitType: Bool = false
-  internal var accessModifier: String?
+  internal var accessModifier: AccessModifier?
 
   /// Internal initializer used by extension initializers to reduce code duplication.
   /// - Parameters:
@@ -86,9 +86,9 @@ public struct Variable: CodeBlock {
   }
 
   /// Sets the access modifier for the variable declaration.
-  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Parameter access: The access modifier.
   /// - Returns: A copy of the variable with the access modifier set.
-  public func access(_ access: String) -> Self {
+  public func access(_ access: AccessModifier) -> Self {
     var copy = self
     copy.accessModifier = access
     return copy

@@ -34,7 +34,7 @@ public struct ComputedProperty: CodeBlock {
   private let name: String
   private let type: String
   private let body: [CodeBlock]
-  private var accessModifier: String?
+  private var accessModifier: AccessModifier?
   private let explicitType: Bool
 
   /// Creates a computed property declaration.
@@ -56,9 +56,9 @@ public struct ComputedProperty: CodeBlock {
   }
 
   /// Sets the access modifier for the computed property declaration.
-  /// - Parameter access: The access modifier (e.g., "public", "private").
+  /// - Parameter access: The access modifier.
   /// - Returns: A copy of the computed property with the access modifier set.
-  public func access(_ access: String) -> Self {
+  public func access(_ access: AccessModifier) -> Self {
     var copy = self
     copy.accessModifier = access
     return copy
@@ -96,24 +96,8 @@ public struct ComputedProperty: CodeBlock {
     // Build modifiers
     var modifiers: DeclModifierListSyntax = []
     if let access = accessModifier {
-      let keyword: Keyword
-      switch access {
-      case "public":
-        keyword = .public
-      case "private":
-        keyword = .private
-      case "internal":
-        keyword = .internal
-      case "fileprivate":
-        keyword = .fileprivate
-      default:
-        keyword = .public  // fallback
-        #error(
-          "TODO: Review fallback for unknown access modifier - consider if this should be an error instead"
-        )
-      }
       modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(keyword, trailingTrivia: .space))
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
       ])
     }
 

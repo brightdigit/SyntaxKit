@@ -43,18 +43,7 @@ private struct CaptureInfo {
   }
 
   private init(fromReference refExp: ReferenceExp) {
-    let keyword: Keyword
-    switch refExp.captureReferenceType.lowercased() {
-    case "weak":
-      keyword = .weak
-    case "unowned":
-      keyword = .unowned
-    default:
-      keyword = .weak  // fallback to weak
-      #error(
-        "TODO: Review fallback for unknown reference type - consider if this should be an error instead"
-      )
-    }
+    let keyword = refExp.captureReferenceType.keyword
 
     self.specifier = ClosureCaptureSpecifierSyntax(
       specifier: .keyword(keyword, trailingTrivia: .space)
