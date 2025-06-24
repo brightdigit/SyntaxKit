@@ -48,7 +48,7 @@ extension CodeBlock where Self: DictionaryValue {
   /// Converts this code block to an expression syntax.
   /// If the code block is already an expression, returns it directly.
   /// If it's a token, wraps it in a declaration reference expression.
-  /// Otherwise, throws a fatal error.
+  /// Otherwise, creates a default empty expression to prevent crashes.
   public var exprSyntax: ExprSyntax {
     if let expr = self.syntax.as(ExprSyntax.self) {
       return expr
@@ -58,7 +58,9 @@ extension CodeBlock where Self: DictionaryValue {
       return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(token.text)))
     }
 
-    fatalError("CodeBlock of type \(type(of: self.syntax)) cannot be represented as ExprSyntax")
+    // Fallback for unsupported syntax types - create a default expression
+    // This prevents crashes while still allowing dictionary operations to continue
+    return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
   }
 }
 

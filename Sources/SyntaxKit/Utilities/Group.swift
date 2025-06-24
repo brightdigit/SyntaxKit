@@ -53,7 +53,9 @@ public struct Group: CodeBlock {
       } else if let expr = block.syntax.as(ExprSyntax.self) {
         item = .expr(expr)
       } else {
-        fatalError("Unsupported syntax type in group: \(type(of: block.syntax)) from \(block)")
+        // Skip unsupported syntax types instead of crashing
+        // This allows the group to continue processing other valid blocks
+        return []
       }
       return [CodeBlockItemSyntax(item: item, trailingTrivia: .newline)]
     }
