@@ -39,7 +39,7 @@ public struct Guard: CodeBlock {
   ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
   ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
-    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock] = { [] },
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
     @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
   ) rethrows {
     let allConditions = try condition()
@@ -50,6 +50,19 @@ public struct Guard: CodeBlock {
       self.conditions = allConditions
     }
     self.elseBody = try elseBody()
+  }
+
+  /// Creates a `guard` statement without a condition (uses true as default).
+  /// - Parameters:
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      {
+        // Return empty array using the result builder
+        []
+      }, else: elseBody)
   }
 
   /// Creates a `guard` statement with a string condition.

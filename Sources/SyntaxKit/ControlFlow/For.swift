@@ -40,12 +40,12 @@ public struct For: CodeBlock {
   /// - Parameters:
   ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
   ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
+  ///   - whereClause: A `CodeBlockBuilder` that produces the where clause condition.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
     _ pattern: any CodeBlock & PatternConvertible,
     in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () throws -> [CodeBlock] = { [] },
+    @CodeBlockBuilderResult where whereClause: () throws -> [CodeBlock],
     @CodeBlockBuilderResult then: () throws -> [CodeBlock]
   ) rethrows {
     self.pattern = pattern
@@ -53,6 +53,24 @@ public struct For: CodeBlock {
     let whereBlocks = try whereClause()
     self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
     self.body = try then()
+  }
+
+  /// Creates a `for-in` loop statement without a where clause.
+  /// - Parameters:
+  ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
+  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    _ pattern: any CodeBlock & PatternConvertible,
+    in sequence: CodeBlock,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init(
+      pattern, in: sequence,
+      where: {
+        // Return empty array using the result builder
+        []
+      }, then: then)
   }
 
   public var syntax: SyntaxProtocol {
