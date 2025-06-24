@@ -33,29 +33,41 @@ import SwiftSyntax
 /// This ensures compile-time type safety for expression-based constructs.
 @resultBuilder
 public enum ExprCodeBlockBuilder {
+  /// Builds a single expression code block from the provided expression.
+  /// - Parameter expression: The expression code block to build.
+  /// - Returns: The expression code block unchanged.
   public static func buildBlock(_ expression: any ExprCodeBlock) -> any ExprCodeBlock {
     expression
   }
 
+  /// Builds an expression code block from a single expression.
+  /// - Parameter expression: The expression code block to build.
+  /// - Returns: The expression code block unchanged.
   public static func buildExpression(_ expression: any ExprCodeBlock) -> any ExprCodeBlock {
     expression
   }
 
+  /// Builds an expression code block from the first branch of a conditional.
+  /// - Parameter first: The expression code block from the first branch.
+  /// - Returns: The expression code block from the first branch.
   public static func buildEither(first: any ExprCodeBlock) -> any ExprCodeBlock {
     first
   }
 
+  /// Builds an expression code block from the second branch of a conditional.
+  /// - Parameter second: The expression code block from the second branch.
+  /// - Returns: The expression code block from the second branch.
   public static func buildEither(second: any ExprCodeBlock) -> any ExprCodeBlock {
     second
   }
-//
-//  public static func buildOptional(_ expression: (any ExprCodeBlock)?) -> any ExprCodeBlock {
-//    // This should never be called in practice since we require exactly one expression
-//    fatalError("ExprCodeBlockBuilder requires exactly one expression")
-//  }
-//
-//  public static func buildArray(_ expressions: [any ExprCodeBlock]) -> any ExprCodeBlock {
-//    // This should never be called in practice since we require exactly one expression
-//    fatalError("ExprCodeBlockBuilder requires exactly one expression")
-//  }
+  //
+  //  public static func buildOptional(_ expression: (any ExprCodeBlock)?) -> any ExprCodeBlock {
+  //    // This should never be called in practice since we require exactly one expression
+  //    fatalError("ExprCodeBlockBuilder requires exactly one expression")
+  //  }
+  //
+  //  public static func buildArray(_ expressions: [any ExprCodeBlock]) -> any ExprCodeBlock {
+  //    // This should never be called in practice since we require exactly one expression
+  //    fatalError("ExprCodeBlockBuilder requires exactly one expression")
+  //  }
 }

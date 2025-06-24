@@ -33,41 +33,53 @@ import SwiftSyntax
 /// This ensures compile-time type safety for pattern-based constructs.
 @resultBuilder
 public enum PatternConvertibleBuilder {
+  /// Builds a single pattern convertible code block from the provided pattern.
+  /// - Parameter pattern: The pattern convertible code block to build.
+  /// - Returns: The pattern convertible code block unchanged.
   public static func buildBlock(_ pattern: any CodeBlock & PatternConvertible) -> any CodeBlock
     & PatternConvertible
   {
     pattern
   }
 
+  /// Builds a pattern convertible code block from a single pattern.
+  /// - Parameter pattern: The pattern convertible code block to build.
+  /// - Returns: The pattern convertible code block unchanged.
   public static func buildExpression(_ pattern: any CodeBlock & PatternConvertible) -> any CodeBlock
     & PatternConvertible
   {
     pattern
   }
 
+  /// Builds a pattern convertible code block from the first branch of a conditional.
+  /// - Parameter first: The pattern convertible code block from the first branch.
+  /// - Returns: The pattern convertible code block from the first branch.
   public static func buildEither(first: any CodeBlock & PatternConvertible) -> any CodeBlock
     & PatternConvertible
   {
     first
   }
 
+  /// Builds a pattern convertible code block from the second branch of a conditional.
+  /// - Parameter second: The pattern convertible code block from the second branch.
+  /// - Returns: The pattern convertible code block from the second branch.
   public static func buildEither(second: any CodeBlock & PatternConvertible) -> any CodeBlock
     & PatternConvertible
   {
     second
   }
 
-//  public static func buildOptional(_ pattern: (any CodeBlock & PatternConvertible)?)
-//    -> any CodeBlock & PatternConvertible
-//  {
-//    // This should never be called in practice since we require exactly one pattern
-//    fatalError("PatternConvertibleBuilder requires exactly one pattern")
-//  }
-//
-//  public static func buildArray(_ patterns: [any CodeBlock & PatternConvertible]) -> any CodeBlock
-//    & PatternConvertible
-//  {
-//    // This should never be called in practice since we require exactly one pattern
-//    fatalError("PatternConvertibleBuilder requires exactly one pattern")
-//  }
+  //  public static func buildOptional(_ pattern: (any CodeBlock & PatternConvertible)?)
+  //    -> any CodeBlock & PatternConvertible
+  //  {
+  //    // This should never be called in practice since we require exactly one pattern
+  //    fatalError("PatternConvertibleBuilder requires exactly one pattern")
+  //  }
+  //
+  //  public static func buildArray(_ patterns: [any CodeBlock & PatternConvertible]) -> any CodeBlock
+  //    & PatternConvertible
+  //  {
+  //    // This should never be called in practice since we require exactly one pattern
+  //    fatalError("PatternConvertibleBuilder requires exactly one pattern")
+  //  }
 }

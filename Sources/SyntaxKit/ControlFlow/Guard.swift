@@ -39,7 +39,7 @@ public struct Guard: CodeBlock {
   ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
   ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
-  @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock] = {[]},
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock] = { [] },
     @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
   ) rethrows {
     let allConditions = try condition()

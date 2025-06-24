@@ -35,6 +35,14 @@ public struct If: CodeBlock {
   internal let body: [CodeBlock]
   internal let elseBody: [CodeBlock]?
 
+  /// Convenience initializer that keeps the previous API: pass the condition directly.
+  public init(
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock] = { [] }
+  ) rethrows {
+    try self.init({ Literal.boolean(true) }, then: then, else: elseBody)
+  }
+
   /// Creates an `if` statement with optional `else`.
   /// - Parameters:
   ///   - condition: A single `CodeBlock` produced by the builder that describes the `if` condition.
