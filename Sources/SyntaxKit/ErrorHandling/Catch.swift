@@ -65,6 +65,13 @@ public struct Catch: CodeBlock {
     Catch(enumCase, content)
   }
 
+  /// Creates a catch clause.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the catch clause.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.pattern = nil
+    self.body = try content()
+  }
+
   public var catchClauseSyntax: CatchClauseSyntax {
     // Build catch items (patterns)
     var catchItems: CatchItemListSyntax?

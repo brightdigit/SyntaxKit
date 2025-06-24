@@ -45,12 +45,12 @@ public struct Closure: CodeBlock {
     @ParameterExpBuilderResult capture: () -> [ParameterExp] = { [] },
     @ClosureParameterBuilderResult parameters: () -> [ClosureParameter] = { [] },
     returns returnType: String? = nil,
-    @CodeBlockBuilderResult body: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+  ) rethrows {
     self.capture = capture()
     self.parameters = parameters()
     self.returnType = returnType
-    self.body = body()
+    self.body = try body()
   }
 
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {

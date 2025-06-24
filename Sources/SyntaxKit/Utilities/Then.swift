@@ -46,8 +46,10 @@ public struct Then: CodeBlock {
   /// The statements that make up the `else` body.
   public let body: [CodeBlock]
 
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.body = content()
+  /// Creates a then block.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the then block.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.body = try content()
   }
 
   public var syntax: SyntaxProtocol {

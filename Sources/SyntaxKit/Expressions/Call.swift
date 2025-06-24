@@ -47,9 +47,9 @@ public struct Call: CodeBlock {
   /// - Parameters:
   ///   - functionName: The name of the function to call.
   ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the function call.
-  public init(_ functionName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp]) {
+  public init(_ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]) rethrows {
     self.functionName = functionName
-    self.parameters = params()
+    self.parameters = try params()
   }
 
   /// Marks this function call as throwing.

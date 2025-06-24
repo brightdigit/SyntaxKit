@@ -38,18 +38,18 @@ public struct Switch: CodeBlock {
   /// - Parameters:
   ///   - expression: The expression to switch on.
   ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
-  public init(_ expression: CodeBlock, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  public init(_ expression: CodeBlock, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
     self.expression = expression
-    self.cases = content()
+    self.cases = try content()
   }
 
   /// Convenience initializer that accepts a string expression.
   /// - Parameters:
   ///   - expression: The string expression to switch on.
   ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
-  public init(_ expression: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  public init(_ expression: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
     self.expression = VariableExp(expression)
-    self.cases = content()
+    self.cases = try content()
   }
 
   public var syntax: SyntaxProtocol {

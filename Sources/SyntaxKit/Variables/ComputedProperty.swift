@@ -47,12 +47,12 @@ public struct ComputedProperty: CodeBlock {
     _ name: String,
     type: String,
     explicitType: Bool = true,
-    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
+  ) rethrows {
     self.name = name
     self.type = type
     self.explicitType = explicitType
-    self.body = content()
+    self.body = try content()
   }
 
   /// Sets the access modifier for the computed property declaration.

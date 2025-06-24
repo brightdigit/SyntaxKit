@@ -39,21 +39,18 @@ public struct SwitchCase: CodeBlock {
   ///   - patterns: The patterns to match for the case. Can be `PatternConvertible`,
   ///     `CodeBlock`, or `SwitchLet` for value binding.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(_ patterns: Any..., @CodeBlockBuilderResult content: () -> [CodeBlock]) {
+  public init(_ patterns: Any..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]) rethrows {
     self.patterns = patterns
-    self.body = content()
+    self.body = try content()
   }
 
   /// Creates a `case` for a `switch` statement with a builder closure for the conditional.
   /// - Parameters:
   ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(
-    @CodeBlockBuilderResult conditional: () -> [Any],
-    @CodeBlockBuilderResult content: () -> [CodeBlock]
-  ) {
-    self.patterns = conditional()
-    self.body = content()
+  public init(@CodeBlockBuilderResult conditional: () throws -> [CodeBlock], @CodeBlockBuilderResult content: () throws -> [CodeBlock]) rethrows {
+    self.patterns = try conditional()
+    self.body = try content()
   }
 
   public var switchCaseSyntax: SwitchCaseSyntax {

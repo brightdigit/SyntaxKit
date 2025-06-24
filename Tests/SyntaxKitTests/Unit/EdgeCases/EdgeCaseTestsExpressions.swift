@@ -36,15 +36,15 @@ internal struct EdgeCaseTestsExpressions {
 
   @Test("Infix with complex expressions generates correct syntax")
   internal func testInfixWithComplexExpressions() throws {
-    let infix = try! Infix("*") {
-      Parenthesized {
-        try! Infix("+") {
+    let infix = try Infix("*") {
+      try Parenthesized {
+        try Infix("+") {
           VariableExp("a")
           VariableExp("b")
         }
       }
-      Parenthesized {
-        try! Infix("-") {
+      try Parenthesized {
+        try Infix("-") {
           VariableExp("c")
           VariableExp("d")
         }
@@ -67,8 +67,8 @@ internal struct EdgeCaseTestsExpressions {
 
   @Test("Return with complex expression generates correct syntax")
   internal func testReturnWithComplexExpression() throws {
-    let returnStmt = Return {
-      try! Infix("+") {
+    let returnStmt = try Return {
+      try Infix("+") {
         VariableExp("a")
         VariableExp("b")
       }

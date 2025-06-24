@@ -68,9 +68,9 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
   /// Each operand must conform to ExprCodeBlock.
   @available(*, deprecated, message: "Use separate lhs and rhs parameters for compile-time safety")
-  public init(_ operation: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) throws {
+  public init(_ operation: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) throws {
     self.operation = operation
-    let operands = content()
+    let operands = try content()
 
     guard operands.count == 2 else {
       throw InfixError.wrongOperandCount(expected: 2, got: operands.count)

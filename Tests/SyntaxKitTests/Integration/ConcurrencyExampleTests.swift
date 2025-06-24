@@ -9,7 +9,7 @@ import Testing
     // Build DSL equivalent of Examples/Remaining/concurrency/dsl.swift
     // Note: This test includes the Item struct that's referenced but not defined in the original DSL
 
-    let program = Group {
+    let program = try Group {
       // Item struct (needed for the vending machine)
       Struct("Item") {
         Variable(.let, name: "price", type: "Int").withExplicitType()
@@ -25,7 +25,7 @@ import Testing
       .inherits("Error")
 
       // VendingMachine class
-      Class("VendingMachine") {
+      try Class("VendingMachine") {
         Variable(
           .var,
           name: "inventory",
@@ -55,30 +55,32 @@ import Testing
         )
         Variable(.var, name: "coinsDeposited", equals: 0)
 
-        Function("vend") {
+        try Function("vend") {
           Parameter("name", labeled: "itemNamed", type: "String")
         } _: {
           Guard {
             Let("item", "inventory[name]")
           } else: {
-            Throw(VariableExp("VendingMachineError.invalidSelection"))
+            Throw(
+              EnumCase("VendingMachineError.invalidSelection")
+            )
           }
-          Guard {
-            try! Infix(">") {
+          try Guard {
+            try Infix(">") {
               VariableExp("item").property("count")
               Literal.integer(0)
             }
           } else: {
-            Throw(VariableExp("VendingMachineError.outOfStock"))
+            Throw(EnumCase("VendingMachineError.outOfStock"))
           }
-          Guard {
-            try! Infix("<=") {
+          try Guard {
+            try Infix("<=") {
               VariableExp("item").property("price")
               VariableExp("coinsDeposited")
             }
           } else: {
             Throw(
-              Call("VendingMachineError.insufficientFunds") {
+              try Call("VendingMachineError.insufficientFunds") {
                 ParameterExp(
                   name: "coinsNeeded",
                   value: try! Infix("-") {
@@ -99,8 +101,8 @@ import Testing
             Literal.integer(1)
           }
           Assignment("inventory[name]", .ref("newItem"))
-          Call("print") {
-            ParameterExp(unlabeled: "\"Dispensing \\(name)\"")
+          try Call("print") {
+            ParameterExp(unlabeled: Literal.string("Dispensing \\(name)"))
           }
         }
         .throws()

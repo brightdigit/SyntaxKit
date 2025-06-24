@@ -35,8 +35,8 @@ public struct Return: CodeBlock {
 
   /// Creates a `return` statement.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the expression to return.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.exprs = content()
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.exprs = try content()
   }
   public var syntax: SyntaxProtocol {
     if let expr = exprs.first {

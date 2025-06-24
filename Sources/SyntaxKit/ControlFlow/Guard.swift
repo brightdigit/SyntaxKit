@@ -36,29 +36,40 @@ public struct Guard: CodeBlock {
 
   /// Creates a `guard` statement.
   /// - Parameters:
-  ///   - condition: A builder that returns one or more ``CodeBlock`` items representing the guard
-  ///     conditions.
-  ///   - elseBody: Builder that produces the statements inside the `else` block.
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
-    @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
-    @CodeBlockBuilderResult else elseBody: () -> [CodeBlock]
-  ) {
-    let allConditions = condition()
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    let allConditions = try condition()
     if allConditions.isEmpty {
       // Use true as default condition when no conditions are provided
       self.conditions = [Literal.boolean(true)]
     } else {
       self.conditions = allConditions
     }
-    self.elseBody = elseBody()
+    self.elseBody = try elseBody()
+  }
+
+  /// Creates a `guard` statement with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    _ condition: String,
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    self.conditions = [VariableExp(condition)]
+    self.elseBody = try elseBody()
   }
 
   /// Convenience initializer that accepts a single condition ``CodeBlock``.
   public init(
     _ condition: CodeBlock,
-    @CodeBlockBuilderResult else elseBody: () -> [CodeBlock]
-  ) {
-    self.init({ condition }, else: elseBody)
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
+  ) rethrows {
+    try self.init({ condition }, else: elseBody)
   }
 
   public var syntax: SyntaxProtocol {

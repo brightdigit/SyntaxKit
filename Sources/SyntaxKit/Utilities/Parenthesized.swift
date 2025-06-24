@@ -35,8 +35,8 @@ public struct Parenthesized: CodeBlock, ExprCodeBlock {
 
   /// Creates a parenthesized code block.
   /// - Parameter content: The code block to wrap in parentheses.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    let blocks = content()
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    let blocks = try content()
     precondition(blocks.count == 1, "Parenthesized expects exactly one code block.")
     self.content = blocks[0]
   }

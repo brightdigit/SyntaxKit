@@ -8,7 +8,7 @@ import Testing
   internal func testCompletedForLoopsExample() throws {
     // Build DSL equivalent of Examples/Completed/for_loops/dsl.swift
 
-    let program = Group {
+    let program = try Group {
       // MARK: - Basic For-in Loop
       Variable(
         .let,
@@ -24,7 +24,7 @@ import Testing
         Line("Simple for-in loop over an array")
       }
 
-      For(
+      try For(
         VariableExp("name"),
         in: VariableExp("names"),
         then: {
@@ -42,7 +42,7 @@ import Testing
         Line("MARK: - For-in with Enumerated")
         Line("For-in loop with enumerated() to get index and value")
       }
-      For(
+      try For(
         Tuple.patternCodeBlock([
           VariableExp("index"),
           VariableExp("name"),
@@ -80,12 +80,12 @@ import Testing
         ])
       )
 
-      For(
+      try For(
         VariableExp("number"),
         in: VariableExp("numbers"),
         where: {
-          try! Infix("==") {
-            try! Infix("%") {
+          try Infix("==") {
+            try Infix("%") {
               VariableExp("number")
               Literal.integer(2)
             }
@@ -117,7 +117,7 @@ import Testing
         ])
       )
 
-      For(
+      try For(
         Tuple.patternCodeBlock([
           VariableExp("name"),
           VariableExp("score"),

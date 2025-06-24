@@ -38,13 +38,13 @@ public struct Struct: CodeBlock {
   private var attributes: [AttributeInfo] = []
   private var accessModifier: String?
 
-  /// Creates a `struct` declaration.
+  /// Creates a struct declaration.
   /// - Parameters:
   ///   - name: The name of the struct.
-  ///   - content: A ``CodeBlockBuilder`` that provides the members of the struct.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the struct.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
     self.name = name
-    self.members = content()
+    self.members = try content()
   }
 
   /// Sets the generic parameter for the struct.

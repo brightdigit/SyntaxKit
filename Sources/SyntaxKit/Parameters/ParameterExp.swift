@@ -47,6 +47,7 @@ public struct ParameterExp: CodeBlock {
   /// - Parameters:
   ///   - name: The name of the parameter.
   ///   - value: The string value of the parameter.
+  @available(*, deprecated, message: "Use ParameterExp(name:value:) with Literal.string() or VariableExp() instead")
   public init(name: String, value: String) {
     self.name = name
     self.value = VariableExp(value)
@@ -59,6 +60,7 @@ public struct ParameterExp: CodeBlock {
   }
 
   /// Convenience initializer for unlabeled parameter with a String value.
+  @available(*, deprecated, message: "Use ParameterExp(unlabeled:) with Literal.string() or VariableExp() instead")
   public init(unlabeled value: String) {
     self.name = ""
     self.value = VariableExp(value)

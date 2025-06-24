@@ -8,20 +8,20 @@ import Testing
   internal func testCompletedConditionalsExample() throws {
     // Build DSL equivalent of Examples/Completed/conditionals/dsl.swift
 
-    let program = Group {
+    let program = try Group {
       // MARK: Basic If Statements
       Variable(.let, name: "temperature", equals: 25)
         .comment {
           Line("Simple if statement")
         }
 
-      If {
-        try! Infix(">") {
+      try If {
+        try Infix(">") {
           VariableExp("temperature")
           Literal.integer(30)
         }
       } then: {
-        Call("print") {
+        try Call("print") {
           ParameterExp(unlabeled: "\"It's hot outside!\"")
         }
       }
@@ -32,37 +32,37 @@ import Testing
           Line("If-else statement")
         }
 
-      If {
-        try! Infix(">=") {
+      try If {
+        try Infix(">=") {
           VariableExp("score")
           Literal.integer(90)
         }
       } then: {
-        Call("print") {
+        try Call("print") {
           ParameterExp(unlabeled: "\"Excellent!\"")
         }
       } else: {
-        If {
-          try! Infix(">=") {
+        try If {
+          try Infix(">=") {
             VariableExp("score")
             Literal.integer(80)
           }
         } then: {
-          Call("print") {
+          try Call("print") {
             ParameterExp(unlabeled: "\"Good job!\"")
           }
         } else: {
-          If {
-            try! Infix(">=") {
+          try If {
+            try Infix(">=") {
               VariableExp("score")
               Literal.integer(70)
             }
           } then: {
-            Call("print") {
+            try Call("print") {
               ParameterExp(unlabeled: "\"Passing\"")
             }
           } else: {
-            Call("print") {
+            try Call("print") {
               ParameterExp(unlabeled: "\"Needs improvement\"")
             }
           }
@@ -76,10 +76,10 @@ import Testing
           Line("Using if let for optional binding")
         }
 
-      If(
+      try If(
         Let("actualNumber", "Int(possibleNumber)"),
         then: {
-          Call("print") {
+          try Call("print") {
             ParameterExp(
               name: "",
               value:
@@ -88,7 +88,7 @@ import Testing
           }
         },
         else: {
-          Call("print") {
+          try Call("print") {
             ParameterExp(
               name: "",
               value: "\"The string \"\\(possibleNumber)\" could not be converted to an integer\""
@@ -106,11 +106,11 @@ import Testing
       Variable(.let, name: "possibleAge", type: "Int?", equals: Literal.integer(30))
         .withExplicitType()
 
-      If {
+      try If {
         Let("name", "possibleName")
         Let("age", "possibleAge")
       } then: {
-        Call("print") {
+        try Call("print") {
           ParameterExp(name: "", value: "\"\\(name) is \\(age) years old\"")
         }
       }
@@ -495,5 +495,57 @@ import Testing
       .normalize()
 
     #expect(generated == expected)
+  }
+
+  @Test("Conditionals example generates correct syntax")
+  internal func testConditionalsExample() throws {
+    let ifStatement = try If {
+      try Infix(">") {
+        VariableExp("temperature")
+        Literal.integer(30)
+      }
+    } then: {
+      try Call("print") {
+        ParameterExp(unlabeled: "It's hot!")
+      }
+    } else: {
+      try If {
+        try Infix(">=") {
+          VariableExp("score")
+          Literal.integer(90)
+        }
+      } then: {
+        try Call("print") {
+          ParameterExp(unlabeled: "Excellent!")
+        }
+      } else: {
+        try If {
+          try Infix(">=") {
+            VariableExp("score")
+            Literal.integer(80)
+          }
+        } then: {
+          try Call("print") {
+            ParameterExp(unlabeled: "Good!")
+          }
+        } else: {
+          try If {
+            try Infix(">=") {
+              VariableExp("score")
+              Literal.integer(70)
+            }
+          } then: {
+            try Call("print") {
+              ParameterExp(unlabeled: "Pass")
+            }
+          } else: {
+            try Call("print") {
+              ParameterExp(unlabeled: "Fail")
+            }
+          }
+        }
+      }
+    }
+    // ... rest of the test ...
   }
 }

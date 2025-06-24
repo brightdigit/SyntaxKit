@@ -126,7 +126,6 @@ import Testing
     )
 
     let weakGenerated = weakClosure.syntax.description
-    print("Weak closure generated:\n\(weakGenerated)")
     #expect(weakGenerated.contains("[weak self]"))
 
     // Test unowned reference in closure capture
@@ -142,7 +141,6 @@ import Testing
     )
 
     let unownedGenerated = unownedClosure.syntax.description
-    print("Unowned closure generated:\n\(unownedGenerated)")
     #expect(unownedGenerated.contains("[unowned self]"))
   }
 }

@@ -70,7 +70,7 @@ internal struct BlackjackTests {
   }
 
   @Test internal func testFullBlackjackCardExample() throws {
-    let syntax = Struct("BlackjackCard") {
+    let syntax = try Struct("BlackjackCard") {
       Enum("Suit") {
         EnumCase("spades").equals("♠")
         EnumCase("hearts").equals("♡")
@@ -130,10 +130,10 @@ internal struct BlackjackTests {
 
       Variable(.let, name: "rank", type: "Rank")
       Variable(.let, name: "suit", type: "Suit")
-      ComputedProperty("description", type: "String") {
+      try ComputedProperty("description", type: "String") {
         VariableDecl(.var, name: "output", equals: "suit is \\(suit.rawValue),")
         PlusAssign("output", " value is \\(rank.values.first)")
-        If(
+        try If(
           Let("second", "rank.values.second"),
           then: {
             PlusAssign("output", " or \\(second)")

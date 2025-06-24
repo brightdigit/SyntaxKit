@@ -33,6 +33,7 @@ import SwiftSyntax
 public struct While: CodeBlock {
   private let condition: any ExprCodeBlock
   private let body: [CodeBlock]
+  private let isRepeatWhile: Bool
 
   /// Creates a `while` loop statement with an expression condition.
   /// - Parameters:
@@ -44,6 +45,7 @@ public struct While: CodeBlock {
   ) {
     self.condition = condition
     self.body = then()
+    self.isRepeatWhile = false
   }
 
   /// Creates a `while` loop statement with a builder closure for the condition.
@@ -56,26 +58,55 @@ public struct While: CodeBlock {
   ) {
     self.condition = condition()
     self.body = then()
+    self.isRepeatWhile = false
   }
 
-  /// Legacy initializer for backward compatibility.
+  /// Creates a `while` loop.
   /// - Parameters:
-  ///   - condition: A `CodeBlockBuilder` that produces the condition expression.
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  @available(*, deprecated, message: "Use ExprCodeBlockBuilder instead for compile-time safety")
   public init(
-    @CodeBlockBuilderResult _ condition: () -> [CodeBlock],
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    let conditions = condition()
-    guard conditions.count == 1 else {
-      fatalError("While requires exactly one condition CodeBlock")
-    }
-    guard let exprCondition = conditions[0] as? any ExprCodeBlock else {
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    let conditionBlocks = try condition()
+    guard let firstCondition = conditionBlocks.first as? any ExprCodeBlock else {
       fatalError("While condition must conform to ExprCodeBlock protocol")
     }
-    self.condition = exprCondition
-    self.body = then()
+    self.condition = firstCondition
+    self.body = try then()
+    self.isRepeatWhile = false
+  }
+
+  /// Creates a `while` loop with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    _ condition: String,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    self.condition = VariableExp(condition)
+    self.body = try then()
+    self.isRepeatWhile = false
+  }
+
+  /// Creates a `repeat-while` loop.
+  /// - Parameters:
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    repeat: Void,
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
+    let conditionBlocks = try condition()
+    guard let firstCondition = conditionBlocks.first as? any ExprCodeBlock else {
+      fatalError("While condition must conform to ExprCodeBlock protocol")
+    }
+    self.condition = firstCondition
+    self.body = try then()
+    self.isRepeatWhile = true
   }
 
   public var syntax: SyntaxProtocol {

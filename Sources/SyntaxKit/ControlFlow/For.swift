@@ -7,7 +7,7 @@
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the “Software”), to deal in the Software without
+//  files (the "Software"), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -45,62 +45,14 @@ public struct For: CodeBlock {
   public init(
     _ pattern: any CodeBlock & PatternConvertible,
     in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () -> [CodeBlock] = { [] },
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
+    @CodeBlockBuilderResult where whereClause: () throws -> [CodeBlock] = { [] },
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+  ) rethrows {
     self.pattern = pattern
     self.sequence = sequence
-    let whereBlocks = whereClause()
+    let whereBlocks = try whereClause()
     self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
-    self.body = then()
-  }
-
-  /// Creates a `for-in` loop statement with a closure-based pattern.
-  /// - Parameters:
-  ///   - pattern: A `CodeBlockBuilder` that produces exactly one pattern for the loop variable(s).
-  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
-  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  public init(
-    @PatternConvertibleBuilder _ pattern: () -> any CodeBlock & PatternConvertible,
-    in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () -> [CodeBlock] = { [] },
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    self.pattern = pattern()
-    self.sequence = sequence
-    let whereBlocks = whereClause()
-    self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
-    self.body = then()
-  }
-
-  /// Legacy initializer for backward compatibility.
-  /// - Parameters:
-  ///   - pattern: A `CodeBlockBuilder` that produces the pattern for the loop variable(s).
-  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - whereClause: An optional `CodeBlockBuilder` that produces the where clause condition.
-  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  @available(
-    *, deprecated, message: "Use PatternConvertibleBuilder instead for compile-time safety"
-  )
-  public init(
-    @CodeBlockBuilderResult _ pattern: () -> [CodeBlock],
-    in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () -> [CodeBlock] = { [] },
-    @CodeBlockBuilderResult then: () -> [CodeBlock]
-  ) {
-    let patterns = pattern()
-    guard patterns.count == 1 else {
-      fatalError("For requires exactly one pattern CodeBlock")
-    }
-    guard let patternBlock = patterns[0] as? (any CodeBlock & PatternConvertible) else {
-      fatalError("For pattern must implement both CodeBlock and PatternConvertible protocols")
-    }
-    self.pattern = patternBlock
-    self.sequence = sequence
-    let whereBlocks = whereClause()
-    self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
-    self.body = then()
+    self.body = try then()
   }
 
   public var syntax: SyntaxProtocol {

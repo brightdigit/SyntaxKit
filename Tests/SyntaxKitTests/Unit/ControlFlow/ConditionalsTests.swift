@@ -47,4 +47,32 @@ import Testing
     #expect(generated.contains("else if score >= 80".normalize()))
     #expect(generated.contains("else {".normalize()))
   }
+
+  @Test("If with multiple conditions generates correct syntax")
+  internal func testIfWithMultipleConditions() throws {
+    let ifStatement = try If {
+      try Infix(">=") {
+        VariableExp("score")
+        Literal.integer(90)
+      }
+    } then: {
+      try Call("print") {
+        ParameterExp(unlabeled: "Excellent!")
+      }
+    } else: {
+      try If {
+        try Infix(">=") {
+          VariableExp("score")
+          Literal.integer(80)
+        }
+      } then: {
+        try Call("print") {
+          ParameterExp(unlabeled: "Good!")
+        }
+      }
+    }
+    let generated = ifStatement.generateCode()
+    #expect(generated.contains("if score >= 90"))
+    #expect(generated.contains("else if score >= 80"))
+  }
 }

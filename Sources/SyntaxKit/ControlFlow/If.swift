@@ -62,10 +62,48 @@ public struct If: CodeBlock {
   /// Convenience initializer that keeps the previous API: pass the condition directly.
   public init(
     _ condition: CodeBlock,
-    @CodeBlockBuilderResult then: () -> [CodeBlock],
-    @CodeBlockBuilderResult else elseBody: () -> [CodeBlock] = { [] }
-  ) {
-    self.init({ condition }, then: then, else: elseBody)
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock] = { [] }
+  ) rethrows {
+    try self.init({ condition }, then: then, else: elseBody)
+  }
+
+  /// Creates an `if` statement.
+  /// - Parameters:
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock] = { [] }
+  ) rethrows {
+    let allConditions = try condition()
+    if allConditions.isEmpty {
+      // Use true as default condition when no conditions are provided
+      self.conditions = [Literal.boolean(true)]
+    } else {
+      self.conditions = allConditions
+    }
+    self.body = try then()
+    let generatedElse = try elseBody()
+    self.elseBody = generatedElse.isEmpty ? nil : generatedElse
+  }
+
+  /// Creates an `if` statement with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
+  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    _ condition: String,
+    @CodeBlockBuilderResult then: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock] = { [] }
+  ) rethrows {
+    self.conditions = [VariableExp(condition)]
+    self.body = try then()
+    let generatedElse = try elseBody()
+    self.elseBody = generatedElse.isEmpty ? nil : generatedElse
   }
 
   public var syntax: SyntaxProtocol {

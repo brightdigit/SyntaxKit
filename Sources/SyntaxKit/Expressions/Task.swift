@@ -34,10 +34,10 @@ public struct Task: CodeBlock {
   private let body: [CodeBlock]
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a Task expression.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the task.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
-    self.body = content()
+  /// Creates a Task block.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the Task.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+    self.body = try content()
   }
 
   /// Adds an attribute to the task.
