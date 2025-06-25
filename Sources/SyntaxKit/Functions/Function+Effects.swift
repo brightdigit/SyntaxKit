@@ -41,7 +41,7 @@ extension Function {
   }
 
   /// Marks the function as `throws` or `rethrows`.
-  /// - Parameter rethrows: Pass `true` to emit `rethrows` instead of `throws`.
+  /// - Parameter isRethrows: Pass `true` to emit `rethrows` instead of `throws`.
   public func `throws`(isRethrows: Bool = false) -> Self {
     var copy = self
     switch effect {
@@ -74,7 +74,7 @@ extension Function {
   }
 
   /// Marks the function as `async throws` or `async rethrows`.
-  /// - Parameter rethrows: Pass `true` to emit `async rethrows`.
+  /// - Parameter isRethrows: Pass `true` to emit `async rethrows`.
   public func asyncThrows(isRethrows: Bool = false) -> Self {
     var copy = self
     copy.effect = .asyncThrows(isRethrows: isRethrows, errorType: nil)

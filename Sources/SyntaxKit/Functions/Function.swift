@@ -60,7 +60,7 @@ public struct Function: CodeBlock {
   /// - Parameters:
   ///   - name: The name of the function.
   ///   - returnType: The return type of the function, if any.
-  ///   - params: A ``ParameterBuilder`` that provides the parameters of the function.
+  ///   - params: A ``ParameterBuilderResult`` that provides the parameters of the function.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the function.
   public init(
     _ name: String,
@@ -77,7 +77,7 @@ public struct Function: CodeBlock {
   /// Creates a `func` declaration with parameters and body using the DSL syntax.
   /// - Parameters:
   ///   - name: The name of the function.
-  ///   - params: A ``ParameterBuilder`` that provides the parameters of the function.
+  ///   - params: A ``ParameterBuilderResult`` that provides the parameters of the function.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the function.
   public init(
     _ name: String,

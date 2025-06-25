@@ -46,7 +46,7 @@ public struct Call: CodeBlock {
   /// Creates a global function call expression with parameters.
   /// - Parameters:
   ///   - functionName: The name of the function to call.
-  ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the function call.
+  ///   - params: A ``ParameterExpBuilderResult`` that provides the parameters for the function call.
   public init(
     _ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]
   ) rethrows {

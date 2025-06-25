@@ -63,7 +63,7 @@ public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {
   /// Calls a method on the variable with parameters.
   /// - Parameters:
   ///  - methodName: The name of the method to call.
-  ///  - params: A ``ParameterExpBuilder`` that provides the parameters for the method call.
+  ///  - params: A ``ParameterExpBuilderResult`` that provides the parameters for the method call.
   /// - Returns: A code block that represents the method call.
   public func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp])
     -> CodeBlock

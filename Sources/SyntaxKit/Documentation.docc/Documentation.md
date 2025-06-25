@@ -187,6 +187,9 @@ struct BlackjackCard {
 
 ## Topics
 
+### Tutorials
+- <doc:Creating-Macros-with-SyntaxKit>
+
 ### Declarations
 - ``AccessModifier``
 - ``Class``

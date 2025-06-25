@@ -125,7 +125,7 @@ public struct If: CodeBlock {
   /// - Parameters:
   ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
   ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
-  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
     @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
     @CodeBlockBuilderResult then: () throws -> [CodeBlock],
@@ -162,7 +162,7 @@ public struct If: CodeBlock {
   /// - Parameters:
   ///   - condition: The condition as a string.
   ///   - then: A ``CodeBlockBuilder`` that provides the body when the condition is true.
-  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
     _ condition: String,
     @CodeBlockBuilderResult then: () throws -> [CodeBlock],

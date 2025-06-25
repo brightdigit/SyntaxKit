@@ -36,7 +36,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: A literal value that conforms to ``LiteralValue``.
+  ///   - value: A literal value that conforms to ``LiteralValue``.
   public init<T: CodeBlockable & LiteralValue>(
     _ kind: VariableKind, name: String, equals value: T
   ) {
@@ -53,7 +53,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: A string literal value.
+  ///   - value: A string literal value.
   public init(
     _ kind: VariableKind, name: String, equals value: String
   ) {
@@ -70,7 +70,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: An integer literal value.
+  ///   - value: An integer literal value.
   public init(
     _ kind: VariableKind, name: String, equals value: Int
   ) {
@@ -87,7 +87,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: A boolean literal value.
+  ///   - value: A boolean literal value.
   public init(
     _ kind: VariableKind, name: String, equals value: Bool
   ) {
@@ -104,7 +104,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: A double literal value.
+  ///   - value: A double literal value.
   public init(
     _ kind: VariableKind, name: String, equals value: Double
   ) {
@@ -121,7 +121,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: A Literal value.
+  ///   - value: A Literal value.
   public init(
     _ kind: VariableKind, name: String, equals value: Literal
   ) {

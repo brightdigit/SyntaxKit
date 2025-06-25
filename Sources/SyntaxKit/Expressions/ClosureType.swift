@@ -36,7 +36,7 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
   private var attributes: [AttributeInfo] = []
 
   /// Creates a closure type with no parameters.
-  /// - Parameter returns: The return type of the closure.
+  /// - Parameter returnType: The return type of the closure.
   public init(returns returnType: String? = nil) {
     self.parameters = []
     self.returnType = returnType
@@ -44,7 +44,7 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
 
   /// Creates a closure type with parameters.
   /// - Parameters:
-  ///   - returns: The return type of the closure.
+  ///   - returnType: The return type of the closure.
   ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the parameters.
   public init(
     returns returnType: String? = nil,

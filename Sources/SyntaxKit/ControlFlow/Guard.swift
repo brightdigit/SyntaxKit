@@ -37,7 +37,7 @@ public struct Guard: CodeBlock {
   /// Creates a `guard` statement.
   /// - Parameters:
   ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
-  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
     @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
     @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
@@ -54,7 +54,7 @@ public struct Guard: CodeBlock {
 
   /// Creates a `guard` statement without a condition (uses true as default).
   /// - Parameters:
-  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
     @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
   ) rethrows {
@@ -67,7 +67,7 @@ public struct Guard: CodeBlock {
   /// Creates a `guard` statement with a string condition.
   /// - Parameters:
   ///   - condition: The condition as a string.
-  ///   - else: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
     _ condition: String,
     @CodeBlockBuilderResult else elseBody: () throws -> [CodeBlock]
