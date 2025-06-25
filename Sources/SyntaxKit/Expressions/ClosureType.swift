@@ -46,7 +46,7 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
   /// - Parameters:
   ///   - returns: The return type of the closure.
   ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the parameters.
-  internal init(
+  public init(
     returns returnType: String? = nil,
     @ClosureParameterBuilderResult _ parameters: () -> [ClosureParameter]
   ) {

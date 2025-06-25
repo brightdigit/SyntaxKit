@@ -30,14 +30,14 @@
 import SwiftSyntax
 
 /// An expression that calls a function.
-public struct FunctionCallExp: CodeBlock {
+internal struct FunctionCallExp: CodeBlock {
   internal let baseName: String
   internal let methodName: String
   internal let parameters: [ParameterExp]
   private let base: CodeBlock?
 
   /// Creates a function call expression on a variable name.
-  public init(baseName: String, methodName: String) {
+  internal init(baseName: String, methodName: String) {
     self.baseName = baseName
     self.methodName = methodName
     self.parameters = []
@@ -45,7 +45,7 @@ public struct FunctionCallExp: CodeBlock {
   }
 
   /// Creates a function call expression with parameters on a variable name.
-  public init(baseName: String, methodName: String, parameters: [ParameterExp]) {
+  internal init(baseName: String, methodName: String, parameters: [ParameterExp]) {
     self.baseName = baseName
     self.methodName = methodName
     self.parameters = parameters
@@ -53,14 +53,14 @@ public struct FunctionCallExp: CodeBlock {
   }
 
   /// Creates a function call expression on an arbitrary base expression.
-  public init(base: CodeBlock, methodName: String, parameters: [ParameterExp] = []) {
+  internal init(base: CodeBlock, methodName: String, parameters: [ParameterExp] = []) {
     self.baseName = ""
     self.methodName = methodName
     self.parameters = parameters
     self.base = base
   }
 
-  public var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     let baseExpr: ExprSyntax
     if let base = base {
       if let exprSyntax = base.syntax.as(ExprSyntax.self) {

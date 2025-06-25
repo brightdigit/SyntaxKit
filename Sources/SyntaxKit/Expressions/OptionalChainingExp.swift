@@ -29,21 +29,21 @@
 
 import SwiftSyntax
 
-/// A Swift optional chaining expression (e.g., `self?`).
-public struct OptionalChainingExp: CodeBlock {
-  private let base: CodeBlock
+/// An expression that performs optional chaining.
+internal struct OptionalChainingExp: CodeBlock {
+  internal let base: CodeBlock
 
   /// Creates an optional chaining expression.
   /// - Parameter base: The base expression to make optional.
-  public init(base: CodeBlock) {
+  internal init(base: CodeBlock) {
     self.base = base
   }
 
-  public var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     // Convert base.syntax to ExprSyntax more safely
     let baseExpr: ExprSyntax
-    if let exprSyntax = base.syntax.as(ExprSyntax.self) {
-      baseExpr = exprSyntax
+    if let expr = base.syntax.as(ExprSyntax.self) {
+      baseExpr = expr
     } else {
       // Fallback to a default expression if conversion fails
       #warning(
@@ -51,11 +51,6 @@ public struct OptionalChainingExp: CodeBlock {
       )
       baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     }
-
-    // Add optional chaining operator
-    return PostfixOperatorExprSyntax(
-      expression: baseExpr,
-      operator: .postfixOperator("?", trailingTrivia: [])
-    )
+    return OptionalChainingExprSyntax(expression: baseExpr)
   }
 }

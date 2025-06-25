@@ -121,18 +121,18 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable {
     exprSyntax
   }
 
-  /// Calls a method on the initialized object.
+  /// Calls a method on this initializer.
   /// - Parameter methodName: The name of the method to call.
-  /// - Returns: A ``FunctionCallExp`` that represents the method call.
+  /// - Returns: A code block that represents the method call.
   public func call(_ methodName: String) -> CodeBlock {
     FunctionCallExp(base: self, methodName: methodName)
   }
 
-  /// Calls a method on the initialized object with parameters.
+  /// Calls a method on this initializer with parameters.
   /// - Parameters:
   ///  - methodName: The name of the method to call.
   ///  - params: A ``ParameterExpBuilder`` that provides the parameters for the method call.
-  /// - Returns: A ``FunctionCallExp`` that represents the method call.
+  /// - Returns: A code block that represents the method call.
   public func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp])
     -> CodeBlock
   {

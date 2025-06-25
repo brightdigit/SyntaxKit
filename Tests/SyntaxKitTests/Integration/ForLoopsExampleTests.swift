@@ -1,7 +1,6 @@
 import Foundation
 import Testing
-
-@testable import SyntaxKit
+import SyntaxKit
 
 @Suite internal struct ForLoopsExampleTests {
   @Test("Completed for loops DSL generates expected Swift code")
