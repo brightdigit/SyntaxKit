@@ -3,6 +3,7 @@
 
 import PackageDescription
 
+// swiftlint:disable:next explicit_top_level_acl explicit_acl
 let package = Package(
   name: "SyntaxKit",
   platforms: [
@@ -23,7 +24,8 @@ let package = Package(
     ),
   ],
   dependencies: [
-    .package(url: "https://github.com/apple/swift-syntax.git", from: "601.0.1")
+    .package(url: "https://github.com/apple/swift-syntax.git", from: "601.0.1"),
+    .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0")
   ],
   targets: [
     .target(

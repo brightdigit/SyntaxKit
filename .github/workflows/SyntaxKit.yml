@@ -122,7 +122,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-mint-  
       - name: Install mint
-        if: steps.cache-mint.outputs.cache-hit != 'true'
+        if: steps.cache-mint.outputs.cache-hit == ''
         run: |
           git clone https://github.com/yonaskolb/Mint.git
           cd Mint

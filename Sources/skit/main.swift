@@ -31,7 +31,8 @@ import Foundation
 import SyntaxKit
 
 // Read Swift code from stdin
-let code = String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
+internal let code =
+  String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
 
 do {
   // Parse the code using SyntaxKit
