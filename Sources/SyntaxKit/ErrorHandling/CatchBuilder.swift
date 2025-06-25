@@ -77,7 +77,7 @@ import SwiftSyntax
 /// The builder produces `CatchClauseListSyntax` which is directly compatible with SwiftSyntax's
 /// `DoStmtSyntax`, enabling seamless integration with the Swift compiler's syntax tree.
 @resultBuilder
-public enum CatchBuilder {
+public enum CatchBuilder: Sendable, Equatable {
   /// Combines multiple catch clauses into a `CatchClauseListSyntax`.
   ///
   /// This method is called by the result builder when multiple catch clauses are provided

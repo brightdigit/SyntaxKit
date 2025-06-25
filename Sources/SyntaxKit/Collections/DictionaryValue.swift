@@ -29,9 +29,8 @@
 
 import SwiftSyntax
 
-/// A protocol for types that can be used as dictionary keys or values.
-/// This includes both Literal types and CodeBlock types that can be converted to expressions.
-public protocol DictionaryValue {
+/// A protocol for types that can be used as dictionary values.
+public protocol DictionaryValue: Sendable {
   /// The expression syntax representation of this dictionary value.
   var exprSyntax: ExprSyntax { get }
 }

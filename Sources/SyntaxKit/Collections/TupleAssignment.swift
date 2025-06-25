@@ -31,7 +31,7 @@ import Foundation
 import SwiftSyntax
 
 /// A tuple assignment statement for destructuring multiple values.
-public struct TupleAssignment: CodeBlock {
+internal struct TupleAssignment: CodeBlock {
   private let elements: [String]
   private let value: CodeBlock
   private var isAsync: Bool = false
@@ -42,14 +42,14 @@ public struct TupleAssignment: CodeBlock {
   /// - Parameters:
   ///   - elements: The names of the variables to destructure into.
   ///   - value: The expression to destructure.
-  public init(_ elements: [String], equals value: CodeBlock) {
+  internal init(_ elements: [String], equals value: CodeBlock) {
     self.elements = elements
     self.value = value
   }
 
   /// Marks this destructuring as async.
   /// - Returns: A copy of the destructuring marked as async.
-  public func async() -> Self {
+  internal func async() -> Self {
     var copy = self
     copy.isAsync = true
     return copy
@@ -57,7 +57,7 @@ public struct TupleAssignment: CodeBlock {
 
   /// Marks this destructuring as throwing.
   /// - Returns: A copy of the destructuring marked as throwing.
-  public func throwing() -> Self {
+  internal func throwing() -> Self {
     var copy = self
     copy.isThrowing = true
     return copy
@@ -65,14 +65,14 @@ public struct TupleAssignment: CodeBlock {
 
   /// Marks this destructuring as concurrent async (async let set).
   /// - Returns: A copy of the destructuring marked as async set.
-  public func asyncSet() -> Self {
+  internal func asyncSet() -> Self {
     var copy = self
     copy.isAsyncSet = true
     return copy
   }
 
   /// The syntax representation of this tuple assignment.
-  public var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     if isAsyncSet {
       return generateAsyncSetSyntax()
     }

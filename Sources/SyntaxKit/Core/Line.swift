@@ -30,9 +30,9 @@
 import SwiftSyntax
 
 /// Represents a single comment line that can be attached to a syntax node.
-public struct Line {
+public struct Line: Sendable, Equatable {
   /// The kind of comment line.
-  public enum Kind {
+  public enum Kind: Sendable, Equatable {
     /// Regular line comment that starts with `//`.
     case line
     /// Documentation line comment that starts with `///`.

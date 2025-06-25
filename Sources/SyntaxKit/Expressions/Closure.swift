@@ -43,8 +43,8 @@ public struct Closure: CodeBlock {
 
   /// Creates a closure with all parameters.
   /// - Parameters:
-  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
-  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - capture: A ``ParameterExpBuilderResult`` that provides the capture list.
+  ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the closure parameters.
   ///   - returnType: The return type of the closure.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
@@ -61,8 +61,8 @@ public struct Closure: CodeBlock {
 
   /// Creates a closure without a return type.
   /// - Parameters:
-  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
-  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - capture: A ``ParameterExpBuilderResult`` that provides the capture list.
+  ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the closure parameters.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     @ParameterExpBuilderResult capture: () -> [ParameterExp],
@@ -74,7 +74,7 @@ public struct Closure: CodeBlock {
 
   /// Creates a closure without parameters.
   /// - Parameters:
-  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
+  ///   - capture: A ``ParameterExpBuilderResult`` that provides the capture list.
   ///   - returnType: The return type of the closure.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
@@ -92,7 +92,7 @@ public struct Closure: CodeBlock {
 
   /// Creates a closure without parameters and return type.
   /// - Parameters:
-  ///   - capture: A ``ParameterExpBuilder`` that provides the capture list.
+  ///   - capture: A ``ParameterExpBuilderResult`` that provides the capture list.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     @ParameterExpBuilderResult capture: () -> [ParameterExp],
@@ -108,7 +108,7 @@ public struct Closure: CodeBlock {
 
   /// Creates a closure without capture list and return type.
   /// - Parameters:
-  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the closure parameters.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
@@ -124,7 +124,7 @@ public struct Closure: CodeBlock {
 
   /// Creates a closure without capture list.
   /// - Parameters:
-  ///   - parameters: A ``ClosureParameterBuilder`` that provides the closure parameters.
+  ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the closure parameters.
   ///   - returnType: The return type of the closure.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(

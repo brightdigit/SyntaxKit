@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `enum` declaration.
-public struct Enum: CodeBlock {
+public struct Enum: CodeBlock, Sendable {
   private let name: String
   private let members: [CodeBlock]
   private var inheritance: [String] = []

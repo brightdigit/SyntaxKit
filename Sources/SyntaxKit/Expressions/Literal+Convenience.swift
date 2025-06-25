@@ -43,10 +43,10 @@ extension Literal {
   }
 
   /// Converts a Literal.tuple to a TupleLiteral for use in Variable declarations.
-  public var asTupleLiteral: TupleLiteral? {
+  public var asTupleLiteral: CodeBlockableLiteral? {
     switch self {
     case .tuple(let elements):
-      return TupleLiteral(elements)
+      return TupleLiteralArray(elements)
     default:
       return nil
     }

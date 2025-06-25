@@ -1,6 +1,5 @@
+import SyntaxKit
 import Testing
-
-@testable import SyntaxKit
 
 @Suite
 internal struct BlackjackCardTests {

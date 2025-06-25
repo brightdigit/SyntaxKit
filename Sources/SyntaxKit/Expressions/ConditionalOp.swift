@@ -37,9 +37,9 @@ public struct ConditionalOp: CodeBlock {
 
   /// Creates a ternary conditional operator expression.
   /// - Parameters:
-  ///   - if: The condition expression.
-  ///   - then: The expression to evaluate if the condition is true.
-  ///   - else: The expression to evaluate if the condition is false.
+  ///   - condition: The condition expression.
+  ///   - thenExpression: The expression to evaluate if the condition is true.
+  ///   - elseExpression: The expression to evaluate if the condition is false.
   public init(
     if condition: CodeBlock,
     then thenExpression: CodeBlock,

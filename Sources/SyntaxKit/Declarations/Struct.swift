@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `struct` declaration.
-public struct Struct: CodeBlock {
+public struct Struct: CodeBlock, Sendable {
   private let name: String
   private let members: [CodeBlock]
   private var genericParameter: String?

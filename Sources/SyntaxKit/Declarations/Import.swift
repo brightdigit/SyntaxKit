@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `import` declaration.
-public struct Import: CodeBlock {
+public struct Import: CodeBlock, Sendable {
   private let moduleName: String
   private var accessModifier: AccessModifier?
   private var attributes: [AttributeInfo] = []

@@ -187,40 +187,91 @@ struct BlackjackCard {
 
 ## Topics
 
-### Declarations
+### Tutorials
+- <doc:Creating-Macros-with-SyntaxKit>
 
-- ``Struct``
-- ``Enum``
-- ``EnumCase``
-- ``Function``
-- ``Init``
-- ``ComputedProperty``
-- ``VariableDecl``
-- ``Let``
-- ``Variable``
-- ``Extension``
+### Declarations
+- ``AccessModifier``
 - ``Class``
+- ``ComputedProperty``
+- ``Enum``
+- ``Extension``
+- ``Function``
+- ``FunctionRequirement``
+- ``Group``
+- ``Import``
+- ``Let``
+- ``Parameter``
+- ``PropertyRequirement``
 - ``Protocol``
+- ``Struct``
 - ``Tuple``
 - ``TypeAlias``
-- ``Infix``
-- ``PropertyRequirement``
-- ``FunctionRequirement``
+- ``Variable``
+- ``VariableKind``
 
 ### Expressions & Statements
 - ``Assignment``
+- ``Call``
+- ``CaptureReferenceType``
+- ``Closure``
+- ``ClosureParameter``
+- ``ClosureType``
+- ``ConditionalOp``
+- ``EnumCase``
+- ``Infix``
+- ``Init``
+- ``Line``
+- ``Parenthesized``
+- ``ParameterExp``
 - ``PlusAssign``
 - ``Return``
 - ``VariableExp``
 
 ### Control Flow
+- ``Break``
+- ``Case``
+- ``Continue``
+- ``Default``
+- ``Do``
+- ``Fallthrough``
+- ``For``
+- ``Guard``
 - ``If``
+- ``Pattern``
 - ``Switch``
 - ``SwitchCase``
-- ``Default``
+- ``SwitchLet``
+- ``Then``
+- ``While``
+
+### Error Handling
+- ``Catch``
+- ``Throw``
 
 ### Building Blocks
+- ``Attribute``
 - ``CodeBlock``
-- ``Parameter``
+- ``EmptyCodeBlock``
 - ``Literal``
 
+### Protocols
+- ``CodeBlockable``
+- ``CodeBlockableLiteral``
+- ``DictionaryValue``
+- ``ExprCodeBlock``
+- ``LiteralValue``
+- ``PatternCodeBlock``
+- ``PatternConvertible``
+- ``TypeRepresentable``
+
+### Result Builders
+- ``CatchBuilder``
+- ``ClosureParameterBuilderResult``
+- ``CodeBlockBuilder``
+- ``CodeBlockBuilderResult``
+- ``CommentBuilderResult``
+- ``ExprCodeBlockBuilder``
+- ``ParameterBuilderResult``
+- ``ParameterExpBuilderResult``
+- ``PatternConvertibleBuilder``

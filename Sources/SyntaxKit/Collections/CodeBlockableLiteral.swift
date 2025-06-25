@@ -1,5 +1,5 @@
 //
-//  EmptyCodeBlock.swift
+//  CodeBlockableLiteral.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,12 +28,6 @@
 //
 
 import Foundation
-import SwiftSyntax
 
-/// An empty code block that generates no syntax.
-internal struct EmptyCodeBlock: CodeBlock, Sendable, Equatable {
-  /// The syntax for an empty code block.
-  internal var syntax: SyntaxProtocol {
-    StringSegmentSyntax(content: .unknown(""))
-  }
-}
+/// A protocol for tuple literal values that can be used as literals.
+public typealias CodeBlockableLiteral = LiteralValue & CodeBlockable

@@ -29,9 +29,9 @@
 
 import SwiftSyntax
 
-/// A `while` loop statement.
-public struct While: CodeBlock {
-  public enum Kind {
+/// A Swift `while` loop.
+public struct While: CodeBlock, Sendable {
+  public enum Kind: Sendable {
     case `while`
     case repeatWhile
   }

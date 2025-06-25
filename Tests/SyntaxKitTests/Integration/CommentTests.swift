@@ -1,6 +1,5 @@
+import SyntaxKit
 import Testing
-
-@testable import SyntaxKit
 
 internal struct CommentTests {
   @Test internal func testCommentInjection() {

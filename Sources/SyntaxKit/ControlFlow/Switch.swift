@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// A `switch` statement.
-public struct Switch: CodeBlock {
+/// A Swift `switch` statement.
+public struct Switch: CodeBlock, Sendable {
   private let expression: CodeBlock
   private let cases: [CodeBlock]
 

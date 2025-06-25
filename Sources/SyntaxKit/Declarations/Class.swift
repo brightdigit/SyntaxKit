@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `class` declaration.
-public struct Class: CodeBlock {
+public struct Class: CodeBlock, Sendable {
   private let name: String
   private let members: [CodeBlock]
   private var inheritance: [String] = []

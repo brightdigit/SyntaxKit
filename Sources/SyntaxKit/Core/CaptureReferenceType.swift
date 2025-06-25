@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// Represents Swift capture reference types for closures.
-public enum CaptureReferenceType: CaseIterable {
+/// Represents the type of reference capture in closures.
+public enum CaptureReferenceType: CaseIterable, Sendable, Equatable {
   case weak
   case unowned
 

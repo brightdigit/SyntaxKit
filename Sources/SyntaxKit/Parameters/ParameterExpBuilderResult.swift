@@ -31,7 +31,7 @@ import Foundation
 
 /// A result builder for creating arrays of ``ParameterExp``s.
 @resultBuilder
-public enum ParameterExpBuilderResult {
+public enum ParameterExpBuilderResult: Sendable, Equatable {
   /// Builds a block of ``ParameterExp``s.
   public static func buildBlock(_ components: ParameterExp...) -> [ParameterExp] {
     components

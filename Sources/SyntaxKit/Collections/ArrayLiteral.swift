@@ -30,23 +30,24 @@
 import Foundation
 
 /// An array literal value that can be used as a literal.
-public struct ArrayLiteral: LiteralValue, CodeBlockable {
-  public let elements: [Literal]
+internal struct ArrayLiteral: LiteralValue, CodeBlockable {
+  internal let elements: [Literal]
 
   /// Creates an array with the given elements.
   /// - Parameter elements: The array elements.
-  public init(_ elements: [Literal]) {
+  internal init(_ elements: [Literal]) {
     self.elements = elements
   }
 
   /// The code block representation of this array literal.
-  public var codeBlock: CodeBlock {
+  internal var codeBlock: CodeBlock {
     Literal.array(elements)
   }
 
   /// The Swift type name for this array.
-  public var typeName: String {
+  internal var typeName: String {
     if elements.isEmpty {
+      // TODO: Consider more specific type inference for empty arrays
       return "[Any]"
     }
     let elementType = elements.first?.typeName ?? "Any"
@@ -54,7 +55,7 @@ public struct ArrayLiteral: LiteralValue, CodeBlockable {
   }
 
   /// Renders this array as a Swift literal string.
-  public var literalString: String {
+  internal var literalString: String {
     let elementStrings = elements.map { element in
       switch element {
       case .integer(let value): return String(value)
@@ -64,7 +65,7 @@ public struct ArrayLiteral: LiteralValue, CodeBlockable {
       case .nil: return "nil"
       case .ref(let value): return value
       case .tuple(let tupleElements):
-        let tuple = TupleLiteral(tupleElements)
+        let tuple = TupleLiteralArray(tupleElements)
         return tuple.literalString
       case .array(let arrayElements):
         let array = ArrayLiteral(arrayElements)

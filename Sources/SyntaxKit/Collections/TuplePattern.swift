@@ -30,14 +30,14 @@
 import SwiftSyntax
 
 /// A tuple pattern for switch cases.
-public struct TuplePattern: PatternConvertible {
+internal struct TuplePattern: PatternConvertible {
   private let elements: [PatternConvertible?]
 
   internal init(elements: [PatternConvertible?]) {
     self.elements = elements
   }
 
-  public var patternSyntax: PatternSyntax {
+  internal var patternSyntax: PatternSyntax {
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
         let patternElement: TuplePatternElementSyntax

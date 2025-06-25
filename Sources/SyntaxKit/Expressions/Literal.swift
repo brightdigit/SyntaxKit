@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// A literal value.
-public enum Literal: CodeBlock, CodeBlockable {
+/// Represents Swift literal values.
+public enum Literal: CodeBlock, CodeBlockable, Sendable {
   /// A string literal.
   case string(String)
   /// A floating-point literal.
@@ -63,6 +63,7 @@ public enum Literal: CodeBlock, CodeBlockable {
     case .integer: return "Int"
     case .nil: return "Any?"
     case .boolean: return "Bool"
+    // TODO: Consider more specific type inference for ref cases
     case .ref: return "Any"
     case .tuple(let elements):
       let elementTypes = elements.map { element in
@@ -73,7 +74,9 @@ public enum Literal: CodeBlock, CodeBlockable {
           case .string: return "String"
           case .boolean: return "Bool"
           case .nil: return "Any?"
+          // TODO: Consider more specific type inference for ref cases
           case .ref: return "Any"
+          // TODO: Consider more specific type inference for complex literals
           case .tuple: return "Any"
           case .array: return "Any"
           case .dictionary: return "Any"
@@ -85,12 +88,14 @@ public enum Literal: CodeBlock, CodeBlockable {
       return "(\(elementTypes.joined(separator: ", ")))"
     case .array(let elements):
       if elements.isEmpty {
+        // TODO: Consider more specific type inference for empty arrays
         return "[Any]"
       }
       let elementType = elements.first?.typeName ?? "Any"
       return "[\(elementType)]"
     case .dictionary(let elements):
       if elements.isEmpty {
+        // TODO: Consider more specific type inference for empty dictionaries
         return "[Any: Any]"
       }
       let keyType = elements.first?.0.typeName ?? "Any"

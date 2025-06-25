@@ -31,7 +31,7 @@ import Foundation
 import SwiftSyntax
 
 /// A protocol for types that can be represented as a SwiftSyntax node.
-public protocol CodeBlock {
+public protocol CodeBlock: PatternConvertible, Sendable {
   /// The SwiftSyntax representation of the code block.
   var syntax: SyntaxProtocol { get }
 
@@ -54,5 +54,14 @@ extension CodeBlock {
     _ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp] = { [] }
   ) -> CodeBlock {
     FunctionCallExp(base: self, methodName: name, parameters: parameters())
+  }
+
+  /// The pattern syntax representation of this code block.
+  public var patternSyntax: PatternSyntax {
+    let expr = ExprSyntax(
+      fromProtocol: self.syntax.as(ExprSyntax.self)
+        ?? DeclReferenceExprSyntax(baseName: .identifier(""))
+    )
+    return PatternSyntax(ExpressionPatternSyntax(expression: expr))
   }
 }

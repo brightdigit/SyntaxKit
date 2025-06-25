@@ -37,7 +37,7 @@ extension Variable {
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
-  ///   - equals: An Init expression.
+  ///   - defaultValue: An Init expression.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,
@@ -59,7 +59,7 @@ extension Variable {
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - type: The type of the variable.
-  ///   - equals: The initial value expression of the variable, if any.
+  ///   - defaultValue: The initial value expression of the variable, if any.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,
@@ -83,7 +83,7 @@ extension Variable {
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - type: The type of the variable.
-  ///   - equals: A string literal value.
+  ///   - value: A string literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,
@@ -106,7 +106,7 @@ extension Variable {
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - type: The type of the variable.
-  ///   - equals: An integer literal value.
+  ///   - value: An integer literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,
@@ -129,7 +129,7 @@ extension Variable {
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - type: The type of the variable.
-  ///   - equals: A boolean literal value.
+  ///   - value: A boolean literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,
@@ -152,7 +152,7 @@ extension Variable {
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - type: The type of the variable.
-  ///   - equals: A double literal value.
+  ///   - value: A double literal value.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,
@@ -175,7 +175,7 @@ extension Variable {
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
   ///   - name: The name of the variable.
   ///   - type: The type of the variable (TypeRepresentable).
-  ///   - equals: The initial value expression of the variable, if any.
+  ///   - defaultValue: The initial value expression of the variable, if any.
   ///   - explicitType: Whether the variable has an explicit type.
   public init(
     _ kind: VariableKind,

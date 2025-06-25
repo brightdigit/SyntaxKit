@@ -29,10 +29,9 @@
 
 import SwiftSyntax
 
-/// A result builder that produces exactly one `CodeBlock & PatternConvertible`.
-/// This ensures compile-time type safety for pattern-based constructs.
+/// A result builder for creating pattern-convertible types.
 @resultBuilder
-public enum PatternConvertibleBuilder {
+public enum PatternConvertibleBuilder: Sendable, Equatable {
   /// Builds a single pattern convertible code block from the provided pattern.
   /// - Parameter pattern: The pattern convertible code block to build.
   /// - Returns: The pattern convertible code block unchanged.

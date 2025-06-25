@@ -29,8 +29,8 @@
 
 import Foundation
 
-/// The kind of a variable declaration.
-public enum VariableKind {
+/// Represents the kind of variable declaration.
+public enum VariableKind: Sendable, Equatable {
   /// A `let` declaration.
   case `let`
   /// A `var` declaration.

@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// An initializer expression.
-public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable {
+/// A Swift initializer expression.
+public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Sendable {
   private let type: String
   private let parameters: [ParameterExp]
 
@@ -44,7 +44,7 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable {
   /// Creates an initializer expression.
   /// - Parameters:
   ///   - type: The type to initialize.
-  ///   - params: A ``ParameterExpBuilder`` that provides the parameters for the initializer.
+  ///   - params: A ``ParameterExpBuilderResult`` that provides the parameters for the initializer.
   public init(_ type: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp])
     rethrows
   {
@@ -121,18 +121,18 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable {
     exprSyntax
   }
 
-  /// Calls a method on the initialized object.
+  /// Calls a method on this initializer.
   /// - Parameter methodName: The name of the method to call.
-  /// - Returns: A ``FunctionCallExp`` that represents the method call.
+  /// - Returns: A code block that represents the method call.
   public func call(_ methodName: String) -> CodeBlock {
     FunctionCallExp(base: self, methodName: methodName)
   }
 
-  /// Calls a method on the initialized object with parameters.
+  /// Calls a method on this initializer with parameters.
   /// - Parameters:
   ///  - methodName: The name of the method to call.
-  ///  - params: A ``ParameterExpBuilder`` that provides the parameters for the method call.
-  /// - Returns: A ``FunctionCallExp`` that represents the method call.
+  ///  - params: A ``ParameterExpBuilderResult`` that provides the parameters for the method call.
+  /// - Returns: A code block that represents the method call.
   public func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp])
     -> CodeBlock
   {

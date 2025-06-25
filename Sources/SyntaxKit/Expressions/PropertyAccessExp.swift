@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// An expression that accesses a property on a base expression.
-public struct PropertyAccessExp: CodeBlock, ExprCodeBlock {
+/// An expression that accesses a property.
+internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible {
   internal let base: CodeBlock
   internal let propertyName: String
 
@@ -38,31 +38,31 @@ public struct PropertyAccessExp: CodeBlock, ExprCodeBlock {
   /// - Parameters:
   ///  - base: The base expression.
   ///  - propertyName: The name of the property to access.
-  public init(base: CodeBlock, propertyName: String) {
+  internal init(base: CodeBlock, propertyName: String) {
     self.base = base
     self.propertyName = propertyName
   }
 
   /// Convenience initializer for backward compatibility (baseName as String).
-  public init(baseName: String, propertyName: String) {
+  internal init(baseName: String, propertyName: String) {
     self.base = VariableExp(baseName)
     self.propertyName = propertyName
   }
 
   /// Accesses a property on the current property access expression (chaining).
   /// - Parameter propertyName: The name of the next property to access.
-  /// - Returns: A new ``PropertyAccessExp`` representing the chained property access.
-  public func property(_ propertyName: String) -> PropertyAccessExp {
+  /// - Returns: A property accessible code block representing the chained property access.
+  internal func property(_ propertyName: String) -> PropertyAccessible {
     PropertyAccessExp(base: self, propertyName: propertyName)
   }
 
   /// Negates the property access expression.
   /// - Returns: A negated property access expression.
-  public func not() -> CodeBlock {
+  internal func not() -> CodeBlock {
     NegatedPropertyAccessExp(base: self)
   }
 
-  public var exprSyntax: ExprSyntax {
+  internal var exprSyntax: ExprSyntax {
     let baseSyntax =
       base.syntax.as(ExprSyntax.self)
       ?? ExprSyntax(
@@ -78,7 +78,7 @@ public struct PropertyAccessExp: CodeBlock, ExprCodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     exprSyntax
   }
 }

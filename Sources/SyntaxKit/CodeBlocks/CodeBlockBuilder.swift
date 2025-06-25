@@ -30,7 +30,7 @@
 import Foundation
 
 /// A protocol for types that can build a ``CodeBlock``.
-public protocol CodeBlockBuilder {
+public protocol CodeBlockBuilder: Sendable, Equatable {
   /// The type of ``CodeBlock`` that this builder creates.
   associatedtype Result: CodeBlock
   /// Builds the ``CodeBlock``.

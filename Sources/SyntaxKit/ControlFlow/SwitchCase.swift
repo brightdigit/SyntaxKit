@@ -31,15 +31,16 @@ import SwiftSyntax
 
 /// A `case` in a `switch` statement.
 public struct SwitchCase: CodeBlock {
-  private let patterns: [Any]
+  private let patterns: [PatternConvertible]
   private let body: [CodeBlock]
 
   /// Creates a `case` for a `switch` statement.
   /// - Parameters:
-  ///   - patterns: The patterns to match for the case. Can be `PatternConvertible`,
-  ///     `CodeBlock`, or `SwitchLet` for value binding.
+  ///   - patterns: The patterns to match for the case. Must conform to `PatternConvertible`.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(_ patterns: Any..., @CodeBlockBuilderResult content: () throws -> [CodeBlock])
+  public init(
+    _ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]
+  )
     rethrows
   {
     self.patterns = patterns
@@ -51,7 +52,7 @@ public struct SwitchCase: CodeBlock {
   ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
   public init(
-    @CodeBlockBuilderResult conditional: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult conditional: () throws -> [PatternConvertible],
     @CodeBlockBuilderResult content: () throws -> [CodeBlock]
   ) rethrows {
     self.patterns = try conditional()
@@ -61,25 +62,7 @@ public struct SwitchCase: CodeBlock {
   public var switchCaseSyntax: SwitchCaseSyntax {
     let caseItems = SwitchCaseItemListSyntax(
       patterns.enumerated().compactMap { index, pattern -> SwitchCaseItemSyntax? in
-        let patternSyntax: PatternSyntax
-
-        if let patternConvertible = pattern as? PatternConvertible {
-          patternSyntax = patternConvertible.patternSyntax
-        } else if let variableExp = pattern as? VariableExp {
-          // Handle VariableExp specially - convert to identifier pattern
-          patternSyntax = PatternSyntax(
-            IdentifierPatternSyntax(identifier: .identifier(variableExp.name))
-          )
-        } else if let codeBlock = pattern as? CodeBlock {
-          // Convert CodeBlock to expression pattern
-          let expr = ExprSyntax(
-            fromProtocol: codeBlock.syntax.as(ExprSyntax.self)
-              ?? DeclReferenceExprSyntax(baseName: .identifier(""))
-          )
-          patternSyntax = PatternSyntax(ExpressionPatternSyntax(expression: expr))
-        } else {
-          return nil
-        }
+        let patternSyntax = pattern.patternSyntax
 
         var item = SwitchCaseItemSyntax(pattern: patternSyntax)
         if index < patterns.count - 1 {

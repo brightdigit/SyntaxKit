@@ -31,7 +31,7 @@ import Foundation
 import SwiftSyntax
 
 /// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
-public protocol PatternConvertible {
+public protocol PatternConvertible: Sendable {
   /// SwiftSyntax representation of the pattern.
   var patternSyntax: PatternSyntax { get }
 }

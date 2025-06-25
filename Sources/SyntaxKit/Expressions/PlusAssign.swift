@@ -30,38 +30,63 @@
 import SwiftSyntax
 
 /// A `+=` expression.
+///
+/// **Deprecated**: Use `Infix(target, "+=", value)` instead. This type will be removed in a future version.
+@available(
+  *, deprecated,
+  message:
+    "Use Infix(target, \"+=\", value) instead. This type will be removed in a future version."
+)
 public struct PlusAssign: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
 
   /// Creates a `+=` expression with an expression value.
+  ///
+  /// **Deprecated**: Use `Infix(target, "+=", value)` instead.
+  @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ value: any ExprCodeBlock) {
     self.target = target
     self.valueExpr = value.exprSyntax
   }
 
   /// Creates a `+=` expression with a literal value.
+  ///
+  /// **Deprecated**: Use `Infix(target, "+=", value)` instead.
+  @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ literal: Literal) {
     self.target = target
     self.valueExpr = literal.exprSyntax
   }
 
   /// Creates a `+=` expression with an integer literal value.
+  ///
+  /// **Deprecated**: Use `Infix(target, "+=", value)` instead.
+  @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ value: Int) {
     self.init(target, .integer(value))
   }
 
   /// Creates a `+=` expression with a string literal value.
+  ///
+  /// **Deprecated**: Use `Infix(target, "+=", value)` instead.
+  @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ value: String) {
     self.init(target, .string(value))
   }
 
   /// Creates a `+=` expression with a boolean literal value.
+  ///
+  /// **Deprecated**: Use `Infix(target, "+=", value)` instead.
+  @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ value: Bool) {
     self.init(target, .boolean(value))
   }
 
   /// Creates a `+=` expression with a double literal value.
+  ///
+  /// **Deprecated**: Use `Infix(target, "+=", value)` instead.
+  @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ value: Double) {
     self.init(target, .float(value))
   }

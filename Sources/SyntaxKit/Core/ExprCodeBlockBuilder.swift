@@ -29,10 +29,9 @@
 
 import SwiftSyntax
 
-/// A result builder that produces exactly one `ExprCodeBlock`.
-/// This ensures compile-time type safety for expression-based constructs.
+/// A result builder for creating expressions that can be used as code blocks.
 @resultBuilder
-public enum ExprCodeBlockBuilder {
+public enum ExprCodeBlockBuilder: Sendable, Equatable {
   /// Builds a single expression code block from the provided expression.
   /// - Parameter expression: The expression code block to build.
   /// - Returns: The expression code block unchanged.

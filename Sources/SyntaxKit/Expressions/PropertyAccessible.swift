@@ -1,5 +1,5 @@
 //
-//  EmptyCodeBlock.swift
+//  PropertyAccessible.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,13 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-import SwiftSyntax
+/// A protocol for types that can access properties.
+public protocol PropertyAccessible: CodeBlock, Sendable {
+  /// Accesses a property on the current property access expression (chaining).
+  /// - Parameter propertyName: The name of the next property to access.
+  /// - Returns: A property accessible code block representing the chained property access.
+  func property(_ propertyName: String) -> PropertyAccessible
 
-/// An empty code block that generates no syntax.
-internal struct EmptyCodeBlock: CodeBlock, Sendable, Equatable {
-  /// The syntax for an empty code block.
-  internal var syntax: SyntaxProtocol {
-    StringSegmentSyntax(content: .unknown(""))
-  }
+  /// Negates the property access expression.
+  /// - Returns: A negated property access expression.
+  func not() -> CodeBlock
 }

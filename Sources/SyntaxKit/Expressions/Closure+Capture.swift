@@ -54,7 +54,7 @@ private struct CaptureInfo {
     } else {
       self.name = .identifier("self")  // fallback
       #warning(
-        "TODO: Review fallback for non-VariableExp capture expression - consider if this should be an error instead"
+        "TODO: Review fallback for non-VariableExp capture expression"
       )
     }
   }
@@ -67,7 +67,7 @@ private struct CaptureInfo {
     } else {
       self.name = .identifier("self")  // fallback
       #warning(
-        "TODO: Review fallback for non-VariableExp parameter value - consider if this should be an error instead"
+        "TODO: Review fallback for non-VariableExp parameter value"
       )
     }
   }
