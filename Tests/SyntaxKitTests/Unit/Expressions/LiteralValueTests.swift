@@ -112,50 +112,50 @@ internal struct LiteralValueTests {
   // MARK: - TupleLiteral Tests
 
   @Test internal func testTupleLiteralTypeName() {
-    let tuple1 = TupleLiteral([.int(1), .int(2)])
+    let tuple1 = TupleLiteralArray([.int(1), .int(2)])
     #expect(tuple1.typeName == "(Int, Int)")
 
-    let tuple2 = TupleLiteral([.string("hello"), .int(42), .boolean(true)])
+    let tuple2 = TupleLiteralArray([.string("hello"), .int(42), .boolean(true)])
     #expect(tuple2.typeName == "(String, Int, Bool)")
 
-    let tuple3 = TupleLiteral([.int(1), nil, .string("test")])
+    let tuple3 = TupleLiteralArray([.int(1), nil, .string("test")])
     #expect(tuple3.typeName == "(Int, Any, String)")
 
-    let tuple4 = TupleLiteral([nil, nil])
+    let tuple4 = TupleLiteralArray([nil, nil])
     #expect(tuple4.typeName == "(Any, Any)")
   }
 
   @Test internal func testTupleLiteralString() {
-    let tuple1 = TupleLiteral([.int(1), .int(2)])
+    let tuple1 = TupleLiteralArray([.int(1), .int(2)])
     #expect(tuple1.literalString == "(1, 2)")
 
-    let tuple2 = TupleLiteral([.string("hello"), .int(42), .boolean(true)])
+    let tuple2 = TupleLiteralArray([.string("hello"), .int(42), .boolean(true)])
     #expect(tuple2.literalString == "(\"hello\", 42, true)")
 
-    let tuple3 = TupleLiteral([.int(1), nil, .string("test")])
+    let tuple3 = TupleLiteralArray([.int(1), nil, .string("test")])
     #expect(tuple3.literalString == "(1, _, \"test\")")
 
-    let tuple4 = TupleLiteral([nil, nil])
+    let tuple4 = TupleLiteralArray([nil, nil])
     #expect(tuple4.literalString == "(_, _)")
 
-    let tuple5 = TupleLiteral([.float(3.14), .nil])
+    let tuple5 = TupleLiteralArray([.float(3.14), .nil])
     #expect(tuple5.literalString == "(3.14, nil)")
   }
 
   @Test internal func testTupleLiteralWithNestedTuples() {
-    let nestedTuple = TupleLiteral([.int(1), .tuple([.string("nested"), .int(2)])])
+    let nestedTuple = TupleLiteralArray([.int(1), .tuple([.string("nested"), .int(2)])])
     #expect(nestedTuple.typeName == "(Int, Any)")
     #expect(nestedTuple.literalString == "(1, (\"nested\", 2))")
   }
 
   @Test internal func testTupleLiteralWithRef() {
-    let tuple = TupleLiteral([.ref("variable"), .int(42)])
+    let tuple = TupleLiteralArray([.ref("variable"), .int(42)])
     #expect(tuple.typeName == "(Any, Int)")
     #expect(tuple.literalString == "(variable, 42)")
   }
 
   @Test internal func testEmptyTupleLiteral() {
-    let tuple = TupleLiteral([])
+    let tuple = TupleLiteralArray([])
     #expect(tuple.typeName == "()")
     #expect(tuple.literalString == "()")
   }
@@ -163,7 +163,7 @@ internal struct LiteralValueTests {
   // MARK: - TupleLiteral Code Generation Tests
 
   @Test internal func testVariableWithTupleLiteral() {
-    let tuple = TupleLiteral([.int(1), .int(2)])
+    let tuple = TupleLiteralArray([.int(1), .int(2)])
     let variable = Variable(.let, name: "point", equals: tuple)
 
     let generated = variable.syntax.description
@@ -172,7 +172,7 @@ internal struct LiteralValueTests {
   }
 
   @Test internal func testVariableWithTupleLiteralWithExplicitType() {
-    let tuple = TupleLiteral([.int(1), .int(2)])
+    let tuple = TupleLiteralArray([.int(1), .int(2)])
     let variable = Variable(.let, name: "point", equals: tuple).withExplicitType()
 
     let generated = variable.syntax.description
@@ -181,7 +181,7 @@ internal struct LiteralValueTests {
   }
 
   @Test internal func testVariableWithComplexTupleLiteral() {
-    let tuple = TupleLiteral([.string("hello"), .int(42), .boolean(true)])
+    let tuple = TupleLiteralArray([.string("hello"), .int(42), .boolean(true)])
     let variable = Variable(.let, name: "data", equals: tuple).withExplicitType()
 
     let generated = variable.syntax.description
@@ -190,7 +190,7 @@ internal struct LiteralValueTests {
   }
 
   @Test internal func testVariableWithTupleLiteralWithWildcards() {
-    let tuple = TupleLiteral([.int(1), nil, .string("test")])
+    let tuple = TupleLiteralArray([.int(1), nil, .string("test")])
     let variable = Variable(.let, name: "partial", equals: tuple).withExplicitType()
 
     let generated = variable.syntax.description

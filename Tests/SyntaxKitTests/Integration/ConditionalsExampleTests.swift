@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 import SyntaxKit
+import Testing
 
 @Suite internal struct ConditionalsExampleTests {
   @Test("Completed conditionals DSL generates expected Swift code")

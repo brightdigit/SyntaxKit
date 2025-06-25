@@ -233,13 +233,9 @@ struct BlackjackCard {
 - ``Throw``
 
 ### Collections
-- ``ArrayLiteral``
 - ``DictionaryExpr``
-- ``DictionaryLiteral``
-- ``TupleAssignment``
-- ``TupleLiteral``
-- ``TuplePattern``
-- ``TuplePatternCodeBlock``
+- ``TuplePatternCodeBlockProtocol``
+- ``TupleLiteralProtocol``
 
 ### Utilities
 - ``Break``
@@ -288,4 +284,3 @@ struct BlackjackCard {
 - ``AccessModifier``
 - ``CaptureReferenceType``
 - ``VariableKind``
-

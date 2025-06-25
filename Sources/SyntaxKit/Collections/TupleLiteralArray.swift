@@ -1,5 +1,5 @@
 //
-//  TupleLiteral.swift
+//  TupleLiteralArray.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,24 +28,25 @@
 //
 
 import Foundation
+import SwiftSyntax
 
 /// A tuple literal value that can be used as a literal.
-public struct TupleLiteral: LiteralValue, CodeBlockable {
-  public let elements: [Literal?]
+internal struct TupleLiteralArray: TupleLiteralProtocol {
+  let elements: [Literal?]
 
   /// Creates a tuple with the given elements.
   /// - Parameter elements: The tuple elements, where `nil` represents a wildcard.
-  public init(_ elements: [Literal?]) {
+  init(_ elements: [Literal?]) {
     self.elements = elements
   }
 
   /// The code block representation of this tuple literal.
-  public var codeBlock: CodeBlock {
+  var codeBlock: CodeBlock {
     Literal.tuple(elements)
   }
 
   /// The Swift type name for this tuple.
-  public var typeName: String {
+  var typeName: String {
     let elementTypes = elements.map { element in
       if let element = element {
         switch element {
@@ -67,7 +68,7 @@ public struct TupleLiteral: LiteralValue, CodeBlockable {
   }
 
   /// Renders this tuple as a Swift literal string.
-  public var literalString: String {
+  var literalString: String {
     let elementStrings = elements.map { element in
       if let element = element {
         switch element {
@@ -78,7 +79,7 @@ public struct TupleLiteral: LiteralValue, CodeBlockable {
         case .nil: return "nil"
         case .ref(let value): return value
         case .tuple(let tupleElements):
-          let tuple = TupleLiteral(tupleElements)
+          let tuple = TupleLiteralArray(tupleElements)
           return tuple.literalString
         case .array(let arrayElements):
           let array = ArrayLiteral(arrayElements)

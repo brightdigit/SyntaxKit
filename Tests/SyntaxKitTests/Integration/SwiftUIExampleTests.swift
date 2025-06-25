@@ -28,8 +28,8 @@
 //
 
 import Foundation
-import Testing
 import SyntaxKit
+import Testing
 
 @Suite internal struct SwiftUIExampleTests {
   @Test("SwiftUI example DSL generates expected Swift code")

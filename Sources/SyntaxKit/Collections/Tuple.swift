@@ -43,13 +43,13 @@ public struct Tuple: CodeBlock {
 
   /// Creates a tuple pattern for switch cases.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
-  public static func pattern(_ elements: [PatternConvertible?]) -> TuplePattern {
+  public static func pattern(_ elements: [PatternConvertible?]) -> PatternConvertible {
     TuplePattern(elements: elements)
   }
 
   /// Creates a tuple pattern that can be used as a CodeBlock.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
-  public static func patternCodeBlock(_ elements: [PatternConvertible?]) -> TuplePatternCodeBlock {
+  public static func patternCodeBlock(_ elements: [PatternConvertible?]) -> PatternCodeBlock {
     TuplePatternCodeBlock(elements: elements)
   }
 

@@ -1,5 +1,5 @@
-import Testing
 import SyntaxKit
+import Testing
 
 internal struct BlackjackTests {
   @Test internal func testBlackjackCardExample() throws {

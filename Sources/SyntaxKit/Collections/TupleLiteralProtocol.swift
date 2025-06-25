@@ -1,5 +1,5 @@
 //
-//  Literal+Convenience.swift
+//  TupleLiteralProtocol.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,26 +29,5 @@
 
 import Foundation
 
-// MARK: - Convenience Methods
-
-extension Literal {
-  /// Creates a tuple literal from an array of optional literals (for patterns with wildcards).
-  public static func tuplePattern(_ elements: [Literal?]) -> Literal {
-    .tuple(elements)
-  }
-
-  /// Creates an integer literal.
-  public static func int(_ value: Int) -> Literal {
-    .integer(value)
-  }
-
-  /// Converts a Literal.tuple to a TupleLiteral for use in Variable declarations.
-  public var asTupleLiteral: TupleLiteralProtocol? {
-    switch self {
-    case .tuple(let elements):
-      return TupleLiteralArray(elements)
-    default:
-      return nil
-    }
-  }
-}
+/// A protocol for tuple literal values that can be used as literals.
+public typealias TupleLiteralProtocol = LiteralValue & CodeBlockable

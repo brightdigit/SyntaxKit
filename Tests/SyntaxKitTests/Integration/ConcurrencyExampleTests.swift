@@ -1,6 +1,6 @@
 import Foundation
-import Testing
 import SyntaxKit
+import Testing
 
 @Suite internal struct ConcurrencyExampleTests {
   @Test("Concurrency vending machine DSL generates expected Swift code")

@@ -30,22 +30,22 @@
 import Foundation
 
 /// A dictionary literal value that can be used as a literal.
-public struct DictionaryLiteral: LiteralValue, CodeBlockable {
-  public let elements: [(Literal, Literal)]
+internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
+  let elements: [(Literal, Literal)]
 
   /// Creates a dictionary with the given key-value pairs.
   /// - Parameter elements: The dictionary key-value pairs.
-  public init(_ elements: [(Literal, Literal)]) {
+  init(_ elements: [(Literal, Literal)]) {
     self.elements = elements
   }
 
   /// The code block representation of this dictionary literal.
-  public var codeBlock: CodeBlock {
+  var codeBlock: CodeBlock {
     Literal.dictionary(elements)
   }
 
   /// The Swift type name for this dictionary.
-  public var typeName: String {
+  var typeName: String {
     if elements.isEmpty {
       return "[Any: Any]"
     }
@@ -55,7 +55,7 @@ public struct DictionaryLiteral: LiteralValue, CodeBlockable {
   }
 
   /// Renders this dictionary as a Swift literal string.
-  public var literalString: String {
+  var literalString: String {
     let elementStrings = elements.map { key, value in
       let keyString: String
       let valueString: String
@@ -68,7 +68,7 @@ public struct DictionaryLiteral: LiteralValue, CodeBlockable {
       case .nil: keyString = "nil"
       case .ref(let key): keyString = key
       case .tuple(let tupleElements):
-        let tuple = TupleLiteral(tupleElements)
+        let tuple = TupleLiteralArray(tupleElements)
         keyString = tuple.literalString
       case .array(let arrayElements):
         let array = ArrayLiteral(arrayElements)
@@ -86,7 +86,7 @@ public struct DictionaryLiteral: LiteralValue, CodeBlockable {
       case .nil: valueString = "nil"
       case .ref(let value): valueString = value
       case .tuple(let tupleElements):
-        let tuple = TupleLiteral(tupleElements)
+        let tuple = TupleLiteralArray(tupleElements)
         valueString = tuple.literalString
       case .array(let arrayElements):
         let array = ArrayLiteral(arrayElements)
