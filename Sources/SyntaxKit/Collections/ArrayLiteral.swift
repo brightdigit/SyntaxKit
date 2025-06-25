@@ -47,6 +47,7 @@ internal struct ArrayLiteral: LiteralValue, CodeBlockable {
   /// The Swift type name for this array.
   internal var typeName: String {
     if elements.isEmpty {
+      // TODO: Consider more specific type inference for empty arrays
       return "[Any]"
     }
     let elementType = elements.first?.typeName ?? "Any"

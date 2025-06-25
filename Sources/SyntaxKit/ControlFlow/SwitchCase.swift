@@ -31,6 +31,8 @@ import SwiftSyntax
 
 /// A `case` in a `switch` statement.
 public struct SwitchCase: CodeBlock {
+  // TODO: Consider replacing [Any] with a more type-safe approach using protocols
+  // or union types when Swift supports them, to avoid runtime type checking
   private let patterns: [Any]
   private let body: [CodeBlock]
 

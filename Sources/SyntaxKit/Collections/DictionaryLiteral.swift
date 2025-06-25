@@ -47,6 +47,7 @@ internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
   /// The Swift type name for this dictionary.
   internal var typeName: String {
     if elements.isEmpty {
+      // TODO: Consider more specific type inference for empty dictionaries
       return "[Any: Any]"
     }
     let keyType = elements.first?.0.typeName ?? "Any"
