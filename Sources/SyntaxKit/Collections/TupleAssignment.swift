@@ -42,14 +42,14 @@ internal struct TupleAssignment: CodeBlock {
   /// - Parameters:
   ///   - elements: The names of the variables to destructure into.
   ///   - value: The expression to destructure.
-  init(_ elements: [String], equals value: CodeBlock) {
+  internal init(_ elements: [String], equals value: CodeBlock) {
     self.elements = elements
     self.value = value
   }
 
   /// Marks this destructuring as async.
   /// - Returns: A copy of the destructuring marked as async.
-  func async() -> Self {
+  internal func async() -> Self {
     var copy = self
     copy.isAsync = true
     return copy
@@ -57,7 +57,7 @@ internal struct TupleAssignment: CodeBlock {
 
   /// Marks this destructuring as throwing.
   /// - Returns: A copy of the destructuring marked as throwing.
-  func throwing() -> Self {
+  internal func throwing() -> Self {
     var copy = self
     copy.isThrowing = true
     return copy
@@ -65,14 +65,14 @@ internal struct TupleAssignment: CodeBlock {
 
   /// Marks this destructuring as concurrent async (async let set).
   /// - Returns: A copy of the destructuring marked as async set.
-  func asyncSet() -> Self {
+  internal func asyncSet() -> Self {
     var copy = self
     copy.isAsyncSet = true
     return copy
   }
 
   /// The syntax representation of this tuple assignment.
-  var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     if isAsyncSet {
       return generateAsyncSetSyntax()
     }

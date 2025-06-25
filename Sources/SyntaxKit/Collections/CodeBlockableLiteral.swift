@@ -1,5 +1,5 @@
 //
-//  TupleLiteralProtocol.swift
+//  CodeBlockableLiteral.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,4 +30,4 @@
 import Foundation
 
 /// A protocol for tuple literal values that can be used as literals.
-public typealias TupleLiteralProtocol = LiteralValue & CodeBlockable
+public typealias CodeBlockableLiteral = LiteralValue & CodeBlockable

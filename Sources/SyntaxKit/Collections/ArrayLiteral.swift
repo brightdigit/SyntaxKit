@@ -31,21 +31,21 @@ import Foundation
 
 /// An array literal value that can be used as a literal.
 internal struct ArrayLiteral: LiteralValue, CodeBlockable {
-  let elements: [Literal]
+  internal let elements: [Literal]
 
   /// Creates an array with the given elements.
   /// - Parameter elements: The array elements.
-  init(_ elements: [Literal]) {
+  internal init(_ elements: [Literal]) {
     self.elements = elements
   }
 
   /// The code block representation of this array literal.
-  var codeBlock: CodeBlock {
+  internal var codeBlock: CodeBlock {
     Literal.array(elements)
   }
 
   /// The Swift type name for this array.
-  var typeName: String {
+  internal var typeName: String {
     if elements.isEmpty {
       return "[Any]"
     }
@@ -54,7 +54,7 @@ internal struct ArrayLiteral: LiteralValue, CodeBlockable {
   }
 
   /// Renders this array as a Swift literal string.
-  var literalString: String {
+  internal var literalString: String {
     let elementStrings = elements.map { element in
       switch element {
       case .integer(let value): return String(value)

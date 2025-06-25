@@ -37,7 +37,7 @@ internal struct TuplePattern: PatternConvertible {
     self.elements = elements
   }
 
-  var patternSyntax: PatternSyntax {
+  internal var patternSyntax: PatternSyntax {
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
         let patternElement: TuplePatternElementSyntax

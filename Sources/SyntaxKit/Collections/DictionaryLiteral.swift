@@ -31,21 +31,21 @@ import Foundation
 
 /// A dictionary literal value that can be used as a literal.
 internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
-  let elements: [(Literal, Literal)]
+  internal let elements: [(Literal, Literal)]
 
   /// Creates a dictionary with the given key-value pairs.
   /// - Parameter elements: The dictionary key-value pairs.
-  init(_ elements: [(Literal, Literal)]) {
+  internal init(_ elements: [(Literal, Literal)]) {
     self.elements = elements
   }
 
   /// The code block representation of this dictionary literal.
-  var codeBlock: CodeBlock {
+  internal var codeBlock: CodeBlock {
     Literal.dictionary(elements)
   }
 
   /// The Swift type name for this dictionary.
-  var typeName: String {
+  internal var typeName: String {
     if elements.isEmpty {
       return "[Any: Any]"
     }
@@ -55,7 +55,7 @@ internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
   }
 
   /// Renders this dictionary as a Swift literal string.
-  var literalString: String {
+  internal var literalString: String {
     let elementStrings = elements.map { key, value in
       let keyString: String
       let valueString: String

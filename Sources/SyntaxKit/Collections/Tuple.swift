@@ -50,7 +50,7 @@ public struct Tuple: CodeBlock {
   /// Creates a tuple pattern that can be used as a CodeBlock.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
   public static func patternCodeBlock(_ elements: [PatternConvertible?]) -> PatternCodeBlock {
-    TuplePatternCodeBlock(elements: elements)
+    PatternConvertableCollection(elements: elements)
   }
 
   /// Marks this tuple as async.

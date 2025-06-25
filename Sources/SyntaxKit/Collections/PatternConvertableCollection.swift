@@ -1,5 +1,5 @@
 //
-//  TuplePatternCodeBlock.swift
+//  PatternConvertableCollection.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,14 +30,14 @@
 import SwiftSyntax
 
 /// A tuple pattern that can be used as a CodeBlock for for-in loops.
-internal struct TuplePatternCodeBlock: PatternCodeBlock {
+internal struct PatternConvertableCollection: PatternCodeBlock {
   private let elements: [PatternConvertible?]
 
   internal init(elements: [PatternConvertible?]) {
     self.elements = elements
   }
 
-  var patternSyntax: PatternSyntax {
+  internal var patternSyntax: PatternSyntax {
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
         let patternElement: TuplePatternElementSyntax
@@ -70,7 +70,7 @@ internal struct TuplePatternCodeBlock: PatternCodeBlock {
     )
   }
 
-  var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     // For CodeBlock conformance, we return the pattern syntax as an expression
     // This is a bit of a hack, but it allows us to use TuplePatternCodeBlock in For loops
     patternSyntax

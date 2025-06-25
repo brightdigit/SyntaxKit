@@ -31,22 +31,22 @@ import Foundation
 import SwiftSyntax
 
 /// A tuple literal value that can be used as a literal.
-internal struct TupleLiteralArray: TupleLiteralProtocol {
-  let elements: [Literal?]
+internal struct TupleLiteralArray: CodeBlockableLiteral {
+  internal let elements: [Literal?]
 
   /// Creates a tuple with the given elements.
   /// - Parameter elements: The tuple elements, where `nil` represents a wildcard.
-  init(_ elements: [Literal?]) {
+  internal init(_ elements: [Literal?]) {
     self.elements = elements
   }
 
   /// The code block representation of this tuple literal.
-  var codeBlock: CodeBlock {
+  internal var codeBlock: CodeBlock {
     Literal.tuple(elements)
   }
 
   /// The Swift type name for this tuple.
-  var typeName: String {
+  internal var typeName: String {
     let elementTypes = elements.map { element in
       if let element = element {
         switch element {
@@ -68,7 +68,7 @@ internal struct TupleLiteralArray: TupleLiteralProtocol {
   }
 
   /// Renders this tuple as a Swift literal string.
-  var literalString: String {
+  internal var literalString: String {
     let elementStrings = elements.map { element in
       if let element = element {
         switch element {
