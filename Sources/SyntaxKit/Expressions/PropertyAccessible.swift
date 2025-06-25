@@ -1,5 +1,5 @@
 //
-//  PropertyAccessExp.swift
+//  PropertyAccessible.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,58 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
-
-/// An expression that accesses a property.
-internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible {
-  internal let base: CodeBlock
-  internal let propertyName: String
-
-  /// Creates a property access expression.
-  /// - Parameters:
-  ///  - base: The base expression.
-  ///  - propertyName: The name of the property to access.
-  internal init(base: CodeBlock, propertyName: String) {
-    self.base = base
-    self.propertyName = propertyName
-  }
-
-  /// Convenience initializer for backward compatibility (baseName as String).
-  internal init(baseName: String, propertyName: String) {
-    self.base = VariableExp(baseName)
-    self.propertyName = propertyName
-  }
-
+/// A protocol that provides property access chaining capabilities.
+public protocol PropertyAccessible: CodeBlock {
   /// Accesses a property on the current property access expression (chaining).
   /// - Parameter propertyName: The name of the next property to access.
   /// - Returns: A property accessible code block representing the chained property access.
-  internal func property(_ propertyName: String) -> PropertyAccessible {
-    PropertyAccessExp(base: self, propertyName: propertyName)
-  }
+  func property(_ propertyName: String) -> PropertyAccessible
 
   /// Negates the property access expression.
   /// - Returns: A negated property access expression.
-  internal func not() -> CodeBlock {
-    NegatedPropertyAccessExp(base: self)
-  }
-
-  internal var exprSyntax: ExprSyntax {
-    let baseSyntax =
-      base.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(
-        DeclReferenceExprSyntax(baseName: .identifier(""))
-      )
-    let property = TokenSyntax.identifier(propertyName)
-    return ExprSyntax(
-      MemberAccessExprSyntax(
-        base: baseSyntax,
-        dot: .periodToken(),
-        name: property
-      )
-    )
-  }
-
-  internal var syntax: SyntaxProtocol {
-    exprSyntax
-  }
+  func not() -> CodeBlock
 }
