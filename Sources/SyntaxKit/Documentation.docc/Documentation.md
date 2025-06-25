@@ -188,7 +188,7 @@ struct BlackjackCard {
 ## Topics
 
 ### Declarations
-
+- ``AccessModifier``
 - ``Class``
 - ``ComputedProperty``
 - ``Enum``
@@ -198,27 +198,31 @@ struct BlackjackCard {
 - ``Group``
 - ``Import``
 - ``Let``
+- ``Parameter``
 - ``PropertyRequirement``
 - ``Protocol``
 - ``Struct``
 - ``Tuple``
 - ``TypeAlias``
 - ``Variable``
+- ``VariableKind``
 
 ### Expressions & Statements
 - ``Assignment``
 - ``Call``
+- ``CaptureReferenceType``
 - ``Closure``
 - ``ClosureParameter``
 - ``ClosureType``
 - ``ConditionalOp``
 - ``EnumCase``
-- ``Init``
 - ``Infix``
+- ``Init``
+- ``Line``
 - ``Parenthesized``
+- ``ParameterExp``
 - ``PlusAssign``
 - ``Return``
-- ``Task``
 - ``VariableExp``
 
 ### Control Flow
@@ -231,6 +235,7 @@ struct BlackjackCard {
 - ``For``
 - ``Guard``
 - ``If``
+- ``Pattern``
 - ``Switch``
 - ``SwitchCase``
 - ``SwitchLet``
@@ -241,42 +246,29 @@ struct BlackjackCard {
 - ``Catch``
 - ``Throw``
 
-### Collections
-
 ### Building Blocks
 - ``Attribute``
 - ``CodeBlock``
 - ``EmptyCodeBlock``
-- ``Line``
 - ``Literal``
-- ``Parameter``
-- ``ParameterExp``
 
 ### Protocols
 - ``CodeBlockable``
-- ``CodeBlockBuilder``
+- ``CodeBlockableLiteral``
 - ``DictionaryValue``
 - ``ExprCodeBlock``
 - ``LiteralValue``
+- ``PatternCodeBlock``
 - ``PatternConvertible``
 - ``TypeRepresentable``
-- ``CodeBlockableLiteral``
-- ``PatternCodeBlock``
 
 ### Result Builders
 - ``CatchBuilder``
 - ``ClosureParameterBuilderResult``
+- ``CodeBlockBuilder``
 - ``CodeBlockBuilderResult``
 - ``CommentBuilderResult``
 - ``ExprCodeBlockBuilder``
 - ``ParameterBuilderResult``
 - ``ParameterExpBuilderResult``
 - ``PatternConvertibleBuilder``
-
-### Patterns
-- ``Pattern``
-
-### Core Types
-- ``AccessModifier``
-- ``CaptureReferenceType``
-- ``VariableKind``
