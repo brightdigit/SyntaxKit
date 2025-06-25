@@ -36,13 +36,13 @@ public enum Pattern {
   /// Creates a `let` binding pattern for switch cases.
   /// - Parameter identifier: The name of the variable to bind.
   /// - Returns: A pattern that binds the value to the given identifier.
-  public static func `let`(_ identifier: String) -> LetBindingPattern {
+  public static func `let`(_ identifier: String) -> any PatternConvertible {
     LetBindingPattern(identifier: identifier)
   }
 }
 
 /// A `let` binding pattern for switch cases.
-public struct LetBindingPattern: PatternConvertible {
+internal struct LetBindingPattern: PatternConvertible {
   private let identifier: String
 
   internal init(identifier: String) {
@@ -50,7 +50,7 @@ public struct LetBindingPattern: PatternConvertible {
   }
 
   /// SwiftSyntax representation of the let binding pattern.
-  public var patternSyntax: PatternSyntax {
+  internal var patternSyntax: PatternSyntax {
     PatternSyntax(
       ValueBindingPatternSyntax(
         bindingSpecifier: .keyword(.let, trailingTrivia: .space),

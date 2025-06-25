@@ -29,7 +29,7 @@ internal struct CodeStyleMigrationTests {
       Function("method") {
         Parameter(name: "param", type: "String")
       } _: {
-        VariableDecl(.let, name: "local", equals: "\"value\"")
+        Variable(.let, name: "local", equals: .string("value"))
         Return {
           VariableExp("local")
         }

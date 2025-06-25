@@ -192,12 +192,13 @@ struct BlackjackCard {
 - ``Class``
 - ``ComputedProperty``
 - ``Enum``
-- ``EnumCase``
 - ``Extension``
 - ``Function``
+- ``FunctionRequirement``
+- ``Group``
 - ``Import``
-- ``Init``
 - ``Let``
+- ``PropertyRequirement``
 - ``Protocol``
 - ``Struct``
 - ``Tuple``
@@ -211,21 +212,29 @@ struct BlackjackCard {
 - ``ClosureParameter``
 - ``ClosureType``
 - ``ConditionalOp``
+- ``EnumCase``
+- ``Init``
 - ``Infix``
+- ``Parenthesized``
 - ``PlusAssign``
 - ``Return``
 - ``Task``
 - ``VariableExp``
 
 ### Control Flow
+- ``Break``
+- ``Case``
+- ``Continue``
 - ``Default``
 - ``Do``
+- ``Fallthrough``
 - ``For``
 - ``Guard``
 - ``If``
 - ``Switch``
 - ``SwitchCase``
 - ``SwitchLet``
+- ``Then``
 - ``While``
 
 ### Error Handling
@@ -233,20 +242,6 @@ struct BlackjackCard {
 - ``Throw``
 
 ### Collections
-- ``DictionaryExpr``
-- ``TuplePatternCodeBlockProtocol``
-- ``TupleLiteralProtocol``
-
-### Utilities
-- ``Break``
-- ``Case``
-- ``Continue``
-- ``Fallthrough``
-- ``FunctionRequirement``
-- ``Group``
-- ``Parenthesized``
-- ``PropertyRequirement``
-- ``Then``
 
 ### Building Blocks
 - ``Attribute``
@@ -265,6 +260,8 @@ struct BlackjackCard {
 - ``LiteralValue``
 - ``PatternConvertible``
 - ``TypeRepresentable``
+- ``CodeBlockableLiteral``
+- ``PatternCodeBlock``
 
 ### Result Builders
 - ``CatchBuilder``
@@ -277,7 +274,6 @@ struct BlackjackCard {
 - ``PatternConvertibleBuilder``
 
 ### Patterns
-- ``LetBindingPattern``
 - ``Pattern``
 
 ### Core Types
