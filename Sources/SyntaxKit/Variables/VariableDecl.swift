@@ -30,6 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `let` or `var` declaration.
+@available(*, deprecated, message: "Use Variable instead for more features and flexibility")
 public struct VariableDecl: CodeBlock {
   private let kind: VariableKind
   private let name: String

@@ -189,50 +189,49 @@ struct BlackjackCard {
 
 ### Declarations
 
-- ``Struct``
+- ``Class``
+- ``ComputedProperty``
 - ``Enum``
 - ``EnumCase``
-- ``Function``
-- ``Init``
-- ``ComputedProperty``
-- ``VariableDecl``
-- ``Let``
-- ``Variable``
 - ``Extension``
-- ``Class``
+- ``Function``
+- ``Import``
+- ``Init``
+- ``Let``
 - ``Protocol``
+- ``Struct``
 - ``Tuple``
 - ``TypeAlias``
-- ``Import``
+- ``Variable``
 
 ### Expressions & Statements
 - ``Assignment``
-- ``PlusAssign``
-- ``Return``
-- ``VariableExp``
 - ``Call``
+- ``Closure``
+- ``ClosureParameter``
+- ``ClosureType``
+- ``ConditionalOp``
 - ``FunctionCallExp``
-- ``PropertyAccessExp``
+- ``Infix``
 - ``NegatedPropertyAccessExp``
 - ``OptionalChainingExp``
+- ``PlusAssign``
+- ``PropertyAccessExp``
 - ``ReferenceExp``
-- ``ConditionalOp``
-- ``Infix``
-- ``Closure``
-- ``ClosureType``
-- ``ClosureParameter``
+- ``Return``
 - ``Task``
+- ``VariableExp``
 
 ### Control Flow
+- ``Default``
+- ``Do``
+- ``For``
+- ``Guard``
 - ``If``
 - ``Switch``
 - ``SwitchCase``
 - ``SwitchLet``
-- ``Default``
-- ``For``
 - ``While``
-- ``Guard``
-- ``Do``
 
 ### Error Handling
 - ``Catch``
@@ -240,36 +239,36 @@ struct BlackjackCard {
 
 ### Collections
 - ``ArrayLiteral``
-- ``DictionaryLiteral``
 - ``DictionaryExpr``
-- ``TupleLiteral``
+- ``DictionaryLiteral``
 - ``TupleAssignment``
+- ``TupleLiteral``
 - ``TuplePattern``
 - ``TuplePatternCodeBlock``
 
 ### Utilities
-- ``Group``
-- ``Parenthesized``
-- ``Then``
-- ``Case``
 - ``Break``
+- ``Case``
 - ``Continue``
 - ``Fallthrough``
-- ``PropertyRequirement``
 - ``FunctionRequirement``
+- ``Group``
+- ``Parenthesized``
+- ``PropertyRequirement``
+- ``Then``
 
 ### Building Blocks
-- ``CodeBlock``
-- ``Parameter``
-- ``ParameterExp``
-- ``Literal``
 - ``Attribute``
+- ``CodeBlock``
 - ``EmptyCodeBlock``
 - ``Line``
+- ``Literal``
+- ``Parameter``
+- ``ParameterExp``
 
 ### Protocols
-- ``CodeBlockBuilder``
 - ``CodeBlockable``
+- ``CodeBlockBuilder``
 - ``DictionaryValue``
 - ``ExprCodeBlock``
 - ``LiteralValue``
