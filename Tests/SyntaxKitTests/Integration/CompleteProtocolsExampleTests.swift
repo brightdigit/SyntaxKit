@@ -105,11 +105,24 @@ import Testing
       .inherits("Vehicle", "Electric")
 
       // MARK: - Usage Example
-      VariableDecl(.let, name: "tesla", equals: "ElectricCar(brand: \"Tesla\", batteryLevel: 75.0)")
-        .comment {
-          Line("MARK: - Usage Example")
+      Variable(
+        .let,
+        name: "tesla",
+        equals: Init("ElectricCar") {
+          ParameterExp(name: "brand", value: Literal.string("Tesla"))
+          ParameterExp(name: "batteryLevel", value: Literal.float(75.0))
         }
-      VariableDecl(.let, name: "toyota", equals: "Car(brand: \"Toyota\")")
+      )
+      .comment {
+        Line("MARK: - Usage Example")
+      }
+      Variable(
+        .let,
+        name: "toyota",
+        equals: Init("Car") {
+          ParameterExp(name: "brand", value: Literal.string("Toyota"))
+        }
+      )
 
       // Demonstrate protocol usage
       Function("demonstrateVehicle") {

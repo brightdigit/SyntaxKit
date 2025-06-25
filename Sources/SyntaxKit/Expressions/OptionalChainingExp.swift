@@ -47,7 +47,7 @@ public struct OptionalChainingExp: CodeBlock {
     } else {
       // Fallback to a default expression if conversion fails
       #warning(
-        "TODO: Review fallback for failed expression conversion - consider if this should be an error instead"
+        "TODO: Review fallback for failed expression conversion"
       )
       baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     }

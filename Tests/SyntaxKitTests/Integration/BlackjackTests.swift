@@ -131,7 +131,7 @@ internal struct BlackjackTests {
       Variable(.let, name: "rank", type: "Rank")
       Variable(.let, name: "suit", type: "Suit")
       ComputedProperty("description", type: "String") {
-        VariableDecl(.var, name: "output", equals: "suit is \\(suit.rawValue),")
+        Variable(.var, name: "output", equals: Literal.string("suit is \\(suit.rawValue),"))
         PlusAssign("output", " value is \\(rank.values.first)")
         If(
           Let("second", "rank.values.second"),
