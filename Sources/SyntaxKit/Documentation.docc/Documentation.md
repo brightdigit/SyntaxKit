@@ -203,24 +203,95 @@ struct BlackjackCard {
 - ``Protocol``
 - ``Tuple``
 - ``TypeAlias``
-- ``Infix``
-- ``PropertyRequirement``
-- ``FunctionRequirement``
+- ``Import``
 
 ### Expressions & Statements
 - ``Assignment``
 - ``PlusAssign``
 - ``Return``
 - ``VariableExp``
+- ``Call``
+- ``FunctionCallExp``
+- ``PropertyAccessExp``
+- ``NegatedPropertyAccessExp``
+- ``OptionalChainingExp``
+- ``ReferenceExp``
+- ``ConditionalOp``
+- ``Infix``
+- ``Closure``
+- ``ClosureType``
+- ``ClosureParameter``
+- ``Task``
 
 ### Control Flow
 - ``If``
 - ``Switch``
 - ``SwitchCase``
+- ``SwitchLet``
 - ``Default``
+- ``For``
+- ``While``
+- ``Guard``
+- ``Do``
+
+### Error Handling
+- ``Catch``
+- ``Throw``
+
+### Collections
+- ``ArrayLiteral``
+- ``DictionaryLiteral``
+- ``DictionaryExpr``
+- ``TupleLiteral``
+- ``TupleAssignment``
+- ``TuplePattern``
+- ``TuplePatternCodeBlock``
+
+### Utilities
+- ``Group``
+- ``Parenthesized``
+- ``Then``
+- ``Case``
+- ``Break``
+- ``Continue``
+- ``Fallthrough``
+- ``PropertyRequirement``
+- ``FunctionRequirement``
 
 ### Building Blocks
 - ``CodeBlock``
 - ``Parameter``
+- ``ParameterExp``
 - ``Literal``
+- ``Attribute``
+- ``EmptyCodeBlock``
+- ``Line``
+
+### Protocols
+- ``CodeBlockBuilder``
+- ``CodeBlockable``
+- ``DictionaryValue``
+- ``ExprCodeBlock``
+- ``LiteralValue``
+- ``PatternConvertible``
+- ``TypeRepresentable``
+
+### Result Builders
+- ``CatchBuilder``
+- ``ClosureParameterBuilderResult``
+- ``CodeBlockBuilderResult``
+- ``CommentBuilderResult``
+- ``ExprCodeBlockBuilder``
+- ``ParameterBuilderResult``
+- ``ParameterExpBuilderResult``
+- ``PatternConvertibleBuilder``
+
+### Patterns
+- ``LetBindingPattern``
+- ``Pattern``
+
+### Core Types
+- ``AccessModifier``
+- ``CaptureReferenceType``
+- ``VariableKind``
 

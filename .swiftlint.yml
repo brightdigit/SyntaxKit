@@ -77,7 +77,7 @@ opt_in_rules:
   - strong_iboutlet
   - toggle_bool
 #  - trailing_closure
-  - type_contents_order
+#  - type_contents_order
   - unavailable_function
   - unneeded_parentheses_in_closure_argument
   - unowned_variable_capture
