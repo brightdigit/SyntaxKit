@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// An initializer expression.
-public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable {
+/// A Swift initializer expression.
+public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Sendable {
   private let type: String
   private let parameters: [ParameterExp]
 

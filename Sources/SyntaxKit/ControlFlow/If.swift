@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// An `if` statement.
-public struct If: CodeBlock {
+/// A Swift `if` statement.
+public struct If: CodeBlock, Sendable {
   internal let conditions: [CodeBlock]
   internal let body: [CodeBlock]
   internal let elseBody: [CodeBlock]?

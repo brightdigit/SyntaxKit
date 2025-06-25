@@ -30,7 +30,7 @@
 import Foundation
 
 /// A protocol for types that can be represented as literal values in Swift code.
-public protocol LiteralValue {
+public protocol LiteralValue: Sendable {
   /// The Swift type name for this literal value.
   var typeName: String { get }
 

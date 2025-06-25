@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// A protocol that represents a type that can be converted to SwiftSyntax.
-public protocol TypeRepresentable {
+/// Types that can be represented as a Swift type.
+public protocol TypeRepresentable: Sendable {
   /// Returns the SwiftSyntax representation of the conforming type.
   var typeSyntax: TypeSyntax { get }
 }

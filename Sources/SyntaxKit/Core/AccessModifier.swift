@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// Represents Swift access modifiers.
-public enum AccessModifier: CaseIterable {
+public enum AccessModifier: CaseIterable, Sendable, Equatable {
   case `public`
   case `private`
   case `internal`

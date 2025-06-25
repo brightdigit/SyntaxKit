@@ -30,10 +30,10 @@
 import Foundation
 import SwiftSyntax
 
-/// An empty ``CodeBlock``.
-public struct EmptyCodeBlock: CodeBlock {
+/// An empty code block that generates no syntax.
+internal struct EmptyCodeBlock: CodeBlock, Sendable, Equatable {
   /// The syntax for an empty code block.
-  public var syntax: SyntaxProtocol {
+  internal var syntax: SyntaxProtocol {
     StringSegmentSyntax(content: .unknown(""))
   }
 }

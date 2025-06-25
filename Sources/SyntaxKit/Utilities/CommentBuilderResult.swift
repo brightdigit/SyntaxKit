@@ -29,7 +29,7 @@
 
 /// A result builder for creating arrays of ``Line``s for comments.
 @resultBuilder
-public enum CommentBuilderResult {
+public enum CommentBuilderResult: Sendable, Equatable {
   /// Builds a block of ``Line``s.
   public static func buildBlock(_ components: Line...) -> [Line] { components }
 }

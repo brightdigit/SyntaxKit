@@ -29,8 +29,8 @@
 
 import SwiftSyntax
 
-/// A literal value.
-public enum Literal: CodeBlock, CodeBlockable {
+/// Represents Swift literal values.
+public enum Literal: CodeBlock, CodeBlockable, Sendable {
   /// A string literal.
   case string(String)
   /// A floating-point literal.

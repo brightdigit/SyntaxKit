@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `protocol` declaration.
-public struct Protocol: CodeBlock {
+public struct Protocol: CodeBlock, Sendable {
   private let name: String
   private let members: [CodeBlock]
   private var inheritance: [String] = []

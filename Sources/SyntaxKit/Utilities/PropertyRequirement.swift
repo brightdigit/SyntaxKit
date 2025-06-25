@@ -32,7 +32,7 @@ import SwiftSyntax
 /// A property requirement inside a protocol declaration.
 public struct PropertyRequirement: CodeBlock {
   /// The accessor options for the property.
-  public enum Access {
+  public enum Access: Sendable {
     case get
     case getSet
   }

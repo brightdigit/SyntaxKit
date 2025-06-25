@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `typealias` declaration.
-public struct TypeAlias: CodeBlock {
+public struct TypeAlias: CodeBlock, Sendable {
   private let name: String
   private let existingType: String
   private var attributes: [AttributeInfo] = []

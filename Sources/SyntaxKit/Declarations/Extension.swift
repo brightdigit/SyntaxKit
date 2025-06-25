@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A Swift `extension` declaration.
-public struct Extension: CodeBlock {
+public struct Extension: CodeBlock, Sendable {
   private let extendedType: String
   private let members: [CodeBlock]
   private var inheritance: [String] = []

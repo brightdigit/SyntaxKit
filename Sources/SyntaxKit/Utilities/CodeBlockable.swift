@@ -28,7 +28,7 @@
 //
 
 /// Can export a `CodeBlock`.
-public protocol CodeBlockable {
+public protocol CodeBlockable: Sendable {
   /// Returns a `CodeBlock`.
   var codeBlock: CodeBlock { get }
 }

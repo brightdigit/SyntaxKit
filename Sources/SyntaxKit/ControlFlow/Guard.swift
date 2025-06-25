@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A `guard … else { … }` statement.
-public struct Guard: CodeBlock {
+public struct Guard: CodeBlock, Sendable {
   private let conditions: [CodeBlock]
   private let elseBody: [CodeBlock]
 

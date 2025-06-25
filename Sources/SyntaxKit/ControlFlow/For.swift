@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A `for-in` loop statement.
-public struct For: CodeBlock {
+public struct For: CodeBlock, Sendable {
   private let pattern: any CodeBlock & PatternConvertible
   private let sequence: CodeBlock
   private let whereClause: CodeBlock?

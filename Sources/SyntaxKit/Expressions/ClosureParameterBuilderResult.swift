@@ -29,7 +29,7 @@
 
 /// A result builder for creating closure parameter lists.
 @resultBuilder
-public enum ClosureParameterBuilderResult {
+public enum ClosureParameterBuilderResult: Sendable, Equatable {
   /// Builds a block of closure parameters.
   /// - Parameter components: The closure parameters to combine.
   /// - Returns: An array of closure parameters.

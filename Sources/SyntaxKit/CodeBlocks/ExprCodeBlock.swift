@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 /// A protocol for types that can be represented as an ExprSyntax node.
-public protocol ExprCodeBlock {
+public protocol ExprCodeBlock: Sendable {
   /// The SwiftSyntax expression representation of the code block.
   var exprSyntax: ExprSyntax { get }
 }

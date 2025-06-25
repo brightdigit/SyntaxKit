@@ -27,8 +27,8 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// A protocol that provides property access chaining capabilities.
-public protocol PropertyAccessible: CodeBlock {
+/// A protocol for types that can access properties.
+public protocol PropertyAccessible: CodeBlock, Sendable {
   /// Accesses a property on the current property access expression (chaining).
   /// - Parameter propertyName: The name of the next property to access.
   /// - Returns: A property accessible code block representing the chained property access.

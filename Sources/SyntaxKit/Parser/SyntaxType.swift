@@ -29,7 +29,7 @@
 
 import Foundation
 
-internal enum SyntaxType: String, Codable {
+internal enum SyntaxType: String, Codable, Equatable {
   case decl
   case expr
   case pattern
