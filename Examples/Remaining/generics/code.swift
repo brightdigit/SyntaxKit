@@ -7,6 +7,7 @@ protocol Stackable {
     var isEmpty: Bool { get }
     var count: Int { get }
 }
+
 struct Stack<Element> {
     private var items: [Element] = []
 
