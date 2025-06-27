@@ -13,14 +13,14 @@ let genericGroup = Group{
         PropertyRequirement("count", type: "Int", access: .get)
     }
     
-    Struct("Stack", generic: "Element") {
+    Struct("Stack") {
         Variable(.var, name: "items", type: "[Element]", equals: "[]")
 
-        Function("push") parameters:{
+        Function("push") {
             Parameter(name: "item", type: "Element")
-        } {
-            VariableExp("output").call("append") {
-                Parameter(name: "item", value: "item")
+        } _: {
+            VariableExp("items").call("append") {
+                ParameterExp(name: "item", value: "item")
             }
         }
 
@@ -39,12 +39,12 @@ let genericGroup = Group{
         ComputedProperty("count") {
             VariableExp("items").property("count")
         }
-    }
+    }.generic("Element")
 
     Enum("Noop") {
-        Function("nothing", parameters: {
+        Function("nothing", returns: "any Stackable") {
             Parameter(name: "stack", type: "any Stackable")
-        }, returns: "any Stackable") {
+        } _: {
             Returns{
                 VariableExp("stack")
             }

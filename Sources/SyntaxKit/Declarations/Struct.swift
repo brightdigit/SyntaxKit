@@ -33,7 +33,7 @@ import SwiftSyntax
 public struct Struct: CodeBlock, Sendable {
   private let name: String
   private let members: [CodeBlock]
-  private var genericParameter: String?
+  private var genericParameters: [String] = []
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
   private var accessModifier: AccessModifier?
@@ -48,12 +48,21 @@ public struct Struct: CodeBlock, Sendable {
     self.members = try content()
   }
 
-  /// Sets the generic parameter for the struct.
-  /// - Parameter generic: The generic parameter name.
-  /// - Returns: A copy of the struct with the generic parameter set.
+  /// Adds a generic parameter to the struct.
+  /// - Parameter generic: The generic parameter name to add.
+  /// - Returns: A copy of the struct with the generic parameter added.
   public func generic(_ generic: String) -> Self {
     var copy = self
-    copy.genericParameter = generic
+    copy.genericParameters.append(generic)
+    return copy
+  }
+
+  /// Adds multiple generic parameters to the struct.
+  /// - Parameter generics: The list of generic parameter names to add.
+  /// - Returns: A copy of the struct with the generic parameters added.
+  public func generic(_ generics: String...) -> Self {
+    var copy = self
+    copy.genericParameters.append(contentsOf: generics)
     return copy
   }
 
@@ -91,14 +100,22 @@ public struct Struct: CodeBlock, Sendable {
     let identifier = TokenSyntax.identifier(name)
 
     var genericParameterClause: GenericParameterClauseSyntax?
-    if let generic = genericParameter {
-      let genericParameter = GenericParameterSyntax(
-        name: .identifier(generic),
-        trailingComma: nil
+    if !genericParameters.isEmpty {
+      let parameterList = GenericParameterListSyntax(
+        genericParameters.enumerated().map { idx, name in
+          var param = GenericParameterSyntax(name: .identifier(name))
+          if idx < genericParameters.count - 1 {
+            param = param.with(
+              \.trailingComma,
+              TokenSyntax.commaToken(trailingTrivia: .space)
+            )
+          }
+          return param
+        }
       )
       genericParameterClause = GenericParameterClauseSyntax(
         leftAngle: .leftAngleToken(),
-        parameters: GenericParameterListSyntax([genericParameter]),
+        parameters: parameterList,
         rightAngle: .rightAngleToken()
       )
     }

@@ -96,4 +96,62 @@ internal struct StructTests {
     let normalizedExpected = expectedCode.normalizeStructural()
     #expect(normalizedGenerated == normalizedExpected)
   }
+
+  @Test internal func testStructWithMultipleGenerics() {
+    let multiGenericStruct = Struct("Pair") {
+      Variable(.var, name: "first", type: "T").withExplicitType()
+      Variable(.var, name: "second", type: "U").withExplicitType()
+    }.generic("T").generic("U")
+
+    let expectedCode = """
+      struct Pair<T, U> {
+        var first: T
+        var second: U
+      }
+      """
+
+    let normalizedGenerated = multiGenericStruct.generateCode().normalizeStructural()
+    let normalizedExpected = expectedCode.normalizeStructural()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
+  @Test internal func testStructWithMultipleGenericsInOneCall() {
+    let multiGenericStruct = Struct("Triple") {
+      Variable(.var, name: "first", type: "T").withExplicitType()
+      Variable(.var, name: "second", type: "U").withExplicitType()
+      Variable(.var, name: "third", type: "V").withExplicitType()
+    }.generic("T", "U", "V")
+
+    let expectedCode = """
+      struct Triple<T, U, V> {
+        var first: T
+        var second: U
+        var third: V
+      }
+      """
+
+    let normalizedGenerated = multiGenericStruct.generateCode().normalizeStructural()
+    let normalizedExpected = expectedCode.normalizeStructural()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
+  @Test internal func testStructWithMixedGenericCalls() {
+    let mixedGenericStruct = Struct("Container") {
+      Variable(.var, name: "key", type: "K").withExplicitType()
+      Variable(.var, name: "value", type: "V").withExplicitType()
+      Variable(.var, name: "count", type: "Int").withExplicitType()
+    }.generic("K").generic("V", "Int")
+
+    let expectedCode = """
+      struct Container<K, V, Int> {
+        var key: K
+        var value: V
+        var count: Int
+      }
+      """
+
+    let normalizedGenerated = mixedGenericStruct.generateCode().normalizeStructural()
+    let normalizedExpected = expectedCode.normalizeStructural()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
 }
