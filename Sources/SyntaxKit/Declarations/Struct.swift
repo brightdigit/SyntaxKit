@@ -65,6 +65,15 @@ public struct Struct: CodeBlock, Sendable {
     copy.inheritance = inheritance
     return copy
   }
+  
+  /// Sets the inheritance for the struct using an array.
+  /// - Parameter inheritance: The array of types to inherit from.
+  /// - Returns: A copy of the struct with the inheritance set.
+  public func inherits(_ inheritance: [String]) -> Self {
+    var copy = self
+    copy.inheritance = inheritance
+    return copy
+  }
 
   /// Sets the access modifier for the struct declaration.
   /// - Parameter access: The access modifier.
