@@ -52,6 +52,15 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
     self.parameters = try params()
   }
 
+  /// Creates an initializer expression with a ParameterExp array.
+  /// - Parameters:
+  ///   - type: The type to initialize.
+  ///   - params: An array of ParameterExp elements for the initializer.
+  public init(_ type: String, params: [ParameterExp]) {
+    self.type = type
+    self.parameters = params
+  }
+
   /// The code block representation of this initializer expression.
   public var codeBlock: CodeBlock {
     self

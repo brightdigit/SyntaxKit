@@ -48,6 +48,15 @@ public struct Struct: CodeBlock, Sendable {
     self.members = try content()
   }
 
+  /// Creates a struct declaration with a CodeBlock array.
+  /// - Parameters:
+  ///   - name: The name of the struct.
+  ///   - members: An array of CodeBlock elements that form the body of the struct.
+  public init(_ name: String, members: [CodeBlock]) {
+    self.name = name
+    self.members = members
+  }
+
   /// Sets the generic parameter for the struct.
   /// - Parameter generic: The generic parameter name.
   /// - Returns: A copy of the struct with the generic parameter set.
