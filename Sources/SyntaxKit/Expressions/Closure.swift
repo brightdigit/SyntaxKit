@@ -154,6 +154,16 @@ public struct Closure: CodeBlock {
     )
   }
 
+  /// Creates a closure with just a CodeBlock array.
+  /// - Parameters:
+  ///   - body: An array of CodeBlock elements that form the body of the closure.
+  public init(body: [CodeBlock]) {
+    self.capture = []
+    self.parameters = []
+    self.returnType = nil
+    self.body = body
+  }
+
   /// Creates a closure without capture list and parameters.
   /// - Parameters:
   ///   - returnType: The return type of the closure.

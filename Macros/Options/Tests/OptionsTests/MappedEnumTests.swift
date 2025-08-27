@@ -28,11 +28,14 @@
 //
 
 @testable import Options
-import XCTest
+import Testing
 
-internal final class MappedEnumTests: XCTestCase {
+@Suite
+internal struct MappedEnumTests {
   private static let text = "\"a\""
-  internal func testDecoder() throws {
+  
+  @Test
+  internal func decoder() throws {
     // swiftlint:disable:next force_unwrapping
     let data = Self.text.data(using: .utf8)!
     let decoder = JSONDecoder()
@@ -40,30 +43,31 @@ internal final class MappedEnumTests: XCTestCase {
     do {
       actual = try decoder.decode(MappedEnum<MockCollectionEnum>.self, from: data)
     } catch {
-      XCTAssertNil(error)
+      Issue.record("Unexpected error: \(error)")
       return
     }
-    XCTAssertEqual(actual.value, .a)
+    #expect(actual.value == .a)
   }
 
-  internal func testEncoder() throws {
+  @Test
+  internal func encoder() throws {
     let encoder = JSONEncoder()
     let describedEnum: MappedEnum<MockCollectionEnum> = .init(value: .a)
     let data: Data
     do {
       data = try encoder.encode(describedEnum)
     } catch {
-      XCTAssertNil(error)
+      Issue.record("Unexpected error: \(error)")
       return
     }
 
     let dataText = String(bytes: data, encoding: .utf8)
 
     guard let text = dataText else {
-      XCTAssertNotNil(dataText)
+      Issue.record("Failed to convert data to string")
       return
     }
 
-    XCTAssertEqual(text, Self.text)
+    #expect(text == Self.text)
   }
 }

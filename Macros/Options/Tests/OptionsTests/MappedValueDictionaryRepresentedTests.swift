@@ -28,24 +28,28 @@
 //
 
 @testable import Options
-import XCTest
+import Testing
 
-internal final class MappedValueDictionaryRepresentedTests: XCTestCase {
-  internal func testRawValue() {
-    try XCTAssertEqual(MockDictionaryEnum.rawValue(basedOn: "a"), 2)
-    try XCTAssertEqual(MockDictionaryEnum.rawValue(basedOn: "b"), 5)
-    try XCTAssertEqual(MockDictionaryEnum.rawValue(basedOn: "c"), 6)
-    try XCTAssertEqual(MockDictionaryEnum.rawValue(basedOn: "d"), 12)
+@Suite
+internal struct MappedValueDictionaryRepresentedTests {
+  @Test
+  internal func rawValue() throws {
+    #expect(try MockDictionaryEnum.rawValue(basedOn: "a") == 2)
+    #expect(try MockDictionaryEnum.rawValue(basedOn: "b") == 5)
+    #expect(try MockDictionaryEnum.rawValue(basedOn: "c") == 6)
+    #expect(try MockDictionaryEnum.rawValue(basedOn: "d") == 12)
   }
 
-  internal func testString() {
-    try XCTAssertEqual(MockDictionaryEnum.mappedValue(basedOn: 2), "a")
-    try XCTAssertEqual(MockDictionaryEnum.mappedValue(basedOn: 5), "b")
-    try XCTAssertEqual(MockDictionaryEnum.mappedValue(basedOn: 6), "c")
-    try XCTAssertEqual(MockDictionaryEnum.mappedValue(basedOn: 12), "d")
+  @Test
+  internal func string() throws {
+    #expect(try MockDictionaryEnum.mappedValue(basedOn: 2) == "a")
+    #expect(try MockDictionaryEnum.mappedValue(basedOn: 5) == "b")
+    #expect(try MockDictionaryEnum.mappedValue(basedOn: 6) == "c")
+    #expect(try MockDictionaryEnum.mappedValue(basedOn: 12) == "d")
   }
 
-  internal func testRawValueFailure() {
+  @Test
+  internal func rawValueFailure() {
     let caughtError: MappedValueRepresentableError?
     do {
       _ = try MockDictionaryEnum.rawValue(basedOn: "e")
@@ -53,14 +57,15 @@ internal final class MappedValueDictionaryRepresentedTests: XCTestCase {
     } catch let error as MappedValueRepresentableError {
       caughtError = error
     } catch {
-      XCTAssertNil(error)
+      Issue.record("Unexpected error: \(error)")
       caughtError = nil
     }
 
-    XCTAssertEqual(caughtError, .valueNotFound)
+    #expect(caughtError == .valueNotFound)
   }
 
-  internal func testStringFailure() {
+  @Test
+  internal func stringFailure() {
     let caughtError: MappedValueRepresentableError?
     do {
       _ = try MockDictionaryEnum.mappedValue(basedOn: 0)
@@ -68,10 +73,10 @@ internal final class MappedValueDictionaryRepresentedTests: XCTestCase {
     } catch let error as MappedValueRepresentableError {
       caughtError = error
     } catch {
-      XCTAssertNil(error)
+      Issue.record("Unexpected error: \(error)")
       caughtError = nil
     }
 
-    XCTAssertEqual(caughtError, .valueNotFound)
+    #expect(caughtError == .valueNotFound)
   }
 }
