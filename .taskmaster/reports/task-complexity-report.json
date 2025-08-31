@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2025-08-31T17:57:02.092Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Enhance README with clear value proposition and decision guide",
+			"complexityScore": 4,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down README enhancement into manageable content sections: 1) Draft compelling opening value proposition (200 words), 2) Create decision flowchart content and visual for macro use cases, 3) Develop before/after comparison examples for dynamic scenarios, 4) Build 5-minute Quick Start section with working example, 5) Reorganize existing installation and content for better flow, 6) Add prominent DocC documentation links and cross-references",
+			"reasoning": "Medium complexity based on existing README structure. Requires content strategy, example development, and reorganization but builds on current foundation. Current README is basic with simple example - needs strategic reframing rather than complete rewrite."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Enhance DocC Documentation.md as primary landing page",
+			"complexityScore": 5,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Transform Documentation.md into comprehensive landing page: 1) Rewrite opening with dynamic code generation value proposition, 2) Add 'When to Use SyntaxKit vs Raw Swift' decision section, 3) Showcase macro development with compelling examples, 4) Add performance considerations section, 5) Create cross-references to tutorials and articles, 6) Audit and enhance API coverage documentation, 7) Apply Apple DocC best practices for structure",
+			"reasoning": "Medium-high complexity. Current Documentation.md has good foundation with comprehensive example but needs strategic reframing. Requires DocC expertise, content strategy, and API documentation audit. Moderate scope given existing structure."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Create 'When to Use SyntaxKit' DocC tutorial",
+			"complexityScore": 6,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Build comprehensive decision tutorial: 1) Research and outline decision criteria framework, 2) Create decision flowchart visual content, 3) Build comparison table for dynamic vs static scenarios, 4) Develop concrete macro development examples, 5) Document anti-patterns with explanations, 6) Add performance and maintainability analysis, 7) Create cross-references to related content, 8) Structure as step-by-step tutorial with clear outcomes",
+			"reasoning": "Medium-high complexity. No existing tutorial structure to build on. Requires strategic thinking, example development, DocC tutorial expertise, and user experience design. Critical for addressing core user confusion."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Expand existing macro tutorial with additional patterns",
+			"complexityScore": 5,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Enhance existing macro tutorial with advanced patterns: 1) Add member macro pattern with initializer generation example, 2) Implement accessor macro pattern for property wrappers, 3) Create peer macro pattern with companion types, 4) Enhance error handling with MacroError patterns, 5) Add debugging section for macro compilation, 6) Include performance optimization tips and cross-references",
+			"reasoning": "Medium complexity. Builds on existing tutorial foundation with StringifyMacro and extension examples. Requires macro development expertise but has clear structure to follow. Well-defined scope with concrete patterns to implement."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Create Quick Start DocC tutorial",
+			"complexityScore": 4,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Build rapid onboarding tutorial: 1) Create streamlined SPM installation instructions, 2) Develop simple enum generator example with JSON config input, 3) Build working code demonstration with visible output, 4) Create downloadable Swift Playground file, 5) Add clear next steps navigation to advanced content",
+			"reasoning": "Medium complexity. Focused scope with clear 5-minute constraint. Requires example development and Playground creation but straightforward tutorial structure. Success depends on achieving immediate gratification goal."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Create enum generator practical example",
+			"complexityScore": 7,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Build comprehensive practical example: 1) Design CLI tool architecture and command-line interface, 2) Implement JSON/YAML configuration parsing, 3) Build enum generation logic with raw values support, 4) Add associated values and CaseIterable support, 5) Create before/after integration demonstration, 6) Write comprehensive DocC article explaining implementation, 7) Develop comprehensive unit test coverage, 8) Add error handling and edge case management",
+			"reasoning": "High complexity. Requires building complete working CLI tool with multiple features. Involves file I/O, configuration parsing, comprehensive SyntaxKit usage, and extensive testing. Significant implementation scope beyond simple examples."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Create best practices DocC article",
+			"complexityScore": 5,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Develop comprehensive best practices guide: 1) Research and document SyntaxKit usage patterns, 2) Create performance optimization techniques section, 3) Develop error handling and debugging strategies, 4) Document code organization patterns for maintainability, 5) Create integration patterns with Swift projects, 6) Build testing strategies for generated code, 7) Document anti-patterns and prevention strategies",
+			"reasoning": "Medium complexity. Requires consolidating knowledge from examples and community usage. Content-heavy but well-defined scope. Depends on understanding gained from other examples and community feedback."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Create troubleshooting DocC article",
+			"complexityScore": 4,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Build comprehensive troubleshooting resource: 1) Document common compilation errors with solutions, 2) Address SwiftSyntax integration issues, 3) Create performance problem diagnosis guide, 4) Build debugging guide for generated code, 5) Document macro development gotchas, 6) Create FAQ from GitHub issues and support requests",
+			"reasoning": "Medium complexity. Structured content creation based on known issues. Requires analyzing GitHub issues and support patterns. Well-defined scope but requires thorough research of common problems."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Create integration guide DocC tutorial",
+			"complexityScore": 6,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Develop practical integration tutorial: 1) Create Xcode project integration steps, 2) Document SPM package integration, 3) Build build system integration examples (Xcode build phases, SPM plugins), 4) Create CI/CD integration guides for popular services, 5) Document team workflow patterns and code review processes, 6) Add migration strategies from existing solutions, 7) Cover deployment considerations and framework integration",
+			"reasoning": "Medium-high complexity. Requires knowledge of multiple development environments and CI/CD systems. Broad scope covering various integration scenarios. Needs practical examples for different toolchains."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Implement comprehensive DocC quality assurance and testing",
+			"complexityScore": 8,
+			"recommendedSubtasks": 10,
+			"expansionPrompt": "Establish comprehensive documentation quality system: 1) Integrate swift package generate-documentation into CI/CD pipeline, 2) Implement documentation link validation system, 3) Add automated testing for all code examples in tutorials, 4) Create documentation review checklist and process, 5) Build API documentation coverage metrics and monitoring, 6) Add mobile responsiveness testing for DocC output, 7) Create documentation maintenance schedule, 8) Add documentation performance testing, 9) Integrate with existing Scripts/lint.sh quality processes, 10) Implement failure handling and reporting systems",
+			"reasoning": "High complexity. Requires comprehensive CI/CD integration, automated testing infrastructure, and quality monitoring systems. Technical scope includes build pipeline modifications, testing automation, and performance monitoring. Significant engineering effort."
+		}
+	]
+}

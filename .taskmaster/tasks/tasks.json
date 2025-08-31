@@ -1,0 +1,912 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Enhance README with clear value proposition and decision guide",
+        "description": "Rewrite the README.md to address developer confusion about when to use SyntaxKit vs writing Swift directly, emphasizing dynamic code generation use cases",
+        "details": "Update README.md with: 1) Clear opening value proposition highlighting dynamic vs static code generation (first 200 words), 2) 'When to Use SyntaxKit' decision flowchart with macro development as primary use case, 3) Before/after comparisons showing SyntaxKit excelling at dynamic scenarios (API clients, model generators, migration utilities), 4) 5-minute Quick Start section with immediate working example, 5) Prominent DocC documentation link. Preserve existing installation instructions but reorganize for better flow. Focus on macro development as the sweet spot and address the core confusion from developer feedback.",
+        "testStrategy": "Validate README renders correctly on GitHub, test all code examples compile, verify Quick Start can be completed in under 5 minutes, get feedback from developers who were previously confused about SyntaxKit's purpose",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Draft compelling opening value proposition",
+            "description": "Write the first 200 words of README.md that clearly articulates SyntaxKit's value for dynamic code generation vs static Swift code",
+            "dependencies": [],
+            "details": "Create opening section that immediately addresses developer confusion about when to use SyntaxKit. Focus on dynamic vs static code generation scenarios. Highlight macro development, API client generation, and model generators as key use cases. Make it clear within first paragraph why a developer would choose SyntaxKit over writing Swift directly. Include hook that draws readers to continue reading.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create decision flowchart content for macro use cases",
+            "description": "Develop 'When to Use SyntaxKit' decision matrix and flowchart content emphasizing macro development as primary use case",
+            "dependencies": [
+              "1.1"
+            ],
+            "details": "Create decision tree content that helps developers determine if SyntaxKit is right for their use case. Focus on macro development as the sweet spot. Include visual flowchart using Mermaid or ASCII art. Cover scenarios like: compile-time code generation, repetitive boilerplate reduction, API client generation, model transformation. Provide clear yes/no decision points.",
+            "status": "done",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop before/after comparison examples",
+            "description": "Create compelling before/after code examples showing SyntaxKit excelling at dynamic scenarios like API clients and model generators",
+            "dependencies": [
+              "1.2"
+            ],
+            "details": "Develop 2-3 concrete before/after examples: 1) API client generation from OpenAPI spec, 2) Model generator with computed properties, 3) Migration utility for data transformation. Each example should show the manual Swift approach vs SyntaxKit approach, highlighting reduced boilerplate and improved maintainability. Focus on scenarios where SyntaxKit provides clear advantages.",
+            "status": "in-progress",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Build 5-minute Quick Start section",
+            "description": "Create comprehensive Quick Start section with immediate working example that can be completed in under 5 minutes",
+            "dependencies": [
+              "1.3"
+            ],
+            "details": "Design step-by-step Quick Start that gets developers from zero to working code in 5 minutes. Include: package installation, simple macro example, compilation steps, and verification. Use a practical example like generating Equatable conformance or simple API client. Provide exact commands and expected output. Test timing with new users.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Reorganize existing installation and content for better flow",
+            "description": "Restructure current README content, preserving installation instructions but improving overall information architecture",
+            "dependencies": [
+              "1.4"
+            ],
+            "details": "Reorganize existing README sections for logical flow: 1) Value proposition, 2) Decision guide, 3) Quick Start, 4) Installation, 5) Examples, 6) Documentation links, 7) Contributing. Preserve all existing technical content but improve readability and progression. Ensure installation instructions remain comprehensive but are positioned after value demonstration.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add prominent DocC documentation links and cross-references",
+            "description": "Integrate prominent links to DocC documentation and create clear navigation paths to advanced content",
+            "dependencies": [
+              "1.5"
+            ],
+            "details": "Add prominent section linking to DocC documentation with clear descriptions of what readers will find. Include links to: comprehensive API reference, macro development tutorials, integration guides, and troubleshooting resources. Create clear calls-to-action that drive readers to deeper documentation. Ensure links work correctly and provide context about what each documentation section covers.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Enhance DocC Documentation.md as primary landing page",
+        "description": "Complete overhaul of Sources/SyntaxKit/Documentation.docc/Documentation.md to serve as compelling primary entry point",
+        "details": "Transform Documentation.md into compelling primary entry point: 1) Lead with clear value proposition for dynamic code generation, 2) Add prominent 'When to Use SyntaxKit vs Raw Swift' section with decision matrix, 3) Showcase macro development as primary use case with compelling before/after examples, 4) Include performance considerations and trade-offs, 5) Add cross-references to new tutorials and articles, 6) Ensure 100% API coverage with documentation comments, 7) Follow Apple's DocC best practices for structure and formatting. Build upon existing comprehensive example but reframe to emphasize dynamic generation scenarios.",
+        "testStrategy": "Test documentation builds with swift package generate-documentation, validate all symbol links work, verify navigation flows logically, test examples compile and run, ensure mobile responsiveness of DocC output",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Rewrite opening section with dynamic code generation value proposition",
+            "description": "Transform the introduction of Documentation.md to lead with a clear, compelling value proposition that emphasizes SyntaxKit's strengths in dynamic code generation scenarios",
+            "dependencies": [],
+            "details": "Rewrite the opening 300-400 words to immediately communicate SyntaxKit's value for dynamic code generation. Include specific use cases like macro development, API client generators, and migration utilities. Replace generic introductions with concrete scenarios where SyntaxKit excels over manual Swift code writing.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Add 'When to Use SyntaxKit vs Raw Swift' decision section",
+            "description": "Create a prominent decision matrix section helping developers understand when SyntaxKit is the right choice versus writing Swift code directly",
+            "dependencies": [
+              "2.1"
+            ],
+            "details": "Add comprehensive decision section with visual decision tree or matrix. Include scenarios where SyntaxKit excels (dynamic generation, macros, code transformation) vs where raw Swift is better (static code, simple scripts). Provide clear criteria and examples for each decision path.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Showcase macro development with compelling before/after examples",
+            "description": "Create detailed macro development showcase section with side-by-side comparisons demonstrating SyntaxKit's advantages for macro creation",
+            "dependencies": [
+              "2.2"
+            ],
+            "details": "Develop 2-3 compelling before/after macro examples showing SyntaxKit vs traditional approach. Include StringifyMacro, member generation macro, and accessor macro examples. Highlight code clarity, maintainability, and error handling improvements when using SyntaxKit for macro development.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Add performance considerations and trade-offs section",
+            "description": "Document performance characteristics, trade-offs, and optimization guidance for SyntaxKit usage",
+            "dependencies": [
+              "2.3"
+            ],
+            "details": "Add dedicated section covering performance aspects: compilation time impact, runtime performance of generated code, memory usage considerations, optimization strategies. Include benchmarks or guidelines for when performance trade-offs are acceptable vs when raw Swift is preferred.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Create cross-references to tutorials and articles",
+            "description": "Establish comprehensive cross-referencing system linking Documentation.md to all tutorials, articles, and examples throughout the DocC site",
+            "dependencies": [
+              "2.4"
+            ],
+            "details": "Add navigation links and cross-references to all relevant tutorials (macro tutorial, practical examples), articles (API guides, best practices), and examples. Ensure logical flow from Documentation.md to deeper content. Use DocC linking syntax for proper symbol and page references.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Audit and enhance API coverage documentation",
+            "description": "Comprehensive audit of API documentation coverage and enhancement of missing or inadequate documentation comments",
+            "dependencies": [
+              "2.5"
+            ],
+            "details": "Conduct full audit of public API documentation coverage. Identify missing documentation comments, enhance existing ones for clarity, ensure all public types, methods, and properties have comprehensive documentation. Target 100% coverage of public APIs with meaningful, example-rich documentation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Apply Apple DocC best practices for structure and formatting",
+            "description": "Review and enhance Documentation.md structure, formatting, and organization according to Apple's DocC best practices and guidelines",
+            "dependencies": [
+              "2.6"
+            ],
+            "details": "Apply Apple DocC best practices for page structure, heading hierarchy, code block formatting, symbol linking, and navigation. Ensure proper use of DocC directives, callouts, and formatting. Validate mobile responsiveness and accessibility. Test final documentation builds successfully and renders properly.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Create 'When to Use SyntaxKit' DocC tutorial",
+        "description": "Create new DocC tutorial addressing core confusion about SyntaxKit's purpose and appropriate use cases",
+        "details": "Create Sources/SyntaxKit/Documentation.docc/Tutorials/When-to-Use-SyntaxKit.md: 1) Decision flowchart for SyntaxKit vs manual Swift, 2) Comparison table highlighting dynamic vs static scenarios, 3) Concrete examples of ideal use cases (macro development, API client generation, schema-driven code generation), 4) Anti-patterns to avoid (replacing static Swift code), 5) Performance and maintainability considerations, 6) Links to relevant examples and further reading. Structure as step-by-step tutorial with clear takeaways.",
+        "testStrategy": "User testing with developers previously confused about SyntaxKit, validate tutorial can be completed in 10-15 minutes, ensure all decision points are clear, test that examples demonstrate clear value over alternatives",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Research and outline decision criteria framework",
+            "description": "Research existing decision frameworks and outline criteria for when to use SyntaxKit vs manual Swift code",
+            "dependencies": [],
+            "details": "Analyze use cases, create decision matrix with factors like code volume, dynamism, maintainability, and performance. Research similar frameworks in other languages for inspiration.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create decision flowchart visual content",
+            "description": "Design and create flowchart diagram showing decision path for SyntaxKit adoption",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Create visual flowchart in DocC-compatible format showing decision points, conditions, and outcomes for choosing SyntaxKit vs alternatives.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build comparison table for dynamic vs static scenarios",
+            "description": "Create detailed comparison table highlighting when dynamic code generation provides value over static code",
+            "dependencies": [
+              "3.1"
+            ],
+            "details": "Build comprehensive table comparing scenarios, showing clear advantages/disadvantages, performance implications, and maintenance considerations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Develop concrete macro development examples",
+            "description": "Create specific examples showing SyntaxKit's value in macro development, API client generation, and schema-driven scenarios",
+            "dependencies": [
+              "3.2",
+              "3.3"
+            ],
+            "details": "Write 3-4 concrete examples with before/after code showing clear value proposition. Include macro generation, API client creation, and schema-to-Swift examples.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Document anti-patterns with explanations",
+            "description": "Identify and document common anti-patterns and inappropriate use cases with clear explanations",
+            "dependencies": [
+              "3.3"
+            ],
+            "details": "List scenarios where SyntaxKit shouldn't be used, explain why static code is better, provide examples of over-engineering with SyntaxKit.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add performance and maintainability analysis",
+            "description": "Create analysis section covering performance implications and maintainability considerations",
+            "dependencies": [
+              "3.4",
+              "3.5"
+            ],
+            "details": "Document build-time performance impact, runtime considerations, long-term maintenance implications, and team collaboration factors.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Create cross-references to related content",
+            "description": "Add links and references to relevant examples, tutorials, and further reading materials",
+            "dependencies": [
+              "3.6"
+            ],
+            "details": "Link to Quick Start tutorial, macro examples, best practices article, and external resources. Ensure proper DocC cross-referencing.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Structure as step-by-step tutorial with clear outcomes",
+            "description": "Organize all content into cohesive step-by-step tutorial format with clear learning outcomes",
+            "dependencies": [
+              "3.7"
+            ],
+            "details": "Structure content as guided tutorial with clear steps, checkpoints, and takeaways. Ensure 10-15 minute completion time and clear decision-making outcomes.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Expand existing macro tutorial with additional patterns",
+        "description": "Enhance Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md with 2-3 additional common macro patterns",
+        "details": "Expand existing macro tutorial (already has StringifyMacro and extension macro): 1) Add member macro pattern example (auto-generating initializers or computed properties), 2) Add accessor macro pattern (property wrapper-like functionality), 3) Add peer macro pattern (generating companion types), 4) Update existing examples with better error handling using MacroError patterns, 5) Add section on debugging macro compilation, 6) Include performance tips for macro development, 7) Cross-reference with When-to-Use guide. Maintain tutorial flow while showing SyntaxKit's advantages over manual SwiftSyntax.",
+        "testStrategy": "Test all macro examples compile and work correctly, validate tutorial maintains clear learning progression, ensure new patterns cover common real-world macro needs, test examples in Xcode macro development environment",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add member macro pattern with initializer generation example",
+            "description": "Implement a comprehensive member macro example that automatically generates initializers or computed properties for structs/classes",
+            "dependencies": [],
+            "details": "Create a detailed section showing how to build a member macro using SyntaxKit that generates initializers based on stored properties. Include step-by-step implementation, explain macro expansion mechanics, and demonstrate advantages over manual SwiftSyntax approach. Show both memberwise initializer and custom initializer patterns.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement accessor macro pattern for property wrapper functionality",
+            "description": "Add accessor macro tutorial section demonstrating property wrapper-like functionality with getter/setter generation",
+            "dependencies": [
+              "4.1"
+            ],
+            "details": "Create accessor macro example that generates custom getters and setters for properties, similar to property wrapper behavior. Show how SyntaxKit simplifies accessor generation compared to raw SwiftSyntax. Include validation, transformation, and storage pattern examples.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create peer macro pattern with companion type generation",
+            "description": "Develop peer macro example that generates companion types alongside the annotated declaration",
+            "dependencies": [
+              "4.2"
+            ],
+            "details": "Implement peer macro tutorial showing generation of companion types (builders, validators, etc.) alongside main types. Demonstrate SyntaxKit's declarative approach for creating related types and maintaining type relationships. Include practical use cases like builder pattern generation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Enhance error handling with MacroError patterns throughout examples",
+            "description": "Update all existing and new macro examples to use proper MacroError patterns and comprehensive error handling",
+            "dependencies": [
+              "4.1",
+              "4.2",
+              "4.3"
+            ],
+            "details": "Refactor StringifyMacro, extension macro, and all new examples to demonstrate proper error handling using MacroError. Show diagnostic generation, error recovery strategies, and user-friendly error messages. Include section on error handling best practices with SyntaxKit.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add debugging section for macro compilation and development workflow",
+            "description": "Create comprehensive debugging guide for macro development using SyntaxKit with practical troubleshooting steps",
+            "dependencies": [
+              "4.4"
+            ],
+            "details": "Add debugging section covering: macro expansion inspection, compiler diagnostic interpretation, step-by-step debugging workflow, common pitfalls and solutions. Include Xcode integration tips, logging strategies, and testing approaches for macro development with SyntaxKit.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Include performance optimization tips and cross-references to other guides",
+            "description": "Add performance considerations section and integrate cross-references to When-to-Use guide and other tutorials",
+            "dependencies": [
+              "4.5"
+            ],
+            "details": "Create performance optimization section covering: compilation time impact, memory usage patterns, best practices for large-scale macro usage. Add strategic cross-references to When-to-Use guide, Quick Start tutorial, and Integration guide. Ensure tutorial maintains logical flow while highlighting SyntaxKit advantages.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Create Quick Start DocC tutorial",
+        "description": "Create new 5-minute Quick Start tutorial for immediate gratification and rapid onboarding",
+        "details": "Create Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md: 1) Installation via SPM (2 minutes), 2) Simple enum generator example showing dynamic generation from JSON config (2 minutes), 3) Running and seeing generated Swift code (1 minute), 4) Next steps pointing to macro tutorial and advanced examples. Include downloadable Swift Playground file. Focus on immediate success and 'aha moment' where developer sees value of dynamic generation vs static code.",
+        "testStrategy": "Time-test with new developers to ensure 5-minute completion, validate all code examples work out-of-box, test Playground file downloads and runs correctly, measure conversion rate to deeper engagement with documentation",
+        "priority": "medium",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create SPM installation instructions",
+            "description": "Write streamlined 2-minute Swift Package Manager installation section with copy-paste code examples",
+            "dependencies": [],
+            "details": "Create clear step-by-step SPM installation instructions in the Quick Start tutorial. Include Package.swift dependency code, Xcode integration steps, and import statements. Focus on minimal friction and copy-paste convenience. Target completion in 2 minutes or less.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Develop enum generator example with JSON config",
+            "description": "Create simple but compelling enum generation example that demonstrates dynamic code generation from JSON configuration",
+            "dependencies": [
+              "5.1"
+            ],
+            "details": "Build a practical enum generator example that reads from JSON config and produces Swift enum code. Show the 'aha moment' of dynamic generation vs static code. Include both the JSON input and resulting Swift output. Keep example simple but meaningful, targeting 2-minute completion.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build working code demonstration",
+            "description": "Create complete runnable code example showing the enum generator in action with visible output",
+            "dependencies": [
+              "5.2"
+            ],
+            "details": "Provide complete working code that users can run immediately to see generated Swift code output. Include print statements or other mechanisms to make the generation process visible. Ensure code runs successfully out-of-the-box with no additional setup. Target 1-minute execution and review.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create downloadable Swift Playground file",
+            "description": "Package the quick start example into a downloadable Swift Playground for immediate hands-on experience",
+            "dependencies": [
+              "5.3"
+            ],
+            "details": "Create a Swift Playground file containing the complete quick start example. Ensure it includes SyntaxKit as a dependency, the JSON config example, and the enum generator code. Package for easy download and immediate execution in Xcode Playgrounds.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add navigation to advanced content",
+            "description": "Create clear next steps section linking to macro tutorial and advanced examples for continued learning",
+            "dependencies": [
+              "5.4"
+            ],
+            "details": "Write compelling next steps section that guides users to deeper SyntaxKit content. Include links to the macro tutorial, advanced examples, and other relevant documentation. Frame as natural progression from quick start success to more sophisticated usage patterns.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Create enum generator practical example",
+        "description": "Implement comprehensive enum generator example demonstrating dynamic Swift code generation from external data",
+        "details": "Create Examples/Completed/enum_generator/ with: 1) Swift CLI tool that reads JSON/YAML configuration and generates Swift enums, 2) Support for raw values, associated values, and CaseIterable conformance, 3) Configuration-driven enum naming and case generation, 4) Integration example showing before (manual enum maintenance) vs after (automated generation), 5) Comprehensive DocC article at Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md explaining the implementation, 6) Unit tests validating generated code compilation and correctness. Demonstrate clear value proposition where input varies based on external data sources.",
+        "testStrategy": "Test generated enums compile and behave correctly, validate CLI tool handles edge cases gracefully, test with various JSON/YAML configurations, ensure example clearly shows dynamic generation value over static alternatives",
+        "priority": "medium",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Design CLI tool architecture and command-line interface",
+            "description": "Define the CLI tool structure, argument parsing, and user interface for the enum generator",
+            "dependencies": [],
+            "details": "Create main.swift with ArgumentParser integration, define command-line options for input files, output directories, and generation options. Design modular architecture with separate components for parsing, generation, and output.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement JSON/YAML configuration parsing",
+            "description": "Build configuration file parsing system to read enum definitions from external data sources",
+            "dependencies": [
+              "6.1"
+            ],
+            "details": "Implement Codable models for enum configuration, support both JSON and YAML formats, handle parsing errors gracefully, validate configuration structure and required fields.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Build enum generation logic with raw values support",
+            "description": "Implement core enum generation using SyntaxKit with raw value support",
+            "dependencies": [
+              "6.2"
+            ],
+            "details": "Use SyntaxKit EnumDeclaration to generate enums from parsed configuration, support String, Int, and other raw value types, handle case naming conventions and sanitization.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Add associated values and CaseIterable conformance support",
+            "description": "Extend enum generation to support associated values and protocol conformances",
+            "dependencies": [
+              "6.3"
+            ],
+            "details": "Implement associated value generation from configuration, add CaseIterable conformance when appropriate, handle complex type associations and protocol requirements.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Create before/after integration demonstration",
+            "description": "Build practical demonstration showing manual enum maintenance vs automated generation",
+            "dependencies": [
+              "6.4"
+            ],
+            "details": "Create example scenarios with evolving enum requirements, demonstrate manual maintenance pain points, show automated generation benefits with changing data sources.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Write comprehensive DocC article explaining implementation",
+            "description": "Create detailed documentation article explaining the enum generator implementation and usage",
+            "dependencies": [
+              "6.5"
+            ],
+            "details": "Write Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md with step-by-step implementation explanation, code examples, configuration format documentation, and integration guidance.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Develop comprehensive unit test coverage",
+            "description": "Create thorough test suite validating generated code compilation and correctness",
+            "dependencies": [
+              "6.5"
+            ],
+            "details": "Write unit tests for configuration parsing, enum generation logic, output validation, and integration scenarios. Ensure generated code compiles and behaves correctly.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Add error handling and edge case management",
+            "description": "Implement robust error handling and edge case management throughout the CLI tool",
+            "dependencies": [
+              "6.7"
+            ],
+            "details": "Add comprehensive error handling for invalid configurations, file I/O errors, generation failures, and edge cases. Provide clear error messages and recovery suggestions.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Create best practices DocC article",
+        "description": "Create comprehensive best practices guide consolidating learnings from examples and community usage patterns",
+        "details": "Create Sources/SyntaxKit/Documentation.docc/Articles/Best-Practices.md covering: 1) Do's and don'ts for SyntaxKit usage, 2) Performance optimization techniques for code generation, 3) Error handling patterns and debugging strategies, 4) Code organization for maintainable generators, 5) Integration patterns with existing Swift projects, 6) Testing strategies for generated code, 7) Common anti-patterns to avoid (over-engineering, replacing simple static code), 8) Migration strategies from manual SwiftSyntax usage. Include concrete examples and rationale for each recommendation.",
+        "testStrategy": "Review with experienced SyntaxKit users, validate recommendations against real-world usage patterns, ensure examples demonstrate measurable improvements, test that guidelines prevent common mistakes",
+        "priority": "medium",
+        "dependencies": [
+          6
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Research and document usage patterns",
+            "description": "Analyze existing examples, community usage, and GitHub issues to identify common SyntaxKit usage patterns and anti-patterns",
+            "dependencies": [],
+            "details": "Review codebase examples, GitHub issues, discussions, and community feedback to compile comprehensive list of do's, don'ts, and common usage patterns. Document findings in structured format for inclusion in best practices guide.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create performance optimization section",
+            "description": "Document performance optimization techniques for code generation including memory management and efficient SwiftSyntax usage",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Research and document performance bottlenecks in code generation, memory optimization techniques, efficient use of SwiftSyntax APIs, and benchmarking strategies. Include concrete examples and measurable improvements.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop error handling and debugging strategies",
+            "description": "Create comprehensive guide for error handling patterns and debugging strategies for SyntaxKit-generated code",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Document common error scenarios, debugging techniques for generated code, error handling patterns, logging strategies, and troubleshooting workflows. Include practical examples and debugging tools recommendations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Document code organization patterns",
+            "description": "Create guidelines for organizing and structuring maintainable code generators using SyntaxKit",
+            "dependencies": [
+              "7.2",
+              "7.3"
+            ],
+            "details": "Define architectural patterns, file organization strategies, modular design principles, and maintainability guidelines for SyntaxKit projects. Include examples of well-structured generators and refactoring techniques.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Create integration patterns section",
+            "description": "Document best practices for integrating SyntaxKit with existing Swift projects and build systems",
+            "dependencies": [
+              "7.1"
+            ],
+            "details": "Cover integration strategies with Xcode projects, SPM packages, build systems, CI/CD pipelines, and team workflows. Include practical examples and common integration pitfalls to avoid.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Build testing strategies guide",
+            "description": "Create comprehensive testing strategies for validating generated code quality and correctness",
+            "dependencies": [
+              "7.4",
+              "7.5"
+            ],
+            "details": "Document testing patterns for generated code, validation strategies, test automation, snapshot testing, and quality assurance workflows. Include examples of effective test suites and testing tools.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Compile and publish best practices article",
+            "description": "Integrate all sections into cohesive DocC article with proper formatting, cross-references, and examples",
+            "dependencies": [
+              "7.2",
+              "7.3",
+              "7.4",
+              "7.5",
+              "7.6"
+            ],
+            "details": "Create Sources/SyntaxKit/Documentation.docc/Articles/Best-Practices.md by combining all researched content into well-structured article with clear sections, code examples, cross-references to other documentation, and actionable recommendations.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Create troubleshooting DocC article",
+        "description": "Create comprehensive troubleshooting guide addressing common issues and providing solutions",
+        "details": "Create Sources/SyntaxKit/Documentation.docc/Articles/Troubleshooting.md with: 1) Common compilation errors and solutions, 2) SwiftSyntax integration issues and fixes, 3) Performance problems and optimization techniques, 4) Debugging generated code issues, 5) Macro development gotchas and solutions, 6) Version compatibility and migration issues, 7) Integration problems with existing projects, 8) FAQ section addressing recurring GitHub issues. Structure with clear problem descriptions, step-by-step solutions, and prevention strategies.",
+        "testStrategy": "Test solutions against actual reported issues, validate troubleshooting steps with new users, ensure coverage of most common support requests, measure reduction in duplicate GitHub issues after publication",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Research and catalog common compilation errors",
+            "description": "Analyze GitHub issues and support requests to identify the most frequent compilation errors users encounter with SyntaxKit",
+            "dependencies": [],
+            "details": "Review GitHub issues, Stack Overflow questions, and support requests to create a comprehensive list of compilation errors. Document error messages, root causes, and frequency of occurrence. Include SwiftSyntax version compatibility issues, missing imports, and type resolution problems.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Document SwiftSyntax integration solutions",
+            "description": "Create detailed solutions for SwiftSyntax integration problems including version conflicts and API changes",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Document solutions for SwiftSyntax version compatibility issues, API deprecation handling, parser integration problems, and syntax tree navigation issues. Include migration guides for major SwiftSyntax version changes and workarounds for known limitations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create performance troubleshooting guide",
+            "description": "Develop comprehensive guide for diagnosing and fixing performance issues in code generation",
+            "dependencies": [
+              "8.1"
+            ],
+            "details": "Document performance bottlenecks in large code generation scenarios, memory usage optimization techniques, compilation time reduction strategies, and profiling methods. Include specific metrics and benchmarking approaches for identifying performance problems.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Build debugging guide for generated code",
+            "description": "Create step-by-step debugging guide for troubleshooting issues in generated Swift code",
+            "dependencies": [
+              "8.2"
+            ],
+            "details": "Document debugging techniques for generated code including syntax validation, type checking issues, runtime errors, and integration problems. Include tools and techniques for inspecting generated AST nodes and validating output correctness.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Document macro development gotchas and solutions",
+            "description": "Compile common pitfalls and solutions specific to Swift macro development using SyntaxKit",
+            "dependencies": [
+              "8.3",
+              "8.4"
+            ],
+            "details": "Document macro-specific issues including diagnostic generation, error propagation, macro expansion debugging, and integration with macro testing frameworks. Include solutions for common macro development patterns and anti-patterns to avoid.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Create comprehensive FAQ and troubleshooting article",
+            "description": "Assemble all troubleshooting content into final DocC article with FAQ section",
+            "dependencies": [
+              "8.1",
+              "8.2",
+              "8.3",
+              "8.4",
+              "8.5"
+            ],
+            "details": "Create Sources/SyntaxKit/Documentation.docc/Articles/Troubleshooting.md with structured sections for each problem category. Include searchable FAQ section addressing most common GitHub issues, step-by-step solution formats, and prevention strategies for each documented problem.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Create integration guide DocC tutorial",
+        "description": "Create practical tutorial for adding SyntaxKit to existing Swift projects with real-world integration patterns",
+        "details": "Create Sources/SyntaxKit/Documentation.docc/Tutorials/Integration-Guide.md covering: 1) Adding SyntaxKit to existing Xcode projects and SPM packages, 2) Integration with build systems (Xcode build phases, SPM plugins), 3) CI/CD integration for automated code generation, 4) Workflow patterns for teams (code review, versioning generated code), 5) Migration strategies from existing code generation solutions, 6) Integration with popular Swift frameworks and libraries, 7) Deployment considerations for tools using SyntaxKit. Include step-by-step examples for common scenarios.",
+        "testStrategy": "Test integration steps with various project configurations, validate CI/CD examples work in popular services (GitHub Actions, etc.), ensure workflow recommendations are practical for team environments",
+        "priority": "low",
+        "dependencies": [
+          8
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create Xcode project integration section",
+            "description": "Document step-by-step process for adding SyntaxKit to existing Xcode projects",
+            "dependencies": [],
+            "details": "Create detailed instructions for adding SyntaxKit via SPM in Xcode, configuring build settings, and setting up basic code generation workflow. Include screenshots and troubleshooting common Xcode-specific issues.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Document SPM package integration",
+            "description": "Create comprehensive guide for integrating SyntaxKit into Swift Package Manager packages",
+            "dependencies": [
+              "9.1"
+            ],
+            "details": "Cover Package.swift configuration, dependency management, and integration patterns for command-line tools and libraries. Include examples of different package types and configurations.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create build system integration examples",
+            "description": "Document integration with Xcode build phases and SPM plugins for automated code generation",
+            "dependencies": [
+              "9.2"
+            ],
+            "details": "Provide working examples of Xcode run script build phases, SPM plugin configurations, and custom build tools. Include performance considerations and incremental build support.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Develop CI/CD integration guides",
+            "description": "Create guides for integrating SyntaxKit into popular CI/CD services",
+            "dependencies": [
+              "9.3"
+            ],
+            "details": "Document GitHub Actions, GitLab CI, Jenkins, and other popular CI/CD integrations. Include caching strategies, artifact management, and validation workflows for generated code.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Document team workflow patterns",
+            "description": "Create guidelines for team collaboration and code review processes with SyntaxKit",
+            "dependencies": [
+              "9.4"
+            ],
+            "details": "Cover versioning strategies for generated code, code review best practices, branching strategies, and team coordination patterns. Include conflict resolution and merge strategies.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Create migration strategies guide",
+            "description": "Document migration approaches from existing code generation solutions to SyntaxKit",
+            "dependencies": [
+              "9.5"
+            ],
+            "details": "Provide step-by-step migration guides from popular tools like Sourcery, SwiftGen, and custom scripts. Include comparison matrices and incremental migration strategies.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Cover deployment and framework integration",
+            "description": "Document deployment considerations and integration with popular Swift frameworks",
+            "dependencies": [
+              "9.6"
+            ],
+            "details": "Cover deployment patterns for tools using SyntaxKit, integration with SwiftUI, Vapor, and other frameworks. Include distribution strategies and runtime considerations.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Implement comprehensive DocC quality assurance and testing",
+        "description": "Establish comprehensive DocC documentation quality standards, testing, and maintenance processes",
+        "details": "Implement comprehensive DocC quality system: 1) Add swift package generate-documentation to CI/CD pipeline with failure on warnings, 2) Implement documentation link validation and symbol reference checking, 3) Add automated testing of all code examples in tutorials and articles, 4) Create documentation review checklist and process, 5) Establish API documentation coverage metrics (target 100% public APIs), 6) Add mobile responsiveness testing for DocC output, 7) Create documentation maintenance schedule and ownership model, 8) Add documentation performance testing (build times, page load speeds). Integrate with existing Scripts/lint.sh quality processes.",
+        "testStrategy": "Validate CI fails on documentation errors, test all examples compile and run correctly, verify link checking catches broken references, ensure documentation builds perform acceptably, measure documentation coverage and quality metrics",
+        "priority": "medium",
+        "dependencies": [
+          9
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate swift package generate-documentation into CI/CD pipeline",
+            "description": "Add DocC documentation generation to GitHub Actions workflow with failure on warnings",
+            "dependencies": [],
+            "details": "Modify .github/workflows to include swift package generate-documentation step, configure to fail build on documentation warnings, ensure proper Swift toolchain version compatibility",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement documentation link validation system",
+            "description": "Create automated system to validate all documentation links and symbol references",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Build link checker that validates external URLs, internal DocC links, and Swift symbol references. Include validation of cross-references between tutorials and API documentation",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add automated testing for all code examples in documentation",
+            "description": "Implement system to extract and test all code examples from DocC tutorials and articles",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Create test harness that extracts code blocks from .md files, compiles them against SyntaxKit, and validates they execute correctly. Include both tutorial examples and API documentation examples",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Create documentation review checklist and process",
+            "description": "Establish standardized review process and checklist for documentation changes",
+            "dependencies": [],
+            "details": "Create CONTRIBUTING-DOCS.md with review checklist covering completeness, accuracy, clarity, and consistency. Define approval process for documentation PRs and reviewer responsibilities",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Build API documentation coverage metrics and monitoring",
+            "description": "Implement system to measure and track API documentation coverage with 100% target",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Create tooling to analyze Swift source files for public APIs without documentation comments, generate coverage reports, and integrate into CI/CD to enforce documentation standards",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add mobile responsiveness testing for DocC output",
+            "description": "Implement automated testing to ensure DocC-generated documentation renders correctly on mobile devices",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Set up browser automation testing with mobile viewports, test navigation, readability, and interactive elements on generated DocC sites across different screen sizes",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Create documentation maintenance schedule and ownership model",
+            "description": "Establish regular maintenance schedule and clear ownership responsibilities for documentation",
+            "dependencies": [
+              "10.4"
+            ],
+            "details": "Define maintenance schedule for periodic documentation review, assign ownership of different documentation sections, create process for handling documentation debt and outdated content",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Add documentation performance testing",
+            "description": "Implement monitoring for documentation build times and page load performance",
+            "dependencies": [
+              "10.1"
+            ],
+            "details": "Create performance benchmarks for swift package generate-documentation build times, monitor DocC output bundle sizes, and test page load speeds for generated documentation sites",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Integrate documentation quality checks with Scripts/lint.sh",
+            "description": "Add documentation validation to existing lint script and quality processes",
+            "dependencies": [
+              "10.2",
+              "10.3",
+              "10.5"
+            ],
+            "details": "Extend Scripts/lint.sh to include documentation generation, link validation, example testing, and coverage checking. Ensure consistent quality enforcement across all development workflows",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 10,
+            "title": "Implement failure handling and reporting systems",
+            "description": "Create comprehensive error reporting and failure handling for all documentation quality checks",
+            "dependencies": [
+              "10.9"
+            ],
+            "details": "Build unified reporting system for documentation quality issues, implement proper error handling and recovery, create actionable error messages and fix suggestions for common documentation problems",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-08-31T16:26:25.262Z",
+      "updated": "2025-08-31T18:24:42.428Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
