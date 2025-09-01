@@ -85,7 +85,7 @@
         "testStrategy": "Test documentation builds with swift package generate-documentation, validate all symbol links work, verify navigation flows logically, test examples compile and run, ensure mobile responsiveness of DocC output",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -93,7 +93,7 @@
             "description": "Transform the introduction of Documentation.md to lead with a clear, compelling value proposition that emphasizes SyntaxKit's strengths in dynamic code generation scenarios",
             "dependencies": [],
             "details": "Rewrite the opening 300-400 words to immediately communicate SyntaxKit's value for dynamic code generation. Include specific use cases like macro development, API client generators, and migration utilities. Replace generic introductions with concrete scenarios where SyntaxKit excels over manual Swift code writing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -104,7 +104,7 @@
               "2.1"
             ],
             "details": "Add comprehensive decision section with visual decision tree or matrix. Include scenarios where SyntaxKit excels (dynamic generation, macros, code transformation) vs where raw Swift is better (static code, simple scripts). Provide clear criteria and examples for each decision path.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -115,7 +115,7 @@
               "2.2"
             ],
             "details": "Develop 2-3 compelling before/after macro examples showing SyntaxKit vs traditional approach. Include StringifyMacro, member generation macro, and accessor macro examples. Highlight code clarity, maintainability, and error handling improvements when using SyntaxKit for macro development.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -126,7 +126,7 @@
               "2.3"
             ],
             "details": "Add dedicated section covering performance aspects: compilation time impact, runtime performance of generated code, memory usage considerations, optimization strategies. Include benchmarks or guidelines for when performance trade-offs are acceptable vs when raw Swift is preferred.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -137,7 +137,7 @@
               "2.4"
             ],
             "details": "Add navigation links and cross-references to all relevant tutorials (macro tutorial, practical examples), articles (API guides, best practices), and examples. Ensure logical flow from Documentation.md to deeper content. Use DocC linking syntax for proper symbol and page references.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -148,7 +148,7 @@
               "2.5"
             ],
             "details": "Conduct full audit of public API documentation coverage. Identify missing documentation comments, enhance existing ones for clarity, ensure all public types, methods, and properties have comprehensive documentation. Target 100% coverage of public APIs with meaningful, example-rich documentation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -159,7 +159,7 @@
               "2.6"
             ],
             "details": "Apply Apple DocC best practices for page structure, heading hierarchy, code block formatting, symbol linking, and navigation. Ensure proper use of DocC directives, callouts, and formatting. Validate mobile responsiveness and accessibility. Test final documentation builds successfully and renders properly.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -905,7 +905,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-01T02:41:53.194Z",
+      "updated": "2025-09-01T02:50:52.161Z",
       "description": "Tasks for master context"
     }
   }
