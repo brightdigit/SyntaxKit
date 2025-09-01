@@ -1,361 +1,200 @@
 # When to Use SyntaxKit
 
-Learn the key decision criteria for choosing SyntaxKit vs manual Swift code, with practical examples and decision frameworks.
+A practical guide to deciding when SyntaxKit will make your Swift development easier and when it might just add unnecessary complexity.
 
-## Overview
+## What You'll Learn
 
-This tutorial guides you through the essential decision-making process for when SyntaxKit provides value over manual Swift development. You'll learn to identify scenarios where programmatic code generation excels, understand performance trade-offs, and avoid common anti-patterns.
+By the end of this tutorial, you'll be able to quickly decide whether SyntaxKit is the right tool for your specific use case. We'll cover real scenarios you'll encounter and give you concrete decision-making frameworks.
 
-**Time to complete:** 10-15 minutes
+## The Simple Rule of Thumb
 
-## Prerequisites
+Here's the quick way to decide: **Are you generating Swift code programmatically, or writing it once by hand?**
 
-- Basic understanding of Swift development
-- Familiarity with code generation concepts
-- Optional: Experience with SwiftSyntax or Swift macros
+- **Writing once by hand?** → Use regular Swift
+- **Generating programmatically?** → Consider SyntaxKit
 
-## Step 1: The Core Decision Framework
+## Common Scenarios: When to Use SyntaxKit
 
-The fundamental question when considering SyntaxKit is simple: **Are you generating Swift code programmatically, or writing it once by hand?**
+### ✅ Great Use Cases
 
-### Decision Flowchart
+#### 1. Building Swift Macros
+If you're creating Swift macros, SyntaxKit is almost always the right choice. Macros need to generate Swift code, and SyntaxKit makes this much cleaner than raw SwiftSyntax.
 
-```mermaid
-graph TD
-    A[Need to create Swift code?] --> B{Generation approach?}
-    B -->|Write once by hand| C[Use Regular Swift ✓]
-    B -->|Generate programmatically| D{What type of code generation?}
-    
-    D -->|Swift Macros| E[✅ Perfect for SyntaxKit]
-    D -->|Schema → Swift Models| F[✅ Ideal for SyntaxKit]
-    D -->|API → Client Code| G[✅ Great SyntaxKit fit]
-    D -->|Developer Tools| H[✅ SyntaxKit recommended]
-    D -->|Business Logic/UI| I[❌ Use regular Swift]
-    D -->|One-time scripts| J{Complexity level?}
-    
-    J -->|Simple transformation| K[Consider regular Swift]
-    J -->|Complex AST work| L[✅ SyntaxKit beneficial]
-    
-    style E fill:#22c55e,stroke:#16a34a,color:#ffffff
-    style F fill:#22c55e,stroke:#16a34a,color:#ffffff
-    style G fill:#22c55e,stroke:#16a34a,color:#ffffff
-    style H fill:#22c55e,stroke:#16a34a,color:#ffffff
-    style L fill:#22c55e,stroke:#16a34a,color:#ffffff
-    style I fill:#ef4444,stroke:#dc2626,color:#ffffff
-    style C fill:#6b7280,stroke:#4b5563,color:#ffffff
-    style K fill:#f59e0b,stroke:#d97706,color:#ffffff
-```
-
-### Key Decision Questions
-
-Ask yourself these questions to determine if SyntaxKit is the right choice:
-
-1. **Frequency**: Will this code be generated multiple times or from external inputs?
-2. **Dynamism**: Does the code structure depend on external data (schemas, configurations, APIs)?
-3. **Complexity**: Does the generation involve complex Swift syntax structures?
-4. **Maintenance**: Will the generated code patterns change frequently?
-5. **Team Impact**: Do multiple developers need to understand/modify the generation logic?
-
-**If you answered "yes" to 2+ questions:** SyntaxKit is likely beneficial.
-**If you answered "no" to most questions:** Regular Swift is probably better.
-
-## Step 2: Scenario-Based Decision Matrix
-
-Use this matrix to quickly categorize your use case:
-
-| Scenario | SyntaxKit ✅ | Regular Swift ❌ | Key Factors |
-|----------|-------------|------------------|-------------|
-| **Swift Macros** | Always | Never | Complex AST manipulation made simple |
-| **API Client Generation** | Yes | Rarely | Transform schemas into hundreds of endpoints |
-| **Data Model Generation** | Yes | No | Schema-driven model creation with computed properties |
-| **Migration Utilities** | Yes | No | Transform legacy code structures systematically |
-| **Developer Tools** | Yes | Maybe | Create reusable code generators |
-| **Build Scripts** | Maybe | Yes | Simple scripts don't need generation complexity |
-| **Application Features** | No | Always | Business logic, views, standard app code |
-| **One-time Prototypes** | No | Yes | Simple, write-once code doesn't justify overhead |
-| **Performance-Critical** | No | Yes | Avoid compilation overhead where milliseconds matter |
-
-## Step 3: Real-World Examples
-
-### ✅ Perfect SyntaxKit Use Cases
-
-#### API Client Generation
-**Problem**: Manually writing 50+ API endpoints with consistent patterns.
-
+**Example**: Creating a `@Codable` macro
 ```swift
-// Manual approach: Error-prone, repetitive
-struct UsersAPI {
-    func getUser(id: Int) async throws -> User { /* networking boilerplate */ }
-    func createUser(_ user: CreateUserRequest) async throws -> User { /* more boilerplate */ }
-    func updateUser(id: Int, _ user: UpdateUserRequest) async throws -> User { /* repetitive */ }
-    // ... 47 more similar endpoints
+// Without SyntaxKit: 150+ lines of complex AST manipulation
+// With SyntaxKit: Clean, readable code generation
+let members = Group {
+    Enum("CodingKeys", conformsTo: ["String", "CodingKey"]) {
+        for property in properties {
+            Case(property.name)
+        }
+    }
+    
+    Function("init") {
+        Parameter("from decoder", type: "Decoder")
+    }
+    .throws()
+    .body {
+        // Much cleaner than manual AST construction
+    }
 }
 ```
 
-**SyntaxKit solution**: Generate from OpenAPI schema.
 
+
+#### 2. Database Schema to Swift Models
+If you're generating Swift models from database schemas, SyntaxKit will save you tons of boilerplate.
+
+**Example**: PostgreSQL schema to Swift models
 ```swift
-// Schema-driven generation
-let apiClient = generateAPIClient(from: apiSchema) {
-    for endpoint in spec.endpoints {
-        Function(endpoint.name) {
-            for param in endpoint.parameters {
-                Parameter(param.name, type: param.type)
+let models = generateModels(from: databaseSchema) {
+    for table in schema.tables {
+        Struct(table.name.swiftCase) {
+            // Primary key
+            Property(table.primaryKey.name, type: table.primaryKey.swiftType)
+                .immutable()
+            
+            // Regular columns
+            for column in table.columns.filter({ !$0.isPrimaryKey }) {
+                Property(column.name, type: column.swiftType)
+                    .optional(column.nullable)
             }
-        }
-        .async()
-        .throws()
-        .returns(endpoint.responseType)
-        .body {
-            // Generated networking implementation
         }
     }
 }
 ```
 
-**Benefits**: 95% less code, type-safe, stays synchronized with API changes.
+#### 3. Developer Tools and Code Generators
+Building tools that generate boilerplate code for your team? SyntaxKit makes this much more maintainable.
 
-#### Swift Macro Development
-**Problem**: Creating extension macros with complex member generation.
-
+**Example**: Generating view controllers from design specs
 ```swift
-// Traditional SwiftSyntax: 100+ lines of AST manipulation
-struct MembersMacro: MemberMacro {
-    static func expansion(...) throws -> [DeclSyntax] {
-        // Complex AST node construction
-        let initParams = ParameterClauseSyntax(...)
-        let initBody = CodeBlockItemListSyntax(...)
-        // ... 80+ more lines of manual AST building
-    }
-}
-```
-
-**SyntaxKit solution**: Declarative member generation.
-
-```swift
-// SyntaxKit: Clean and readable
-struct MembersMacro: MemberMacro {
-    static func expansion(...) throws -> [DeclSyntax] {
-        let members = Group {
-            Function("init") {
-                for property in extractedProperties {
-                    Parameter(property.name, type: property.type)
-                }
-            }
+func generateViewController(name: String, properties: [Property]) -> ClassDecl {
+    Class("\(name)ViewController") {
+        // IBOutlet properties
+        for property in properties {
+            Property(property.name, type: "\(property.type)!")
+                .attribute("IBOutlet")
+                .weak()
+        }
+        
+        // Lifecycle methods
+        Function("viewDidLoad")
+            .override()
             .body {
-                for property in extractedProperties {
-                    Assignment("self.\(property.name)", property.name)
-                }
+                Call("super.viewDidLoad")
+                Call("setupUI")
             }
-        }
-        return members.memberDeclListSyntax.map(\.declSyntax)
     }
+    .inherits("UIViewController")
 }
 ```
 
-**Benefits**: 60% less code, easier debugging, maintainable macro logic.
+### ❌ When NOT to Use SyntaxKit
 
-### ❌ Poor SyntaxKit Use Cases
-
-#### Application Business Logic
-**Problem**: Using SyntaxKit for standard app features.
+#### 1. Regular Application Code
+Don't use SyntaxKit for your app's business logic, view controllers, or standard Swift code.
 
 ```swift
-// ❌ Overkill: Using SyntaxKit for simple view controller
+// ❌ Don't do this
 let loginViewController = Class("LoginViewController") {
     Function("viewDidLoad") {
         Call("super.viewDidLoad")
-        Call("setupUI")
     }
-    
-    Function("handleLogin") {
-        // Generated login logic...
-    }
-}.inherits("UIViewController")
-```
+}
 
-**Better approach**: Write directly in Swift.
-
-```swift
-// ✅ Appropriate: Standard iOS development
+// ✅ Just write normal Swift
 class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupUI()
-    }
-    
-    func handleLogin() {
-        // Standard login logic
     }
 }
 ```
 
-**Why**: No dynamic generation needed, standard iOS patterns, written once.
-
-#### Simple One-Time Scripts
-**Problem**: Using SyntaxKit for basic utilities.
+#### 2. Simple One-Time Scripts
+For basic utilities or simple transformations, regular Swift is often clearer.
 
 ```swift
-// ❌ Unnecessary complexity
+// ❌ Overkill
 let converter = Function("convertToUppercase") {
     Parameter("input", type: "String")
 }
 .returns("String")
 .body {
-    Return {
-        VariableExp("input.uppercased()")
-    }
+    Return { VariableExp("input.uppercased()") }
 }
-```
 
-**Better approach**: Direct Swift implementation.
-
-```swift
-// ✅ Simple and clear
+// ✅ Much simpler
 func convertToUppercase(_ input: String) -> String {
     return input.uppercased()
 }
 ```
 
-**Why**: Simple transformation, no schema dependency, written once.
-
-## Step 4: Performance Considerations
-
-### Compilation Impact
-
-| Aspect | Regular Swift | SyntaxKit | Difference |
-|--------|--------------|-----------|------------|
-| **Build Time** | Baseline | +5-15% | One-time macro compilation cost |
-| **Binary Size** | Smaller | +0% (runtime) | SyntaxKit not included in final app |
-| **Development** | Faster iteration | Slightly slower | SwiftSyntax compilation overhead |
-
-### Runtime Performance
-
-**Critical insight**: Generated code performs identically to hand-written code.
+#### 3. Static Configuration
+If your code structure is fixed and won't change, just write it directly.
 
 ```swift
-// These compile to identical machine code:
-
-// SyntaxKit-generated
-struct User: Equatable {
-    let id: UUID
-    let name: String
+// ❌ Unnecessary complexity
+let config = Struct("Config") {
+    Variable(.let, name: "apiURL", equals: "\"https://api.example.com\"")
 }
 
-// Hand-written
-struct User: Equatable {
-    let id: UUID
-    let name: String
+// ✅ Direct and clear
+struct Config {
+    let apiURL = "https://api.example.com"
 }
 ```
 
-### When Performance Matters
+## Decision Framework
 
-**Choose SyntaxKit despite overhead when:**
-- Developer time saved exceeds build time cost
-- Code correctness is critical (complex AST manipulation)
-- Maintenance burden of manual code is high
+Ask yourself these questions:
 
-**Choose regular Swift when:**
-- Extremely tight build time requirements
-- Simple, static code that changes rarely
-- Team unfamiliar with result builder patterns
+1. **Will this code be generated multiple times?** (Yes → SyntaxKit)
+2. **Does the structure depend on external data?** (Yes → SyntaxKit)  
+3. **Are you building a tool that generates code?** (Yes → SyntaxKit)
+4. **Is this one-time application logic?** (Yes → Regular Swift)
+5. **Is this simple enough to write by hand?** (Yes → Regular Swift)
 
-## Step 5: Team Collaboration Factors
+**Rule of thumb**: If you answered "yes" to questions 1-3, SyntaxKit is probably right. If you answered "yes" to questions 4-5, stick with regular Swift.
 
-### SyntaxKit Advantages
-- **Readability**: Declarative syntax is easier to review
-- **Maintainability**: Less error-prone than AST manipulation
-- **Consistency**: Generated code follows uniform patterns
-- **Documentation**: Self-documenting generation logic
+## Real-World Examples
 
-### Potential Challenges
-- **Learning Curve**: Team needs result builder familiarity
-- **Debugging**: Generated code debugging requires understanding generation
-- **Dependencies**: Additional package dependency to manage
+### Scenario 1: You're Building a Swift Macro
+**Use SyntaxKit** - Macros need to generate Swift code, and SyntaxKit makes this much cleaner than raw SwiftSyntax.
 
-### Team Readiness Assessment
+### Scenario 2: You're Converting JSON Schema to Swift Models
+**Use SyntaxKit** - You'll be generating lots of similar code structures from external data.
 
-**Green Light Indicators:**
-- Team comfortable with Swift result builders
-- Complex code generation requirements
-- Value consistency over individual flexibility
-- Willing to invest in learning modern Swift patterns
+### Scenario 3: You're Building a CLI Tool That Generates Swift Code
+**Use SyntaxKit** - Perfect for tools that create boilerplate or scaffold code.
 
-**Yellow Light Indicators:**
-- Mixed Swift experience levels
-- Simple generation requirements
-- Tight project deadlines
-- Preference for minimal dependencies
+### Scenario 4: You're Writing a Standard iOS App
+**Use Regular Swift** - No code generation needed, just write your app logic directly.
 
-## Step 6: Migration Strategy
+### Scenario 5: You're Creating a Simple Utility Function
+**Use Regular Swift** - Unless it's part of a larger code generation system.
 
-### From Manual Code to SyntaxKit
+## Performance Considerations
 
-**Phase 1: Identify Candidates**
+- **Compilation time**: SyntaxKit adds a small overhead during compilation
+- **Runtime performance**: Generated code runs exactly the same as hand-written code
+- **Development speed**: SyntaxKit can significantly speed up development for code generation tasks
+
+**Bottom line**: The compilation overhead is usually worth it for code generation tasks, but not for simple application code.
+
+## Common Mistakes to Avoid
+
+### Mistake 1: Using SyntaxKit for Everything
 ```swift
-// Look for repetitive patterns
-struct UserAPI { /* 20 similar methods */ }
-struct ProductAPI { /* 25 similar methods */ }
-struct OrderAPI { /* 30 similar methods */ }
-```
-
-**Phase 2: Extract Common Patterns**
-```swift
-// Identify the template
-func apiMethod(name: String, type: String) -> Function {
-    Function(name) {
-        Parameter("request", type: "\(type)Request")
-    }
-    .async()
-    .throws()
-    .returns(type)
-}
-```
-
-**Phase 3: Implement SyntaxKit Generator**
-```swift
-// Generate all variants
-let apiMethods = Group {
-    for endpoint in apiEndpoints {
-        apiMethod(name: endpoint.name, type: endpoint.type)
-    }
-}
-```
-
-### From Raw SwiftSyntax to SyntaxKit
-
-**Before**: Complex AST manipulation
-```swift
-// 50+ lines of manual node construction
-let structDecl = StructDeclSyntax(
-    structKeyword: .keyword(.struct),
-    name: .identifier("User"),
-    memberBlock: MemberBlockSyntax(...)
-)
-```
-
-**After**: Declarative construction
-```swift
-// Clean and readable
-let userStruct = Struct("User") {
-    Property("id", type: "UUID")
-    Property("name", type: "String")
-}
-```
-
-## Step 7: Common Anti-Patterns to Avoid
-
-### Anti-Pattern 1: Over-Engineering Simple Cases
-```swift
-// ❌ Don't use SyntaxKit for this
+// ❌ Don't over-engineer simple cases
 let simpleProperty = Property("name", type: "String")
 
-// ✅ Just write it directly
+// ✅ Just write it
 let name: String
 ```
 
-### Anti-Pattern 2: Generating App Logic
+### Mistake 2: Generating App Logic
 ```swift
 // ❌ Don't generate view controllers
 let viewController = Class("HomeViewController") {
@@ -368,20 +207,7 @@ class HomeViewController: UIViewController {
 }
 ```
 
-### Anti-Pattern 3: Using SyntaxKit for Static Code
-```swift
-// ❌ No dynamic generation needed
-let staticStruct = Struct("Config") {
-    Variable(.let, name: "apiURL", equals: "\"https://api.example.com\"")
-}
-
-// ✅ Static configuration
-struct Config {
-    let apiURL = "https://api.example.com"
-}
-```
-
-### Anti-Pattern 4: Premature Optimization
+### Mistake 3: Premature Optimization
 ```swift
 // ❌ Don't start with SyntaxKit "just in case"
 let futureProofStruct = generateStruct(from: hardcodedData)
@@ -392,31 +218,7 @@ struct SimpleModel {
 }
 ```
 
-## Step 8: Success Indicators
-
-### You're Using SyntaxKit Successfully When:
-
-- **Code Review Comments Decrease**: Less "this pattern is repeated everywhere"
-- **Bug Reports Drop**: Fewer copy-paste errors in generated structures
-- **Feature Velocity Increases**: New API endpoints/models added in minutes
-- **Refactoring Becomes Trivial**: Schema changes propagate automatically
-- **Team Confidence Grows**: Complex generation becomes approachable
-
-### Red Flags Indicating Misuse:
-
-- **Fighting the DSL**: Constantly working around SyntaxKit limitations
-- **Debugging Nightmares**: More time debugging generation than implementation
-- **Team Resistance**: Developers avoiding generation code
-- **Performance Problems**: Build times significantly impacted
-- **Over-Complexity**: Simple tasks take longer than manual approach
-
-## Summary
-
-**SyntaxKit excels when you're transforming external data into Swift code structures.** Perfect for macros, API clients, model generators, and developer tools. Use regular Swift for application logic, one-time scripts, and static code structures.
-
-**The key insight**: Choose based on whether you're *generating* code or *writing* code. SyntaxKit transforms generation from error-prone AST manipulation into maintainable, declarative logic.
-
-### Quick Reference
+## Quick Reference
 
 ```swift
 // ✅ Good SyntaxKit use: Dynamic generation
@@ -439,9 +241,17 @@ class AppDelegate: UIApplicationDelegate {
 }
 ```
 
+## Summary
+
+**Use SyntaxKit when you're transforming external data into Swift code structures.** It's perfect for macros, API clients, model generators, and developer tools.
+
+**Use regular Swift for application logic, one-time scripts, and static code structures.**
+
+The key is to match the tool to the task. SyntaxKit is powerful for code generation, but it's not a replacement for writing Swift code directly when that's what you need.
+
 ## Next Steps
 
-Ready to apply these concepts? Continue with:
+Ready to get started? Check out:
 
 - <doc:Creating-Macros-with-SyntaxKit> - Build your first macro
 - [Quick Start Guide](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation) - 5-minute hands-on experience

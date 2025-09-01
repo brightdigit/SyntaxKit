@@ -174,7 +174,7 @@
         "dependencies": [
           2
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -193,7 +193,7 @@
               "3.1"
             ],
             "details": "Create visual flowchart in DocC-compatible format showing decision points, conditions, and outcomes for choosing SyntaxKit vs alternatives.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -204,7 +204,7 @@
               "3.1"
             ],
             "details": "Build comprehensive table comparing scenarios, showing clear advantages/disadvantages, performance implications, and maintenance considerations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -216,7 +216,7 @@
               "3.3"
             ],
             "details": "Write 3-4 concrete examples with before/after code showing clear value proposition. Include macro generation, API client creation, and schema-to-Swift examples.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -227,7 +227,7 @@
               "3.3"
             ],
             "details": "List scenarios where SyntaxKit shouldn't be used, explain why static code is better, provide examples of over-engineering with SyntaxKit.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -239,7 +239,7 @@
               "3.5"
             ],
             "details": "Document build-time performance impact, runtime considerations, long-term maintenance implications, and team collaboration factors.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -250,7 +250,7 @@
               "3.6"
             ],
             "details": "Link to Quick Start tutorial, macro examples, best practices article, and external resources. Ensure proper DocC cross-referencing.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -261,7 +261,7 @@
               "3.7"
             ],
             "details": "Structure content as guided tutorial with clear steps, checkpoints, and takeaways. Ensure 10-15 minute completion time and clear decision-making outcomes.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -905,7 +905,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-01T03:08:41.953Z",
+      "updated": "2025-09-01T13:29:51.107Z",
       "description": "Tasks for master context"
     }
   }
