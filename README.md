@@ -322,6 +322,35 @@ struct BlackjackCard {
 - **[GitHub Issues](https://github.com/brightdigit/SyntaxKit/issues)** - Bug reports and feature requests
 - **[GitHub Discussions](https://github.com/brightdigit/SyntaxKit/discussions)** - Community questions and showcases
 
+## Contributing
+
+We welcome contributions to SyntaxKit! Whether you're fixing bugs, adding features, or improving documentation, your help makes SyntaxKit better for everyone.
+
+### 📝 Documentation Contributions
+- **[Documentation Contribution Guide](CONTRIBUTING-DOCS.md)** - Standards and review process for documentation changes
+- Review checklist for tutorials, articles, and API documentation
+- Guidelines for writing clear, tested examples
+
+### 🛠️ Development Setup
+```bash
+# Clone and set up the project
+git clone https://github.com/brightdigit/SyntaxKit.git
+cd SyntaxKit
+
+# Run quality checks
+./Scripts/lint.sh
+
+# Build and test
+swift build
+swift test
+```
+
+### 📋 Before Contributing
+- Check existing issues and discussions to avoid duplicates
+- For documentation changes, follow [CONTRIBUTING-DOCS.md](CONTRIBUTING-DOCS.md) guidelines
+- Ensure all tests pass and code follows project standards
+- Consider adding tests for new functionality
+
 ## Requirements
 
 - Swift 6.1+

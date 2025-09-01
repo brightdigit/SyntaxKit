@@ -131,23 +131,99 @@ let jsonConfig = """
 Run the generator and see the magic happen:
 
 ```swift
-// Generate the Swift code
+// Generate the Swift code with visible progress
 let swiftCode = generateEnum(from: jsonConfig)
 
-// Print the generated Swift enum
-print("Generated Swift Code:")
-print("=" * 40)
+// Print the results with formatting
+print("🎯 Generated Swift Code:")
+print("═══════════════════════════════════════")
 print(swiftCode)
-print("=" * 40)
+print("═══════════════════════════════════════")
+```
+
+**Complete runnable example**:
+
+Save this as `QuickStartDemo.swift` and run with `swift QuickStartDemo.swift`:
+
+```swift
+import Foundation
+
+// Configuration structures
+struct EnumConfig: Codable {
+    let name: String
+    let cases: [EnumCase]
+}
+
+struct EnumCase: Codable {
+    let name: String
+    let value: String
+}
+
+// Enhanced generator with visible progress
+func generateEnum(from json: String) -> String {
+    print("🔄 Parsing JSON configuration...")
+    
+    guard let data = json.data(using: .utf8),
+          let config = try? JSONDecoder().decode(EnumConfig.self, from: data) else {
+        print("❌ Invalid JSON configuration")
+        return "// Invalid JSON configuration"
+    }
+    
+    print("✅ Successfully parsed: \(config.cases.count) enum cases")
+    print("🔨 Generating Swift enum: \(config.name)")
+    
+    var swiftCode = "enum \(config.name): Int, CaseIterable {\n"
+    for enumCase in config.cases {
+        swiftCode += "    case \(enumCase.name) = \(enumCase.value)\n"
+    }
+    swiftCode += "}"
+    
+    print("✨ Code generation complete!")
+    return swiftCode
+}
+
+// JSON configuration
+let jsonConfig = """
+{
+  "name": "HTTPStatus", 
+  "cases": [
+    {"name": "ok", "value": "200"},
+    {"name": "created", "value": "201"}, 
+    {"name": "notFound", "value": "404"},
+    {"name": "serverError", "value": "500"}
+  ]
+}
+"""
+
+// Run the demo
+print("🚀 SyntaxKit Quick Start Demo")
+print("═══════════════════════════════════════")
+let swiftCode = generateEnum(from: jsonConfig)
+print("🎯 Generated Swift Code:")
+print("═══════════════════════════════════════")
+print(swiftCode)
+print("═══════════════════════════════════════")
+print("🎉 Success! You've generated Swift code from JSON!")
 ```
 
 **Output**:
-```swift
+```
+🚀 SyntaxKit Quick Start Demo
+═══════════════════════════════════════
+🔄 Parsing JSON configuration...
+✅ Successfully parsed: 4 enum cases
+🔨 Generating Swift enum: HTTPStatus
+✨ Code generation complete!
+🎯 Generated Swift Code:
+═══════════════════════════════════════
 enum HTTPStatus: Int, CaseIterable {
     case ok = 200
+    case created = 201
     case notFound = 404
     case serverError = 500
 }
+═══════════════════════════════════════
+🎉 Success! You've generated Swift code from JSON!
 ```
 
 ### The "Aha!" Moment
@@ -208,32 +284,40 @@ In just 5 minutes, you've:
 
 ## Next Steps
 
-Ready to dive deeper? Here are your options:
+Congratulations! You've just generated Swift code from external data. Ready to explore what else SyntaxKit can do?
 
-### 🎯 **For Macro Development**
-<doc:Creating-Macros-with-SyntaxKit> - Build powerful Swift macros with SyntaxKit's clean DSL
+### 🎮 **Start Here: Download the Playground**
+**[📥 Download Quick Start Playground](https://github.com/brightdigit/SyntaxKit/releases/latest/download/SyntaxKit-QuickStart.playground.zip)** - All examples above, ready to run in Xcode
 
-### 🏗️ **For Advanced Examples**
-- [Enum Generator CLI Tool](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation) - Complete command-line enum generator
-- [Best Practices Guide](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation) - Patterns for maintainable code generation
+### 🚀 **Choose Your Path**
 
-### 📚 **For Understanding When to Use SyntaxKit**
-<doc:When-to-Use-SyntaxKit> - Decision framework for choosing SyntaxKit vs regular Swift
+#### **Path 1: I want to build Swift macros**
+<doc:Creating-Macros-with-SyntaxKit> → Learn SyntaxKit's macro development workflow with real examples
 
-### 🎮 **For Hands-On Learning**
-Download our [Quick Start Playground](https://github.com/brightdigit/SyntaxKit/releases/latest/download/SyntaxKit-QuickStart.playground.zip) - Complete working examples you can run immediately
+**Why this path?** Swift macros are SyntaxKit's most powerful application. You'll generate code at compile-time to eliminate boilerplate.
 
-## Download Playground
+#### **Path 2: I want to understand when to use SyntaxKit**  
+<doc:When-to-Use-SyntaxKit> → Decision framework for code generation vs manual coding
 
-Want to experiment right away? Download our Swift Playground with all examples ready to run:
+**Why this path?** Not every problem needs code generation. Learn when SyntaxKit adds value vs complexity.
 
-**[📥 Download SyntaxKit Quick Start Playground](https://github.com/brightdigit/SyntaxKit/releases/latest/download/SyntaxKit-QuickStart.playground.zip)**
+#### **Path 3: I want to see real-world examples**
+[API Documentation](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation) → Explore all SyntaxKit components and patterns
 
-The playground includes:
-- Complete enum generator example
-- Multiple JSON configurations to try
-- Interactive experiments
-- Links to advanced topics
+**Why this path?** See the full scope of what SyntaxKit can generate: classes, structs, functions, protocols, and more.
+
+### 🎯 **Quick Wins to Try Right Now**
+
+1. **Modify the playground**: Change the JSON configs and see instant results
+2. **Add SyntaxKit to your project**: Use the installation steps above
+3. **Generate your own enums**: Replace the JSON with your app's actual data
+
+### 💡 **Advanced Applications to Explore**
+
+- **API Clients**: Generate model enums from OpenAPI specifications
+- **Database Models**: Create Swift enums from database schema
+- **Configuration Management**: Transform environment configs into type-safe Swift
+- **Build Tools**: Create CLI tools that generate Swift code from templates
 
 ## Summary
 
