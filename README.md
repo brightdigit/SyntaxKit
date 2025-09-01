@@ -1,10 +1,10 @@
 # SyntaxKit
 
-**Generate Swift code dynamically, not statically.** SyntaxKit is a Swift package designed for scenarios where you need to create Swift code at compile-time or runtime—macro development, API client generators, model transformers, and migration utilities. If you're writing code you could write by hand once, stick with regular Swift. If you're generating repetitive code structures, transforming APIs into Swift models, or building developer tools that create Swift code, SyntaxKit provides a type-safe, declarative way to do it.
+**Generate Swift code programmatically with declarative syntax.** SyntaxKit is a Swift package that provides a type-safe, result builder-based API for generating Swift code structures. It's designed for macro development, model transformers, and migration utilities—scenarios where you need to programmatically create Swift code rather than writing it by hand. If you're writing code you could write by hand once, stick with regular Swift. If you're generating repetitive code structures, transforming data models, or building developer tools that output Swift code, SyntaxKit provides a declarative way to do it.
 
 Unlike manually writing SwiftSyntax AST nodes, SyntaxKit uses result builders to make code generation readable and maintainable. Perfect for macro authors who need to generate complex Swift structures, or developers building tools that automatically create boilerplate code from external schemas, APIs, or configurations.
 
-**When to choose SyntaxKit:** You're building a Swift macro, generating code from OpenAPI specs, creating model layers from databases, or building developer tools that output Swift code. **When to choose regular Swift:** You're writing application logic, view controllers, or any code you'd normally type by hand.
+**When to choose SyntaxKit:** You're building a Swift macro, creating model layers from databases, transforming data schemas into Swift types, or building developer tools that output Swift code. **When to choose regular Swift:** You're writing application logic, view controllers, or any code you'd normally type by hand.
 
 SyntaxKit transforms this complex task into declarative, readable code generation—making macro development and code generation tools significantly more approachable for Swift developers.
 
@@ -17,7 +17,7 @@ graph TD
     B -->|Repetitive/Dynamic| D{What type of generation?}
     
     D -->|Swift Macros| E[✅ Perfect for SyntaxKit]
-    D -->|API Client from Schema| F[✅ Ideal SyntaxKit use case]
+    D -->|Data Model Generation| F[✅ Ideal SyntaxKit use case]
     D -->|Model/Entity Generation| G[✅ Great SyntaxKit fit]
     D -->|Developer Tools| H[✅ SyntaxKit recommended]
     D -->|App Logic/UI| I[❌ Use regular Swift]
@@ -32,7 +32,7 @@ graph TD
 
 **✅ Choose SyntaxKit when:**
 - Building Swift macros or compiler plugins
-- Generating Swift code from external schemas (OpenAPI, GraphQL, databases)
+- Generating Swift code from external schemas (GraphQL, databases, JSON schemas)
 - Creating developer tools that output Swift code
 - Building code generators or transformers
 - Need type-safe programmatic Swift code construction
