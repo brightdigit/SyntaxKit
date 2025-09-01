@@ -356,7 +356,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -364,7 +364,7 @@
             "description": "Write streamlined 2-minute Swift Package Manager installation section with copy-paste code examples",
             "dependencies": [],
             "details": "Create clear step-by-step SPM installation instructions in the Quick Start tutorial. Include Package.swift dependency code, Xcode integration steps, and import statements. Focus on minimal friction and copy-paste convenience. Target completion in 2 minutes or less.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -375,7 +375,7 @@
               "5.1"
             ],
             "details": "Build a practical enum generator example that reads from JSON config and produces Swift enum code. Show the 'aha moment' of dynamic generation vs static code. Include both the JSON input and resulting Swift output. Keep example simple but meaningful, targeting 2-minute completion.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
@@ -905,7 +905,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-01T13:50:07.437Z",
+      "updated": "2025-09-01T13:56:52.096Z",
       "description": "Tasks for master context"
     }
   }
