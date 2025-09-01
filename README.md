@@ -1,12 +1,19 @@
 # SyntaxKit
 
-**Generate Swift code programmatically with declarative syntax.** SyntaxKit is a Swift package that provides a type-safe, result builder-based API for generating Swift code structures. It's designed for macro development, model transformers, and migration utilities—scenarios where you need to programmatically create Swift code rather than writing it by hand. If you're writing code you could write by hand once, stick with regular Swift. If you're generating repetitive code structures, transforming data models, or building developer tools that output Swift code, SyntaxKit provides a declarative way to do it.
+[![SwiftPM](https://img.shields.io/badge/SPM-Linux%20%7C%20iOS%20%7C%20macOS%20%7C%20watchOS%20%7C%20tvOS-success?logo=swift)](https://swift.org)
+[![Swift Versions](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbrightdigit%2FSyntaxKit%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/brightdigit/SyntaxKit)
+[![Platforms](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbrightdigit%2FSyntaxKit%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/brightdigit/SyntaxKit)
+[![License](https://img.shields.io/github/license/brightdigit/SyntaxKit)](LICENSE)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brightdigit/SyntaxKit/SyntaxKit.yml?label=actions&logo=github&?branch=main)](https://github.com/brightdigit/SyntaxKit/actions)
+[![Codecov](https://img.shields.io/codecov/c/github/brightdigit/SyntaxKit)](https://codecov.io/gh/brightdigit/SyntaxKit)
+[![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/brightdigit/SyntaxKit)](https://www.codefactor.io/repository/github/brightdigit/SyntaxKit)
+[![codebeat badge](https://codebeat.co/badges/ad53f31b-de7a-4579-89db-d94eb57dfcaa)](https://codebeat.co/projects/github-com-brightdigit-SyntaxKit-main)
+[![Maintainability](https://qlty.sh/badges/55637213-d307-477e-a710-f9dba332d955/maintainability.svg)](https://qlty.sh/gh/brightdigit/projects/SyntaxKit)
+[![Documentation](https://img.shields.io/badge/docc-read_documentation-blue)](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation)
+
+**Generate Swift code programmatically with declarative syntax.** SyntaxKit is a Swift package that provides a type-safe, result builder-based API for generating Swift code structures. It's designed for macro development, model transformers, and migration utilities—scenarios where you need to programmatically create Swift code rather than writing it by hand.
 
 Unlike manually writing SwiftSyntax AST nodes, SyntaxKit uses result builders to make code generation readable and maintainable. Perfect for macro authors who need to generate complex Swift structures, or developers building tools that automatically create boilerplate code from external schemas, APIs, or configurations.
-
-**When to choose SyntaxKit:** You're building a Swift macro, creating model layers from databases, transforming data schemas into Swift types, or building developer tools that output Swift code. **When to choose regular Swift:** You're writing application logic, view controllers, or any code you'd normally type by hand.
-
-SyntaxKit transforms this complex task into declarative, readable code generation—making macro development and code generation tools significantly more approachable for Swift developers.
 
 ## When to Use SyntaxKit
 
@@ -45,6 +52,72 @@ graph TD
 
 > 🎓 **New to SyntaxKit?** Start with our [**Complete Getting Started Guide**](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation) - from zero to building your first macro in 10 minutes.
 
+## Installation
+
+Add SyntaxKit to your project using Swift Package Manager:
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.3")
+]
+```
+
+## Quick Start (5 minutes)
+
+### 1. Create Your First Code Generator (2 minutes)
+```swift
+import SyntaxKit
+
+// Generate a data model with Equatable conformance
+let userModel = Struct("User") {
+    Property("id", type: "UUID")
+    Property("name", type: "String") 
+    Property("email", type: "String")
+}
+.conformsTo("Equatable")
+
+print(userModel.generateCode())
+```
+
+### 2. See the Generated Result (instant)
+```swift
+struct User: Equatable {
+    let id: UUID
+    let name: String
+    let email: String
+}
+```
+
+### 3. Build a Simple Macro (2 minutes)
+```swift
+import SyntaxKit
+import SwiftSyntaxMacros
+
+@main
+struct EquatableMacro: ExpressionMacro {
+    static func expansion(
+        of node: some FreestandingMacroExpansionSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> ExprSyntax {
+        // Use SyntaxKit to generate Equatable implementation
+        let equatableImpl = Function("==") {
+            Parameter("lhs", type: "Self")
+            Parameter("rhs", type: "Self") 
+        }
+        .static()
+        .returns("Bool")
+        .body {
+            // Generated comparison logic
+        }
+        
+        return equatableImpl.expressionSyntax
+    }
+}
+```
+
+**✅ Done!** You've built type-safe Swift code generation. Ready for complex scenarios like API client generation or model transformers.
+
 ## Why SyntaxKit Excels
 
 ### API Client Generation
@@ -65,10 +138,10 @@ struct UsersAPI {
 }
 ```
 
-**SyntaxKit Approach (generate from OpenAPI spec):**
+**SyntaxKit Approach (generate from schema):**
 ```swift
 // Generate entire API client from schema
-let apiClient = generateAPIClient(from: openAPISpec) {
+let apiClient = generateAPIClient(from: apiSchema) {
     for endpoint in spec.endpoints {
         Function(endpoint.name) {
             Parameter("request", type: endpoint.requestType)
@@ -171,100 +244,6 @@ let migrations = generateMigrations(from: migrationConfig) {
 
 **Result:** 95% less boilerplate, type-safe transformations, and maintainable code generation that scales with your schema changes.
 
-## Quick Start (5 minutes)
-
-### 1. Add SyntaxKit to Your Package (1 minute)
-```swift
-// Package.swift
-dependencies: [
-    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.1")
-]
-```
-
-### 2. Create Your First Code Generator (2 minutes)
-```swift
-import SyntaxKit
-
-// Generate a data model with Equatable conformance
-let userModel = Struct("User") {
-    Property("id", type: "UUID")
-    Property("name", type: "String") 
-    Property("email", type: "String")
-}
-.conformsTo("Equatable")
-
-print(userModel.generateCode())
-```
-
-### 3. See the Generated Result (instant)
-```swift
-struct User: Equatable {
-    let id: UUID
-    let name: String
-    let email: String
-}
-```
-
-### 4. Build a Simple Macro (2 minutes)
-```swift
-import SyntaxKit
-import SwiftSyntaxMacros
-
-@main
-struct EquatableMacro: ExpressionMacro {
-    static func expansion(
-        of node: some FreestandingMacroExpansionSyntax,
-        in context: some MacroExpansionContext
-    ) throws -> ExprSyntax {
-        // Use SyntaxKit to generate Equatable implementation
-        let equatableImpl = Function("==") {
-            Parameter("lhs", type: "Self")
-            Parameter("rhs", type: "Self") 
-        }
-        .static()
-        .returns("Bool")
-        .body {
-            // Generated comparison logic
-        }
-        
-        return equatableImpl.expressionSyntax
-    }
-}
-```
-
-**✅ Done!** You've built type-safe Swift code generation. Ready for complex scenarios like API client generation or model transformers.
-
-**Next Steps:** 
-- 📖 **[Complete Macro Development Tutorial](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation)** - Step-by-step guide to building production macros
-- 🚀 **[API Client Generation Examples](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation)** - Real-world code generation patterns
-- 🔧 **[Integration Best Practices](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation)** - How to integrate SyntaxKit into your workflow
-
-[![](https://img.shields.io/badge/docc-read_documentation-blue)](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation)
-[![SwiftPM](https://img.shields.io/badge/SPM-Linux%20%7C%20iOS%20%7C%20macOS%20%7C%20watchOS%20%7C%20tvOS-success?logo=swift)](https://swift.org)
-![GitHub](https://img.shields.io/github/license/brightdigit/SyntaxKit)
-![GitHub issues](https://img.shields.io/github/issues/brightdigit/SyntaxKit)
-![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/brightdigit/SyntaxKit/SyntaxKit.yml?label=actions&logo=github&?branch=main)
-
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbrightdigit%2FSyntaxKit%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/brightdigit/SyntaxKit)
-[![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fbrightdigit%2FSyntaxKit%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/brightdigit/SyntaxKit)
-
-[![Codecov](https://img.shields.io/codecov/c/github/brightdigit/SyntaxKit)](https://codecov.io/gh/brightdigit/SyntaxKit)
-[![CodeFactor Grade](https://img.shields.io/codefactor/grade/github/brightdigit/SyntaxKit)](https://www.codefactor.io/repository/github/brightdigit/SyntaxKit)
-[![codebeat badge](https://codebeat.co/badges/ad53f31b-de7a-4579-89db-d94eb57dfcaa)](https://codebeat.co/projects/github-com-brightdigit-SyntaxKit-main)
-[![Maintainability](https://qlty.sh/badges/55637213-d307-477e-a710-f9dba332d955/maintainability.svg)](https://qlty.sh/gh/brightdigit/projects/SyntaxKit)
-
-SyntaxKit provides a declarative way to generate Swift code structures using SwiftSyntax.
-
-## Installation
-
-Add SyntaxKit to your project using Swift Package Manager:
-
-```swift
-dependencies: [
-    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.1")
-]
-```
-
 ## Examples
 
 SyntaxKit provides a set of result builders that allow you to create Swift code structures in a declarative way. Here's an example:
@@ -308,6 +287,7 @@ struct BlackjackCard {
 - Add inheritance and comments to your code structures
 - Generate formatted Swift code using SwiftSyntax
 - Type-safe code generation
+- Comprehensive support for Swift language features
 
 ## Documentation
 
@@ -350,3 +330,5 @@ struct BlackjackCard {
 ## License
 
 This project is licensed under the MIT License - [see the LICENSE file for details.](LICENSE)
+
+> 🔗 **For OpenAPI code generation:** Check out the official [Swift OpenAPI Generator](https://github.com/apple/swift-openapi-generator) for generating Swift code from OpenAPI specifications.

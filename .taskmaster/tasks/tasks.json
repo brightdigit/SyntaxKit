@@ -174,7 +174,7 @@
         "dependencies": [
           2
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -182,7 +182,7 @@
             "description": "Research existing decision frameworks and outline criteria for when to use SyntaxKit vs manual Swift code",
             "dependencies": [],
             "details": "Analyze use cases, create decision matrix with factors like code volume, dynamism, maintainability, and performance. Research similar frameworks in other languages for inspiration.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -193,7 +193,7 @@
               "3.1"
             ],
             "details": "Create visual flowchart in DocC-compatible format showing decision points, conditions, and outcomes for choosing SyntaxKit vs alternatives.",
-            "status": "pending",
+            "status": "in-progress",
             "testStrategy": ""
           },
           {
@@ -905,7 +905,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-01T02:50:52.161Z",
+      "updated": "2025-09-01T03:08:41.953Z",
       "description": "Tasks for master context"
     }
   }
