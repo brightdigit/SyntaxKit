@@ -477,7 +477,7 @@
         "dependencies": [
           6
         ],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [
           {
             "id": 1,
@@ -485,7 +485,7 @@
             "description": "Analyze existing examples, community usage, and GitHub issues to identify common SyntaxKit usage patterns and anti-patterns",
             "dependencies": [],
             "details": "Review codebase examples, GitHub issues, discussions, and community feedback to compile comprehensive list of do's, don'ts, and common usage patterns. Document findings in structured format for inclusion in best practices guide.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -859,7 +859,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-01T19:23:39.463Z",
+      "updated": "2025-09-01T19:37:23.128Z",
       "description": "Tasks for master context"
     }
   }
