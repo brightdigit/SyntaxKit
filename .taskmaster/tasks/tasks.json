@@ -9,7 +9,7 @@
         "testStrategy": "Validate README renders correctly on GitHub, test all code examples compile, verify Quick Start can be completed in under 5 minutes, get feedback from developers who were previously confused about SyntaxKit's purpose",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -39,7 +39,7 @@
               "1.2"
             ],
             "details": "Develop 2-3 concrete before/after examples: 1) API client generation from OpenAPI spec, 2) Model generator with computed properties, 3) Migration utility for data transformation. Each example should show the manual Swift approach vs SyntaxKit approach, highlighting reduced boilerplate and improved maintainability. Focus on scenarios where SyntaxKit provides clear advantages.",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -50,7 +50,7 @@
               "1.3"
             ],
             "details": "Design step-by-step Quick Start that gets developers from zero to working code in 5 minutes. Include: package installation, simple macro example, compilation steps, and verification. Use a practical example like generating Equatable conformance or simple API client. Provide exact commands and expected output. Test timing with new users.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -61,7 +61,7 @@
               "1.4"
             ],
             "details": "Reorganize existing README sections for logical flow: 1) Value proposition, 2) Decision guide, 3) Quick Start, 4) Installation, 5) Examples, 6) Documentation links, 7) Contributing. Preserve all existing technical content but improve readability and progression. Ensure installation instructions remain comprehensive but are positioned after value demonstration.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -72,7 +72,7 @@
               "1.5"
             ],
             "details": "Add prominent section linking to DocC documentation with clear descriptions of what readers will find. Include links to: comprehensive API reference, macro development tutorials, integration guides, and troubleshooting resources. Create clear calls-to-action that drive readers to deeper documentation. Ensure links work correctly and provide context about what each documentation section covers.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -905,7 +905,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-08-31T18:24:42.428Z",
+      "updated": "2025-09-01T02:41:53.194Z",
       "description": "Tasks for master context"
     }
   }
