@@ -276,7 +276,7 @@
         "dependencies": [
           3
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -284,7 +284,7 @@
             "description": "Implement a comprehensive member macro example that automatically generates initializers or computed properties for structs/classes",
             "dependencies": [],
             "details": "Create a detailed section showing how to build a member macro using SyntaxKit that generates initializers based on stored properties. Include step-by-step implementation, explain macro expansion mechanics, and demonstrate advantages over manual SwiftSyntax approach. Show both memberwise initializer and custom initializer patterns.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -295,7 +295,7 @@
               "4.1"
             ],
             "details": "Create accessor macro example that generates custom getters and setters for properties, similar to property wrapper behavior. Show how SyntaxKit simplifies accessor generation compared to raw SwiftSyntax. Include validation, transformation, and storage pattern examples.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -306,7 +306,7 @@
               "4.2"
             ],
             "details": "Implement peer macro tutorial showing generation of companion types (builders, validators, etc.) alongside main types. Demonstrate SyntaxKit's declarative approach for creating related types and maintaining type relationships. Include practical use cases like builder pattern generation.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -319,7 +319,7 @@
               "4.3"
             ],
             "details": "Refactor StringifyMacro, extension macro, and all new examples to demonstrate proper error handling using MacroError. Show diagnostic generation, error recovery strategies, and user-friendly error messages. Include section on error handling best practices with SyntaxKit.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -330,7 +330,7 @@
               "4.4"
             ],
             "details": "Add debugging section covering: macro expansion inspection, compiler diagnostic interpretation, step-by-step debugging workflow, common pitfalls and solutions. Include Xcode integration tips, logging strategies, and testing approaches for macro development with SyntaxKit.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -341,7 +341,7 @@
               "4.5"
             ],
             "details": "Create performance optimization section covering: compilation time impact, memory usage patterns, best practices for large-scale macro usage. Add strategic cross-references to When-to-Use guide, Quick Start tutorial, and Integration guide. Ensure tutorial maintains logical flow while highlighting SyntaxKit advantages.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -905,7 +905,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-01T13:29:51.107Z",
+      "updated": "2025-09-01T13:50:07.437Z",
       "description": "Tasks for master context"
     }
   }
