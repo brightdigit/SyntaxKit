@@ -794,7 +794,7 @@
               "10.1"
             ],
             "details": "Create tooling to analyze Swift source files for public APIs without documentation comments, generate coverage reports, and integrate into CI/CD to enforce documentation standards",
-            "status": "in-progress",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -859,7 +859,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-02T01:27:19.679Z",
+      "updated": "2025-09-02T14:01:09.089Z",
       "description": "Tasks for master context"
     }
   }

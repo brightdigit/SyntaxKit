@@ -211,6 +211,37 @@ validate_cross_references() {
     fi
 }
 
+# Function to validate API documentation coverage
+validate_api_coverage() {
+    echo -e "\n${BLUE}📊 Validating API Documentation Coverage...${NC}"
+    
+    # More portable way to get script directory
+    if [ -z "$SRCROOT" ]; then
+        SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+        PACKAGE_DIR="${SCRIPT_DIR}/.."
+    else
+        PACKAGE_DIR="${SRCROOT}"     
+    fi
+    
+    local coverage_script="$PACKAGE_DIR/Scripts/api-coverage.sh"
+    
+    if [ ! -f "$coverage_script" ]; then
+        echo -e "${YELLOW}⚠️  API coverage script not found at $coverage_script${NC}"
+        ((WARNINGS++))
+        return 0
+    fi
+    
+    echo -e "${BLUE}🔍 Running API documentation coverage analysis...${NC}"
+    
+    # Run API coverage tool
+    if "$coverage_script" --sources-dir "Sources/SyntaxKit" --threshold 90; then
+        echo -e "${GREEN}✅ API documentation coverage meets threshold${NC}"
+    else
+        echo -e "${RED}❌ API documentation coverage below threshold${NC}"
+        ((ERRORS++))
+    fi
+}
+
 # Function to validate Swift code examples in documentation
 validate_code_examples() {
     echo -e "\n${BLUE}💻 Validating Swift Code Examples...${NC}"
@@ -325,6 +356,7 @@ main() {
     validate_docc_links  
     validate_swift_symbols
     validate_cross_references
+    validate_api_coverage
     validate_code_examples
     
     echo -e "\n${BLUE}📊 Validation Summary${NC}"
