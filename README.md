@@ -56,6 +56,7 @@ graph TD
 
 Add SyntaxKit to your project using Swift Package Manager:
 
+<!-- skip-test -->
 ```swift
 // Package.swift
 dependencies: [

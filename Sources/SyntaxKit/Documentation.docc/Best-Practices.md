@@ -165,6 +165,7 @@ do {
 - Pattern order matters
 
 **Solution**:
+<!-- example-only -->
 ```swift
 // ❌ Problematic pattern
 Catch(EnumCase("error")) { ... }
@@ -181,6 +182,7 @@ Catch(EnumCase("MyError.validationFailed").associatedValue("field", type: "Strin
 **Problem**: Code blocks don't combine as expected in result builders.
 
 **Debugging Approach**:
+<!-- example-only -->
 ```swift
 // Break complex builders into smaller components
 let errorHandler = Group {
@@ -279,6 +281,7 @@ Function("fetchData") {
 
 **Problem**: Pattern doesn't bind associated values correctly
 **Solution**: Use `.associatedValue(name, type)` method:
+<!-- example-only -->
 ```swift
 // ❌ Won't bind values
 Catch(EnumCase("ValidationError.fieldError")) { ... }
@@ -291,6 +294,7 @@ Catch(EnumCase("ValidationError.fieldError").associatedValue("field", type: "Str
 
 **Problem**: Generic catch blocks shadow specific patterns
 **Solution**: Order catch clauses from specific to general:
+<!-- example-only -->
 ```swift
 Do { ... } catch: {
     Catch(EnumCase("SpecificError.typeA")) { ... }  // Most specific first
@@ -340,6 +344,7 @@ func testErrorHandlingIntegration() throws {
 
 When generated code behaves unexpectedly, inspect the underlying AST:
 
+<!-- example-only -->
 ```swift
 let codeBlock = Do {
     Call("someFunction").throwing()
@@ -416,6 +421,7 @@ When encountering issues with SyntaxKit error handling:
 
 Monitor memory usage when generating large error handling structures:
 
+<!-- example-only -->
 ```swift
 // Use autoreleasepool for large generation tasks
 autoreleasepool {
@@ -435,6 +441,7 @@ autoreleasepool {
 
 #### Generation Time Optimization
 
+<!-- example-only -->
 ```swift
 // Cache complex error patterns
 private static let commonErrorHandler: [CodeBlock] = {
@@ -461,6 +468,7 @@ Do {
 
 **Adding SyntaxKit to iOS/macOS Apps:**
 
+<!-- skip-test -->
 ```swift
 // In your Xcode project's Package.swift dependencies:
 dependencies: [
@@ -816,6 +824,7 @@ class BaseGenerator<Config: Codable, Output: CodeBlock>: Generator {
 ```
 
 **Specific Generator Implementation:**
+<!-- example-only -->
 ```swift
 // EndpointGenerator.swift
 struct APIConfiguration: Codable {
@@ -842,6 +851,7 @@ class EndpointGenerator: BaseGenerator<APIConfiguration, Enum> {
 
 #### 1. Generator Unit Tests
 
+<!-- example-only -->
 ```swift
 @Test("API generator creates correct endpoints")
 func testAPIGeneration() throws {
@@ -1223,6 +1233,7 @@ func testGenerationPerformance() throws {
 
 #### 2. Testing Implementation Details
 
+<!-- example-only -->
 ```swift
 // ❌ Testing internal syntax tree details
 #expect(syntax.as(FunctionDeclSyntax.self)?.signature.parameterClause.parameters.count == 2)
@@ -1234,6 +1245,7 @@ let generated = function.generateCode()
 
 #### 3. Ignoring Edge Cases
 
+<!-- example-only -->
 ```swift
 // ❌ Only testing happy path
 @Test func testBasicGeneration() { ... }

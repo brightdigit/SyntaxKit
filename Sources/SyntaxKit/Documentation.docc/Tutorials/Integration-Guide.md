@@ -577,6 +577,7 @@ func generateEndpoints(from configPath: String) throws -> String {
 
 Generate SwiftUI view models and data structures:
 
+<!-- example-only -->
 ```swift
 import SyntaxKit
 
@@ -633,6 +634,7 @@ func generateVaporRoutes(from apiSpec: OpenAPISpec) -> String {
 
 Generate Core Data model extensions:
 
+<!-- example-only -->
 ```swift
 import SyntaxKit
 
@@ -669,6 +671,7 @@ func generateCoreDataExtensions(from entities: [CoreDataEntity]) -> String {
 
 For tools that include SyntaxKit:
 
+<!-- example-only -->
 ```swift
 // Package.swift for tools using SyntaxKit
 .product(

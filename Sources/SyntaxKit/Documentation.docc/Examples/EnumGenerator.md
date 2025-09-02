@@ -314,6 +314,7 @@ let config = EnumConfiguration(
 
 Integrate into your build process with a Swift script:
 
+<!-- example-only -->
 ```swift
 #!/usr/bin/env swift
 

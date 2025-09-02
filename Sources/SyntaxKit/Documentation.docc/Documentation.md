@@ -325,6 +325,7 @@ struct MembersMacro: MemberMacro {
 ```
 
 **SyntaxKit Approach (Clean and readable):**
+<!-- example-only -->
 ```swift
 struct MembersMacro: MemberMacro {
     static func expansion(

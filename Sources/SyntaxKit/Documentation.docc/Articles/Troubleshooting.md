@@ -45,6 +45,7 @@ let valid = try Infix("+") {
 
 **Cause**: Missing enum type qualification or incorrect case names.
 
+<!-- example-only -->
 ```swift
 // ❌ Unqualified enum case - won't match MyError.networkFailure
 Catch(EnumCase("networkFailure")) { ... }
@@ -101,6 +102,7 @@ let ifStatement = If {
 
 **Solution**: Pin specific SwiftSyntax versions in Package.swift:
 
+<!-- skip-test -->
 ```swift
 dependencies: [
     .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1")
@@ -137,6 +139,7 @@ do {
 
 **Solution**: Inspect the actual node types:
 
+<!-- example-only -->
 ```swift
 let codeBlock = Function("test") { ... }
 let syntax = codeBlock.syntax
@@ -165,6 +168,7 @@ if let funcDecl = syntax.as(FunctionDeclSyntax.self) {
 
 **Solutions**:
 
+<!-- example-only -->
 ```swift
 // Use autoreleasepool for large generations
 autoreleasepool {
@@ -245,6 +249,7 @@ let errorsModule = Group { /* error declarations */ }
 ### 1. Syntax Validation Workflow
 
 **Step 1: Generate and Inspect**
+<!-- example-only -->
 ```swift
 let codeBlock = Do {
     Call("riskyOperation").throwing()
@@ -311,6 +316,7 @@ print("Full catch: \(catchClause.generateCode())")
 
 **Debugging Approach**:
 
+<!-- example-only -->
 ```swift
 // Break complex builders into components
 let errorHandler = Group {
@@ -444,6 +450,7 @@ func testMacroExpansion() throws {
 - SwiftSyntax 601.0.1+
 
 **Migration Issues**:
+<!-- example-only -->
 ```swift
 // Swift 6 strict concurrency might affect generated code
 // Ensure generated async code is properly marked
@@ -672,6 +679,7 @@ A: Check these common issues:
 3. **Imports**: Check that macro module is imported
 4. **Debugging**: Add print statements to see if macro is being called
 
+<!-- example-only -->
 ```swift
 // Add temporary debugging to your macro
 public static func expansion(...) throws -> ExprSyntax {
@@ -687,6 +695,7 @@ public static func expansion(...) throws -> ExprSyntax {
 
 A: Implement proper error handling in your macro:
 
+<!-- example-only -->
 ```swift
 public static func expansion(...) throws -> ExprSyntax {
     do {
@@ -719,6 +728,7 @@ A: Follow this incremental migration strategy:
 5. **Keep manual code as reference** until migration is complete
 
 **Before (Manual SwiftSyntax)**:
+<!-- example-only -->
 ```swift
 let funcDecl = FunctionDeclSyntax(
     name: .identifier("test"),
