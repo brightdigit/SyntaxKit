@@ -304,25 +304,51 @@ validate_code_examples() {
                     
                     echo -n "  Validating $(basename "$swift_file"): "
                     
-                    # Try to typecheck the extracted Swift code
-                    if swift -frontend -typecheck \
-                        -sdk "$(xcrun --show-sdk-path)" \
-                        -I "$PWD/.build/debug" \
-                        "$swift_file" 2>/dev/null; then
+                    # Create a temporary Swift package to validate the code
+                    local temp_package_dir=$(mktemp -d)
+                    local package_swift="$temp_package_dir/Package.swift"
+                    local main_swift="$temp_package_dir/Sources/TestExample/main.swift"
+                    
+                    # Create Package.swift with SyntaxKit dependency
+                    cat > "$package_swift" << EOF
+// swift-tools-version: 5.9
+import PackageDescription
+
+let package = Package(
+    name: "TestExample",
+    platforms: [.macOS(.v13)],
+    dependencies: [
+        .package(path: "$PWD")
+    ],
+    targets: [
+        .executableTarget(
+            name: "TestExample",
+            dependencies: ["SyntaxKit"]
+        )
+    ]
+)
+EOF
+                    
+                    # Create directory structure and copy example code
+                    mkdir -p "$(dirname "$main_swift")"
+                    cp "$swift_file" "$main_swift"
+                    
+                    # Try to build the temporary package
+                    if (cd "$temp_package_dir" && swift build --quiet 2>/dev/null); then
                         echo -e "${GREEN}✅ Valid${NC}"
                         ((examples_valid++))
                     else
                         echo -e "${RED}❌ Invalid${NC}"
                         echo -e "${YELLOW}    Code:${NC}"
                         sed 's/^/      /' "$swift_file"
-                        echo -e "${YELLOW}    Errors:${NC}"
-                        swift -frontend -typecheck \
-                            -sdk "$(xcrun --show-sdk-path)" \
-                            -I "$PWD/.build/debug" \
-                            "$swift_file" 2>&1 | sed 's/^/      /' || true
+                        echo -e "${YELLOW}    Build errors:${NC}"
+                        (cd "$temp_package_dir" && swift build 2>&1 | sed 's/^/      /' || true)
                         ((examples_failed++))
                         ((ERRORS++))
                     fi
+                    
+                    # Clean up temporary package
+                    rm -rf "$temp_package_dir"
                 fi
             done <<< "$swift_files"
         fi
@@ -350,6 +376,49 @@ validate_code_examples() {
     fi
 }
 
+# Function to provide error recovery suggestions
+provide_error_recovery() {
+    if [ $ERRORS -eq 0 ]; then
+        return 0
+    fi
+    
+    echo -e "\n${BLUE}💡 Error Recovery Suggestions${NC}"
+    echo "═══════════════════════════════════"
+    
+    echo -e "${YELLOW}Common Documentation Issues & Fixes:${NC}"
+    echo "• Broken external URLs:"
+    echo "  → Update or remove outdated links"
+    echo "  → Use web.archive.org for historical references"
+    echo "  → Replace with current documentation URLs"
+    echo ""
+    echo "• Missing DocC files:"
+    echo "  → Create referenced .md files in Documentation.docc/"
+    echo "  → Fix typos in <doc:Page-Name> references"
+    echo "  → Use proper DocC naming conventions (no spaces, use hyphens)"
+    echo ""
+    echo "• Invalid Swift symbols:"
+    echo "  → Check symbol name spelling and capitalization"
+    echo "  → Ensure symbols are public APIs (not internal/private)"
+    echo "  → Update symbol references after API changes"
+    echo ""
+    echo "• Failed code examples:"
+    echo "  → Add missing import statements"
+    echo "  → Fix syntax errors in code blocks"
+    echo "  → Ensure examples use current API signatures"
+    echo "  → Test examples in Xcode playground first"
+    echo ""
+    echo "• Low API coverage:"
+    echo "  → Add /// documentation comments to public APIs"
+    echo "  → Use swift package generate-documentation to identify missing docs"
+    echo "  → Follow DocC best practices for API documentation"
+    echo ""
+    echo -e "${BLUE}🔧 Quick Commands:${NC}"
+    echo "• Rerun validation: ./Scripts/validate-docs.sh"
+    echo "• Generate docs: swift package generate-documentation"
+    echo "• Check API coverage: ./Scripts/api-coverage.sh --threshold 90"
+    echo "• Format code: ./Scripts/lint.sh"
+}
+
 # Main validation workflow
 main() {
     validate_external_urls
@@ -363,13 +432,18 @@ main() {
     echo "═══════════════════════════════════"
     
     if [ $ERRORS -eq 0 ]; then
-        echo -e "${GREEN}✅ All documentation links are valid!${NC}"
+        echo -e "${GREEN}✅ All documentation validation checks passed!${NC}"
+        if [ $WARNINGS -gt 0 ]; then
+            echo -e "${YELLOW}⚠️  Found $WARNINGS warning(s) - consider addressing these${NC}"
+        fi
         exit 0
     else
         echo -e "${RED}❌ Found $ERRORS validation error(s)${NC}"
         if [ $WARNINGS -gt 0 ]; then
             echo -e "${YELLOW}⚠️  Found $WARNINGS warning(s)${NC}"
         fi
+        
+        provide_error_recovery
         exit 1
     fi
 }
