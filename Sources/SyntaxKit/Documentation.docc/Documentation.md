@@ -471,6 +471,7 @@ Both compile to identical machine code with zero performance difference.
 
 ### Getting Started
 - <doc:Creating-Macros-with-SyntaxKit>
+- <doc:Best-Practices>
 
 ### Declarations
 - ``AccessModifier``
