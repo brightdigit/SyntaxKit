@@ -211,12 +211,121 @@ validate_cross_references() {
     fi
 }
 
+# Function to validate Swift code examples in documentation
+validate_code_examples() {
+    echo -e "\n${BLUE}💻 Validating Swift Code Examples...${NC}"
+    
+    # Create temporary directory for extracted code
+    local temp_dir=$(mktemp -d)
+    local examples_found=0
+    local examples_valid=0
+    local examples_failed=0
+    
+    # Function to extract and validate Swift code from a file
+    validate_file_examples() {
+        local file="$1"
+        local relative_path="${file#$PWD/}"
+        
+        echo -e "${BLUE}📄 Processing: $relative_path${NC}"
+        
+        # Extract Swift code blocks using awk
+        awk -v temp_dir="$temp_dir" -v file_base="$(basename "$file" .md)" '
+            BEGIN { block_num = 0 }
+            /^```swift/ { 
+                in_swift = 1
+                block_num++
+                output_file = temp_dir "/" file_base "_" block_num ".swift"
+                print "import Foundation" > output_file
+                print "import SyntaxKit" >> output_file
+                print "" >> output_file
+                next 
+            }
+            /^```$/ && in_swift { 
+                in_swift = 0
+                close(output_file)
+                print output_file
+                next 
+            }
+            in_swift { 
+                print $0 >> output_file 
+            }
+        ' "$file"
+    }
+    
+    # Build SyntaxKit first for type checking
+    echo -e "${BLUE}🏗️  Building SyntaxKit for type checking...${NC}"
+    if ! swift build --quiet; then
+        echo -e "${RED}❌ Failed to build SyntaxKit. Cannot validate code examples.${NC}"
+        rm -rf "$temp_dir"
+        ((ERRORS++))
+        return 1
+    fi
+    
+    # Process all documentation files
+    while IFS= read -r doc_file; do
+        local swift_files
+        swift_files=$(validate_file_examples "$doc_file")
+        
+        if [ -n "$swift_files" ]; then
+            while IFS= read -r swift_file; do
+                if [ -f "$swift_file" ] && [ -s "$swift_file" ]; then
+                    ((examples_found++))
+                    
+                    echo -n "  Validating $(basename "$swift_file"): "
+                    
+                    # Try to typecheck the extracted Swift code
+                    if swift -frontend -typecheck \
+                        -sdk "$(xcrun --show-sdk-path)" \
+                        -I "$PWD/.build/debug" \
+                        "$swift_file" 2>/dev/null; then
+                        echo -e "${GREEN}✅ Valid${NC}"
+                        ((examples_valid++))
+                    else
+                        echo -e "${RED}❌ Invalid${NC}"
+                        echo -e "${YELLOW}    Code:${NC}"
+                        sed 's/^/      /' "$swift_file"
+                        echo -e "${YELLOW}    Errors:${NC}"
+                        swift -frontend -typecheck \
+                            -sdk "$(xcrun --show-sdk-path)" \
+                            -I "$PWD/.build/debug" \
+                            "$swift_file" 2>&1 | sed 's/^/      /' || true
+                        ((examples_failed++))
+                        ((ERRORS++))
+                    fi
+                fi
+            done <<< "$swift_files"
+        fi
+    done < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f; \
+             find . -maxdepth 1 -name "README.md" -type f; \
+             find Examples -name "README.md" -type f 2>/dev/null || true)
+    
+    # Clean up
+    rm -rf "$temp_dir"
+    
+    # Report results
+    echo -e "\n${BLUE}📊 Code Examples Summary:${NC}"
+    echo "  Total examples found: $examples_found"
+    echo "  Valid examples: $examples_valid"
+    echo "  Failed examples: $examples_failed"
+    
+    if [ $examples_failed -eq 0 ]; then
+        if [ $examples_found -eq 0 ]; then
+            echo -e "${YELLOW}⚠️  No Swift code examples found in documentation${NC}"
+        else
+            echo -e "${GREEN}✅ All Swift code examples are valid!${NC}"
+        fi
+    else
+        echo -e "${RED}❌ $examples_failed code example(s) failed validation${NC}"
+    fi
+}
+
 # Main validation workflow
 main() {
     validate_external_urls
     validate_docc_links  
     validate_swift_symbols
     validate_cross_references
+    validate_code_examples
     
     echo -e "\n${BLUE}📊 Validation Summary${NC}"
     echo "═══════════════════════════════════"
