@@ -32,6 +32,11 @@ import Foundation
 /// A result builder for creating arrays of ``CodeBlock``s.
 @resultBuilder
 public enum CodeBlockBuilderResult: Sendable {
+  /// Builds an empty block of ``CodeBlock``s.
+  public static func buildBlock() -> [CodeBlock] {
+    []
+  }
+
   /// Builds a block of ``CodeBlock``s.
   public static func buildBlock(_ components: CodeBlock...) -> [CodeBlock] {
     components

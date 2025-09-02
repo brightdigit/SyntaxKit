@@ -104,7 +104,7 @@ internal final class VariableCoverageTests {
     // This tests when value is neither ExprCodeBlock nor ExprSyntax
 
     // Create a custom CodeBlock that doesn't conform to ExprCodeBlock
-    struct CustomCodeBlock: CodeBlock {
+    struct CustomCodeBlock: SyntaxKit.CodeBlock {
       var syntax: SyntaxProtocol {
         // Return something that's not ExprSyntax
         DeclSyntax(
