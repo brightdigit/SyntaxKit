@@ -18,18 +18,17 @@ do {
       ]
     }
     """
-    
+
     print("JSON Configuration:")
     print(jsonConfig)
     print()
-    
+
     print("This would generate Swift enum code using SyntaxKit:")
     print("enum HTTPStatus: Int, CaseIterable {")
     print("    case ok = 200")
-    print("    case notFound = 404") 
+    print("    case notFound = 404")
     print("    case serverError = 500")
     print("}")
-    
 } catch {
     print("Error: \(error)")
 }

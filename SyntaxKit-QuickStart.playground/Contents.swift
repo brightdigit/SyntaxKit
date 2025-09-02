@@ -85,7 +85,7 @@ func generateEnum(from json: String, showProgress: Bool = true) -> String {
     if showProgress {
         print("🔄 Parsing JSON configuration...")
     }
-    
+
     // Parse JSON configuration
     guard let data = json.data(using: .utf8),
           let config = try? JSONDecoder().decode(EnumConfig.self, from: data) else {
@@ -94,25 +94,25 @@ func generateEnum(from json: String, showProgress: Bool = true) -> String {
         }
         return "// Invalid JSON configuration"
     }
-    
+
     if showProgress {
         print("✅ Successfully parsed: \(config.cases.count) enum cases")
         print("🔨 Generating Swift enum: \(config.name)")
     }
-    
+
     // Generate Swift enum code
     var swiftCode = "enum \(config.name): Int, CaseIterable {\n"
-    
+
     for enumCase in config.cases {
         swiftCode += "    case \(enumCase.name) = \(enumCase.value)\n"
     }
-    
+
     swiftCode += "}"
-    
+
     if showProgress {
         print("✨ Code generation complete!")
     }
-    
+
     return swiftCode
 }
 
@@ -121,13 +121,13 @@ func demonstrateGeneration(title: String, config: String) {
     print("\n🎯 \(title)")
     print("═══════════════════════════════════════")
     print()
-    
+
     print("📋 Input JSON Configuration:")
     print(config)
     print()
-    
+
     let swiftCode = generateEnum(from: config)
-    
+
     print()
     print("🎯 Generated Swift Code:")
     print("═══════════════════════════════════════")
@@ -208,7 +208,7 @@ print()
 print("📚 Next Steps - Explore Advanced SyntaxKit:")
 print("═══════════════════════════════════════")
 print("• Macro Development: Build Swift macros with SyntaxKit")
-print("• Advanced Examples: Complex code generation patterns") 
+print("• Advanced Examples: Complex code generation patterns")
 print("• Best Practices: Maintainable code generation strategies")
 print("• Integration Guide: Add SyntaxKit to existing projects")
 print()

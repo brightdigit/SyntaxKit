@@ -74,7 +74,7 @@ public struct Struct: CodeBlock, Sendable {
     copy.inheritance = inheritance
     return copy
   }
-  
+
   /// Sets the inheritance for the struct using an array.
   /// - Parameter inheritance: The array of types to inherit from.
   /// - Returns: A copy of the struct with the inheritance set.
