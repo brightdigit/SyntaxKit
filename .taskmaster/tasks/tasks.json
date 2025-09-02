@@ -655,7 +655,7 @@
         "dependencies": [
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [
           {
             "id": 1,
@@ -663,7 +663,7 @@
             "description": "Document step-by-step process for adding SyntaxKit to existing Xcode projects",
             "dependencies": [],
             "details": "Create detailed instructions for adding SyntaxKit via SPM in Xcode, configuring build settings, and setting up basic code generation workflow. Include screenshots and troubleshooting common Xcode-specific issues.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -674,7 +674,7 @@
               "9.1"
             ],
             "details": "Cover Package.swift configuration, dependency management, and integration patterns for command-line tools and libraries. Include examples of different package types and configurations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -685,7 +685,7 @@
               "9.2"
             ],
             "details": "Provide working examples of Xcode run script build phases, SPM plugin configurations, and custom build tools. Include performance considerations and incremental build support.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -696,7 +696,7 @@
               "9.3"
             ],
             "details": "Document GitHub Actions, GitLab CI, Jenkins, and other popular CI/CD integrations. Include caching strategies, artifact management, and validation workflows for generated code.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -707,7 +707,7 @@
               "9.4"
             ],
             "details": "Cover versioning strategies for generated code, code review best practices, branching strategies, and team coordination patterns. Include conflict resolution and merge strategies.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -718,7 +718,7 @@
               "9.5"
             ],
             "details": "Provide step-by-step migration guides from popular tools like Sourcery, SwiftGen, and custom scripts. Include comparison matrices and incremental migration strategies.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -729,7 +729,7 @@
               "9.6"
             ],
             "details": "Cover deployment patterns for tools using SyntaxKit, integration with SwiftUI, Vapor, and other frameworks. Include distribution strategies and runtime considerations.",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           }
         ]
@@ -763,7 +763,7 @@
               "10.1"
             ],
             "details": "Build link checker that validates external URLs, internal DocC links, and Swift symbol references. Include validation of cross-references between tutorials and API documentation",
-            "status": "pending",
+            "status": "done",
             "testStrategy": ""
           },
           {
@@ -859,7 +859,7 @@
     ],
     "metadata": {
       "created": "2025-08-31T16:26:25.262Z",
-      "updated": "2025-09-02T00:53:08.460Z",
+      "updated": "2025-09-02T01:14:48.384Z",
       "description": "Tasks for master context"
     }
   }
