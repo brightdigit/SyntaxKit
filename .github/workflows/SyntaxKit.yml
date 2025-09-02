@@ -72,7 +72,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "iPhone 16 Pro"
             osVersion: "26.0"
-            download-platforms: true
+            download-platform: true
   
           # watchOS Build Matrix
           - type: watchos
@@ -80,6 +80,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple Watch Ultra 2 (49mm)"
             osVersion: "26.0"
+            download-platform: true
 
           # tvOS Build Matrix
           - type: tvos
@@ -87,7 +88,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple TV"
             osVersion: "26.0"
-            download-platforms: true
+            download-platform: true
 
           # visionOS Build Matrix              
           - type: visionos
@@ -95,7 +96,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple Vision Pro"
             osVersion: "26.0"
-            download-platforms: true
+            download-platform: true
   
     steps:
       - uses: actions/checkout@v4
@@ -108,7 +109,7 @@ jobs:
           xcode: ${{ matrix.xcode }}
           deviceName: ${{ matrix.deviceName }}
           osVersion: ${{ matrix.osVersion }}
-          download-platforms: ${{ matrix.download-platforms }}
+          download-platform: ${{ matrix.download-platform }}
           
       # Common Coverage Steps
       - name: Process Coverage
