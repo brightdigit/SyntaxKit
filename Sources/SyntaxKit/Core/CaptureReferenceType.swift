@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents the type of reference capture in closures.
 public enum CaptureReferenceType: CaseIterable, Sendable, Equatable {

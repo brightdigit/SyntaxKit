@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `let` declaration for use in an `if` statement.
 public struct Let: CodeBlock {

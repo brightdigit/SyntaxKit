@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A property requirement inside a protocol declaration.
 public struct PropertyRequirement: CodeBlock {

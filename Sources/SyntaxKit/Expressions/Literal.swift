@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents Swift literal values.
 public enum Literal: CodeBlock, CodeBlockable, Sendable {

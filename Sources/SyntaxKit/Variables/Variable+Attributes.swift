@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents attribute arguments for variable declarations.
 private struct AttributeArguments {

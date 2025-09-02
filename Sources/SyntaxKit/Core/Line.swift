@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents a single comment line that can be attached to a syntax node.
 public struct Line: Sendable, Equatable {

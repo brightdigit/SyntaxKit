@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A tuple expression, e.g. `(a, b, c)`.
 public struct Tuple: CodeBlock {

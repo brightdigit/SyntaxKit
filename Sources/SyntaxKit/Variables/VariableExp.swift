@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// An expression that refers to a variable.
 public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {

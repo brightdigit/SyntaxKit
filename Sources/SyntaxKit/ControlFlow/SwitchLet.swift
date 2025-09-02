@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A value binding pattern for use in switch cases.
 public struct SwitchLet: PatternConvertible, CodeBlock {

@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension CodeBlock {
   /// Attempts to treat this `CodeBlock` as an expression and return its `ExprSyntax` form.

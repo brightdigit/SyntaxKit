@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A dictionary expression that can contain both Literal types and CodeBlock types.
 public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {

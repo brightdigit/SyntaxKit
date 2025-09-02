@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `case` declaration inside an `enum`.
 public struct EnumCase: CodeBlock {

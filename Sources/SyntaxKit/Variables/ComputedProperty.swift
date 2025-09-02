@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `var` declaration with a computed value.
 public struct ComputedProperty: CodeBlock {

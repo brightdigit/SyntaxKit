@@ -90,7 +90,7 @@ Create the file `Sources/MyMacroMacros/StringifyMacro.swift`:
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SyntaxKit
 
 /// A freestanding expression macro that takes two expressions and returns
@@ -153,7 +153,7 @@ Create the file `Sources/MyMacroMacros/MacroPlugin.swift`:
 
 ```swift
 import SwiftCompilerPlugin
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 
 @main
 struct MyMacroPlugin: CompilerPlugin {
@@ -207,8 +207,8 @@ Create the file `Tests/MyMacroTests/StringifyMacroTests.swift`:
 
 ```swift
 import XCTest
-import SwiftSyntaxMacros
-import SwiftSyntaxMacrosTestSupport
+public import SwiftSyntaxMacros
+public import SwiftSyntaxMacrosTestSupport
 @testable import MyMacroMacros
 
 final class StringifyMacroTests: XCTestCase {
@@ -277,7 +277,7 @@ Member macros can automatically generate code within the declaration they're att
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SyntaxKit
 
 public struct MemberwiseInitMacro: MemberMacro {
@@ -385,7 +385,7 @@ Accessor macros can transform stored properties into computed properties by gene
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SyntaxKit
 
 public struct ValidatedMacro: AccessorMacro {
@@ -495,7 +495,7 @@ Peer macros can generate companion types alongside the declaration they're attac
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SyntaxKit
 
 public struct BuilderMacro: PeerMacro {
@@ -700,7 +700,7 @@ You can also create extension macros using SyntaxKit. Here's a simple example:
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SyntaxKit
 
 public struct AddDescriptionMacro: ExtensionMacro {
@@ -746,7 +746,7 @@ Proper error handling is crucial for macro development. Here's a comprehensive M
 
 ```swift
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SwiftDiagnostics
 
 /// Comprehensive error handling for macros
@@ -882,7 +882,7 @@ Set up your development environment for effective macro debugging:
 ```swift
 // Add debugging imports to your macro files
 import SwiftSyntax
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 import SwiftDiagnostics
 import Foundation // For print debugging
 
@@ -957,8 +957,8 @@ Create effective test cases for your macros:
 ```swift
 // Tests/MyMacroTests/DebuggingTests.swift
 import XCTest
-import SwiftSyntaxMacros
-import SwiftSyntaxMacrosTestSupport
+public import SwiftSyntaxMacros
+public import SwiftSyntaxMacrosTestSupport
 @testable import MyMacroMacros
 
 final class DebuggingTests: XCTestCase {

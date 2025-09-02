@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Internal representation of a Swift attribute with its arguments.
 internal struct AttributeInfo {

@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `catch` clause for error handling.
 public struct Catch: CodeBlock {

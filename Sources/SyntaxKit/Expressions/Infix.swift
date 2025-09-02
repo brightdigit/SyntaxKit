@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A generic binary (infix) operator expression, e.g. `a + b`.
 public struct Infix: CodeBlock, ExprCodeBlock {

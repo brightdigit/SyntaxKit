@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents a parameter in a closure signature.
 public struct ClosureParameter: TypeRepresentable {

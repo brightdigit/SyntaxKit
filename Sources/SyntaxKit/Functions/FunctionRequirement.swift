@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A function requirement within a protocol declaration (no body).
 public struct FunctionRequirement: CodeBlock {

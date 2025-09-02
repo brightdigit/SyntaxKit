@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents Swift access modifiers.
 public enum AccessModifier: CaseIterable, Sendable, Equatable {

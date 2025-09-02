@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Types that can be represented as a Swift type.
 public protocol TypeRepresentable: Sendable {

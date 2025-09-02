@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift ternary conditional operator expression (`condition ? then : else`).
 public struct ConditionalOp: CodeBlock {

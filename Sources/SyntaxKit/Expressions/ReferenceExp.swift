@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift reference expression (e.g., `weak self`, `unowned self`).
 internal struct ReferenceExp: CodeBlock {

@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A tuple literal value that can be used as a literal.
 internal struct TupleLiteralArray: CodeBlockableLiteral {

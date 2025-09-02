@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A protocol for types that can be represented as a SwiftSyntax node.
 public protocol CodeBlock: PatternConvertible, Sendable {

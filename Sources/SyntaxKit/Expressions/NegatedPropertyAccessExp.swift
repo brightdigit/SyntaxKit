@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// An expression that negates property access.
 internal struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {

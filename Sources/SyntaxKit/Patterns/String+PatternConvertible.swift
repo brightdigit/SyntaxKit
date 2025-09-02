@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension String: PatternConvertible {
   /// SwiftSyntax representation of the string as an identifier pattern.

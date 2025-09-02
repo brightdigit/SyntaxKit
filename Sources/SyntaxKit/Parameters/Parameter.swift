@@ -29,7 +29,7 @@
 
 import Foundation
 import SwiftParser
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A parameter for a function or initializer.
 public struct Parameter: CodeBlock {

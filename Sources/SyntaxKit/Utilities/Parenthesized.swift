@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A code block that wraps its content in parentheses.
 public struct Parenthesized: CodeBlock, ExprCodeBlock {

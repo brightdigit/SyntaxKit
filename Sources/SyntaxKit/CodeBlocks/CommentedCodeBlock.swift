@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 // MARK: - Wrapper `CodeBlock` that injects leading trivia
 

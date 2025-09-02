@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A tuple pattern that can be used as a CodeBlock for for-in loops.
 internal struct PatternConvertableCollection: PatternCodeBlock {

@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension Range: PatternConvertible where Bound == Int {
   /// SwiftSyntax representation of the range as a pattern.

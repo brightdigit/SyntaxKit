@@ -1,6 +1,6 @@
 import Foundation
-import SwiftSyntax
 import SwiftParser
+import SwiftSyntax
 import Testing
 
 @testable import SyntaxKit
@@ -33,7 +33,8 @@ struct DocumentationExampleTests {
   @Test("Quick Start Guide examples work correctly")
   func validateQuickStartGuideExamples() async throws {
     let testHarness = DocumentationTestHarness()
-    let quickStartFile = try testHarness.resolveRelativePath("Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md")
+    let quickStartFile = try testHarness.resolveRelativePath(
+      "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md")
     let results = try await testHarness.validateExamplesInFile(quickStartFile)
 
     // Specific validation for Quick Start examples
@@ -59,7 +60,8 @@ struct DocumentationExampleTests {
   @Test("Enum Generator examples work correctly")
   func validateEnumGeneratorExamples() async throws {
     let testHarness = DocumentationTestHarness()
-    let enumExampleFile = try testHarness.resolveRelativePath("Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md")
+    let enumExampleFile = try testHarness.resolveRelativePath(
+      "Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md")
     let results = try await testHarness.validateExamplesInFile(enumExampleFile)
 
     // Check that enum generation examples actually work
@@ -101,7 +103,7 @@ class DocumentationTestHarness {
         lineNumber: codeBlock.lineNumber,
         blockType: codeBlock.blockType
       )
-      
+
       try results.append(
         #require(result)
       )
@@ -130,14 +132,15 @@ class DocumentationTestHarness {
 
         // Determine block type from context
         blockType = determineBlockType(from: line)
-        
+
         // Check for HTML comment skip markers in the preceding lines
         let precedingLines = lines[max(0, lineIndex - 3)...lineIndex]
         for precedingLine in precedingLines {
-          if precedingLine.contains("<!-- skip-test -->") || 
-             precedingLine.contains("<!-- no-test -->") ||
-             precedingLine.contains("<!-- incomplete -->") ||
-             precedingLine.contains("<!-- example-only -->") {
+          if precedingLine.contains("<!-- skip-test -->")
+            || precedingLine.contains("<!-- no-test -->")
+            || precedingLine.contains("<!-- incomplete -->")
+            || precedingLine.contains("<!-- example-only -->")
+          {
             skipBlock = true
             break
           }
@@ -194,11 +197,11 @@ class DocumentationTestHarness {
       return await validateSwiftExample(code, filePath: filePath, lineNumber: lineNumber)
 
     case .packageManifest:
-#if canImport(Foundation) && (os(macOS) || os(Linux))
-      // Package.swift files need special handling
-      return await validatePackageManifest(code, filePath: filePath, lineNumber: lineNumber)
+      #if canImport(Foundation) && (os(macOS) || os(Linux))
+        // Package.swift files need special handling
+        return await validatePackageManifest(code, filePath: filePath, lineNumber: lineNumber)
       #else
-      return nil
+        return nil
       #endif
     case .shellCommand:
       // Skip shell commands for now
@@ -267,57 +270,57 @@ class DocumentationTestHarness {
     }
   }
 
-#if canImport(Foundation) && (os(macOS) || os(Linux))
-  /// Validates a Package.swift manifest
-  private func validatePackageManifest(
-    _ code: String,
-    filePath: String,
-    lineNumber: Int
-  ) async -> ValidationResult {
-    do {
-      // Create temporary Package.swift and validate it parses
-      let tempDir = FileManager.default.temporaryDirectory
-        .appendingPathComponent("SyntaxKit-DocTest-\(UUID())")
+  #if canImport(Foundation) && (os(macOS) || os(Linux))
+    /// Validates a Package.swift manifest
+    private func validatePackageManifest(
+      _ code: String,
+      filePath: String,
+      lineNumber: Int
+    ) async -> ValidationResult {
+      do {
+        // Create temporary Package.swift and validate it parses
+        let tempDir = FileManager.default.temporaryDirectory
+          .appendingPathComponent("SyntaxKit-DocTest-\(UUID())")
 
-      try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-      defer { try? FileManager.default.removeItem(at: tempDir) }
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempDir) }
 
-      let packageFile = tempDir.appendingPathComponent("Package.swift")
-      try code.write(to: packageFile, atomically: true, encoding: .utf8)
+        let packageFile = tempDir.appendingPathComponent("Package.swift")
+        try code.write(to: packageFile, atomically: true, encoding: .utf8)
 
-      // Use swift package tools to validate
-      let process = Process()
-      process.currentDirectoryURL = tempDir
-      process.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
-      process.arguments = ["package", "describe", "--type", "json"]
+        // Use swift package tools to validate
+        let process = Process()
+        process.currentDirectoryURL = tempDir
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
+        process.arguments = ["package", "describe", "--type", "json"]
 
-      let pipe = Pipe()
-      process.standardOutput = pipe
-      process.standardError = pipe
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = pipe
 
-      try process.run()
-      process.waitUntilExit()
+        try process.run()
+        process.waitUntilExit()
 
-      let success = process.terminationStatus == 0
-      let error = success ? nil : "Package.swift validation failed"
+        let success = process.terminationStatus == 0
+        let error = success ? nil : "Package.swift validation failed"
 
-      return ValidationResult(
-        success: success,
-        filePath: filePath,
-        lineNumber: lineNumber,
-        testType: .compilation,
-        error: error
-      )
-    } catch {
-      return ValidationResult(
-        success: false,
-        filePath: filePath,
-        lineNumber: lineNumber,
-        testType: .compilation,
-        error: "Package validation setup failed: \(error.localizedDescription)"
-      )
+        return ValidationResult(
+          success: success,
+          filePath: filePath,
+          lineNumber: lineNumber,
+          testType: .compilation,
+          error: error
+        )
+      } catch {
+        return ValidationResult(
+          success: false,
+          filePath: filePath,
+          lineNumber: lineNumber,
+          testType: .compilation,
+          error: "Package validation setup failed: \(error.localizedDescription)"
+        )
+      }
     }
-  }
   #endif
   /// Creates a temporary Swift file with proper imports and structure
   private func createTemporarySwiftFile(with code: String) throws -> URL {
@@ -342,54 +345,57 @@ class DocumentationTestHarness {
     // For documentation tests, we need to check if the code compiles syntactically
     // Since we can't easily resolve SyntaxKit module in isolation, we'll use a simpler approach
     // that focuses on syntax validation rather than full compilation
-    
+
     let code = try String(contentsOf: fileURL)
-    
+
     // Skip Package.swift examples and incomplete snippets
     if code.contains("Package(") || code.contains("dependencies:") || code.contains(".package(") {
       return CompilationResult(success: true, error: nil)
     }
-    
+
     // Skip examples that obviously require runtime execution or have other imports
     if code.contains("@main") || (code.contains("import") && !code.contains("import SyntaxKit")) {
       return CompilationResult(success: true, error: nil)
     }
-    
+
     // Skip shell commands or configuration examples
-    if code.contains("swift build") || code.contains("swift test") || code.contains("swift package") {
+    if code.contains("swift build") || code.contains("swift test") || code.contains("swift package")
+    {
       return CompilationResult(success: true, error: nil)
     }
-    
+
     // For SyntaxKit examples, create a complete, parseable Swift source
-    let cleanSource = code
+    let cleanSource =
+      code
       .replacingOccurrences(of: "import SyntaxKit", with: "")
       .replacingOccurrences(of: "import Foundation", with: "")
       .trimmingCharacters(in: .whitespacesAndNewlines)
-    
+
     // Skip if the remaining code is too fragmentary to parse
-    if cleanSource.isEmpty || 
-       cleanSource.count < 10 || 
-       (!cleanSource.contains("{") && !cleanSource.contains("let") && !cleanSource.contains("var")) {
+    if cleanSource.isEmpty || cleanSource.count < 10
+      || (!cleanSource.contains("{") && !cleanSource.contains("let")
+        && !cleanSource.contains("var"))
+    {
       return CompilationResult(success: true, error: nil)
     }
-    
+
     // Try to parse as complete Swift statements
     let wrappedSource = """
-    func testExample() {
-    \(cleanSource)
-    }
-    """
-    
+      func testExample() {
+      \(cleanSource)
+      }
+      """
+
     let parsed = Parser.parse(source: wrappedSource)
-    
+
     // Check for syntax errors in the parsed result
     if parsed.hasError {
       return CompilationResult(
-        success: false, 
+        success: false,
         error: "Syntax parsing detected errors in the code"
       )
     }
-    
+
     return CompilationResult(success: true, error: nil)
   }
 
@@ -406,39 +412,40 @@ class DocumentationTestHarness {
     code.contains("print(") || code.contains("main()") || code.contains("@main")
   }
 
-#if canImport(Foundation) && (os(macOS) || os(Linux))
-  /// Gets the SDK path for compilation
-  private func getSDKPath() throws -> String {
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-    process.arguments = ["--show-sdk-path"]
+  #if canImport(Foundation) && (os(macOS) || os(Linux))
+    /// Gets the SDK path for compilation
+    private func getSDKPath() throws -> String {
+      let process = Process()
+      process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+      process.arguments = ["--show-sdk-path"]
 
-    let pipe = Pipe()
-    process.standardOutput = pipe
+      let pipe = Pipe()
+      process.standardOutput = pipe
 
-    try process.run()
-    process.waitUntilExit()
+      try process.run()
+      process.waitUntilExit()
 
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    guard
-      let path = String(data: data, encoding: .utf8)?.trimmingCharacters(
-        in: .whitespacesAndNewlines)
-    else {
-      throw DocumentationTestError.sdkPathNotFound
+      let data = pipe.fileHandleForReading.readDataToEndOfFile()
+      guard
+        let path = String(data: data, encoding: .utf8)?.trimmingCharacters(
+          in: .whitespacesAndNewlines)
+      else {
+        throw DocumentationTestError.sdkPathNotFound
+      }
+
+      return path
     }
-
-    return path
-  }
   #endif
 
   /// Finds all documentation files containing code examples
   private func findDocumentationFiles() throws -> [String] {
     let currentFileURL = URL(fileURLWithPath: #file)
-    let projectRoot = currentFileURL
-      .deletingLastPathComponent() // Tests/SyntaxKitTests/Integration
-      .deletingLastPathComponent() // Tests/SyntaxKitTests
-      .deletingLastPathComponent() // Tests
-      .deletingLastPathComponent() // Project root
+    let projectRoot =
+      currentFileURL
+      .deletingLastPathComponent()  // Tests/SyntaxKitTests/Integration
+      .deletingLastPathComponent()  // Tests/SyntaxKitTests
+      .deletingLastPathComponent()  // Tests
+      .deletingLastPathComponent()  // Project root
     let docPaths = [
       "Sources/SyntaxKit/Documentation.docc",
       "README.md",
@@ -483,13 +490,13 @@ class DocumentationTestHarness {
 
   /// Resolves a relative file path to absolute path (public for use by test methods)
   func resolveRelativePath(_ filePath: String) throws -> String {
-    return try resolveFilePath(filePath)
+    try resolveFilePath(filePath)
   }
 
   /// Resolves a relative file path to absolute path
   private func resolveFilePath(_ filePath: String) throws -> String {
     let currentFileURL: URL
-    
+
     // Handle #file which might be relative or absolute
     if #filePath.hasPrefix("/") {
       // #file is already absolute
@@ -499,12 +506,13 @@ class DocumentationTestHarness {
       currentFileURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         .appendingPathComponent(#filePath)
     }
-    
-    let projectRoot = currentFileURL
-      .deletingLastPathComponent() // Tests/SyntaxKitTests/Integration
-      .deletingLastPathComponent() // Tests/SyntaxKitTests
-      .deletingLastPathComponent() // Tests
-      .deletingLastPathComponent() // Project root
+
+    let projectRoot =
+      currentFileURL
+      .deletingLastPathComponent()  // Tests/SyntaxKitTests/Integration
+      .deletingLastPathComponent()  // Tests/SyntaxKitTests
+      .deletingLastPathComponent()  // Tests
+      .deletingLastPathComponent()  // Project root
 
     if filePath.hasPrefix("/") {
       return filePath

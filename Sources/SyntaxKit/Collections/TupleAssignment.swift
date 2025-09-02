@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A tuple assignment statement for destructuring multiple values.
 internal struct TupleAssignment: CodeBlock {

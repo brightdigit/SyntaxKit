@@ -242,8 +242,8 @@ struct BlackjackCard {
 
 **Traditional SwiftSyntax Approach (Complex AST manipulation):**
 ```swift
-import SwiftSyntaxMacros
-import SwiftSyntax
+public import SwiftSyntaxMacros
+public import SwiftSyntax
 
 struct StringifyMacro: ExpressionMacro {
     static func expansion(
@@ -273,7 +273,7 @@ struct StringifyMacro: ExpressionMacro {
 **SyntaxKit Approach (Clean and declarative):**
 ```swift
 import SyntaxKit
-import SwiftSyntaxMacros
+public import SwiftSyntaxMacros
 
 struct StringifyMacro: ExpressionMacro {
     static func expansion(

@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// An expression that performs optional chaining.
 internal struct OptionalChainingExp: CodeBlock {

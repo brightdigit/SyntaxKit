@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `throw` statement.
 public struct Throw: CodeBlock {

@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `do` statement for error handling.
 public struct Do: CodeBlock {

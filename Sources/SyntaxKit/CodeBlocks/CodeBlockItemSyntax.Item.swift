@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension CodeBlockItemSyntax.Item {
   /// Creates a `CodeBlockItemSyntax.Item` from a `SyntaxProtocol`.

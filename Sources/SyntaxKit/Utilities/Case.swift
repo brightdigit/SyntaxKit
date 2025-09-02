@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `case` in a `switch` statement with tuple-style patterns, or an enum case declaration.
 public struct Case: CodeBlock {
