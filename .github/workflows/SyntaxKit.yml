@@ -108,6 +108,7 @@ jobs:
           xcode: ${{ matrix.xcode }}
           deviceName: ${{ matrix.deviceName }}
           osVersion: ${{ matrix.osVersion }}
+          download-platforms: ${{ matrix.download-platforms }}
           
       # Common Coverage Steps
       - name: Process Coverage
