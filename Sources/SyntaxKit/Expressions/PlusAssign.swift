@@ -91,7 +91,7 @@ public struct PlusAssign: CodeBlock {
     self.init(target, .float(value))
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
     let assign = ExprSyntax(
       BinaryOperatorExprSyntax(

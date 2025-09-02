@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// A result builder for creating expressions that can be used as code blocks.
 @resultBuilder

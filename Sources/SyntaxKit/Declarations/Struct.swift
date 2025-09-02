@@ -32,7 +32,7 @@ public import SwiftSyntax
 /// A Swift `struct` declaration.
 public struct Struct: CodeBlock, Sendable {
   private let name: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var genericParameter: String?
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
@@ -42,7 +42,8 @@ public struct Struct: CodeBlock, Sendable {
   /// - Parameters:
   ///   - name: The name of the struct.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the struct.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
   {
     self.name = name
     self.members = try content()
@@ -52,7 +53,7 @@ public struct Struct: CodeBlock, Sendable {
   /// - Parameters:
   ///   - name: The name of the struct.
   ///   - members: An array of CodeBlock elements that form the body of the struct.
-  public init(_ name: String, members: [CodeBlock]) {
+  public init(_ name: String, members: [any CodeBlock]) {
     self.name = name
     self.members = members
   }
@@ -104,7 +105,7 @@ public struct Struct: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let structKeyword = TokenSyntax.keyword(.struct, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
 

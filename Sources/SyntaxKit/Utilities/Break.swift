@@ -39,7 +39,7 @@ public struct Break: CodeBlock {
     self.label = label
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let breakStmt = BreakStmtSyntax(
       breakKeyword: .keyword(.break, trailingTrivia: .newline)
     )

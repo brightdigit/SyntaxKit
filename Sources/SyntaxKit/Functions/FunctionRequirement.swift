@@ -76,7 +76,7 @@ public struct FunctionRequirement: CodeBlock {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let funcKeyword = TokenSyntax.keyword(.func, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
 

@@ -65,7 +65,7 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // Build parameters
     let paramList = parameters.map { param in
       TupleTypeElementSyntax(

@@ -32,7 +32,7 @@ public import SwiftSyntax
 /// A Swift `class` declaration.
 public struct Class: CodeBlock, Sendable {
   private let name: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var genericParameters: [String] = []
   private var isFinal: Bool = false
@@ -42,7 +42,8 @@ public struct Class: CodeBlock, Sendable {
   /// - Parameters:
   ///   - name: The name of the class.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the class.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
   {
     self.name = name
     self.members = try content()
@@ -85,7 +86,7 @@ public struct Class: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let classKeyword = TokenSyntax.keyword(.class, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
 

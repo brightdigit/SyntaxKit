@@ -31,25 +31,27 @@ public import SwiftSyntax
 
 /// A tuple expression, e.g. `(a, b, c)`.
 public struct Tuple: CodeBlock {
-  internal let elements: [CodeBlock]
+  internal let elements: [any CodeBlock]
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
 
   /// Creates a tuple.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the elements of the tuple.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
     self.elements = try content()
   }
 
   /// Creates a tuple pattern for switch cases.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
-  public static func pattern(_ elements: [PatternConvertible?]) -> PatternConvertible {
+  public static func pattern(_ elements: [(any PatternConvertible)?]) -> any PatternConvertible {
     TuplePattern(elements: elements)
   }
 
   /// Creates a tuple pattern that can be used as a CodeBlock.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
-  public static func patternCodeBlock(_ elements: [PatternConvertible?]) -> PatternCodeBlock {
+  public static func patternCodeBlock(_ elements: [(any PatternConvertible)?])
+    -> any PatternCodeBlock
+  {
     PatternConvertableCollection(elements: elements)
   }
 
@@ -77,7 +79,7 @@ public struct Tuple: CodeBlock {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
         let elementExpr: ExprSyntax

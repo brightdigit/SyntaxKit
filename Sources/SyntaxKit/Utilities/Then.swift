@@ -44,15 +44,15 @@ public import SwiftSyntax
 /// *terminal* `else` body.
 public struct Then: CodeBlock {
   /// The statements that make up the `else` body.
-  public let body: [CodeBlock]
+  public let body: [any CodeBlock]
 
   /// Creates a then block.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the then block.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
     self.body = try content()
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let statements = CodeBlockItemListSyntax(
       body.compactMap { element in
         if let decl = element.syntax.as(DeclSyntax.self) {

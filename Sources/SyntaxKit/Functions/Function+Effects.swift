@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 extension Function {
   /// Function effect specifiers (async/throws combinations)

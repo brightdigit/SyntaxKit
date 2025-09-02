@@ -43,7 +43,7 @@ extension If {
   /// Builds the body statements from an array of code blocks.
   /// - Parameter blocks: The code blocks to convert to statements.
   /// - Returns: The code block item list syntax.
-  public func buildBodyStatements(from blocks: [CodeBlock]) -> CodeBlockItemListSyntax {
+  public func buildBodyStatements(from blocks: [any CodeBlock]) -> CodeBlockItemListSyntax {
     CodeBlockItemListSyntax(
       blocks.compactMap { block in
         createCodeBlockItem(from: block)?.with(\.trailingTrivia, .newline)

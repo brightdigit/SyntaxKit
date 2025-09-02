@@ -31,16 +31,16 @@ public import SwiftSyntax
 
 /// A dictionary expression that can contain both Literal types and CodeBlock types.
 public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {
-  private let elements: [(DictionaryValue, DictionaryValue)]
+  private let elements: [(any DictionaryValue, any DictionaryValue)]
 
   /// Creates a dictionary expression with the given key-value pairs.
   /// - Parameter elements: The dictionary key-value pairs.
-  public init(_ elements: [(DictionaryValue, DictionaryValue)]) {
+  public init(_ elements: [(any DictionaryValue, any DictionaryValue)]) {
     self.elements = elements
   }
 
   /// The code block representation of this dictionary expression.
-  public var codeBlock: CodeBlock {
+  public var codeBlock: any CodeBlock {
     self
   }
 
@@ -68,7 +68,7 @@ public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {
     return "[\(elementStrings.joined(separator: ", "))]"
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     if elements.isEmpty {
       // Empty dictionary should generate [:]
       return DictionaryExprSyntax(

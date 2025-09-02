@@ -66,7 +66,7 @@ public struct Assignment: CodeBlock {
     self.init(target, .float(value))
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
     let right = valueExpr
     let assignmentExpr = ExprSyntax(

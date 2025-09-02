@@ -27,19 +27,19 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// An expression that performs optional chaining.
 internal struct OptionalChainingExp: CodeBlock {
-  internal let base: CodeBlock
+  internal let base: any CodeBlock
 
   /// Creates an optional chaining expression.
   /// - Parameter base: The base expression to make optional.
-  internal init(base: CodeBlock) {
+  internal init(base: any CodeBlock) {
     self.base = base
   }
 
-  internal var syntax: SyntaxProtocol {
+  internal var syntax: any SyntaxProtocol {
     // Convert base.syntax to ExprSyntax more safely
     let baseExpr: ExprSyntax
     if let expr = base.syntax.as(ExprSyntax.self) {

@@ -70,7 +70,7 @@ public struct Call: CodeBlock {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let function = TokenSyntax.identifier(functionName)
     let args = LabeledExprListSyntax(
       parameters.enumerated().compactMap { index, param in

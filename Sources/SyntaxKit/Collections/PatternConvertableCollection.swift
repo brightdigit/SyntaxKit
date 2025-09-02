@@ -27,13 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// A tuple pattern that can be used as a CodeBlock for for-in loops.
 internal struct PatternConvertableCollection: PatternCodeBlock {
-  private let elements: [PatternConvertible?]
+  private let elements: [(any PatternConvertible)?]
 
-  internal init(elements: [PatternConvertible?]) {
+  internal init(elements: [(any PatternConvertible)?]) {
     self.elements = elements
   }
 
@@ -70,7 +70,7 @@ internal struct PatternConvertableCollection: PatternCodeBlock {
     )
   }
 
-  internal var syntax: SyntaxProtocol {
+  internal var syntax: any SyntaxProtocol {
     // For CodeBlock conformance, we return the pattern syntax as an expression
     // This is a bit of a hack, but it allows us to use TuplePatternCodeBlock in For loops
     patternSyntax

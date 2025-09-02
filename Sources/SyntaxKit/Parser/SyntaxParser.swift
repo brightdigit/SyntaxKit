@@ -30,7 +30,7 @@
 import Foundation
 import SwiftOperators
 import SwiftParser
-public import SwiftSyntax
+import SwiftSyntax
 
 package enum SyntaxParser {
   package static func parse(code: String, options: [String] = []) throws -> SyntaxResponse {

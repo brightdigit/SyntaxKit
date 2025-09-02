@@ -33,7 +33,7 @@ public import SwiftSyntax
 public struct ComputedProperty: CodeBlock {
   private let name: String
   private let type: String
-  private let body: [CodeBlock]
+  private let body: [any CodeBlock]
   private var accessModifier: AccessModifier?
   private let explicitType: Bool
 
@@ -47,7 +47,7 @@ public struct ComputedProperty: CodeBlock {
     _ name: String,
     type: String,
     explicitType: Bool = true,
-    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
   ) rethrows {
     self.name = name
     self.type = type
@@ -64,7 +64,7 @@ public struct ComputedProperty: CodeBlock {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let accessor = AccessorBlockSyntax(
       leftBrace: TokenSyntax.leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       accessors: .getter(

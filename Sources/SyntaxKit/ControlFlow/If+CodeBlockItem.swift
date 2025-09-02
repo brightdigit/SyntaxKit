@@ -33,7 +33,7 @@ extension If {
   /// Creates a code block item from a CodeBlock.
   /// - Parameter block: The code block to convert.
   /// - Returns: The code block item syntax or nil if conversion is not possible.
-  public func createCodeBlockItem(from block: CodeBlock) -> CodeBlockItemSyntax? {
+  public func createCodeBlockItem(from block: any CodeBlock) -> CodeBlockItemSyntax? {
     if let enumCase = block as? EnumCase {
       // Handle EnumCase specially - use expression syntax for enum cases in expressions
       return CodeBlockItemSyntax(item: .expr(enumCase.exprSyntax))

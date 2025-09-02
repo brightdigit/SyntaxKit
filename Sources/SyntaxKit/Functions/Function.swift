@@ -27,14 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// A Swift `func` declaration.
 public struct Function: CodeBlock {
   internal let name: String
   internal let parameters: [Parameter]
   internal let returnType: String?
-  internal let body: [CodeBlock]
+  internal let body: [any CodeBlock]
   internal var isStatic: Bool = false
   internal var isMutating: Bool = false
   internal var effect: Effect = .none
@@ -48,7 +48,7 @@ public struct Function: CodeBlock {
   public init(
     _ name: String,
     returns returnType: String? = nil,
-    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
   ) rethrows {
     self.name = name
     self.parameters = []
@@ -66,7 +66,7 @@ public struct Function: CodeBlock {
     _ name: String,
     returns returnType: String? = nil,
     @ParameterBuilderResult _ params: () -> [Parameter],
-    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
   ) rethrows {
     self.name = name
     self.parameters = params()
@@ -82,7 +82,7 @@ public struct Function: CodeBlock {
   public init(
     _ name: String,
     @ParameterBuilderResult _ params: () -> [Parameter],
-    @CodeBlockBuilderResult _ body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult _ body: () throws -> [any CodeBlock]
   ) rethrows {
     self.name = name
     self.parameters = params()

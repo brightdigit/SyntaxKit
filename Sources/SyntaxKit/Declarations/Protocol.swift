@@ -32,7 +32,7 @@ public import SwiftSyntax
 /// A Swift `protocol` declaration.
 public struct Protocol: CodeBlock, Sendable {
   private let name: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
@@ -40,7 +40,8 @@ public struct Protocol: CodeBlock, Sendable {
   /// - Parameters:
   ///   - name: The name of the protocol.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the protocol.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
   {
     self.name = name
     self.members = try content()
@@ -66,7 +67,7 @@ public struct Protocol: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let protocolKeyword = TokenSyntax.keyword(.protocol, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
 

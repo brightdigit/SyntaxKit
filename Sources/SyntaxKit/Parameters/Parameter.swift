@@ -41,7 +41,7 @@ public struct Parameter: CodeBlock {
   /// If the label is the underscore character "_", the parameter is treated as unnamed.
   internal let label: String?
 
-  internal let type: TypeRepresentable
+  internal let type: any TypeRepresentable
   internal let defaultValue: String?
 
   /// Convenience flag – true when the parameter uses the underscore label.
@@ -69,7 +69,7 @@ public struct Parameter: CodeBlock {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let callLabel = label ?? name
 
     if let defaultValue = defaultValue {
@@ -90,7 +90,7 @@ public struct Parameter: CodeBlock {
   }
 
   /// Creates a single-name parameter (same label and internal name).
-  public init(name: String, type: TypeRepresentable, defaultValue: String? = nil) {
+  public init(name: String, type: any TypeRepresentable, defaultValue: String? = nil) {
     self.name = name
     self.label = nil
     self.type = type
@@ -103,7 +103,7 @@ public struct Parameter: CodeBlock {
   public init(
     _ internalName: String,
     labeled externalLabel: String,
-    type: TypeRepresentable,
+    type: any TypeRepresentable,
     defaultValue: String? = nil
   ) {
     self.name = internalName
@@ -113,8 +113,9 @@ public struct Parameter: CodeBlock {
   }
 
   /// Creates an unlabeled (anonymous) parameter using the underscore label.
-  public init(unlabeled internalName: String, type: TypeRepresentable, defaultValue: String? = nil)
-  {
+  public init(
+    unlabeled internalName: String, type: any TypeRepresentable, defaultValue: String? = nil
+  ) {
     self.name = internalName
     self.label = "_"
     self.type = type
@@ -124,7 +125,9 @@ public struct Parameter: CodeBlock {
   /// Deprecated: retains source compatibility with earlier API that used an `isUnnamed` flag.
   /// Prefer `Parameter(unlabeled:type:)` or the new labelled initialisers.
   @available(*, deprecated, message: "Use Parameter(unlabeled:type:) or Parameter(_:labeled:type:)")
-  public init(name: String, type: TypeRepresentable, defaultValue: String? = nil, isUnnamed: Bool) {
+  public init(
+    name: String, type: any TypeRepresentable, defaultValue: String? = nil, isUnnamed: Bool
+  ) {
     if isUnnamed {
       self.init(unlabeled: name, type: type, defaultValue: defaultValue)
     } else {

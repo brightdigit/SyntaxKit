@@ -32,13 +32,13 @@ public import SwiftSyntax
 
 /// A Swift `throw` statement.
 public struct Throw: CodeBlock {
-  private let expr: CodeBlock
+  private let expr: any CodeBlock
 
-  public init(_ expr: CodeBlock) {
+  public init(_ expr: any CodeBlock) {
     self.expr = expr
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let expression: ExprSyntax
     if let enumCase = expr as? EnumCase {
       expression = enumCase.asExpressionSyntax

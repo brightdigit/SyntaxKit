@@ -28,7 +28,7 @@
 //
 
 import Foundation
-public import SwiftSyntax
+import SwiftSyntax
 
 extension TokenVisitor {
   internal func processToken(_ token: TokenSyntax) {

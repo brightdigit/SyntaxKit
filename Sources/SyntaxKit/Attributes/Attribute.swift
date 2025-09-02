@@ -63,7 +63,7 @@ public struct Attribute: CodeBlock {
     self.arguments = [argument]
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     var leftParen: TokenSyntax?
     var rightParen: TokenSyntax?
     var argumentsSyntax: AttributeSyntax.Arguments?

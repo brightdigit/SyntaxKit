@@ -32,16 +32,16 @@ public import SwiftSyntax
 
 /// A Swift `catch` clause for error handling.
 public struct Catch: CodeBlock {
-  private let pattern: CodeBlock?
-  private let body: [CodeBlock]
+  private let pattern: (any CodeBlock)?
+  private let body: [any CodeBlock]
 
   /// Creates a `catch` clause with a pattern.
   /// - Parameters:
   ///   - pattern: The pattern to match for this catch clause.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the catch clause.
   public init(
-    _ pattern: CodeBlock,
-    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
+    _ pattern: any CodeBlock,
+    @CodeBlockBuilderResult _ content: () -> [any CodeBlock]
   ) {
     self.pattern = pattern
     self.body = content()
@@ -49,7 +49,7 @@ public struct Catch: CodeBlock {
 
   /// Creates a `catch` clause without a pattern (catches all errors).
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the catch clause.
-  public init(@CodeBlockBuilderResult _ content: () -> [CodeBlock]) {
+  public init(@CodeBlockBuilderResult _ content: () -> [any CodeBlock]) {
     self.pattern = nil
     self.body = content()
   }
@@ -60,14 +60,14 @@ public struct Catch: CodeBlock {
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the catch clause.
   public static func `catch`(
     _ enumCase: EnumCase,
-    @CodeBlockBuilderResult _ content: () -> [CodeBlock]
+    @CodeBlockBuilderResult _ content: () -> [any CodeBlock]
   ) -> Catch {
     Catch(enumCase, content)
   }
 
   /// Creates a catch clause.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the catch clause.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
     self.pattern = nil
     self.body = try content()
   }
@@ -200,7 +200,7 @@ public struct Catch: CodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     catchClauseSyntax
   }
 }

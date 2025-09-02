@@ -34,8 +34,8 @@ public import SwiftSyntax
 public struct Variable: CodeBlock {
   private let kind: VariableKind
   private let name: String
-  private let type: TypeRepresentable
-  private let defaultValue: CodeBlock?
+  private let type: any TypeRepresentable
+  private let defaultValue: (any CodeBlock)?
   internal var isStatic: Bool = false
   internal var isAsync: Bool = false
   private var attributes: [AttributeInfo] = []
@@ -52,8 +52,8 @@ public struct Variable: CodeBlock {
   internal init(
     kind: VariableKind,
     name: String,
-    type: TypeRepresentable? = nil,
-    defaultValue: CodeBlock? = nil,
+    type: (any TypeRepresentable)? = nil,
+    defaultValue: (any CodeBlock)? = nil,
     explicitType: Bool = false
   ) {
     self.kind = kind
@@ -111,7 +111,7 @@ public struct Variable: CodeBlock {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let bindingKeyword = buildBindingKeyword()
     let identifier = buildIdentifier()
     let typeAnnotation = buildTypeAnnotation()
@@ -170,8 +170,8 @@ public struct Variable: CodeBlock {
     )
   }
 
-  private func buildExpressionFromValue(_ value: CodeBlock) -> ExprSyntax {
-    if let exprBlock = value as? ExprCodeBlock {
+  private func buildExpressionFromValue(_ value: any CodeBlock) -> ExprSyntax {
+    if let exprBlock = value as? any ExprCodeBlock {
       return exprBlock.exprSyntax
     } else if let exprSyntax = value.syntax.as(ExprSyntax.self) {
       return exprSyntax

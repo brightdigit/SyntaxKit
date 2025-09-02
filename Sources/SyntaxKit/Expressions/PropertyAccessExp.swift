@@ -27,18 +27,18 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// An expression that accesses a property.
 internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible {
-  internal let base: CodeBlock
+  internal let base: any CodeBlock
   internal let propertyName: String
 
   /// Creates a property access expression.
   /// - Parameters:
   ///  - base: The base expression.
   ///  - propertyName: The name of the property to access.
-  internal init(base: CodeBlock, propertyName: String) {
+  internal init(base: any CodeBlock, propertyName: String) {
     self.base = base
     self.propertyName = propertyName
   }
@@ -52,13 +52,13 @@ internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible 
   /// Accesses a property on the current property access expression (chaining).
   /// - Parameter propertyName: The name of the next property to access.
   /// - Returns: A property accessible code block representing the chained property access.
-  internal func property(_ propertyName: String) -> PropertyAccessible {
+  internal func property(_ propertyName: String) -> any PropertyAccessible {
     PropertyAccessExp(base: self, propertyName: propertyName)
   }
 
   /// Negates the property access expression.
   /// - Returns: A negated property access expression.
-  internal func not() -> CodeBlock {
+  internal func not() -> any CodeBlock {
     NegatedPropertyAccessExp(base: self)
   }
 
@@ -78,7 +78,7 @@ internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible 
     )
   }
 
-  internal var syntax: SyntaxProtocol {
+  internal var syntax: any SyntaxProtocol {
     exprSyntax
   }
 }

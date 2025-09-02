@@ -31,8 +31,8 @@ public import SwiftSyntax
 
 /// A `case` in a `switch` statement with tuple-style patterns, or an enum case declaration.
 public struct Case: CodeBlock {
-  private let patterns: [PatternConvertible]
-  private let body: [CodeBlock]
+  private let patterns: [any PatternConvertible]
+  private let body: [any CodeBlock]
   private let isEnumCase: Bool
   private let enumCaseName: String?
   private var associatedValue: (name: String, type: String)?
@@ -42,7 +42,8 @@ public struct Case: CodeBlock {
   ///   - patterns: The patterns for the case.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
   public init(
-    _ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]
+    _ patterns: any PatternConvertible...,
+    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
   ) rethrows {
     self.patterns = patterns
     self.body = try content()
@@ -107,7 +108,7 @@ public struct Case: CodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     if isEnumCase {
       // Handle enum case declaration
       let caseKeyword = TokenSyntax.keyword(.case, trailingTrivia: .space)

@@ -72,6 +72,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "iPhone 16 Pro"
             osVersion: "26.0"
+            download-platforms: true
   
           # watchOS Build Matrix
           - type: watchos
@@ -86,6 +87,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple TV"
             osVersion: "26.0"
+            download-platforms: true
 
           # visionOS Build Matrix              
           - type: visionos
@@ -93,6 +95,7 @@ jobs:
             xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple Vision Pro"
             osVersion: "26.0"
+            download-platforms: true
   
     steps:
       - uses: actions/checkout@v4

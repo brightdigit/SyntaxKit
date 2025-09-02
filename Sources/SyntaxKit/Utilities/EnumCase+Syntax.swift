@@ -33,7 +33,7 @@ extension EnumCase {
   /// Returns the appropriate syntax based on context.
   /// When used in expressions (throw, return, if bodies), returns expression syntax.
   /// When used in declarations (enum cases), returns declaration syntax.
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // For enum case declarations, return EnumCaseDeclSyntax
     let caseKeyword = TokenSyntax.keyword(.case, trailingTrivia: .space)
 

@@ -40,7 +40,7 @@ internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
   }
 
   /// The code block representation of this dictionary literal.
-  internal var codeBlock: CodeBlock {
+  internal var codeBlock: any CodeBlock {
     Literal.dictionary(elements)
   }
 

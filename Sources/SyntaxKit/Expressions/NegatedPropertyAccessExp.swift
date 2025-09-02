@@ -27,15 +27,15 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// An expression that negates property access.
 internal struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
-  internal let base: CodeBlock
+  internal let base: any CodeBlock
 
   /// Creates a negated property access expression.
   /// - Parameter base: The base property access expression.
-  internal init(base: CodeBlock) {
+  internal init(base: any CodeBlock) {
     self.base = base
   }
 
@@ -62,7 +62,7 @@ internal struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
     )
   }
 
-  internal var syntax: SyntaxProtocol {
+  internal var syntax: any SyntaxProtocol {
     exprSyntax
   }
 }

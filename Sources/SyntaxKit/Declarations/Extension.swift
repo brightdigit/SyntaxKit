@@ -32,7 +32,7 @@ public import SwiftSyntax
 /// A Swift `extension` declaration.
 public struct Extension: CodeBlock, Sendable {
   private let extendedType: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
@@ -40,7 +40,9 @@ public struct Extension: CodeBlock, Sendable {
   /// - Parameters:
   ///   - extendedType: The type being extended.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the extension.
-  public init(_ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
+  public init(
+    _ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
+  )
     rethrows
   {
     self.extendedType = extendedType
@@ -67,7 +69,7 @@ public struct Extension: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let extensionKeyword = TokenSyntax.keyword(.extension, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(extendedType, trailingTrivia: .space)
 

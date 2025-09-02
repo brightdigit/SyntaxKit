@@ -65,7 +65,7 @@ extension Variable {
     _ kind: VariableKind,
     name: String,
     type: String,
-    equals defaultValue: CodeBlock? = nil,
+    equals defaultValue: (any CodeBlock)? = nil,
     explicitType: Bool? = nil
   ) {
     let finalExplicitType = explicitType ?? (defaultValue == nil)
@@ -180,8 +180,8 @@ extension Variable {
   public init(
     _ kind: VariableKind,
     name: String,
-    type: TypeRepresentable,
-    equals defaultValue: CodeBlock? = nil,
+    type: any TypeRepresentable,
+    equals defaultValue: (any CodeBlock)? = nil,
     explicitType: Bool? = nil
   ) {
     let finalExplicitType = explicitType ?? (defaultValue == nil)

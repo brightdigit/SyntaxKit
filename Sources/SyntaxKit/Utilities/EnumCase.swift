@@ -98,8 +98,8 @@ public struct EnumCase: CodeBlock {
       return ExprSyntax(
         MemberAccessExprSyntax(
           base: nil as ExprSyntax?,
-          dot: .periodToken(),
-          name: .identifier(name)
+          period: .periodToken(),
+          declName: DeclReferenceExprSyntax(baseName: .identifier(name))
         )
       )
     }
@@ -116,9 +116,9 @@ public struct EnumCase: CodeBlock {
     if hasAssociated {
       let tuple = TupleExprSyntax(
         leftParen: .leftParenToken(),
-        elements: TupleExprElementListSyntax(
+        elements: LabeledExprListSyntax(
           associatedValues.map { associated in
-            TupleExprElementSyntax(
+            LabeledExprSyntax(
               label: nil,
               colon: nil,
               expression: ExprSyntax(

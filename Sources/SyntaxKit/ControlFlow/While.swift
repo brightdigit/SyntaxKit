@@ -37,7 +37,7 @@ public struct While: CodeBlock, Sendable {
   }
 
   private let condition: any ExprCodeBlock
-  private let body: [CodeBlock]
+  private let body: [any CodeBlock]
   private let kind: Kind
 
   /// Creates a `while` loop statement with an expression condition.
@@ -48,7 +48,7 @@ public struct While: CodeBlock, Sendable {
   public init(
     _ condition: any ExprCodeBlock,
     kind: Kind = .while,
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
   ) rethrows {
     self.condition = condition
     self.body = try then()
@@ -63,7 +63,7 @@ public struct While: CodeBlock, Sendable {
   public init(
     kind: Kind = .while,
     @ExprCodeBlockBuilder _ condition: () throws -> any ExprCodeBlock,
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
   ) rethrows {
     self.condition = try condition()
     self.body = try then()
@@ -81,8 +81,8 @@ public struct While: CodeBlock, Sendable {
   )
   public init(
     kind: Kind = .while,
-    @CodeBlockBuilderResult _ condition: () throws -> [CodeBlock],
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult _ condition: () throws -> [any CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
   ) rethrows {
     let conditionBlocks = try condition()
     let firstCondition = conditionBlocks.first as? any ExprCodeBlock ?? Literal.boolean(true)
@@ -103,14 +103,14 @@ public struct While: CodeBlock, Sendable {
   public init(
     _ condition: String,
     kind: Kind = .while,
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
   ) rethrows {
     self.condition = VariableExp(condition)
     self.body = try then()
     self.kind = kind
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let conditionExpr = condition.exprSyntax
 
     let bodyBlock = CodeBlockSyntax(

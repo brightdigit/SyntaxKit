@@ -27,13 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+import SwiftSyntax
 
 /// A tuple pattern for switch cases.
 internal struct TuplePattern: PatternConvertible {
-  private let elements: [PatternConvertible?]
+  private let elements: [(any PatternConvertible)?]
 
-  internal init(elements: [PatternConvertible?]) {
+  internal init(elements: [(any PatternConvertible)?]) {
     self.elements = elements
   }
 

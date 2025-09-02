@@ -51,7 +51,7 @@ extension CodeBlock {
   /// ```
   /// - Parameter content: A ``CommentBuilderResult`` that provides the comment lines.
   /// - Returns: A new ``CodeBlock`` with the comments attached.
-  public func comment(@CommentBuilderResult _ content: () -> [Line]) -> CodeBlock {
+  public func comment(@CommentBuilderResult _ content: () -> [Line]) -> any CodeBlock {
     CommentedCodeBlock(base: self, lines: content())
   }
 }

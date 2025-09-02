@@ -51,7 +51,7 @@ public struct SwitchLet: PatternConvertible, CodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // For CodeBlock conformance, return the pattern syntax
     patternSyntax
   }

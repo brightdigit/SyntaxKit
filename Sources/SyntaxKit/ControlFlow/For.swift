@@ -32,9 +32,9 @@ public import SwiftSyntax
 /// A `for-in` loop statement.
 public struct For: CodeBlock, Sendable {
   private let pattern: any CodeBlock & PatternConvertible
-  private let sequence: CodeBlock
-  private let whereClause: CodeBlock?
-  private let body: [CodeBlock]
+  private let sequence: any CodeBlock
+  private let whereClause: (any CodeBlock)?
+  private let body: [any CodeBlock]
 
   /// Creates a `for-in` loop statement.
   /// - Parameters:
@@ -44,9 +44,9 @@ public struct For: CodeBlock, Sendable {
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
     _ pattern: any CodeBlock & PatternConvertible,
-    in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () throws -> [CodeBlock],
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+    in sequence: any CodeBlock,
+    @CodeBlockBuilderResult where whereClause: () throws -> [any CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
   ) rethrows {
     self.pattern = pattern
     self.sequence = sequence
@@ -62,18 +62,18 @@ public struct For: CodeBlock, Sendable {
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
     _ pattern: any CodeBlock & PatternConvertible,
-    in sequence: CodeBlock,
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
+    in sequence: any CodeBlock,
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       pattern,
       in: sequence,
-      where: [CodeBlock].init,
+      where: [any CodeBlock].init,
       then: then
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // Build the pattern using the PatternConvertible protocol
     let patternSyntax = pattern.patternSyntax
 

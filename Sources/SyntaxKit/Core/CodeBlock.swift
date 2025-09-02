@@ -33,7 +33,7 @@ public import SwiftSyntax
 /// A protocol for types that can be represented as a SwiftSyntax node.
 public protocol CodeBlock: PatternConvertible, Sendable {
   /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+  var syntax: any SyntaxProtocol { get }
 
   /// Calls a method on this code block with the given name and parameters.
   /// - Parameters:
@@ -41,7 +41,7 @@ public protocol CodeBlock: PatternConvertible, Sendable {
   ///   - parameters: A closure that returns the parameters for the method call.
   /// - Returns: A code block representing the method call.
   func call(_ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp])
-    -> CodeBlock
+    -> any CodeBlock
 }
 
 extension CodeBlock {
@@ -52,7 +52,7 @@ extension CodeBlock {
   /// - Returns: A code block representing the method call.
   public func call(
     _ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp] = { [] }
-  ) -> CodeBlock {
+  ) -> any CodeBlock {
     FunctionCallExp(base: self, methodName: name, parameters: parameters())
   }
 

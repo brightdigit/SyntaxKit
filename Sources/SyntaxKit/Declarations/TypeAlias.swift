@@ -55,7 +55,7 @@ public struct TypeAlias: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // `typealias` keyword token
     let keyword = TokenSyntax.keyword(.typealias, trailingTrivia: .space)
 

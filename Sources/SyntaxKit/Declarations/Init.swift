@@ -62,7 +62,7 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
   }
 
   /// The code block representation of this initializer expression.
-  public var codeBlock: CodeBlock {
+  public var codeBlock: any CodeBlock {
     self
   }
 
@@ -126,14 +126,14 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     exprSyntax
   }
 
   /// Calls a method on this initializer.
   /// - Parameter methodName: The name of the method to call.
   /// - Returns: A code block that represents the method call.
-  public func call(_ methodName: String) -> CodeBlock {
+  public func call(_ methodName: String) -> any CodeBlock {
     FunctionCallExp(base: self, methodName: methodName)
   }
 
@@ -143,7 +143,7 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
   ///  - params: A ``ParameterExpBuilderResult`` that provides the parameters for the method call.
   /// - Returns: A code block that represents the method call.
   public func call(_ methodName: String, @ParameterExpBuilderResult _ params: () -> [ParameterExp])
-    -> CodeBlock
+    -> any CodeBlock
   {
     FunctionCallExp(base: self, methodName: methodName, parameters: params())
   }

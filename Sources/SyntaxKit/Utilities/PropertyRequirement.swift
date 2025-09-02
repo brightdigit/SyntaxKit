@@ -52,7 +52,7 @@ public struct PropertyRequirement: CodeBlock {
     self.access = access
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let varKeyword = TokenSyntax.keyword(.var, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
 

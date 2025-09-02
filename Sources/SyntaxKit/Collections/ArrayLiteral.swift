@@ -40,7 +40,7 @@ internal struct ArrayLiteral: LiteralValue, CodeBlockable {
   }
 
   /// The code block representation of this array literal.
-  internal var codeBlock: CodeBlock {
+  internal var codeBlock: any CodeBlock {
     Literal.array(elements)
   }
 

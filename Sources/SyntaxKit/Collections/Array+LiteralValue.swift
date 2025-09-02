@@ -34,7 +34,7 @@ extension Array: LiteralValue, CodeBlockable where Element == String {
   public var typeName: String { "[String]" }
 
   /// The code block representation of this array of strings.
-  public var codeBlock: CodeBlock {
+  public var codeBlock: any CodeBlock {
     Literal.array(self.map { .string($0) })
   }
 

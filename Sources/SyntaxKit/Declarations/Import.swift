@@ -61,7 +61,7 @@ public struct Import: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // Build access modifier
     var modifiers: DeclModifierListSyntax = []
     if let access = accessModifier {

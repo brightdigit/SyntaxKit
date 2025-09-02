@@ -39,7 +39,7 @@ public struct Continue: CodeBlock {
     self.label = label
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let continueStmt = ContinueStmtSyntax(
       continueKeyword: .keyword(.continue, trailingTrivia: .newline)
     )

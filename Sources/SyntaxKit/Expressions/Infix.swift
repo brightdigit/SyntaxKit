@@ -68,7 +68,7 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
   /// Each operand must conform to ExprCodeBlock.
   @available(*, deprecated, message: "Use separate lhs and rhs parameters for compile-time safety")
-  public init(_ operation: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
+  public init(_ operation: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
     throws
   {
     self.operation = operation
@@ -107,7 +107,7 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     exprSyntax
   }
 }

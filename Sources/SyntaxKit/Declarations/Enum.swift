@@ -32,7 +32,7 @@ public import SwiftSyntax
 /// A Swift `enum` declaration.
 public struct Enum: CodeBlock, Sendable {
   private let name: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
@@ -40,7 +40,8 @@ public struct Enum: CodeBlock, Sendable {
   /// - Parameters:
   ///   - name: The name of the enum.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the enum.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
   {
     self.name = name
     self.members = try content()
@@ -66,7 +67,7 @@ public struct Enum: CodeBlock, Sendable {
     return copy
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let enumKeyword = TokenSyntax.keyword(.enum, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
 

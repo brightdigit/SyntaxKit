@@ -32,13 +32,13 @@ public import SwiftSyntax
 /// A parameter for a function call.
 public struct ParameterExp: CodeBlock {
   internal let name: String
-  internal let value: CodeBlock
+  internal let value: any CodeBlock
 
   /// Creates a parameter for a function call.
   /// - Parameters:
   ///   - name: The name of the parameter.
   ///   - value: The value of the parameter.
-  public init(name: String, value: CodeBlock) {
+  public init(name: String, value: any CodeBlock) {
     self.name = name
     self.value = value
   }
@@ -57,7 +57,7 @@ public struct ParameterExp: CodeBlock {
   }
 
   /// Convenience initializer for unlabeled parameter with a CodeBlock value.
-  public init(unlabeled value: CodeBlock) {
+  public init(unlabeled value: any CodeBlock) {
     self.name = ""
     self.value = value
   }
@@ -72,9 +72,9 @@ public struct ParameterExp: CodeBlock {
     self.value = VariableExp(value)
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     if name.isEmpty {
-      if let exprBlock = value as? ExprCodeBlock {
+      if let exprBlock = value as? any ExprCodeBlock {
         return exprBlock.exprSyntax
       } else {
         return value.syntax.as(ExprSyntax.self)
@@ -82,7 +82,7 @@ public struct ParameterExp: CodeBlock {
       }
     } else {
       let expression: ExprSyntax
-      if let exprBlock = value as? ExprCodeBlock {
+      if let exprBlock = value as? any ExprCodeBlock {
         expression = exprBlock.exprSyntax
       } else {
         expression =
