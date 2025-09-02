@@ -33,7 +33,7 @@ struct DocumentationExampleTests {
   @Test("Quick Start Guide examples work correctly")
   func validateQuickStartGuideExamples() async throws {
     let testHarness = DocumentationTestHarness()
-    let quickStartFile = "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md"
+    let quickStartFile = try testHarness.resolveRelativePath("Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md")
     let results = try await testHarness.validateExamplesInFile(quickStartFile)
 
     // Specific validation for Quick Start examples
@@ -45,8 +45,9 @@ struct DocumentationExampleTests {
   @Test("Creating Macros tutorial examples work correctly")
   func validateMacroTutorialExamples() async throws {
     let testHarness = DocumentationTestHarness()
-    let macroTutorialFile =
+    let macroTutorialFile = try testHarness.resolveRelativePath(
       "Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md"
+    )
     let results = try await testHarness.validateExamplesInFile(macroTutorialFile)
 
     // Macro examples should compile (though they may not execute without full macro setup)
@@ -58,7 +59,7 @@ struct DocumentationExampleTests {
   @Test("Enum Generator examples work correctly")
   func validateEnumGeneratorExamples() async throws {
     let testHarness = DocumentationTestHarness()
-    let enumExampleFile = "Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md"
+    let enumExampleFile = try testHarness.resolveRelativePath("Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md")
     let results = try await testHarness.validateExamplesInFile(enumExampleFile)
 
     // Check that enum generation examples actually work
@@ -100,7 +101,10 @@ class DocumentationTestHarness {
         lineNumber: codeBlock.lineNumber,
         blockType: codeBlock.blockType
       )
-      results.append(result)
+      
+      try results.append(
+        #require(result)
+      )
     }
 
     return results
@@ -183,16 +187,19 @@ class DocumentationTestHarness {
     blockIndex: Int,
     lineNumber: Int,
     blockType: CodeBlockType
-  ) async -> ValidationResult {
+  ) async -> ValidationResult? {
     switch blockType {
     case .example:
       // Test compilation and basic execution
       return await validateSwiftExample(code, filePath: filePath, lineNumber: lineNumber)
 
     case .packageManifest:
+#if canImport(Foundation) && (os(macOS) || os(Linux))
       // Package.swift files need special handling
       return await validatePackageManifest(code, filePath: filePath, lineNumber: lineNumber)
-
+      #else
+      return nil
+      #endif
     case .shellCommand:
       // Skip shell commands for now
       return ValidationResult(
@@ -260,6 +267,7 @@ class DocumentationTestHarness {
     }
   }
 
+#if canImport(Foundation) && (os(macOS) || os(Linux))
   /// Validates a Package.swift manifest
   private func validatePackageManifest(
     _ code: String,
@@ -310,7 +318,7 @@ class DocumentationTestHarness {
       )
     }
   }
-
+  #endif
   /// Creates a temporary Swift file with proper imports and structure
   private func createTemporarySwiftFile(with code: String) throws -> URL {
     let tempDir = FileManager.default.temporaryDirectory
@@ -398,6 +406,7 @@ class DocumentationTestHarness {
     code.contains("print(") || code.contains("main()") || code.contains("@main")
   }
 
+#if canImport(Foundation) && (os(macOS) || os(Linux))
   /// Gets the SDK path for compilation
   private func getSDKPath() throws -> String {
     let process = Process()
@@ -420,10 +429,16 @@ class DocumentationTestHarness {
 
     return path
   }
+  #endif
 
   /// Finds all documentation files containing code examples
   private func findDocumentationFiles() throws -> [String] {
-    let projectRoot = URL(fileURLWithPath: "/Users/leo/Documents/Projects/SyntaxKit")
+    let currentFileURL = URL(fileURLWithPath: #file)
+    let projectRoot = currentFileURL
+      .deletingLastPathComponent() // Tests/SyntaxKitTests/Integration
+      .deletingLastPathComponent() // Tests/SyntaxKitTests
+      .deletingLastPathComponent() // Tests
+      .deletingLastPathComponent() // Project root
     let docPaths = [
       "Sources/SyntaxKit/Documentation.docc",
       "README.md",
@@ -466,14 +481,35 @@ class DocumentationTestHarness {
     return markdownFiles
   }
 
+  /// Resolves a relative file path to absolute path (public for use by test methods)
+  func resolveRelativePath(_ filePath: String) throws -> String {
+    return try resolveFilePath(filePath)
+  }
+
   /// Resolves a relative file path to absolute path
   private func resolveFilePath(_ filePath: String) throws -> String {
-    let projectRoot = "/Users/leo/Documents/Projects/SyntaxKit"
+    let currentFileURL: URL
+    
+    // Handle #file which might be relative or absolute
+    if #filePath.hasPrefix("/") {
+      // #file is already absolute
+      currentFileURL = URL(fileURLWithPath: #filePath)
+    } else {
+      // #file is relative, resolve it from current working directory
+      currentFileURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        .appendingPathComponent(#filePath)
+    }
+    
+    let projectRoot = currentFileURL
+      .deletingLastPathComponent() // Tests/SyntaxKitTests/Integration
+      .deletingLastPathComponent() // Tests/SyntaxKitTests
+      .deletingLastPathComponent() // Tests
+      .deletingLastPathComponent() // Project root
 
     if filePath.hasPrefix("/") {
       return filePath
     } else {
-      return "\(projectRoot)/\(filePath)"
+      return projectRoot.appendingPathComponent(filePath).path
     }
   }
 }
@@ -488,7 +524,9 @@ struct CodeBlock {
 
 enum CodeBlockType {
   case example
+
   case packageManifest
+
   case shellCommand
 }
 
