@@ -27,6 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
 import Testing
 
 @testable import SyntaxKit
