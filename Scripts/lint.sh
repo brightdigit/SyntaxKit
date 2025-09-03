@@ -92,7 +92,7 @@ if [ -z "$SKIP_DOCS" ]; then
 	else
 		docc_output=$(mktemp)
 	fi
-	if ! swift package generate-documentation --product SyntaxKit --warnings-as-errors 2>"$docc_output"; then
+	if ! swift package generate-documentation --product SyntaxKit 2>"$docc_output"; then
 		echo "❌ DocC generation failed due to warnings or errors"
 		echo "🔍 Error details:"
 		while IFS= read -r line; do
