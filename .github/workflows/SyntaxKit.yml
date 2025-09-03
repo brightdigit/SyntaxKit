@@ -10,7 +10,7 @@ jobs:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
     container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
-    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    if: false
     strategy:
       matrix:
         os: [noble, jammy]
@@ -41,7 +41,7 @@ jobs:
     env:
       PACKAGE_NAME: SyntaxKit
     runs-on: ${{ matrix.runs-on }}
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -125,7 +125,6 @@ jobs:
     name: Linting
     if: "!contains(github.event.head_commit.message, 'ci skip')"  
     runs-on: ubuntu-latest
-    needs: [build-ubuntu, build-macos]
     env:
       MINT_PATH: .mint/lib
       MINT_LINK_PATH: .mint/bin

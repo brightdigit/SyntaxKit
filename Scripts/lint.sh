@@ -21,7 +21,7 @@ echo "LintMode: $LINT_MODE"
 
 # More portable way to get script directory
 if [ -z "$SRCROOT" ]; then
-    SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     PACKAGE_DIR="${SCRIPT_DIR}/.."
 else
     PACKAGE_DIR="${SRCROOT}"
@@ -86,7 +86,7 @@ if [ -z "$SKIP_DOCS" ]; then
 	
 	# DocC generation with warnings as errors
 	echo "Generating DocC documentation (warnings as errors)..."
-	local docc_output=$(mktemp)
+	docc_output=$(mktemp)
 	if ! swift package generate-documentation --warnings-as-errors 2>"$docc_output"; then
 		echo "❌ DocC generation failed due to warnings or errors"
 		echo "🔍 Error details:"
