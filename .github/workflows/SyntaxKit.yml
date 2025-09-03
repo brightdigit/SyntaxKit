@@ -150,3 +150,12 @@ jobs:
           swift run mint install yonaskolb/mint
       - name: Lint
         run: ./Scripts/lint.sh
+
+  docs:
+    name: Documentation Validation
+    if: "!contains(github.event.head_commit.message, 'ci skip')"  
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4    
+      - name: Validate Documentation
+        run: ./Scripts/validate-docs.sh

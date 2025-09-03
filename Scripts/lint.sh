@@ -80,51 +80,6 @@ if [ -z "$CI" ]; then
     run_command $MINT_RUN periphery scan $PERIPHERY_OPTIONS --disable-update-check
 fi
 
-# Documentation quality checks
-if [ -z "$SKIP_DOCS" ]; then
-	echo -e "\n🔍 Running comprehensive documentation quality checks..."
-	
-	# DocC generation with warnings as errors using Swift package plugin
-	echo "Generating DocC documentation using Swift package plugin..."
-	if [ -n "$RUNNER_TEMP" ]; then
-		docc_output="$RUNNER_TEMP/docc_output.log"
-	else
-		docc_output=$(mktemp)
-	fi
-	if ! swift package generate-documentation --product SyntaxKit --warnings-as-errors 2>"$docc_output"; then
-		echo "❌ DocC generation failed due to warnings or errors"
-		echo "🔍 Error details:"
-		while IFS= read -r line; do
-			echo "   $line"
-		done < "$docc_output"
-		echo ""
-		echo "💡 Common fixes:"
-		echo "   • Add missing documentation comments (///) to public APIs"
-		echo "   • Fix broken symbol references in documentation"
-		echo "   • Resolve conflicting or ambiguous documentation links"
-		echo "   • Check for invalid markdown syntax in .docc files"
-		rm "$docc_output"
-		ERRORS=$((ERRORS + 1))
-	else
-		echo "✅ DocC generation successful"
-		rm "$docc_output"
-	fi
-	
-	# Full documentation validation suite
-	echo "Running documentation validation suite..."
-	if ! $PACKAGE_DIR/Scripts/validate-docs.sh; then
-		ERRORS=$((ERRORS + 1))
-		echo ""
-		echo -e "💡 \033[1;33mDocumentation Quality Help:\033[0m"
-		echo "   Run individual checks for faster debugging:"
-		echo "   • swift package generate-documentation  # Check for DocC warnings"
-		echo "   • ./Scripts/api-coverage.sh --threshold 90  # Check API coverage"
-		echo "   • ./Scripts/validate-docs.sh  # Full validation with detailed output"
-		echo ""
-		echo "   Skip documentation checks temporarily:"
-		echo "   • SKIP_DOCS=1 ./Scripts/lint.sh"
-	fi
-fi
 
 popd
 
