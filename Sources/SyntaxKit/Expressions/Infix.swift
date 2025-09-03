@@ -31,6 +31,19 @@ public import SwiftSyntax
 
 /// A generic binary (infix) operator expression, e.g. `a + b`.
 public struct Infix: CodeBlock, ExprCodeBlock {
+  /// Comparison operators that can be used in infix expressions.
+  public enum ComparisonOperator: String, CaseIterable {
+    case greaterThan = ">"
+    case lessThan = "<"
+    case equal = "=="
+    case notEqual = "!="
+
+    /// The string representation of the operator.
+    public var symbol: String {
+      rawValue
+    }
+  }
+
   public enum InfixError: Error, CustomStringConvertible {
     case wrongOperandCount(expected: Int, got: Int)
     case nonExprCodeBlockOperand
@@ -48,6 +61,17 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   private let operation: String
   private let leftOperand: any ExprCodeBlock
   private let rightOperand: any ExprCodeBlock
+
+  /// Creates an infix expression with a comparison operator.
+  /// - Parameters:
+  ///   - operator: The comparison operator to use.
+  ///   - lhs: The left-hand side expression.
+  ///   - rhs: The right-hand side expression.
+  public init(_ operator: ComparisonOperator, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
+    self.operation = `operator`.symbol
+    self.leftOperand = lhs
+    self.rightOperand = rhs
+  }
 
   /// Creates an infix operator expression.
   /// - Parameters:
@@ -109,33 +133,5 @@ public struct Infix: CodeBlock, ExprCodeBlock {
 
   public var syntax: any SyntaxProtocol {
     exprSyntax
-  }
-}
-
-// MARK: - Comparison Operators
-
-extension Infix {
-  /// Comparison operators that can be used in infix expressions.
-  public enum ComparisonOperator: String, CaseIterable {
-    case greaterThan = ">"
-    case lessThan = "<"
-    case equal = "=="
-    case notEqual = "!="
-
-    /// The string representation of the operator.
-    public var symbol: String {
-      rawValue
-    }
-  }
-
-  /// Creates an infix expression with a comparison operator.
-  /// - Parameters:
-  ///   - operator: The comparison operator to use.
-  ///   - lhs: The left-hand side expression.
-  ///   - rhs: The right-hand side expression.
-  public init(_ operator: ComparisonOperator, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
-    self.operation = `operator`.symbol
-    self.leftOperand = lhs
-    self.rightOperand = rhs
   }
 }

@@ -1,5 +1,5 @@
 //
-//  Line.swift
+//  CodeBlock+Comment.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,43 +27,22 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
-
-/// Represents a single comment line that can be attached to a syntax node.
-public struct Line: Sendable, Equatable {
-  /// The kind of comment line.
-  public enum Kind: Sendable, Equatable {
-    /// Regular line comment that starts with `//`.
-    case line
-    /// Documentation line comment that starts with `///`.
-    case doc
-  }
-
-  /// The kind of comment.
-  public let kind: Kind
-  /// The text of the comment.
-  public let text: String?
-
-  /// Creates a regular line comment.
-  /// - Parameter text: The text of the comment.
-  public init(_ text: String) {
-    self.kind = .line
-    self.text = text
-  }
-
-  /// Convenience initialiser. Passing only `kind` will create an empty comment line of that kind.
+extension CodeBlock {
+  /// Attaches comments to the current ``CodeBlock``.
   ///
-  /// Examples:
+  /// The provided lines are injected as leading trivia to the declaration produced by this ``CodeBlock``.
+  ///
+  /// Usage:
   /// ```swift
-  /// Line("MARK: - Models")              // defaults to `.line` kind
-  /// Line(.doc, "Represents a model")    // documentation comment
-  /// Line(.doc)                           // empty `///` line
+  /// Struct("MyStruct") { ... }
+  ///   .comment {
+  ///       Line("MARK: - Models")
+  ///       Line(.doc, "This is a documentation comment")
+  ///   }
   /// ```
-  /// - Parameters:
-  ///   - kind: The kind of comment. Defaults to `.line`.
-  ///   - text: The text of the comment. Defaults to `nil`.
-  public init(_ kind: Kind = .line, _ text: String? = nil) {
-    self.kind = kind
-    self.text = text
+  /// - Parameter content: A ``CommentBuilderResult`` that provides the comment lines.
+  /// - Returns: A new ``CodeBlock`` with the comments attached.
+  public func comment(@CommentBuilderResult _ content: () -> [Line]) -> any CodeBlock {
+    CommentedCodeBlock(base: self, lines: content())
   }
 }

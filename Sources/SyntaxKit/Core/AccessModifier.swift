@@ -53,11 +53,3 @@ public enum AccessModifier: CaseIterable, Sendable, Equatable {
     }
   }
 }
-
-extension Keyword {
-  /// Creates a Keyword from an AccessModifier.
-  /// - Parameter accessModifier: The access modifier to convert.
-  public init(_ accessModifier: AccessModifier) {
-    self = accessModifier.keyword
-  }
-}

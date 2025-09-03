@@ -29,17 +29,6 @@
 
 public import SwiftSyntax
 
-/// Internal representation of a Swift attribute with its arguments.
-internal struct AttributeInfo {
-  internal let name: String
-  internal let arguments: [String]
-
-  internal init(name: String, arguments: [String] = []) {
-    self.name = name
-    self.arguments = arguments
-  }
-}
-
 /// A Swift attribute that can be used as a property wrapper.
 public struct Attribute: CodeBlock {
   private let name: String

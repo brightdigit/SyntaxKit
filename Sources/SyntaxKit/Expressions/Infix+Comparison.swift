@@ -1,5 +1,5 @@
 //
-//  DictionaryValue.swift
+//  Infix+Comparison.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,15 +29,7 @@
 
 public import SwiftSyntax
 
-/// A protocol for types that can be used as dictionary values.
-public protocol DictionaryValue: Sendable {
-  /// The expression syntax representation of this dictionary value.
-  var exprSyntax: ExprSyntax { get }
-}
+// MARK: - Comparison Operators
 
-extension Call: DictionaryValue {}
-extension Init: DictionaryValue {}
-extension VariableExp: DictionaryValue {}
-extension PropertyAccessExp: DictionaryValue {}
-extension FunctionCallExp: DictionaryValue {}
-extension Infix: DictionaryValue {}
+extension Infix {
+}

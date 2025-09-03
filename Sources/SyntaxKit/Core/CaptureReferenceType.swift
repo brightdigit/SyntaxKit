@@ -44,11 +44,3 @@ public enum CaptureReferenceType: CaseIterable, Sendable, Equatable {
     }
   }
 }
-
-extension Keyword {
-  /// Creates a Keyword from a CaptureReferenceType.
-  /// - Parameter captureReferenceType: The capture reference type to convert.
-  public init(_ captureReferenceType: CaptureReferenceType) {
-    self = captureReferenceType.keyword
-  }
-}

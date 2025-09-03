@@ -1,5 +1,5 @@
 //
-//  DictionaryValue.swift
+//  AttributeInfo.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,17 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+/// Internal representation of a Swift attribute with its arguments.
+internal struct AttributeInfo {
+  internal let name: String
+  internal let arguments: [String]
 
-/// A protocol for types that can be used as dictionary values.
-public protocol DictionaryValue: Sendable {
-  /// The expression syntax representation of this dictionary value.
-  var exprSyntax: ExprSyntax { get }
+  internal init(name: String, arguments: [String] = []) {
+    self.name = name
+    self.arguments = arguments
+  }
 }
-
-extension Call: DictionaryValue {}
-extension Init: DictionaryValue {}
-extension VariableExp: DictionaryValue {}
-extension PropertyAccessExp: DictionaryValue {}
-extension FunctionCallExp: DictionaryValue {}
-extension Infix: DictionaryValue {}

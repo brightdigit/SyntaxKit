@@ -1,13 +1,11 @@
 import Foundation
 import Testing
 
-@testable import SyntaxKit
-
 /// Simple test to validate documentation examples
 @Suite("Simple Documentation Examples")
-struct SimpleDocTests {
+internal struct SimpleDocTests {
   @Test("Basic markdown code extraction works")
-  func testMarkdownCodeExtraction() throws {
+  internal func testMarkdownCodeExtraction() throws {
     let markdown = """
       # Example Title
 
@@ -17,8 +15,8 @@ struct SimpleDocTests {
       import SyntaxKit
 
       let myEnum = Enum("MyEnum") {
-          EnumCase("first")
-          EnumCase("second")
+        EnumCase("first")
+        EnumCase("second")
       }
       ```
 
@@ -33,13 +31,13 @@ struct SimpleDocTests {
   }
 
   @Test("Can compile simple SyntaxKit example")
-  func testCompileSimpleExample() throws {
+  internal func testCompileSimpleExample() throws {
     let code = """
       import SyntaxKit
 
       let myEnum = Enum("MyEnum") {
-          EnumCase("first")
-          EnumCase("second")
+        EnumCase("first")
+        EnumCase("second")
       }
 
       let result = myEnum.formatted().description

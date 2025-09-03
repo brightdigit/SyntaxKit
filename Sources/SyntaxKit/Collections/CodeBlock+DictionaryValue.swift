@@ -1,5 +1,5 @@
 //
-//  DictionaryValue.swift
+//  CodeBlock+DictionaryValue.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,15 +29,27 @@
 
 public import SwiftSyntax
 
-/// A protocol for types that can be used as dictionary values.
-public protocol DictionaryValue: Sendable {
-  /// The expression syntax representation of this dictionary value.
-  var exprSyntax: ExprSyntax { get }
-}
+// MARK: - CodeBlock Conformance
 
-extension Call: DictionaryValue {}
-extension Init: DictionaryValue {}
-extension VariableExp: DictionaryValue {}
-extension PropertyAccessExp: DictionaryValue {}
-extension FunctionCallExp: DictionaryValue {}
-extension Infix: DictionaryValue {}
+extension CodeBlock where Self: DictionaryValue {
+  /// Converts this code block to an expression syntax.
+  /// If the code block is already an expression, returns it directly.
+  /// If it's a token, wraps it in a declaration reference expression.
+  /// Otherwise, creates a default empty expression to prevent crashes.
+  public var exprSyntax: ExprSyntax {
+    if let expr = self.syntax.as(ExprSyntax.self) {
+      return expr
+    }
+
+    if let token = self.syntax.as(TokenSyntax.self) {
+      return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(token.text)))
+    }
+
+    // Fallback for unsupported syntax types - create a default expression
+    // This prevents crashes while still allowing dictionary operations to continue
+    #warning(
+      "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
+    )
+    return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+  }
+}

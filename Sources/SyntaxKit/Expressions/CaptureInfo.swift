@@ -1,5 +1,5 @@
 //
-//  Closure+Capture.swift
+//  CaptureInfo.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,31 +29,46 @@
 
 import SwiftSyntax
 
-extension Closure {
-  /// Builds the capture clause for the closure.
-  internal func buildCaptureClause() -> ClosureCaptureClauseSyntax? {
-    guard !capture.isEmpty else {
-      return nil
-    }
+/// Represents capture specifier and name information for closure captures.
+internal struct CaptureInfo {
+  internal let specifier: ClosureCaptureSpecifierSyntax?
+  internal let name: TokenSyntax
 
-    return ClosureCaptureClauseSyntax(
-      leftSquare: .leftSquareToken(),
-      items: ClosureCaptureListSyntax(
-        capture.map(buildCaptureItem)
-      ),
-      rightSquare: .rightSquareToken()
-    )
+  internal init(from param: ParameterExp) {
+    if let refExp = param.value as? ReferenceExp {
+      self.init(fromReference: refExp)
+    } else {
+      self.init(fromParameter: param)
+    }
   }
 
-  /// Builds a capture item from a parameter expression.
-  private func buildCaptureItem(from param: ParameterExp) -> ClosureCaptureSyntax {
-    let captureInfo = CaptureInfo(from: param)
+  private init(fromReference refExp: ReferenceExp) {
+    let keyword = refExp.captureReferenceType.keyword
 
-    return ClosureCaptureSyntax(
-      specifier: captureInfo.specifier,
-      name: captureInfo.name,
-      initializer: nil,
-      trailingComma: nil
+    self.specifier = ClosureCaptureSpecifierSyntax(
+      specifier: .keyword(keyword, trailingTrivia: .space)
     )
+
+    if let varExp = refExp.captureExpression as? VariableExp {
+      self.name = .identifier(varExp.name)
+    } else {
+      self.name = .identifier("self")  // fallback
+      #warning(
+        "TODO: Review fallback for non-VariableExp capture expression"
+      )
+    }
+  }
+
+  private init(fromParameter param: ParameterExp) {
+    self.specifier = nil
+
+    if let varExp = param.value as? VariableExp {
+      self.name = .identifier(varExp.name)
+    } else {
+      self.name = .identifier("self")  // fallback
+      #warning(
+        "TODO: Review fallback for non-VariableExp parameter value"
+      )
+    }
   }
 }

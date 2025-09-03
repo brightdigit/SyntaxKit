@@ -1,5 +1,5 @@
 //
-//  Line.swift
+//  Line+Trivia.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,41 +29,21 @@
 
 import SwiftSyntax
 
-/// Represents a single comment line that can be attached to a syntax node.
-public struct Line: Sendable, Equatable {
-  /// The kind of comment line.
-  public enum Kind: Sendable, Equatable {
-    /// Regular line comment that starts with `//`.
-    case line
-    /// Documentation line comment that starts with `///`.
-    case doc
-  }
+// MARK: - Internal helpers
 
-  /// The kind of comment.
-  public let kind: Kind
-  /// The text of the comment.
-  public let text: String?
-
-  /// Creates a regular line comment.
-  /// - Parameter text: The text of the comment.
-  public init(_ text: String) {
-    self.kind = .line
-    self.text = text
-  }
-
-  /// Convenience initialiser. Passing only `kind` will create an empty comment line of that kind.
-  ///
-  /// Examples:
-  /// ```swift
-  /// Line("MARK: - Models")              // defaults to `.line` kind
-  /// Line(.doc, "Represents a model")    // documentation comment
-  /// Line(.doc)                           // empty `///` line
-  /// ```
-  /// - Parameters:
-  ///   - kind: The kind of comment. Defaults to `.line`.
-  ///   - text: The text of the comment. Defaults to `nil`.
-  public init(_ kind: Kind = .line, _ text: String? = nil) {
-    self.kind = kind
-    self.text = text
+extension Line {
+  /// Convert the `Line` to a SwiftSyntax `TriviaPiece`.
+  internal var triviaPiece: TriviaPiece {
+    switch kind {
+    case .line:
+      return .lineComment("// " + (text ?? ""))
+    case .doc:
+      // Empty doc line should still contain the comment marker so we keep a single `/` if no text.
+      if let text = text, !text.isEmpty {
+        return .docLineComment("/// " + text)
+      } else {
+        return .docLineComment("///")
+      }
+    }
   }
 }

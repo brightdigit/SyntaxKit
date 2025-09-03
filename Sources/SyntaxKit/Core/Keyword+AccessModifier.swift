@@ -1,5 +1,5 @@
 //
-//  DictionaryValue.swift
+//  Keyword+AccessModifier.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,15 +29,10 @@
 
 public import SwiftSyntax
 
-/// A protocol for types that can be used as dictionary values.
-public protocol DictionaryValue: Sendable {
-  /// The expression syntax representation of this dictionary value.
-  var exprSyntax: ExprSyntax { get }
+extension Keyword {
+  /// Creates a Keyword from an AccessModifier.
+  /// - Parameter accessModifier: The access modifier to convert.
+  public init(_ accessModifier: AccessModifier) {
+    self = accessModifier.keyword
+  }
 }
-
-extension Call: DictionaryValue {}
-extension Init: DictionaryValue {}
-extension VariableExp: DictionaryValue {}
-extension PropertyAccessExp: DictionaryValue {}
-extension FunctionCallExp: DictionaryValue {}
-extension Infix: DictionaryValue {}

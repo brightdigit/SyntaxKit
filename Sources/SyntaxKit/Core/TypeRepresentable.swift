@@ -34,8 +34,3 @@ public protocol TypeRepresentable: Sendable {
   /// Returns the SwiftSyntax representation of the conforming type.
   var typeSyntax: TypeSyntax { get }
 }
-
-extension String: TypeRepresentable {
-  /// Returns the SwiftSyntax representation of the conforming type.
-  public var typeSyntax: TypeSyntax { TypeSyntax(IdentifierTypeSyntax(name: .identifier(self))) }
-}
