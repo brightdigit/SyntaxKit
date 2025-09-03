@@ -62,6 +62,7 @@ public enum CodeBlockBuilderResult: Sendable {
     components
   }
 
+  /// Builds an array of ``CodeBlock``s from a `for` loop.
   public static func buildBlock(_ components: [any CodeBlock]...) -> [any CodeBlock] {
     components.flatMap { $0 }
   }

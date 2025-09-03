@@ -5,6 +5,7 @@ import PackageDescription
 
 // MARK: - Swift Settings Configuration
 
+// swiftlint:disable:next explicit_top_level_acl explicit_acl
 let swiftSettings: [SwiftSetting] = [
   // Swift 6.2 Upcoming Features (not yet enabled by default)
   // SE-0335: Introduce existential `any`
