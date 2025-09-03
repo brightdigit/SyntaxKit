@@ -36,37 +36,6 @@ public struct Protocol: CodeBlock, Sendable {
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a protocol declaration.
-  /// - Parameters:
-  ///   - name: The name of the protocol.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the protocol.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
-    rethrows
-  {
-    self.name = name
-    self.members = try content()
-  }
-
-  /// Sets one or more inherited protocols.
-  /// - Parameter types: The list of protocols this protocol inherits from.
-  /// - Returns: A copy of the protocol with the inheritance set.
-  public func inherits(_ types: String...) -> Self {
-    var copy = self
-    copy.inheritance = types
-    return copy
-  }
-
-  /// Adds an attribute to the protocol declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the protocol with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
   public var syntax: any SyntaxProtocol {
     let protocolKeyword = TokenSyntax.keyword(.protocol, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
@@ -117,6 +86,37 @@ public struct Protocol: CodeBlock, Sendable {
       genericWhereClause: nil,
       memberBlock: memberBlock
     )
+  }
+
+  /// Creates a protocol declaration.
+  /// - Parameters:
+  ///   - name: The name of the protocol.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the protocol.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
+  {
+    self.name = name
+    self.members = try content()
+  }
+
+  /// Sets one or more inherited protocols.
+  /// - Parameter types: The list of protocols this protocol inherits from.
+  /// - Returns: A copy of the protocol with the inheritance set.
+  public func inherits(_ types: String...) -> Self {
+    var copy = self
+    copy.inheritance = types
+    return copy
+  }
+
+  /// Adds an attribute to the protocol declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the protocol with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

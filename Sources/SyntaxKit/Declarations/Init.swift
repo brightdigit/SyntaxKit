@@ -34,33 +34,6 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
   private let type: String
   private let parameters: [ParameterExp]
 
-  /// Creates an initializer expression with no parameters.
-  /// - Parameter type: The type to initialize.
-  public init(_ type: String) {
-    self.type = type
-    self.parameters = []
-  }
-
-  /// Creates an initializer expression.
-  /// - Parameters:
-  ///   - type: The type to initialize.
-  ///   - params: A ``ParameterExpBuilderResult`` that provides the parameters for the initializer.
-  public init(_ type: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp])
-    rethrows
-  {
-    self.type = type
-    self.parameters = try params()
-  }
-
-  /// Creates an initializer expression with a ParameterExp array.
-  /// - Parameters:
-  ///   - type: The type to initialize.
-  ///   - params: An array of ParameterExp elements for the initializer.
-  public init(_ type: String, params: [ParameterExp]) {
-    self.type = type
-    self.parameters = params
-  }
-
   /// The code block representation of this initializer expression.
   public var codeBlock: any CodeBlock {
     self
@@ -130,6 +103,43 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
     exprSyntax
   }
 
+  // MARK: - LiteralValue Conformance
+
+  public var typeName: String {
+    type
+  }
+
+  public var literalString: String {
+    "\(type)()"
+  }
+
+  /// Creates an initializer expression with no parameters.
+  /// - Parameter type: The type to initialize.
+  public init(_ type: String) {
+    self.type = type
+    self.parameters = []
+  }
+
+  /// Creates an initializer expression.
+  /// - Parameters:
+  ///   - type: The type to initialize.
+  ///   - params: A ``ParameterExpBuilderResult`` that provides the parameters for the initializer.
+  public init(_ type: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp])
+    rethrows
+  {
+    self.type = type
+    self.parameters = try params()
+  }
+
+  /// Creates an initializer expression with a ParameterExp array.
+  /// - Parameters:
+  ///   - type: The type to initialize.
+  ///   - params: An array of ParameterExp elements for the initializer.
+  public init(_ type: String, params: [ParameterExp]) {
+    self.type = type
+    self.parameters = params
+  }
+
   /// Calls a method on this initializer.
   /// - Parameter methodName: The name of the method to call.
   /// - Returns: A code block that represents the method call.
@@ -146,15 +156,5 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
     -> any CodeBlock
   {
     FunctionCallExp(base: self, methodName: methodName, parameters: params())
-  }
-
-  // MARK: - LiteralValue Conformance
-
-  public var typeName: String {
-    type
-  }
-
-  public var literalString: String {
-    "\(type)()"
   }
 }

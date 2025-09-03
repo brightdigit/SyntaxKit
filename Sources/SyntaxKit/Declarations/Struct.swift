@@ -38,73 +38,6 @@ public struct Struct: CodeBlock, Sendable {
   private var attributes: [AttributeInfo] = []
   private var accessModifier: AccessModifier?
 
-  /// Creates a struct declaration.
-  /// - Parameters:
-  ///   - name: The name of the struct.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the struct.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
-    rethrows
-  {
-    self.name = name
-    self.members = try content()
-  }
-
-  /// Creates a struct declaration with a CodeBlock array.
-  /// - Parameters:
-  ///   - name: The name of the struct.
-  ///   - members: An array of CodeBlock elements that form the body of the struct.
-  public init(_ name: String, members: [any CodeBlock]) {
-    self.name = name
-    self.members = members
-  }
-
-  /// Sets the generic parameter for the struct.
-  /// - Parameter generic: The generic parameter name.
-  /// - Returns: A copy of the struct with the generic parameter set.
-  public func generic(_ generic: String) -> Self {
-    var copy = self
-    copy.genericParameter = generic
-    return copy
-  }
-
-  /// Sets the inheritance for the struct.
-  /// - Parameter inheritance: The types to inherit from.
-  /// - Returns: A copy of the struct with the inheritance set.
-  public func inherits(_ inheritance: String...) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Sets the inheritance for the struct using an array.
-  /// - Parameter inheritance: The array of types to inherit from.
-  /// - Returns: A copy of the struct with the inheritance set.
-  public func inherits(_ inheritance: [String]) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Sets the access modifier for the struct declaration.
-  /// - Parameter access: The access modifier.
-  /// - Returns: A copy of the struct with the access modifier set.
-  public func access(_ access: AccessModifier) -> Self {
-    var copy = self
-    copy.accessModifier = access
-    return copy
-  }
-
-  /// Adds an attribute to the struct declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the struct with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
   public var syntax: any SyntaxProtocol {
     let structKeyword = TokenSyntax.keyword(.struct, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
@@ -176,6 +109,73 @@ public struct Struct: CodeBlock, Sendable {
       inheritanceClause: inheritanceClause,
       memberBlock: memberBlock
     )
+  }
+
+  /// Creates a struct declaration.
+  /// - Parameters:
+  ///   - name: The name of the struct.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the struct.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
+  {
+    self.name = name
+    self.members = try content()
+  }
+
+  /// Creates a struct declaration with a CodeBlock array.
+  /// - Parameters:
+  ///   - name: The name of the struct.
+  ///   - members: An array of CodeBlock elements that form the body of the struct.
+  public init(_ name: String, members: [any CodeBlock]) {
+    self.name = name
+    self.members = members
+  }
+
+  /// Sets the generic parameter for the struct.
+  /// - Parameter generic: The generic parameter name.
+  /// - Returns: A copy of the struct with the generic parameter set.
+  public func generic(_ generic: String) -> Self {
+    var copy = self
+    copy.genericParameter = generic
+    return copy
+  }
+
+  /// Sets the inheritance for the struct.
+  /// - Parameter inheritance: The types to inherit from.
+  /// - Returns: A copy of the struct with the inheritance set.
+  public func inherits(_ inheritance: String...) -> Self {
+    var copy = self
+    copy.inheritance = inheritance
+    return copy
+  }
+
+  /// Sets the inheritance for the struct using an array.
+  /// - Parameter inheritance: The array of types to inherit from.
+  /// - Returns: A copy of the struct with the inheritance set.
+  public func inherits(_ inheritance: [String]) -> Self {
+    var copy = self
+    copy.inheritance = inheritance
+    return copy
+  }
+
+  /// Sets the access modifier for the struct declaration.
+  /// - Parameter access: The access modifier.
+  /// - Returns: A copy of the struct with the access modifier set.
+  public func access(_ access: AccessModifier) -> Self {
+    var copy = self
+    copy.accessModifier = access
+    return copy
+  }
+
+  /// Adds an attribute to the struct declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the struct with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

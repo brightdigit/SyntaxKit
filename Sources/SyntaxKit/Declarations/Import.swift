@@ -35,6 +35,29 @@ public struct Import: CodeBlock, Sendable {
   private var accessModifier: AccessModifier?
   private var attributes: [AttributeInfo] = []
 
+  public var syntax: any SyntaxProtocol {
+    // Build access modifier
+    var modifiers: DeclModifierListSyntax = []
+    if let access = accessModifier {
+      modifiers = DeclModifierListSyntax([
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
+      ])
+    }
+
+    // Build import path
+    let importPath = ImportPathComponentListSyntax([
+      ImportPathComponentSyntax(name: .identifier(moduleName))
+    ])
+
+    return ImportDeclSyntax(
+      attributes: buildAttributeList(from: attributes),
+      modifiers: modifiers,
+      importKeyword: .keyword(.import, trailingTrivia: .space),
+      importKindSpecifier: nil,
+      path: importPath
+    )
+  }
+
   /// Creates an `import` declaration.
   /// - Parameter moduleName: The name of the module to import.
   public init(_ moduleName: String) {
@@ -59,29 +82,6 @@ public struct Import: CodeBlock, Sendable {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
     return copy
-  }
-
-  public var syntax: any SyntaxProtocol {
-    // Build access modifier
-    var modifiers: DeclModifierListSyntax = []
-    if let access = accessModifier {
-      modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
-      ])
-    }
-
-    // Build import path
-    let importPath = ImportPathComponentListSyntax([
-      ImportPathComponentSyntax(name: .identifier(moduleName))
-    ])
-
-    return ImportDeclSyntax(
-      attributes: buildAttributeList(from: attributes),
-      modifiers: modifiers,
-      importKeyword: .keyword(.import, trailingTrivia: .space),
-      importKindSpecifier: nil,
-      path: importPath
-    )
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

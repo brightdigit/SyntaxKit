@@ -46,12 +46,6 @@ public struct Then: CodeBlock {
   /// The statements that make up the `else` body.
   public let body: [any CodeBlock]
 
-  /// Creates a then block.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the then block.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
-    self.body = try content()
-  }
-
   public var syntax: any SyntaxProtocol {
     let statements = CodeBlockItemListSyntax(
       body.compactMap { element in
@@ -71,5 +65,11 @@ public struct Then: CodeBlock {
       statements: statements,
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
+  }
+
+  /// Creates a then block.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the then block.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.body = try content()
   }
 }

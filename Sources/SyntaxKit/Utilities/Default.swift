@@ -33,11 +33,6 @@ public import SwiftSyntax
 public struct Default: CodeBlock {
   private let body: [any CodeBlock]
 
-  /// Creates a default case declaration.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the default case.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
-    self.body = try content()
-  }
   public var switchCaseSyntax: SwitchCaseSyntax {
     let statements = CodeBlockItemListSyntax(
       body.compactMap {
@@ -62,4 +57,10 @@ public struct Default: CodeBlock {
     )
   }
   public var syntax: any SyntaxProtocol { switchCaseSyntax }
+
+  /// Creates a default case declaration.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the default case.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.body = try content()
+  }
 }
