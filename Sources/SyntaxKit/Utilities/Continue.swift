@@ -33,12 +33,6 @@ public import SwiftSyntax
 public struct Continue: CodeBlock {
   private let label: String?
 
-  /// Creates a `continue` statement.
-  /// - Parameter label: An optional label to continue to a specific loop.
-  public init(_ label: String? = nil) {
-    self.label = label
-  }
-
   public var syntax: any SyntaxProtocol {
     let continueStmt = ContinueStmtSyntax(
       continueKeyword: .keyword(.continue, trailingTrivia: .newline)
@@ -54,5 +48,11 @@ public struct Continue: CodeBlock {
     } else {
       return StmtSyntax(continueStmt)
     }
+  }
+
+  /// Creates a `continue` statement.
+  /// - Parameter label: An optional label to continue to a specific loop.
+  public init(_ label: String? = nil) {
+    self.label = label
   }
 }

@@ -35,26 +35,6 @@ public struct TypeAlias: CodeBlock, Sendable {
   private let existingType: String
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a `typealias` declaration.
-  /// - Parameters:
-  ///   - name: The new name that will alias the existing type.
-  ///   - type: The existing type that is being aliased.
-  public init(_ name: String, equals type: String) {
-    self.name = name
-    self.existingType = type
-  }
-
-  /// Adds an attribute to the typealias declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the typealias with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
   public var syntax: any SyntaxProtocol {
     // `typealias` keyword token
     let keyword = TokenSyntax.keyword(.typealias, trailingTrivia: .space)
@@ -74,6 +54,26 @@ public struct TypeAlias: CodeBlock, Sendable {
       name: identifier,
       initializer: initializer
     )
+  }
+
+  /// Creates a `typealias` declaration.
+  /// - Parameters:
+  ///   - name: The new name that will alias the existing type.
+  ///   - type: The existing type that is being aliased.
+  public init(_ name: String, equals type: String) {
+    self.name = name
+    self.existingType = type
+  }
+
+  /// Adds an attribute to the typealias declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the typealias with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

@@ -4,10 +4,6 @@ import Foundation
 public struct NormalizeOptions: OptionSet, Sendable {
   public let rawValue: Int
 
-  public init(rawValue: Int) {
-    self.rawValue = rawValue
-  }
-
   /// Preserve newlines between sibling elements (useful for SwiftUI)
   public static let preserveSiblingNewlines = NormalizeOptions(rawValue: 1 << 0)
 
@@ -25,4 +21,8 @@ public struct NormalizeOptions: OptionSet, Sendable {
 
   /// Options for structural comparison (ignores all formatting)
   public static let structural: NormalizeOptions = []
+
+  public init(rawValue: Int) {
+    self.rawValue = rawValue
+  }
 }

@@ -34,10 +34,6 @@ public import SwiftSyntax
 public struct Throw: CodeBlock {
   private let expr: any CodeBlock
 
-  public init(_ expr: any CodeBlock) {
-    self.expr = expr
-  }
-
   public var syntax: any SyntaxProtocol {
     let expression: ExprSyntax
     if let enumCase = expr as? EnumCase {
@@ -53,5 +49,9 @@ public struct Throw: CodeBlock {
         expression: expression
       )
     )
+  }
+
+  public init(_ expr: any CodeBlock) {
+    self.expr = expr
   }
 }

@@ -45,10 +45,6 @@ public enum Pattern {
 internal struct LetBindingPattern: PatternConvertible {
   private let identifier: String
 
-  internal init(identifier: String) {
-    self.identifier = identifier
-  }
-
   /// SwiftSyntax representation of the let binding pattern.
   internal var patternSyntax: PatternSyntax {
     PatternSyntax(
@@ -57,5 +53,9 @@ internal struct LetBindingPattern: PatternConvertible {
         pattern: PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(identifier)))
       )
     )
+  }
+
+  internal init(identifier: String) {
+    self.identifier = identifier
   }
 }
