@@ -120,5 +120,10 @@ let package = Package(
       dependencies: ["SyntaxKit"],
       swiftSettings: swiftSettings
     ),
+    .testTarget(
+      name: "SyntaxDocTests",
+      dependencies: ["SyntaxKit"],
+      swiftSettings: swiftSettings
+    ),
   ]
 )

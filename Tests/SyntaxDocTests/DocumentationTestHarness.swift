@@ -3,7 +3,6 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-@testable import SyntaxKit
 
 /// Harness for extracting and testing documentation code examples
 internal class DocumentationTestHarness {
@@ -174,13 +173,13 @@ internal class DocumentationTestHarness {
 
       // If compilation succeeded, try to run it (for runnable examples)
       if isRunnableExample(code) {
-        let executeResult = try await executeCompiledSwift(tempFile)
+        // let executeResult = try await executeCompiledSwift(tempFile)
         return ValidationResult(
-          success: executeResult.success,
+          success: true,
           filePath: filePath,
           lineNumber: lineNumber,
           testType: .execution,
-          error: executeResult.error
+          error: nil
         )
       } else {
         // Just compilation test for non-runnable code
@@ -332,13 +331,6 @@ internal class DocumentationTestHarness {
     return CompilationResult(success: true, error: nil)
   }
 
-  /// Executes compiled Swift code
-  private func executeCompiledSwift(_ fileURL: URL) async throws -> CompilationResult {
-    // For documentation examples, we generally only test compilation
-    // Execution would require more complex setup with proper module dependencies
-    CompilationResult(success: true, error: nil)
-  }
-
   /// Determines if a code example should be executed (vs just compiled)
   private func isRunnableExample(_ code: String) -> Bool {
     // Simple heuristics for runnable examples
@@ -442,8 +434,7 @@ internal class DocumentationTestHarness {
 
     let projectRoot =
       currentFileURL
-      .deletingLastPathComponent()  // Tests/SyntaxKitTests/Integration
-      .deletingLastPathComponent()  // Tests/SyntaxKitTests
+      .deletingLastPathComponent()  // Tests/SyntaxDocTests
       .deletingLastPathComponent()  // Tests
       .deletingLastPathComponent()  // Project root
 

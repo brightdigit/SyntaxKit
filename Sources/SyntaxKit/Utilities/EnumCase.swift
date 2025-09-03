@@ -145,5 +145,4 @@ public struct EnumCase: CodeBlock {
   public func equals(_ value: Double) -> Self {
     self.equals(.float(value))
   }
-
 }

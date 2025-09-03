@@ -3,8 +3,6 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-@testable import SyntaxKit
-
 /// Integration tests that validate all code examples in DocC documentation
 @Suite("Documentation Code Examples")
 internal struct DocumentationExampleTests {
