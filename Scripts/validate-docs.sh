@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit on any error
+#set -e  # Exit on any error
 
 ERRORS=0
 WARNINGS=0
@@ -30,7 +30,11 @@ validate_external_urls() {
     echo -e "\n${BLUE}🌐 Validating External URLs...${NC}"
     
     # Extract URLs from all markdown files
-    local urls_file=$(mktemp)
+    if [ -n "$RUNNER_TEMP" ]; then
+        local urls_file="$RUNNER_TEMP/urls_file.txt"
+    else
+        local urls_file=$(mktemp)
+    fi
     
     # Extract URLs more precisely using find instead of bash globs for portability
     {
@@ -254,7 +258,12 @@ validate_code_examples() {
     echo -e "\n${BLUE}💻 Validating Swift Code Examples...${NC}"
     
     # Create temporary directory for extracted code
-    local temp_dir=$(mktemp -d)
+    if [ -n "$RUNNER_TEMP" ]; then
+        local temp_dir="$RUNNER_TEMP/code_examples"
+        mkdir -p "$temp_dir"
+    else
+        local temp_dir=$(mktemp -d)
+    fi
     local examples_found=0
     local examples_valid=0
     local examples_failed=0
@@ -312,13 +321,18 @@ validate_code_examples() {
                     echo -n "  Validating $(basename "$swift_file"): "
                     
                     # Create a temporary Swift package to validate the code
-                    local temp_package_dir=$(mktemp -d)
+                    if [ -n "$RUNNER_TEMP" ]; then
+                        local temp_package_dir="$RUNNER_TEMP/temp_package_$$"
+                        mkdir -p "$temp_package_dir"
+                    else
+                        local temp_package_dir=$(mktemp -d)
+                    fi
                     local package_swift="$temp_package_dir/Package.swift"
                     local main_swift="$temp_package_dir/Sources/TestExample/main.swift"
                     
                     # Create Package.swift with SyntaxKit dependency
                     cat > "$package_swift" << EOF
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(

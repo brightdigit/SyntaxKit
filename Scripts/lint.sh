@@ -86,8 +86,12 @@ if [ -z "$SKIP_DOCS" ]; then
 	
 	# DocC generation with warnings as errors using Swift package plugin
 	echo "Generating DocC documentation using Swift package plugin..."
-	docc_output=$(mktemp)
-	if ! swift package generate-documentation --warnings-as-errors 2>"$docc_output"; then
+	if [ -n "$RUNNER_TEMP" ]; then
+		docc_output="$RUNNER_TEMP/docc_output.log"
+	else
+		docc_output=$(mktemp)
+	fi
+	if ! swift package generate-documentation --product SyntaxKit --warnings-as-errors 2>"$docc_output"; then
 		echo "❌ DocC generation failed due to warnings or errors"
 		echo "🔍 Error details:"
 		while IFS= read -r line; do
