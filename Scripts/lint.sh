@@ -84,30 +84,26 @@ fi
 if [ -z "$SKIP_DOCS" ]; then
 	echo -e "\n🔍 Running comprehensive documentation quality checks..."
 	
-	# DocC generation with warnings as errors (skip in CI due to permissions issues)
-	if [ -n "$CI" ]; then
-		echo "⚠️  Skipping DocC generation in CI environment due to known permissions issues"
+	# DocC generation with warnings as errors using Swift package plugin
+	echo "Generating DocC documentation using Swift package plugin..."
+	docc_output=$(mktemp)
+	if ! swift package generate-documentation --warnings-as-errors 2>"$docc_output"; then
+		echo "❌ DocC generation failed due to warnings or errors"
+		echo "🔍 Error details:"
+		while IFS= read -r line; do
+			echo "   $line"
+		done < "$docc_output"
+		echo ""
+		echo "💡 Common fixes:"
+		echo "   • Add missing documentation comments (///) to public APIs"
+		echo "   • Fix broken symbol references in documentation"
+		echo "   • Resolve conflicting or ambiguous documentation links"
+		echo "   • Check for invalid markdown syntax in .docc files"
+		rm "$docc_output"
+		ERRORS=$((ERRORS + 1))
 	else
-		echo "Generating DocC documentation (warnings as errors)..."
-		docc_output=$(mktemp)
-		if ! swift package generate-documentation --warnings-as-errors 2>"$docc_output"; then
-			echo "❌ DocC generation failed due to warnings or errors"
-			echo "🔍 Error details:"
-			while IFS= read -r line; do
-				echo "   $line"
-			done < "$docc_output"
-			echo ""
-			echo "💡 Common fixes:"
-			echo "   • Add missing documentation comments (///) to public APIs"
-			echo "   • Fix broken symbol references in documentation"
-			echo "   • Resolve conflicting or ambiguous documentation links"
-			echo "   • Check for invalid markdown syntax in .docc files"
-			rm "$docc_output"
-			ERRORS=$((ERRORS + 1))
-		else
-			echo "✅ DocC generation successful"
-			rm "$docc_output"
-		fi
+		echo "✅ DocC generation successful"
+		rm "$docc_output"
 	fi
 	
 	# Full documentation validation suite
