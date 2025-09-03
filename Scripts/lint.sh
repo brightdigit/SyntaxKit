@@ -88,6 +88,7 @@ if [ -z "$SKIP_DOCS" ]; then
 	echo "Generating DocC documentation using Swift package plugin..."
 	if [ -n "$RUNNER_TEMP" ]; then
 		docc_output="$RUNNER_TEMP/docc_output.log"
+		export TMPDIR="$RUNNER_TEMP"
 	else
 		docc_output=$(mktemp)
 	fi
