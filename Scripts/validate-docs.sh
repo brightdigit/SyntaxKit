@@ -32,16 +32,23 @@ validate_external_urls() {
     # Extract URLs from all markdown files
     local urls_file=$(mktemp)
     
-    # Extract URLs more precisely
+    # Extract URLs more precisely using find instead of bash globs for portability
     {
-        # Extract from markdown links [text](url)
-        grep -h -o '\](https\?://[^)]*)'  Sources/SyntaxKit/Documentation.docc/**/*.md README.md CONTRIBUTING-DOCS.md 2>/dev/null | \
-            sed 's/](\(https\?:\/\/[^)]*\)).*/\1/' 
-            
-        # Extract standalone URLs (not in markdown links or Swift package syntax)
-        grep -h -o 'https\?://[^[:space:])]*' Sources/SyntaxKit/Documentation.docc/**/*.md README.md CONTRIBUTING-DOCS.md 2>/dev/null | \
-            grep -v -E '(\.git"|from:|package\(|url:)' | \
-            sed 's/[,;."`]*$//'
+        # Find all markdown files and extract URLs from them
+        find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f 2>/dev/null | while read -r file; do
+            # Extract from markdown links [text](url)
+            grep -h -o '\](https\?://[^)]*)'  "$file" 2>/dev/null | sed 's/](\(https\?:\/\/[^)]*\)).*/\1/' || true
+            # Extract standalone URLs (not in markdown links or Swift package syntax)
+            grep -h -o 'https\?://[^[:space:])]*' "$file" 2>/dev/null | grep -v -E '(\.git"|from:|package\(|url:)' | sed 's/[,;."`]*$//' || true
+        done
+        
+        # Also check root level files if they exist
+        for file in README.md CONTRIBUTING-DOCS.md; do
+            if [ -f "$file" ]; then
+                grep -h -o '\](https\?://[^)]*)'  "$file" 2>/dev/null | sed 's/](\(https\?:\/\/[^)]*\)).*/\1/' || true
+                grep -h -o 'https\?://[^[:space:])]*' "$file" 2>/dev/null | grep -v -E '(\.git"|from:|package\(|url:)' | sed 's/[,;."`]*$//' || true
+            fi
+        done
     } | grep -E '^https?://' | sort -u > "$urls_file" || true
     
     if [ ! -s "$urls_file" ]; then
@@ -88,7 +95,7 @@ validate_docc_links() {
     echo -e "\n${BLUE}📚 Validating DocC Internal Links...${NC}"
     
     # Find all DocC link references like <doc:Page-Name>
-    local docc_links=$(grep -h -o '<doc:[^>]*>' Sources/SyntaxKit/Documentation.docc/**/*.md 2>/dev/null | sort -u || true)
+    local docc_links=$(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f -exec grep -h -o '<doc:[^>]*>' {} \; 2>/dev/null | sort -u || true)
     
     if [ -z "$docc_links" ]; then
         echo -e "${GREEN}✅ No DocC links found to validate${NC}"
@@ -130,7 +137,7 @@ validate_swift_symbols() {
     echo -e "\n${BLUE}🔧 Validating Swift Symbol References...${NC}"
     
     # Find all double-backtick symbol references in SyntaxKit docs
-    local symbol_refs=$(grep -h -o '``[^`]*``' Sources/SyntaxKit/Documentation.docc/**/*.md 2>/dev/null | sort -u || true)
+    local symbol_refs=$(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f -exec grep -h -o '``[^`]*``' {} \; 2>/dev/null | sort -u || true)
     
     if [ -z "$symbol_refs" ]; then
         echo -e "${GREEN}✅ No Swift symbol references found to validate${NC}"
@@ -174,7 +181,7 @@ validate_cross_references() {
     echo -e "\n${BLUE}🔗 Validating Cross-References...${NC}"
     
     # Extract references to other tutorials and articles
-    local cross_refs=$(grep -h -o '\[.*\]([^)]*\.md)' Sources/SyntaxKit/Documentation.docc/**/*.md 2>/dev/null | sort -u || true)
+    local cross_refs=$(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f -exec grep -h -o '\[.*\]([^)]*\.md)' {} \; 2>/dev/null | sort -u || true)
     
     if [ -z "$cross_refs" ]; then
         echo -e "${GREEN}✅ No cross-references found to validate${NC}"
@@ -352,8 +359,8 @@ EOF
                 fi
             done <<< "$swift_files"
         fi
-    done < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f; \
-             find . -maxdepth 1 -name "README.md" -type f; \
+    done < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f 2>/dev/null; \
+             find . -maxdepth 1 -name "README.md" -type f 2>/dev/null; \
              find Examples -name "README.md" -type f 2>/dev/null || true)
     
     # Clean up
