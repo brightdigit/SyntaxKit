@@ -4,6 +4,37 @@
 
 ERRORS=0
 WARNINGS=0
+SKIP_BUILD=true
+SKIP_CODE_EXAMPLES=false
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --build)
+            SKIP_BUILD=false
+            shift
+            ;;
+        --skip-code-examples)
+            SKIP_CODE_EXAMPLES=true
+            shift
+            ;;
+        -h|--help)
+            echo "Usage: $0 [OPTIONS]"
+            echo "Options:"
+            echo "  --build              Force rebuild of SyntaxKit before validation"
+            echo "  --skip-code-examples Skip validating Swift code examples"
+            echo "  -h, --help          Show this help message"
+            echo ""
+            echo "By default, the script will use existing builds to speed up validation."
+            echo "Use --build if you need to ensure a fresh build before validation."
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
 
 # Colors for output
 RED='\033[0;31m'
@@ -299,13 +330,25 @@ validate_code_examples() {
         ' "$file"
     }
     
-    # Build SyntaxKit first for type checking
-    echo -e "${BLUE}🏗️  Building SyntaxKit for type checking...${NC}"
-    if ! swift build --quiet; then
-        echo -e "${RED}❌ Failed to build SyntaxKit. Cannot validate code examples.${NC}"
-        rm -rf "$temp_dir"
-        ((ERRORS++))
-        return 1
+    # Build SyntaxKit first for type checking (only if not already built and not skipped)
+    if [ "$SKIP_BUILD" = false ]; then
+        if [ ! -d ".build" ] || [ ! -f ".build/debug/skit" ]; then
+            echo -e "${BLUE}🏗️  Building SyntaxKit for type checking...${NC}"
+            if ! swift build --quiet; then
+                echo -e "${RED}❌ Failed to build SyntaxKit. Cannot validate code examples.${NC}"
+                rm -rf "$temp_dir"
+                ((ERRORS++))
+                return 1
+            fi
+        else
+            echo -e "${BLUE}♻️  Using existing SyntaxKit build for type checking...${NC}"
+        fi
+    else
+        echo -e "${BLUE}⚡ Skipping SyntaxKit build (default behavior for speed)${NC}"
+        if [ ! -d ".build" ]; then
+            echo -e "${YELLOW}⚠️  Warning: No .build directory found, use --build flag to build first${NC}"
+            ((WARNINGS++))
+        fi
     fi
     
     # Process all documentation files
@@ -320,18 +363,19 @@ validate_code_examples() {
                     
                     echo -n "  Validating $(basename "$swift_file"): "
                     
-                    # Create a temporary Swift package to validate the code
-                    if [ -n "$RUNNER_TEMP" ]; then
-                        local temp_package_dir="$RUNNER_TEMP/temp_package_$$"
-                        mkdir -p "$temp_package_dir"
-                    else
-                        local temp_package_dir=$(mktemp -d)
-                    fi
-                    local package_swift="$temp_package_dir/Package.swift"
-                    local main_swift="$temp_package_dir/Sources/TestExample/main.swift"
-                    
-                    # Create Package.swift with SyntaxKit dependency
-                    cat > "$package_swift" << EOF
+                    # Create a temporary Swift package to validate the code (reuse if possible)
+                    if [ -z "$temp_package_dir" ]; then
+                        if [ -n "$RUNNER_TEMP" ]; then
+                            temp_package_dir="$RUNNER_TEMP/temp_package_validation"
+                        else
+                            temp_package_dir=$(mktemp -d)
+                        fi
+                        local package_swift="$temp_package_dir/Package.swift"
+                        local sources_dir="$temp_package_dir/Sources/TestExample"
+                        
+                        # Create Package.swift with SyntaxKit dependency (only once)
+                        mkdir -p "$sources_dir"
+                        cat > "$package_swift" << EOF
 // swift-tools-version: 6.0
 import PackageDescription
 
@@ -349,9 +393,10 @@ let package = Package(
     ]
 )
 EOF
+                    fi
                     
-                    # Create directory structure and copy example code
-                    mkdir -p "$(dirname "$main_swift")"
+                    # Copy example code to main.swift
+                    local main_swift="$sources_dir/main.swift"
                     cp "$swift_file" "$main_swift"
                     
                     # Try to build the temporary package
@@ -368,8 +413,7 @@ EOF
                         ((ERRORS++))
                     fi
                     
-                    # Clean up temporary package
-                    rm -rf "$temp_package_dir"
+                    # Note: temp_package_dir is cleaned up after all examples
                 fi
             done <<< "$swift_files"
         fi
@@ -379,6 +423,9 @@ EOF
     
     # Clean up
     rm -rf "$temp_dir"
+    if [ -n "$temp_package_dir" ]; then
+        rm -rf "$temp_package_dir"
+    fi
     
     # Report results
     echo -e "\n${BLUE}📊 Code Examples Summary:${NC}"
@@ -434,7 +481,9 @@ provide_error_recovery() {
     echo "  → Follow DocC best practices for API documentation"
     echo ""
     echo -e "${BLUE}🔧 Quick Commands:${NC}"
-    echo "• Rerun validation: ./Scripts/validate-docs.sh"
+    echo "• Fast validation (default): ./Scripts/validate-docs.sh"
+    echo "• Skip slow code validation: ./Scripts/validate-docs.sh --skip-code-examples" 
+    echo "• Full validation with rebuild: ./Scripts/validate-docs.sh --build"
     echo "• Generate docs: swift package generate-documentation"
     echo "• Check API coverage: ./Scripts/api-coverage.sh --threshold 90"
     echo "• Format code: ./Scripts/lint.sh"
@@ -447,7 +496,12 @@ main() {
     validate_swift_symbols
     validate_cross_references
     validate_api_coverage
-    validate_code_examples
+    
+    if [ "$SKIP_CODE_EXAMPLES" = false ]; then
+        validate_code_examples
+    else
+        echo -e "\n${BLUE}⚡ Skipping Swift code examples validation${NC}"
+    fi
     
     echo -e "\n${BLUE}📊 Validation Summary${NC}"
     echo "═══════════════════════════════════"
