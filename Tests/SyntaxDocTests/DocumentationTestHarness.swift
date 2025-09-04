@@ -7,7 +7,7 @@ import Testing
 internal class DocumentationTestHarness {
   /// Project root directory calculated from the current file location
   private static let projectRoot: URL = {
-    let currentFileURL = URL(fileURLWithPath: #file)
+    let currentFileURL = URL(fileURLWithPath: #filePath)
     return currentFileURL
       .deletingLastPathComponent()  // Tests/SyntaxDocTests
       .deletingLastPathComponent()  // Tests
