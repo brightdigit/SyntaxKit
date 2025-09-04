@@ -33,10 +33,6 @@ import SwiftSyntax
 internal struct PatternConvertableCollection: PatternCodeBlock {
   private let elements: [(any PatternConvertible)?]
 
-  internal init(elements: [(any PatternConvertible)?]) {
-    self.elements = elements
-  }
-
   internal var patternSyntax: PatternSyntax {
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
@@ -74,5 +70,8 @@ internal struct PatternConvertableCollection: PatternCodeBlock {
     // For CodeBlock conformance, we return the pattern syntax as an expression
     // This is a bit of a hack, but it allows us to use TuplePatternCodeBlock in For loops
     patternSyntax
+  }
+  internal init(elements: [(any PatternConvertible)?]) {
+    self.elements = elements
   }
 }

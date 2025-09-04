@@ -33,14 +33,6 @@ public import SwiftSyntax
 public struct Parenthesized: CodeBlock, ExprCodeBlock {
   private let content: any CodeBlock
 
-  /// Creates a parenthesized code block.
-  /// - Parameter content: The code block to wrap in parentheses.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
-    let blocks = try content()
-    precondition(blocks.count == 1, "Parenthesized expects exactly one code block.")
-    self.content = blocks[0]
-  }
-
   public var exprSyntax: ExprSyntax {
     ExprSyntax(
       TupleExprSyntax(
@@ -55,5 +47,13 @@ public struct Parenthesized: CodeBlock, ExprCodeBlock {
 
   public var syntax: any SyntaxProtocol {
     exprSyntax
+  }
+
+  /// Creates a parenthesized code block.
+  /// - Parameter content: The code block to wrap in parentheses.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    let blocks = try content()
+    precondition(blocks.count == 1, "Parenthesized expects exactly one code block.")
+    self.content = blocks[0]
   }
 }

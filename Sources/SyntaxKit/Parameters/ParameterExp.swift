@@ -34,6 +34,35 @@ public struct ParameterExp: CodeBlock {
   internal let name: String
   internal let value: any CodeBlock
 
+  public var syntax: any SyntaxProtocol {
+    if name.isEmpty {
+      if let exprBlock = value as? any ExprCodeBlock {
+        return exprBlock.exprSyntax
+      } else {
+        return value.syntax.as(ExprSyntax.self)
+          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
+    } else {
+      let expression: ExprSyntax
+      if let exprBlock = value as? any ExprCodeBlock {
+        expression = exprBlock.exprSyntax
+      } else {
+        expression =
+          value.syntax.as(ExprSyntax.self)
+          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
+      return LabeledExprSyntax(
+        label: .identifier(name),
+        colon: .colonToken(trailingTrivia: .init()),
+        expression: expression
+      )
+    }
+  }
+
+  internal var isUnlabeledClosure: Bool {
+    name.isEmpty && value is Closure
+  }
+
   /// Creates a parameter for a function call.
   /// - Parameters:
   ///   - name: The name of the parameter.
@@ -70,34 +99,5 @@ public struct ParameterExp: CodeBlock {
   public init(unlabeled value: String) {
     self.name = ""
     self.value = VariableExp(value)
-  }
-
-  public var syntax: any SyntaxProtocol {
-    if name.isEmpty {
-      if let exprBlock = value as? any ExprCodeBlock {
-        return exprBlock.exprSyntax
-      } else {
-        return value.syntax.as(ExprSyntax.self)
-          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-      }
-    } else {
-      let expression: ExprSyntax
-      if let exprBlock = value as? any ExprCodeBlock {
-        expression = exprBlock.exprSyntax
-      } else {
-        expression =
-          value.syntax.as(ExprSyntax.self)
-          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-      }
-      return LabeledExprSyntax(
-        label: .identifier(name),
-        colon: .colonToken(trailingTrivia: .init()),
-        expression: expression
-      )
-    }
-  }
-
-  internal var isUnlabeledClosure: Bool {
-    name.isEmpty && value is Closure
   }
 }

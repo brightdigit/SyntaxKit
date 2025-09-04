@@ -38,6 +38,14 @@ internal struct TupleAssignment: CodeBlock {
   private var isThrowing: Bool = false
   private var isAsyncSet: Bool = false
 
+  /// The syntax representation of this tuple assignment.
+  internal var syntax: any SyntaxProtocol {
+    if isAsyncSet {
+      return generateAsyncSetSyntax()
+    }
+    return generateRegularSyntax()
+  }
+
   /// Creates a tuple destructuring declaration.
   /// - Parameters:
   ///   - elements: The names of the variables to destructure into.
@@ -69,14 +77,6 @@ internal struct TupleAssignment: CodeBlock {
     var copy = self
     copy.isAsyncSet = true
     return copy
-  }
-
-  /// The syntax representation of this tuple assignment.
-  internal var syntax: any SyntaxProtocol {
-    if isAsyncSet {
-      return generateAsyncSetSyntax()
-    }
-    return generateRegularSyntax()
   }
 
   /// Generates the asyncSet tuple assignment syntax.

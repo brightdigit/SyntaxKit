@@ -33,10 +33,6 @@ import SwiftSyntax
 internal struct TuplePattern: PatternConvertible {
   private let elements: [(any PatternConvertible)?]
 
-  internal init(elements: [(any PatternConvertible)?]) {
-    self.elements = elements
-  }
-
   internal var patternSyntax: PatternSyntax {
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in
@@ -68,5 +64,8 @@ internal struct TuplePattern: PatternConvertible {
         rightParen: .rightParenToken()
       )
     )
+  }
+  internal init(elements: [(any PatternConvertible)?]) {
+    self.elements = elements
   }
 }

@@ -41,6 +41,21 @@ public struct Closure: CodeBlock {
     !parameters.isEmpty || returnType != nil || !capture.isEmpty || !attributes.isEmpty
   }
 
+  public var syntax: any SyntaxProtocol {
+    let captureClause = buildCaptureClause()
+    let signature = buildSignature(captureClause: captureClause)
+    let bodyBlock = buildBodyBlock()
+
+    return ExprSyntax(
+      ClosureExprSyntax(
+        leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
+        signature: signature,
+        statements: bodyBlock,
+        rightBrace: .rightBraceToken(leadingTrivia: .newline)
+      )
+    )
+  }
+
   /// Creates a closure with all parameters.
   /// - Parameters:
   ///   - capture: A ``ParameterExpBuilderResult`` that provides the capture list.
@@ -184,20 +199,5 @@ public struct Closure: CodeBlock {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
     return copy
-  }
-
-  public var syntax: any SyntaxProtocol {
-    let captureClause = buildCaptureClause()
-    let signature = buildSignature(captureClause: captureClause)
-    let bodyBlock = buildBodyBlock()
-
-    return ExprSyntax(
-      ClosureExprSyntax(
-        leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
-        signature: signature,
-        statements: bodyBlock,
-        rightBrace: .rightBraceToken(leadingTrivia: .newline)
-      )
-    )
   }
 }

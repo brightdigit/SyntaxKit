@@ -33,12 +33,6 @@ import Foundation
 internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
   internal let elements: [(Literal, Literal)]
 
-  /// Creates a dictionary with the given key-value pairs.
-  /// - Parameter elements: The dictionary key-value pairs.
-  internal init(_ elements: [(Literal, Literal)]) {
-    self.elements = elements
-  }
-
   /// The code block representation of this dictionary literal.
   internal var codeBlock: any CodeBlock {
     Literal.dictionary(elements)
@@ -100,5 +94,11 @@ internal struct DictionaryLiteral: LiteralValue, CodeBlockable {
       return "\(keyString): \(valueString)"
     }
     return "[\(elementStrings.joined(separator: ", "))]"
+  }
+
+  /// Creates a dictionary with the given key-value pairs.
+  /// - Parameter elements: The dictionary key-value pairs.
+  internal init(_ elements: [(Literal, Literal)]) {
+    self.elements = elements
   }
 }

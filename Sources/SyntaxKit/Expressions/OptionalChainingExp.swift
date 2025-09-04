@@ -33,12 +33,6 @@ import SwiftSyntax
 internal struct OptionalChainingExp: CodeBlock {
   internal let base: any CodeBlock
 
-  /// Creates an optional chaining expression.
-  /// - Parameter base: The base expression to make optional.
-  internal init(base: any CodeBlock) {
-    self.base = base
-  }
-
   internal var syntax: any SyntaxProtocol {
     // Convert base.syntax to ExprSyntax more safely
     let baseExpr: ExprSyntax
@@ -52,5 +46,10 @@ internal struct OptionalChainingExp: CodeBlock {
       baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     }
     return OptionalChainingExprSyntax(expression: baseExpr)
+  }
+  /// Creates an optional chaining expression.
+  /// - Parameter base: The base expression to make optional.
+  internal init(base: any CodeBlock) {
+    self.base = base
   }
 }

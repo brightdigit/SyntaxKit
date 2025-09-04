@@ -62,6 +62,31 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   private let leftOperand: any ExprCodeBlock
   private let rightOperand: any ExprCodeBlock
 
+  public var exprSyntax: ExprSyntax {
+    let left = leftOperand.exprSyntax
+    let right = rightOperand.exprSyntax
+
+    let operatorExpr = ExprSyntax(
+      BinaryOperatorExprSyntax(
+        operator: .binaryOperator(operation, leadingTrivia: .space, trailingTrivia: .space)
+      )
+    )
+
+    return ExprSyntax(
+      SequenceExprSyntax(
+        elements: ExprListSyntax([
+          left,
+          operatorExpr,
+          right,
+        ])
+      )
+    )
+  }
+
+  public var syntax: any SyntaxProtocol {
+    exprSyntax
+  }
+
   /// Creates an infix expression with a comparison operator.
   /// - Parameters:
   ///   - operator: The comparison operator to use.
@@ -108,30 +133,5 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     }
     self.leftOperand = lhs
     self.rightOperand = rhs
-  }
-
-  public var exprSyntax: ExprSyntax {
-    let left = leftOperand.exprSyntax
-    let right = rightOperand.exprSyntax
-
-    let operatorExpr = ExprSyntax(
-      BinaryOperatorExprSyntax(
-        operator: .binaryOperator(operation, leadingTrivia: .space, trailingTrivia: .space)
-      )
-    )
-
-    return ExprSyntax(
-      SequenceExprSyntax(
-        elements: ExprListSyntax([
-          left,
-          operatorExpr,
-          right,
-        ])
-      )
-    )
-  }
-
-  public var syntax: any SyntaxProtocol {
-    exprSyntax
   }
 }

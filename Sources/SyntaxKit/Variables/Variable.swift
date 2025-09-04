@@ -42,6 +42,27 @@ public struct Variable: CodeBlock {
   private var explicitType: Bool = false
   internal var accessModifier: AccessModifier?
 
+  public var syntax: any SyntaxProtocol {
+    let bindingKeyword = buildBindingKeyword()
+    let identifier = buildIdentifier()
+    let typeAnnotation = buildTypeAnnotation()
+    let initializer = buildInitializer()
+    let modifiers = buildModifiers()
+
+    return VariableDeclSyntax(
+      attributes: buildAttributeList(from: attributes),
+      modifiers: modifiers,
+      bindingSpecifier: bindingKeyword,
+      bindings: PatternBindingListSyntax([
+        PatternBindingSyntax(
+          pattern: IdentifierPatternSyntax(identifier: identifier),
+          typeAnnotation: typeAnnotation,
+          initializer: initializer
+        )
+      ])
+    )
+  }
+
   /// Internal initializer used by extension initializers to reduce code duplication.
   /// - Parameters:
   ///   - kind: The kind of variable, either ``VariableKind/let`` or ``VariableKind/var``.
@@ -109,27 +130,6 @@ public struct Variable: CodeBlock {
     var copy = self
     copy.explicitType = true
     return copy
-  }
-
-  public var syntax: any SyntaxProtocol {
-    let bindingKeyword = buildBindingKeyword()
-    let identifier = buildIdentifier()
-    let typeAnnotation = buildTypeAnnotation()
-    let initializer = buildInitializer()
-    let modifiers = buildModifiers()
-
-    return VariableDeclSyntax(
-      attributes: buildAttributeList(from: attributes),
-      modifiers: modifiers,
-      bindingSpecifier: bindingKeyword,
-      bindings: PatternBindingListSyntax([
-        PatternBindingSyntax(
-          pattern: IdentifierPatternSyntax(identifier: identifier),
-          typeAnnotation: typeAnnotation,
-          initializer: initializer
-        )
-      ])
-    )
   }
 
   // MARK: - Private Helper Methods

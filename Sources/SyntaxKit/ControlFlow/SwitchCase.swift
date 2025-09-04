@@ -34,32 +34,6 @@ public struct SwitchCase: CodeBlock {
   private let patterns: [any PatternConvertible]
   private let body: [any CodeBlock]
 
-  /// Creates a `case` for a `switch` statement.
-  /// - Parameters:
-  ///   - patterns: The patterns to match for the case. Must conform to `PatternConvertible`.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(
-    _ patterns: any PatternConvertible...,
-    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
-  )
-    rethrows
-  {
-    self.patterns = patterns
-    self.body = try content()
-  }
-
-  /// Creates a `case` for a `switch` statement with a builder closure for the conditional.
-  /// - Parameters:
-  ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(
-    @CodeBlockBuilderResult conditional: () throws -> [any PatternConvertible],
-    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
-  ) rethrows {
-    self.patterns = try conditional()
-    self.body = try content()
-  }
-
   public var switchCaseSyntax: SwitchCaseSyntax {
     let caseItems = SwitchCaseItemListSyntax(
       patterns.enumerated().compactMap { index, pattern -> SwitchCaseItemSyntax? in
@@ -140,4 +114,30 @@ public struct SwitchCase: CodeBlock {
   }
 
   public var syntax: any SyntaxProtocol { switchCaseSyntax }
+
+  /// Creates a `case` for a `switch` statement.
+  /// - Parameters:
+  ///   - patterns: The patterns to match for the case. Must conform to `PatternConvertible`.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
+  public init(
+    _ patterns: any PatternConvertible...,
+    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
+  )
+    rethrows
+  {
+    self.patterns = patterns
+    self.body = try content()
+  }
+
+  /// Creates a `case` for a `switch` statement with a builder closure for the conditional.
+  /// - Parameters:
+  ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
+  public init(
+    @CodeBlockBuilderResult conditional: () throws -> [any PatternConvertible],
+    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.patterns = try conditional()
+    self.body = try content()
+  }
 }

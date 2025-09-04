@@ -34,30 +34,6 @@ public struct Switch: CodeBlock, Sendable {
   private let expression: any CodeBlock
   private let cases: [any CodeBlock]
 
-  /// Creates a `switch` statement.
-  /// - Parameters:
-  ///   - expression: The expression to switch on.
-  ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
-  public init(
-    _ expression: any CodeBlock, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
-  )
-    rethrows
-  {
-    self.expression = expression
-    self.cases = try content()
-  }
-
-  /// Convenience initializer that accepts a string expression.
-  /// - Parameters:
-  ///   - expression: The string expression to switch on.
-  ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
-  public init(_ expression: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
-    rethrows
-  {
-    self.expression = VariableExp(expression)
-    self.cases = try content()
-  }
-
   public var syntax: any SyntaxProtocol {
     let expr = ExprSyntax(
       fromProtocol: expression.syntax.as(ExprSyntax.self)
@@ -84,5 +60,29 @@ public struct Switch: CodeBlock, Sendable {
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
     return switchExpr
+  }
+
+  /// Creates a `switch` statement.
+  /// - Parameters:
+  ///   - expression: The expression to switch on.
+  ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
+  public init(
+    _ expression: any CodeBlock, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
+  )
+    rethrows
+  {
+    self.expression = expression
+    self.cases = try content()
+  }
+
+  /// Convenience initializer that accepts a string expression.
+  /// - Parameters:
+  ///   - expression: The string expression to switch on.
+  ///   - content: A ``CodeBlockBuilder`` that provides the cases for the switch.
+  public init(_ expression: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
+  {
+    self.expression = VariableExp(expression)
+    self.cases = try content()
   }
 }

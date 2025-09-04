@@ -34,12 +34,6 @@ import SwiftSyntax
 internal struct TupleLiteralArray: CodeBlockableLiteral {
   internal let elements: [Literal?]
 
-  /// Creates a tuple with the given elements.
-  /// - Parameter elements: The tuple elements, where `nil` represents a wildcard.
-  internal init(_ elements: [Literal?]) {
-    self.elements = elements
-  }
-
   /// The code block representation of this tuple literal.
   internal var codeBlock: any CodeBlock {
     Literal.tuple(elements)
@@ -93,5 +87,11 @@ internal struct TupleLiteralArray: CodeBlockableLiteral {
       }
     }
     return "(\(elementStrings.joined(separator: ", ")))"
+  }
+
+  /// Creates a tuple with the given elements.
+  /// - Parameter elements: The tuple elements, where `nil` represents a wildcard.
+  internal init(_ elements: [Literal?]) {
+    self.elements = elements
   }
 }

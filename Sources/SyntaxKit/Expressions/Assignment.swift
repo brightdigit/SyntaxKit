@@ -34,6 +34,24 @@ public struct Assignment: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
 
+  public var syntax: any SyntaxProtocol {
+    let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
+    let right = valueExpr
+    let assignmentExpr = ExprSyntax(
+      SequenceExprSyntax(
+        elements: ExprListSyntax([
+          left,
+          ExprSyntax(
+            AssignmentExprSyntax(equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space))
+          ),
+          right,
+        ])
+      )
+    )
+    // Wrap the expression as a statement
+    return StmtSyntax(ExpressionStmtSyntax(expression: assignmentExpr))
+  }
+
   /// Creates an assignment where the value is an expression.
   public init(_ target: String, _ value: any ExprCodeBlock) {
     self.target = target
@@ -64,23 +82,5 @@ public struct Assignment: CodeBlock {
   /// Creates an assignment with a double literal value.
   public init(_ target: String, _ value: Double) {
     self.init(target, .float(value))
-  }
-
-  public var syntax: any SyntaxProtocol {
-    let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
-    let right = valueExpr
-    let assignmentExpr = ExprSyntax(
-      SequenceExprSyntax(
-        elements: ExprListSyntax([
-          left,
-          ExprSyntax(
-            AssignmentExprSyntax(equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space))
-          ),
-          right,
-        ])
-      )
-    )
-    // Wrap the expression as a statement
-    return StmtSyntax(ExpressionStmtSyntax(expression: assignmentExpr))
   }
 }

@@ -33,11 +33,6 @@ public import SwiftSyntax
 public struct Return: CodeBlock {
   private let exprs: [any CodeBlock]
 
-  /// Creates a `return` statement.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the expression to return.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
-    self.exprs = try content()
-  }
   public var syntax: any SyntaxProtocol {
     if let expr = exprs.first {
       if let varExp = expr as? VariableExp {
@@ -73,5 +68,11 @@ public struct Return: CodeBlock {
         returnKeyword: .keyword(.return, trailingTrivia: .space)
       )
     }
+  }
+
+  /// Creates a `return` statement.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the expression to return.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.exprs = try content()
   }
 }

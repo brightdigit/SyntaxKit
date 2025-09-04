@@ -35,6 +35,24 @@ public struct If: CodeBlock, Sendable {
   internal let body: [any CodeBlock]
   internal let elseBody: [any CodeBlock]?
 
+  public var syntax: any SyntaxProtocol {
+    // Build list of ConditionElements from all provided conditions
+    let condList = buildConditions()
+    let bodyBlock = buildBody()
+    let elseBlock = buildElseBody()
+
+    return ExprSyntax(
+      IfExprSyntax(
+        ifKeyword: .keyword(.if, trailingTrivia: .space),
+        conditions: condList,
+        body: bodyBlock,
+        elseKeyword: elseBlock != nil
+          ? .keyword(.else, leadingTrivia: .space, trailingTrivia: .space) : nil,
+        elseBody: elseBlock
+      )
+    )
+  }
+
   /// Convenience initializer that keeps the previous API: pass the condition directly.
   public init(
     @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
@@ -172,23 +190,5 @@ public struct If: CodeBlock, Sendable {
     self.body = try then()
     let generatedElse = try elseBody()
     self.elseBody = generatedElse.isEmpty ? nil : generatedElse
-  }
-
-  public var syntax: any SyntaxProtocol {
-    // Build list of ConditionElements from all provided conditions
-    let condList = buildConditions()
-    let bodyBlock = buildBody()
-    let elseBlock = buildElseBody()
-
-    return ExprSyntax(
-      IfExprSyntax(
-        ifKeyword: .keyword(.if, trailingTrivia: .space),
-        conditions: condList,
-        body: bodyBlock,
-        elseKeyword: elseBlock != nil
-          ? .keyword(.else, leadingTrivia: .space, trailingTrivia: .space) : nil,
-        elseBody: elseBlock
-      )
-    )
   }
 }

@@ -35,36 +35,6 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
   private let returnType: String?
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a closure type with no parameters.
-  /// - Parameter returnType: The return type of the closure.
-  public init(returns returnType: String? = nil) {
-    self.parameters = []
-    self.returnType = returnType
-  }
-
-  /// Creates a closure type with parameters.
-  /// - Parameters:
-  ///   - returnType: The return type of the closure.
-  ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the parameters.
-  public init(
-    returns returnType: String? = nil,
-    @ClosureParameterBuilderResult _ parameters: () -> [ClosureParameter]
-  ) {
-    self.parameters = parameters()
-    self.returnType = returnType
-  }
-
-  /// Adds an attribute to the closure type.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the closure type with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
   public var syntax: any SyntaxProtocol {
     // Build parameters
     let paramList = parameters.map { param in
@@ -106,55 +76,6 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
     } else {
       return functionType
     }
-  }
-
-  private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
-    if attributes.isEmpty {
-      return AttributeListSyntax([])
-    }
-    let attributeElements = attributes.enumerated().map { index, attributeInfo in
-      let arguments = attributeInfo.arguments
-
-      var leftParen: TokenSyntax?
-      var rightParen: TokenSyntax?
-      var argumentsSyntax: AttributeSyntax.Arguments?
-
-      if !arguments.isEmpty {
-        leftParen = .leftParenToken()
-        rightParen = .rightParenToken()
-
-        let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
-        }
-
-        argumentsSyntax = .argumentList(
-          LabeledExprListSyntax(
-            argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
-              if index < argumentList.count - 1 {
-                element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
-              }
-              return element
-            }
-          )
-        )
-      }
-
-      // Add leading space for all but the first attribute
-      let atSign =
-        index == 0 ? TokenSyntax.atSignToken() : TokenSyntax.atSignToken(leadingTrivia: .space)
-
-      return AttributeListSyntax.Element(
-        AttributeSyntax(
-          atSign: atSign,
-          attributeName: IdentifierTypeSyntax(name: .identifier(attributeInfo.name)),
-          leftParen: leftParen,
-          arguments: argumentsSyntax,
-          rightParen: rightParen
-        ).with(\.trailingTrivia, index == attributes.count - 1 ? .space : Trivia())
-      )
-    }
-    return AttributeListSyntax(attributeElements)
   }
 
   /// A string representation of the closure type.
@@ -217,5 +138,84 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
     } else {
       return TypeSyntax(functionType)
     }
+  }
+
+  /// Creates a closure type with no parameters.
+  /// - Parameter returnType: The return type of the closure.
+  public init(returns returnType: String? = nil) {
+    self.parameters = []
+    self.returnType = returnType
+  }
+
+  /// Creates a closure type with parameters.
+  /// - Parameters:
+  ///   - returnType: The return type of the closure.
+  ///   - parameters: A ``ClosureParameterBuilderResult`` that provides the parameters.
+  public init(
+    returns returnType: String? = nil,
+    @ClosureParameterBuilderResult _ parameters: () -> [ClosureParameter]
+  ) {
+    self.parameters = parameters()
+    self.returnType = returnType
+  }
+
+  /// Adds an attribute to the closure type.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the closure type with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
+  }
+
+  private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
+    if attributes.isEmpty {
+      return AttributeListSyntax([])
+    }
+    let attributeElements = attributes.enumerated().map { index, attributeInfo in
+      let arguments = attributeInfo.arguments
+
+      var leftParen: TokenSyntax?
+      var rightParen: TokenSyntax?
+      var argumentsSyntax: AttributeSyntax.Arguments?
+
+      if !arguments.isEmpty {
+        leftParen = .leftParenToken()
+        rightParen = .rightParenToken()
+
+        let argumentList = arguments.map { argument in
+          DeclReferenceExprSyntax(baseName: .identifier(argument))
+        }
+
+        argumentsSyntax = .argumentList(
+          LabeledExprListSyntax(
+            argumentList.enumerated().map { index, expr in
+              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
+              if index < argumentList.count - 1 {
+                element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
+              }
+              return element
+            }
+          )
+        )
+      }
+
+      // Add leading space for all but the first attribute
+      let atSign =
+        index == 0 ? TokenSyntax.atSignToken() : TokenSyntax.atSignToken(leadingTrivia: .space)
+
+      return AttributeListSyntax.Element(
+        AttributeSyntax(
+          atSign: atSign,
+          attributeName: IdentifierTypeSyntax(name: .identifier(attributeInfo.name)),
+          leftParen: leftParen,
+          arguments: argumentsSyntax,
+          rightParen: rightParen
+        ).with(\.trailingTrivia, index == attributes.count - 1 ? .space : Trivia())
+      )
+    }
+    return AttributeListSyntax(attributeElements)
   }
 }

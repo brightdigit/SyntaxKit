@@ -33,6 +33,18 @@ public import SwiftSyntax
 public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {
   internal let name: String
 
+  public var syntax: any SyntaxProtocol {
+    ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
+  }
+
+  public var exprSyntax: ExprSyntax {
+    ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
+  }
+
+  public var patternSyntax: PatternSyntax {
+    PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(name)))
+  }
+
   /// Creates a variable expression.
   /// - Parameter name: The name of the variable.
   public init(_ name: String) {
@@ -88,17 +100,5 @@ public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {
   /// - Returns: A code block that represents the reference.
   public func reference(_ referenceType: CaptureReferenceType) -> any CodeBlock {
     ReferenceExp(base: self, referenceType: referenceType)
-  }
-
-  public var syntax: any SyntaxProtocol {
-    ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
-  }
-
-  public var exprSyntax: ExprSyntax {
-    ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
-  }
-
-  public var patternSyntax: PatternSyntax {
-    PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(name)))
   }
 }

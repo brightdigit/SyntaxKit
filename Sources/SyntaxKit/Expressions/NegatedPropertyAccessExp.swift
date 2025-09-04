@@ -33,17 +33,6 @@ import SwiftSyntax
 internal struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
   internal let base: any CodeBlock
 
-  /// Creates a negated property access expression.
-  /// - Parameter base: The base property access expression.
-  internal init(base: any CodeBlock) {
-    self.base = base
-  }
-
-  /// Backward compatibility initializer for (baseName, propertyName).
-  internal init(baseName: String, propertyName: String) {
-    self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
-  }
-
   internal var exprSyntax: ExprSyntax {
     let memberAccess =
       base.syntax.as(ExprSyntax.self)
@@ -64,5 +53,16 @@ internal struct NegatedPropertyAccessExp: CodeBlock, ExprCodeBlock {
 
   internal var syntax: any SyntaxProtocol {
     exprSyntax
+  }
+
+  /// Creates a negated property access expression.
+  /// - Parameter base: The base property access expression.
+  internal init(base: any CodeBlock) {
+    self.base = base
+  }
+
+  /// Backward compatibility initializer for (baseName, propertyName).
+  internal init(baseName: String, propertyName: String) {
+    self.base = PropertyAccessExp(baseName: baseName, propertyName: propertyName)
   }
 }

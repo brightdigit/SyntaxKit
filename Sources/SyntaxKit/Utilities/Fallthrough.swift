@@ -31,9 +31,6 @@ public import SwiftSyntax
 
 /// A `fallthrough` statement.
 public struct Fallthrough: CodeBlock {
-  /// Creates a `fallthrough` statement.
-  public init() {}
-
   public var syntax: any SyntaxProtocol {
     StmtSyntax(
       FallThroughStmtSyntax(
@@ -41,4 +38,7 @@ public struct Fallthrough: CodeBlock {
       )
     )
   }
+
+  /// Creates a `fallthrough` statement.
+  public init() {}
 }

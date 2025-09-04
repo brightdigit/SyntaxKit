@@ -34,6 +34,26 @@ internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible 
   internal let base: any CodeBlock
   internal let propertyName: String
 
+  internal var exprSyntax: ExprSyntax {
+    let baseSyntax =
+      base.syntax.as(ExprSyntax.self)
+      ?? ExprSyntax(
+        DeclReferenceExprSyntax(baseName: .identifier(""))
+      )
+    let property = TokenSyntax.identifier(propertyName)
+    return ExprSyntax(
+      MemberAccessExprSyntax(
+        base: baseSyntax,
+        dot: .periodToken(),
+        name: property
+      )
+    )
+  }
+
+  internal var syntax: any SyntaxProtocol {
+    exprSyntax
+  }
+
   /// Creates a property access expression.
   /// - Parameters:
   ///  - base: The base expression.
@@ -60,25 +80,5 @@ internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible 
   /// - Returns: A negated property access expression.
   internal func not() -> any CodeBlock {
     NegatedPropertyAccessExp(base: self)
-  }
-
-  internal var exprSyntax: ExprSyntax {
-    let baseSyntax =
-      base.syntax.as(ExprSyntax.self)
-      ?? ExprSyntax(
-        DeclReferenceExprSyntax(baseName: .identifier(""))
-      )
-    let property = TokenSyntax.identifier(propertyName)
-    return ExprSyntax(
-      MemberAccessExprSyntax(
-        base: baseSyntax,
-        dot: .periodToken(),
-        name: property
-      )
-    )
-  }
-
-  internal var syntax: any SyntaxProtocol {
-    exprSyntax
   }
 }

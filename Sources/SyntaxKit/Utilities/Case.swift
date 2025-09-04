@@ -37,42 +37,6 @@ public struct Case: CodeBlock {
   private let enumCaseName: String?
   private var associatedValue: (name: String, type: String)?
 
-  /// Creates a case declaration.
-  /// - Parameters:
-  ///   - patterns: The patterns for the case.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(
-    _ patterns: any PatternConvertible...,
-    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
-  ) rethrows {
-    self.patterns = patterns
-    self.body = try content()
-    self.isEnumCase = false
-    self.enumCaseName = nil
-    self.associatedValue = nil
-  }
-
-  /// Creates an enum case declaration.
-  /// - Parameter name: The name of the enum case.
-  public init(_ name: String) {
-    self.patterns = []
-    self.body = []
-    self.isEnumCase = true
-    self.enumCaseName = name
-    self.associatedValue = nil
-  }
-
-  /// Sets the associated value for the enum case.
-  /// - Parameters:
-  ///   - name: The name of the associated value.
-  ///   - type: The type of the associated value.
-  /// - Returns: A copy of the case with the associated value set.
-  public func associatedValue(_ name: String, type: String) -> Self {
-    var copy = self
-    copy.associatedValue = (name: name, type: type)
-    return copy
-  }
-
   public var switchCaseSyntax: SwitchCaseSyntax {
     let caseItems = SwitchCaseItemListSyntax(
       patterns.enumerated().map { index, pat in
@@ -150,5 +114,41 @@ public struct Case: CodeBlock {
       // Handle switch case
       return switchCaseSyntax
     }
+  }
+
+  /// Creates a case declaration.
+  /// - Parameters:
+  ///   - patterns: The patterns for the case.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
+  public init(
+    _ patterns: any PatternConvertible...,
+    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.patterns = patterns
+    self.body = try content()
+    self.isEnumCase = false
+    self.enumCaseName = nil
+    self.associatedValue = nil
+  }
+
+  /// Creates an enum case declaration.
+  /// - Parameter name: The name of the enum case.
+  public init(_ name: String) {
+    self.patterns = []
+    self.body = []
+    self.isEnumCase = true
+    self.enumCaseName = name
+    self.associatedValue = nil
+  }
+
+  /// Sets the associated value for the enum case.
+  /// - Parameters:
+  ///   - name: The name of the associated value.
+  ///   - type: The type of the associated value.
+  /// - Returns: A copy of the case with the associated value set.
+  public func associatedValue(_ name: String, type: String) -> Self {
+    var copy = self
+    copy.associatedValue = (name: name, type: type)
+    return copy
   }
 }

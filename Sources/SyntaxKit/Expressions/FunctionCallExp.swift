@@ -36,30 +36,6 @@ internal struct FunctionCallExp: CodeBlock {
   internal let parameters: [ParameterExp]
   private let base: (any CodeBlock)?
 
-  /// Creates a function call expression on a variable name.
-  internal init(baseName: String, methodName: String) {
-    self.baseName = baseName
-    self.methodName = methodName
-    self.parameters = []
-    self.base = nil
-  }
-
-  /// Creates a function call expression with parameters on a variable name.
-  internal init(baseName: String, methodName: String, parameters: [ParameterExp]) {
-    self.baseName = baseName
-    self.methodName = methodName
-    self.parameters = parameters
-    self.base = nil
-  }
-
-  /// Creates a function call expression on an arbitrary base expression.
-  internal init(base: any CodeBlock, methodName: String, parameters: [ParameterExp] = []) {
-    self.baseName = ""
-    self.methodName = methodName
-    self.parameters = parameters
-    self.base = base
-  }
-
   internal var syntax: any SyntaxProtocol {
     let baseExpr: ExprSyntax
     if let base = base {
@@ -137,5 +113,29 @@ internal struct FunctionCallExp: CodeBlock {
     )
 
     return ExprSyntax(functionCall)
+  }
+
+  /// Creates a function call expression on a variable name.
+  internal init(baseName: String, methodName: String) {
+    self.baseName = baseName
+    self.methodName = methodName
+    self.parameters = []
+    self.base = nil
+  }
+
+  /// Creates a function call expression with parameters on a variable name.
+  internal init(baseName: String, methodName: String, parameters: [ParameterExp]) {
+    self.baseName = baseName
+    self.methodName = methodName
+    self.parameters = parameters
+    self.base = nil
+  }
+
+  /// Creates a function call expression on an arbitrary base expression.
+  internal init(base: any CodeBlock, methodName: String, parameters: [ParameterExp] = []) {
+    self.baseName = ""
+    self.methodName = methodName
+    self.parameters = parameters
+    self.base = base
   }
 }

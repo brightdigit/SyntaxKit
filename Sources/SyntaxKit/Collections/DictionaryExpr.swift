@@ -33,12 +33,6 @@ public import SwiftSyntax
 public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {
   private let elements: [(any DictionaryValue, any DictionaryValue)]
 
-  /// Creates a dictionary expression with the given key-value pairs.
-  /// - Parameter elements: The dictionary key-value pairs.
-  public init(_ elements: [(any DictionaryValue, any DictionaryValue)]) {
-    self.elements = elements
-  }
-
   /// The code block representation of this dictionary expression.
   public var codeBlock: any CodeBlock {
     self
@@ -94,5 +88,10 @@ public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {
         rightSquare: .rightSquareToken(leadingTrivia: .newline)
       )
     }
+  }
+  /// Creates a dictionary expression with the given key-value pairs.
+  /// - Parameter elements: The dictionary key-value pairs.
+  public init(_ elements: [(any DictionaryValue, any DictionaryValue)]) {
+    self.elements = elements
   }
 }

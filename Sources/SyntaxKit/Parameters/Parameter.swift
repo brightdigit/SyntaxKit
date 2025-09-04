@@ -44,30 +44,10 @@ public struct Parameter: CodeBlock {
   internal let type: any TypeRepresentable
   internal let defaultValue: String?
 
-  /// Convenience flag – true when the parameter uses the underscore label.
-  internal var isUnnamed: Bool { label == "_" }
-
   internal var attributes: [AttributeInfo] = []
 
-  /// Creates an unlabeled parameter for function calls or initializers.
-  /// - Parameter value: The value of the parameter.
-  public init(unlabeled value: String) {
-    self.name = ""
-    self.label = "_"
-    self.type = ""
-    self.defaultValue = value
-  }
-
-  /// Adds an attribute to the parameter declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the parameter with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
+  /// Convenience flag – true when the parameter uses the underscore label.
+  internal var isUnnamed: Bool { label == "_" }
 
   public var syntax: any SyntaxProtocol {
     let callLabel = label ?? name
@@ -87,6 +67,15 @@ public struct Parameter: CodeBlock {
     }
     // Note: If you want to support attributes in parameter syntax, you would need to
     // update the function signature generation in Function.swift to use these attributes.
+  }
+
+  /// Creates an unlabeled parameter for function calls or initializers.
+  /// - Parameter value: The value of the parameter.
+  public init(unlabeled value: String) {
+    self.name = ""
+    self.label = "_"
+    self.type = ""
+    self.defaultValue = value
   }
 
   /// Creates a single-name parameter (same label and internal name).
@@ -133,5 +122,16 @@ public struct Parameter: CodeBlock {
     } else {
       self.init(name: name, type: type, defaultValue: defaultValue)
     }
+  }
+
+  /// Adds an attribute to the parameter declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the parameter with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 }

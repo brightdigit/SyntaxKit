@@ -35,6 +35,14 @@ public struct ClosureParameter: TypeRepresentable {
   public var type: String?
   internal var attributes: [AttributeInfo]
 
+  public var typeSyntax: TypeSyntax {
+    if let type = type {
+      return TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
+    } else {
+      return TypeSyntax(IdentifierTypeSyntax(name: .identifier("Any")))
+    }
+  }
+
   public init(_ name: String, type: String? = nil) {
     self.name = name
     self.type = type
@@ -45,13 +53,5 @@ public struct ClosureParameter: TypeRepresentable {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
     return copy
-  }
-
-  public var typeSyntax: TypeSyntax {
-    if let type = type {
-      return TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
-    } else {
-      return TypeSyntax(IdentifierTypeSyntax(name: .identifier("Any")))
-    }
   }
 }

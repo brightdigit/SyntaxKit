@@ -35,50 +35,6 @@ public struct Tuple: CodeBlock {
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
 
-  /// Creates a tuple.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the elements of the tuple.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
-    self.elements = try content()
-  }
-
-  /// Creates a tuple pattern for switch cases.
-  /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
-  public static func pattern(_ elements: [(any PatternConvertible)?]) -> any PatternConvertible {
-    TuplePattern(elements: elements)
-  }
-
-  /// Creates a tuple pattern that can be used as a CodeBlock.
-  /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
-  public static func patternCodeBlock(_ elements: [(any PatternConvertible)?])
-    -> any PatternCodeBlock
-  {
-    PatternConvertableCollection(elements: elements)
-  }
-
-  /// Marks this tuple as async.
-  /// - Returns: A copy of the tuple marked as async.
-  public func async() -> Self {
-    var copy = self
-    copy.isAsync = true
-    return copy
-  }
-
-  /// Marks this tuple as await.
-  /// - Returns: A copy of the tuple marked as await.
-  public func await() -> Self {
-    var copy = self
-    copy.isAsync = true
-    return copy
-  }
-
-  /// Marks this tuple as throwing.
-  /// - Returns: A copy of the tuple marked as throwing.
-  public func throwing() -> Self {
-    var copy = self
-    copy.isThrowing = true
-    return copy
-  }
-
   public var syntax: any SyntaxProtocol {
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
@@ -123,5 +79,49 @@ public struct Tuple: CodeBlock {
     } else {
       return tupleExpr
     }
+  }
+
+  /// Creates a tuple.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the elements of the tuple.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.elements = try content()
+  }
+
+  /// Creates a tuple pattern for switch cases.
+  /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
+  public static func pattern(_ elements: [(any PatternConvertible)?]) -> any PatternConvertible {
+    TuplePattern(elements: elements)
+  }
+
+  /// Creates a tuple pattern that can be used as a CodeBlock.
+  /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
+  public static func patternCodeBlock(_ elements: [(any PatternConvertible)?])
+    -> any PatternCodeBlock
+  {
+    PatternConvertableCollection(elements: elements)
+  }
+
+  /// Marks this tuple as async.
+  /// - Returns: A copy of the tuple marked as async.
+  public func async() -> Self {
+    var copy = self
+    copy.isAsync = true
+    return copy
+  }
+
+  /// Marks this tuple as await.
+  /// - Returns: A copy of the tuple marked as await.
+  public func await() -> Self {
+    var copy = self
+    copy.isAsync = true
+    return copy
+  }
+
+  /// Marks this tuple as throwing.
+  /// - Returns: A copy of the tuple marked as throwing.
+  public func throwing() -> Self {
+    var copy = self
+    copy.isThrowing = true
+    return copy
   }
 }

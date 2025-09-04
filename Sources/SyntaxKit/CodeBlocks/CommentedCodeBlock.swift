@@ -28,11 +28,25 @@
 //
 
 import Foundation
-public import SwiftSyntax
+import SwiftSyntax
 
 // MARK: - Wrapper `CodeBlock` that injects leading trivia
 
 internal struct CommentedCodeBlock: CodeBlock {
+  // Re-write the first token of the underlying syntax node to prepend the trivia.
+  private final class FirstTokenRewriter: SyntaxRewriter {
+    let newToken: TokenSyntax
+    private var replaced = false
+    init(newToken: TokenSyntax) { self.newToken = newToken }
+    override func visit(_ token: TokenSyntax) -> TokenSyntax {
+      if !replaced {
+        replaced = true
+        return newToken
+      }
+      return token
+    }
+  }
+
   internal let base: any CodeBlock
   internal let lines: [Line]
 
@@ -43,20 +57,6 @@ internal struct CommentedCodeBlock: CodeBlock {
     }
 
     let commentTrivia = Trivia(pieces: lines.flatMap { [$0.triviaPiece, TriviaPiece.newlines(1)] })
-
-    // Re-write the first token of the underlying syntax node to prepend the trivia.
-    final class FirstTokenRewriter: SyntaxRewriter {
-      let newToken: TokenSyntax
-      private var replaced = false
-      init(newToken: TokenSyntax) { self.newToken = newToken }
-      override func visit(_ token: TokenSyntax) -> TokenSyntax {
-        if !replaced {
-          replaced = true
-          return newToken
-        }
-        return token
-      }
-    }
 
     guard let firstToken = base.syntax.firstToken(viewMode: .sourceAccurate) else {
       // Fallback – no tokens? return original syntax

@@ -37,45 +37,6 @@ public struct FunctionRequirement: CodeBlock {
   private var isStatic: Bool = false
   private var isMutating: Bool = false
 
-  /// Creates a parameterless function requirement.
-  /// - Parameters:
-  ///   - name: The function name.
-  ///   - returnType: Optional return type.
-  public init(_ name: String, returns returnType: String? = nil) {
-    self.name = name
-    self.parameters = []
-    self.returnType = returnType
-  }
-
-  /// Creates a function requirement with parameters.
-  /// - Parameters:
-  ///   - name: The function name.
-  ///   - returnType: Optional return type.
-  ///   - params: A ParameterBuilderResult providing the parameters.
-  public init(
-    _ name: String,
-    returns returnType: String? = nil,
-    @ParameterBuilderResult _ params: () -> [Parameter]
-  ) {
-    self.name = name
-    self.parameters = params()
-    self.returnType = returnType
-  }
-
-  /// Marks the function requirement as `static`.
-  public func `static`() -> Self {
-    var copy = self
-    copy.isStatic = true
-    return copy
-  }
-
-  /// Marks the function requirement as `mutating`.
-  public func mutating() -> Self {
-    var copy = self
-    copy.isMutating = true
-    return copy
-  }
-
   public var syntax: any SyntaxProtocol {
     let funcKeyword = TokenSyntax.keyword(.func, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
@@ -147,5 +108,44 @@ public struct FunctionRequirement: CodeBlock {
       ),
       body: nil
     )
+  }
+
+  /// Creates a parameterless function requirement.
+  /// - Parameters:
+  ///   - name: The function name.
+  ///   - returnType: Optional return type.
+  public init(_ name: String, returns returnType: String? = nil) {
+    self.name = name
+    self.parameters = []
+    self.returnType = returnType
+  }
+
+  /// Creates a function requirement with parameters.
+  /// - Parameters:
+  ///   - name: The function name.
+  ///   - returnType: Optional return type.
+  ///   - params: A ParameterBuilderResult providing the parameters.
+  public init(
+    _ name: String,
+    returns returnType: String? = nil,
+    @ParameterBuilderResult _ params: () -> [Parameter]
+  ) {
+    self.name = name
+    self.parameters = params()
+    self.returnType = returnType
+  }
+
+  /// Marks the function requirement as `static`.
+  public func `static`() -> Self {
+    var copy = self
+    copy.isStatic = true
+    return copy
+  }
+
+  /// Marks the function requirement as `mutating`.
+  public func mutating() -> Self {
+    var copy = self
+    copy.isMutating = true
+    return copy
   }
 }

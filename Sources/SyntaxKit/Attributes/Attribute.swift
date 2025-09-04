@@ -34,24 +34,6 @@ public struct Attribute: CodeBlock {
   private let name: String
   private let arguments: [String]
 
-  /// Creates an attribute with the given name and optional arguments.
-  /// - Parameters:
-  ///   - name: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  public init(_ name: String, arguments: [String] = []) {
-    self.name = name
-    self.arguments = arguments
-  }
-
-  /// Creates an attribute with a name and a single argument.
-  /// - Parameters:
-  ///   - name: The name of the attribute (without the @ symbol).
-  ///   - argument: The argument for the attribute.
-  public init(_ name: String, argument: String) {
-    self.name = name
-    self.arguments = [argument]
-  }
-
   public var syntax: any SyntaxProtocol {
     var leftParen: TokenSyntax?
     var rightParen: TokenSyntax?
@@ -85,5 +67,23 @@ public struct Attribute: CodeBlock {
       arguments: argumentsSyntax,
       rightParen: rightParen
     )
+  }
+
+  /// Creates an attribute with the given name and optional arguments.
+  /// - Parameters:
+  ///   - name: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  public init(_ name: String, arguments: [String] = []) {
+    self.name = name
+    self.arguments = arguments
+  }
+
+  /// Creates an attribute with a name and a single argument.
+  /// - Parameters:
+  ///   - name: The name of the attribute (without the @ symbol).
+  ///   - argument: The argument for the attribute.
+  public init(_ name: String, argument: String) {
+    self.name = name
+    self.arguments = [argument]
   }
 }
