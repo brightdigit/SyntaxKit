@@ -34,56 +34,6 @@ public struct Guard: CodeBlock, Sendable {
   private let conditions: [any CodeBlock]
   private let elseBody: [any CodeBlock]
 
-  /// Creates a `guard` statement.
-  /// - Parameters:
-  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
-  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
-  public init(
-    @CodeBlockBuilderResult _ condition: () throws -> [any CodeBlock],
-    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
-  ) rethrows {
-    let allConditions = try condition()
-    if allConditions.isEmpty {
-      // Use true as default condition when no conditions are provided
-      self.conditions = [Literal.boolean(true)]
-    } else {
-      self.conditions = allConditions
-    }
-    self.elseBody = try elseBody()
-  }
-
-  /// Creates a `guard` statement without a condition (uses true as default).
-  /// - Parameters:
-  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
-  public init(
-    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
-  ) rethrows {
-    try self.init(
-      [any CodeBlock].init,
-      else: elseBody
-    )
-  }
-
-  /// Creates a `guard` statement with a string condition.
-  /// - Parameters:
-  ///   - condition: The condition as a string.
-  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
-  public init(
-    _ condition: String,
-    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
-  ) rethrows {
-    self.conditions = [VariableExp(condition)]
-    self.elseBody = try elseBody()
-  }
-
-  /// Convenience initializer that accepts a single condition ``CodeBlock``.
-  public init(
-    _ condition: any CodeBlock,
-    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
-  ) rethrows {
-    try self.init({ condition }, else: elseBody)
-  }
-
   public var syntax: any SyntaxProtocol {
     // MARK: Build conditions list (mirror implementation from `If`)
     let condList = ConditionElementListSyntax(
@@ -164,5 +114,55 @@ public struct Guard: CodeBlock, Sendable {
         body: elseBlock
       )
     )
+  }
+
+  /// Creates a `guard` statement.
+  /// - Parameters:
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    @CodeBlockBuilderResult _ condition: () throws -> [any CodeBlock],
+    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
+  ) rethrows {
+    let allConditions = try condition()
+    if allConditions.isEmpty {
+      // Use true as default condition when no conditions are provided
+      self.conditions = [Literal.boolean(true)]
+    } else {
+      self.conditions = allConditions
+    }
+    self.elseBody = try elseBody()
+  }
+
+  /// Creates a `guard` statement without a condition (uses true as default).
+  /// - Parameters:
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
+  ) rethrows {
+    try self.init(
+      [any CodeBlock].init,
+      else: elseBody
+    )
+  }
+
+  /// Creates a `guard` statement with a string condition.
+  /// - Parameters:
+  ///   - condition: The condition as a string.
+  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  public init(
+    _ condition: String,
+    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.conditions = [VariableExp(condition)]
+    self.elseBody = try elseBody()
+  }
+
+  /// Convenience initializer that accepts a single condition ``CodeBlock``.
+  public init(
+    _ condition: any CodeBlock,
+    @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
+  ) rethrows {
+    try self.init({ condition }, else: elseBody)
   }
 }

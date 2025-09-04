@@ -40,6 +40,54 @@ public struct While: CodeBlock, Sendable {
   private let body: [any CodeBlock]
   private let kind: Kind
 
+  public var syntax: any SyntaxProtocol {
+    let conditionExpr = condition.exprSyntax
+
+    let bodyBlock = CodeBlockSyntax(
+      leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
+      statements: CodeBlockItemListSyntax(
+        body.compactMap {
+          var item: CodeBlockItemSyntax?
+          if let decl = $0.syntax.as(DeclSyntax.self) {
+            item = CodeBlockItemSyntax(item: .decl(decl))
+          } else if let expr = $0.syntax.as(ExprSyntax.self) {
+            item = CodeBlockItemSyntax(item: .expr(expr))
+          } else if let stmt = $0.syntax.as(StmtSyntax.self) {
+            item = CodeBlockItemSyntax(item: .stmt(stmt))
+          }
+          return item?.with(\.trailingTrivia, .newline)
+        }
+      ),
+      rightBrace: .rightBraceToken(leadingTrivia: .newline)
+    )
+
+    switch kind {
+    case .repeatWhile:
+      return StmtSyntax(
+        RepeatWhileStmtSyntax(
+          repeatKeyword: .keyword(.repeat, trailingTrivia: .space),
+          body: bodyBlock,
+          whileKeyword: .keyword(.while, trailingTrivia: .space),
+          condition: conditionExpr
+        )
+      )
+    case .while:
+      return StmtSyntax(
+        WhileStmtSyntax(
+          whileKeyword: .keyword(.while, trailingTrivia: .space),
+          conditions: ConditionElementListSyntax(
+            [
+              ConditionElementSyntax(
+                condition: .expression(conditionExpr)
+              )
+            ]
+          ),
+          body: bodyBlock
+        )
+      )
+    }
+  }
+
   /// Creates a `while` loop statement with an expression condition.
   /// - Parameters:
   ///   - condition: The condition expression that conforms to ExprCodeBlock.
@@ -108,53 +156,5 @@ public struct While: CodeBlock, Sendable {
     self.condition = VariableExp(condition)
     self.body = try then()
     self.kind = kind
-  }
-
-  public var syntax: any SyntaxProtocol {
-    let conditionExpr = condition.exprSyntax
-
-    let bodyBlock = CodeBlockSyntax(
-      leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
-      statements: CodeBlockItemListSyntax(
-        body.compactMap {
-          var item: CodeBlockItemSyntax?
-          if let decl = $0.syntax.as(DeclSyntax.self) {
-            item = CodeBlockItemSyntax(item: .decl(decl))
-          } else if let expr = $0.syntax.as(ExprSyntax.self) {
-            item = CodeBlockItemSyntax(item: .expr(expr))
-          } else if let stmt = $0.syntax.as(StmtSyntax.self) {
-            item = CodeBlockItemSyntax(item: .stmt(stmt))
-          }
-          return item?.with(\.trailingTrivia, .newline)
-        }
-      ),
-      rightBrace: .rightBraceToken(leadingTrivia: .newline)
-    )
-
-    switch kind {
-    case .repeatWhile:
-      return StmtSyntax(
-        RepeatWhileStmtSyntax(
-          repeatKeyword: .keyword(.repeat, trailingTrivia: .space),
-          body: bodyBlock,
-          whileKeyword: .keyword(.while, trailingTrivia: .space),
-          condition: conditionExpr
-        )
-      )
-    case .while:
-      return StmtSyntax(
-        WhileStmtSyntax(
-          whileKeyword: .keyword(.while, trailingTrivia: .space),
-          conditions: ConditionElementListSyntax(
-            [
-              ConditionElementSyntax(
-                condition: .expression(conditionExpr)
-              )
-            ]
-          ),
-          body: bodyBlock
-        )
-      )
-    }
   }
 }

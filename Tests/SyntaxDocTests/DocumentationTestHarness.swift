@@ -3,7 +3,6 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-
 /// Harness for extracting and testing documentation code examples
 internal class DocumentationTestHarness {
   /// Validates all code examples in all documentation files
