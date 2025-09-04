@@ -5,6 +5,7 @@
 //  Created by Leo Dion on 9/4/25.
 //
 
+import Foundation
 
 enum FileSearchError: Error, LocalizedError {
   case cannotAccessPath(String, underlying: any Error)

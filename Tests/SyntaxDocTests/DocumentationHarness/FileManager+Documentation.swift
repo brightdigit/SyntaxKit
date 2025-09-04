@@ -7,6 +7,17 @@ import Foundation
 // MARK: - FileManager Extensions
 
 extension FileManager: FileSearcher {
+  /// Directories to skip during recursive search
+  private static let skipDirectories = [
+    ".build",
+    "node_modules",
+    ".git",
+    ".svn",
+    "DerivedData",
+    "build",
+    ".swiftpm"
+  ]
+  
   private func searchItem(_ itemURL: URL, _ pathExtensions: [String]) throws(FileSearchError)
     -> [URL]
   {
@@ -20,6 +31,12 @@ extension FileManager: FileSearcher {
     }
 
     if itemResourceValues.isDirectory == true {
+      // Skip certain directories
+      let directoryName = itemURL.lastPathComponent
+      if Self.skipDirectories.contains(directoryName) {
+        return documentationFiles
+      }
+      
       // Recursively call this method for subdirectories
       let subdirectoryFiles = try findDocumentationFiles(
         in: itemURL, pathExtensions: pathExtensions)

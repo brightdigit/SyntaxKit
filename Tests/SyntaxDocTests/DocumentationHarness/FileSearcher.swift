@@ -5,7 +5,7 @@
 //  Created by Leo Dion on 9/4/25.
 //
 
-
+import Foundation
 
 protocol FileSearcher {
   func searchDirectory(at path: URL, forExtensions pathExtensions: [String]) throws(FileSearchError)

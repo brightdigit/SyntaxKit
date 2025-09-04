@@ -5,6 +5,7 @@ import Testing
 
 /// Harness for extracting and testing documentation code examples
 internal class DocumentationTestHarness {
+  
   /// Project root directory calculated from the current file location
   private static let projectRoot: URL = {
     let currentFileURL = URL(fileURLWithPath: #filePath)
@@ -42,7 +43,7 @@ internal class DocumentationTestHarness {
     // let fullPath = try resolveFilePath(filePath)
     let content = try String(contentsOf: fileURL)
 
-    let codeBlocks = extractSwiftCodeBlocks(from: content)
+    let codeBlocks = try CodeBlockExtractor()(content)
     var results: [ValidationResult] = []
 
     for (index, codeBlock) in codeBlocks.enumerated() {
@@ -60,77 +61,6 @@ internal class DocumentationTestHarness {
     }
 
     return results
-  }
-
-  /// Extracts Swift code blocks from markdown content
-  private func extractSwiftCodeBlocks(from content: String) -> [CodeBlock] {
-    let lines = content.components(separatedBy: .newlines)
-    var codeBlocks: [CodeBlock] = []
-    var currentBlock: String?
-    var blockStartLine = 0
-    var blockType: CodeBlockType = .example
-    var inCodeBlock = false
-    var skipBlock = false
-
-    for (lineIndex, line) in lines.enumerated() {
-      if line.hasPrefix("```swift") {
-        // Start of Swift code block
-        inCodeBlock = true
-        blockStartLine = lineIndex + 1
-        currentBlock = ""
-        skipBlock = false
-
-        // Determine block type from context
-        blockType = determineBlockType(from: line)
-
-        // Check for HTML comment skip markers in the preceding lines
-        let precedingLines = lines[max(0, lineIndex - 3)...lineIndex]
-        for precedingLine in precedingLines {
-          if precedingLine.contains("<!-- skip-test -->")
-            || precedingLine.contains("<!-- no-test -->")
-            || precedingLine.contains("<!-- incomplete -->")
-            || precedingLine.contains("<!-- example-only -->")
-          {
-            skipBlock = true
-            break
-          }
-        }
-      } else if line == "```" && inCodeBlock {
-        // End of code block
-        if let block = currentBlock, !block.isEmpty, !skipBlock {
-          let codeBlock = CodeBlock(
-            code: block,
-            lineNumber: blockStartLine,
-            blockType: blockType
-          )
-          codeBlocks.append(codeBlock)
-        }
-        inCodeBlock = false
-        currentBlock = nil
-        skipBlock = false
-      } else if inCodeBlock {
-        // Inside code block - collect lines
-        if let existing = currentBlock {
-          currentBlock = existing + "\n" + line
-        } else {
-          currentBlock = line
-        }
-      }
-    }
-
-    return codeBlocks
-  }
-
-  /// Determines the type of code block based on context
-  private func determineBlockType(from line: String) -> CodeBlockType {
-    //    if line.contains("Package.swift") {
-    //      return .packageManifest
-    //    }
-    if line.contains("bash") || line.contains("shell") {
-      return .shellCommand
-    } else {
-      return .example
-    }
   }
 
   /// Validates a single code block
@@ -151,7 +81,13 @@ internal class DocumentationTestHarness {
         // Package.swift files need special handling
         return await validatePackageManifest(code, fileURL: fileURL, lineNumber: lineNumber)
       #else
-        return nil
+        return ValidationResult(
+          success: true,
+          fileURL: fileURL,
+          lineNumber: lineNumber,
+          testType: .skipped,
+          error: nil
+        )
       #endif
     case .shellCommand:
       // Skip shell commands for now
@@ -196,7 +132,7 @@ internal class DocumentationTestHarness {
           success: true,
           fileURL: fileURL,
           lineNumber: lineNumber,
-          testType: .execution,
+          testType: .compilation,
           error: nil
         )
       } else {
@@ -355,30 +291,30 @@ internal class DocumentationTestHarness {
     code.contains("print(") || code.contains("main()") || code.contains("@main")
   }
 
-  #if canImport(Foundation) && (os(macOS) || os(Linux))
-    /// Gets the SDK path for compilation
-    private func getSDKPath() throws -> String {
-      let process = Process()
-      process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-      process.arguments = ["--show-sdk-path"]
-
-      let pipe = Pipe()
-      process.standardOutput = pipe
-
-      try process.run()
-      process.waitUntilExit()
-
-      let data = pipe.fileHandleForReading.readDataToEndOfFile()
-      guard
-        let path = String(data: data, encoding: .utf8)?.trimmingCharacters(
-          in: .whitespacesAndNewlines)
-      else {
-        throw DocumentationTestError.sdkPathNotFound
-      }
-
-      return path
-    }
-  #endif
+//  #if canImport(Foundation) && (os(macOS) || os(Linux))
+//    /// Gets the SDK path for compilation
+//    private func getSDKPath() throws -> String {
+//      let process = Process()
+//      process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+//      process.arguments = ["--show-sdk-path"]
+//
+//      let pipe = Pipe()
+//      process.standardOutput = pipe
+//
+//      try process.run()
+//      process.waitUntilExit()
+//
+//      let data = pipe.fileHandleForReading.readDataToEndOfFile()
+//      guard
+//        let path = String(data: data, encoding: .utf8)?.trimmingCharacters(
+//          in: .whitespacesAndNewlines)
+//      else {
+//        throw DocumentationTestError.sdkPathNotFound
+//      }
+//
+//      return path
+//    }
+//  #endif
 
   /// Finds all documentation files containing code examples
   @available(*, deprecated, message: "Use findDocumentationFiles(in:pathExtensions:) instead")
