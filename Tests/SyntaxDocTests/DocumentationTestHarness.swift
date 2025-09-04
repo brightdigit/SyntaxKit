@@ -5,9 +5,27 @@ import Testing
 
 /// Harness for extracting and testing documentation code examples
 internal class DocumentationTestHarness {
+  /// Project root directory calculated from the current file location
+  private static let projectRoot: URL = {
+    let currentFileURL = URL(fileURLWithPath: #file)
+    return currentFileURL
+      .deletingLastPathComponent()  // Tests/SyntaxDocTests
+      .deletingLastPathComponent()  // Tests
+      .deletingLastPathComponent()  // Project root
+  }()
+  
+  /// Document paths to search for documentation files
+  private static let docPaths = [
+    "Sources/SyntaxKit/Documentation.docc",
+    "README.md",
+    "Examples",
+  ]
+  
+  /// Default file extensions for documentation files
+  private static let defaultPathExtensions = ["md"]
   /// Validates all code examples in all documentation files
   internal func validateAllExamples() async throws -> [ValidationResult] {
-    let documentationFiles = try findDocumentationFiles()
+    let documentationFiles = try DocumentationTestHarness.findDocumentationFiles()
     var allResults: [ValidationResult] = []
 
     for filePath in documentationFiles {
@@ -362,54 +380,9 @@ internal class DocumentationTestHarness {
   #endif
 
   /// Finds all documentation files containing code examples
-  private func findDocumentationFiles() throws -> [String] {
-    let currentFileURL = URL(fileURLWithPath: #file)
-    let projectRoot =
-      currentFileURL
-      .deletingLastPathComponent()  // Tests/SyntaxKitTests/Integration
-      .deletingLastPathComponent()  // Tests/SyntaxKitTests
-      .deletingLastPathComponent()  // Tests
-      .deletingLastPathComponent()  // Project root
-    let docPaths = [
-      "Sources/SyntaxKit/Documentation.docc",
-      "README.md",
-      "Examples",
-    ]
-
-    var documentationFiles: [String] = []
-
-    for docPath in docPaths {
-      let fullPath = projectRoot.appendingPathComponent(docPath)
-
-      if FileManager.default.fileExists(atPath: fullPath.path) {
-        if docPath.hasSuffix(".md") {
-          documentationFiles.append(docPath)
-        } else {
-          // Recursively find .md files in directory
-          let foundFiles = try findMarkdownFiles(in: fullPath, relativeTo: projectRoot)
-          documentationFiles.append(contentsOf: foundFiles)
-        }
-      }
-    }
-
-    return documentationFiles
-  }
-
-  /// Recursively finds markdown files in a directory
-  private func findMarkdownFiles(in directory: URL, relativeTo root: URL) throws -> [String] {
-    let fileManager = FileManager.default
-    let enumerator = fileManager.enumerator(at: directory, includingPropertiesForKeys: nil)
-
-    var markdownFiles: [String] = []
-
-    while let fileURL = enumerator?.nextObject() as? URL {
-      if fileURL.pathExtension == "md" {
-        let relativePath = String(fileURL.path.dropFirst(root.path.count + 1))
-        markdownFiles.append(relativePath)
-      }
-    }
-
-    return markdownFiles
+  @available(*, deprecated, message: "Use findDocumentationFiles(in:relativeTo:pathExtensions:) instead")
+  private static func findDocumentationFiles() throws -> [String] {
+    try FileManager.default.findDocumentationFiles(in: Self.docPaths, relativeTo: Self.projectRoot, pathExtensions: Self.defaultPathExtensions)
   }
 
   /// Resolves a relative file path to absolute path (public for use by test methods)
@@ -419,28 +392,10 @@ internal class DocumentationTestHarness {
 
   /// Resolves a relative file path to absolute path
   private func resolveFilePath(_ filePath: String) throws -> String {
-    let currentFileURL: URL
-
-    // Handle #file which might be relative or absolute
-    if #filePath.hasPrefix("/") {
-      // #file is already absolute
-      currentFileURL = URL(fileURLWithPath: #filePath)
-    } else {
-      // #file is relative, resolve it from current working directory
-      currentFileURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        .appendingPathComponent(#filePath)
-    }
-
-    let projectRoot =
-      currentFileURL
-      .deletingLastPathComponent()  // Tests/SyntaxDocTests
-      .deletingLastPathComponent()  // Tests
-      .deletingLastPathComponent()  // Project root
-
     if filePath.hasPrefix("/") {
       return filePath
     } else {
-      return projectRoot.appendingPathComponent(filePath).path
+      return Self.projectRoot.appendingPathComponent(filePath).path
     }
   }
 }
