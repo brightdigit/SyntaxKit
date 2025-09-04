@@ -8,19 +8,20 @@ internal class DocumentationTestHarness {
   /// Project root directory calculated from the current file location
   private static let projectRoot: URL = {
     let currentFileURL = URL(fileURLWithPath: #filePath)
-    return currentFileURL
+    return
+      currentFileURL
       .deletingLastPathComponent()  // Tests/SyntaxDocTests
       .deletingLastPathComponent()  // Tests
       .deletingLastPathComponent()  // Project root
   }()
-  
+
   /// Document paths to search for documentation files
   private static let docPaths = [
     "Sources/SyntaxKit/Documentation.docc",
     "README.md",
     "Examples",
   ]
-  
+
   /// Default file extensions for documentation files
   private static let defaultPathExtensions = ["md"]
   /// Validates all code examples in all documentation files
@@ -37,9 +38,9 @@ internal class DocumentationTestHarness {
   }
 
   /// Validates code examples in a specific file
-  internal func validateExamplesInFile(_ filePath: String) async throws -> [ValidationResult] {
-    let fullPath = try resolveFilePath(filePath)
-    let content = try String(contentsOf: URL(fileURLWithPath: fullPath))
+  internal func validateExamplesInFile(_ fileURL: URL) async throws -> [ValidationResult] {
+    // let fullPath = try resolveFilePath(filePath)
+    let content = try String(contentsOf: fileURL)
 
     let codeBlocks = extractSwiftCodeBlocks(from: content)
     var results: [ValidationResult] = []
@@ -47,7 +48,7 @@ internal class DocumentationTestHarness {
     for (index, codeBlock) in codeBlocks.enumerated() {
       let result = await validateCodeBlock(
         code: codeBlock.code,
-        filePath: filePath,
+        fileURL: fileURL,
         blockIndex: index,
         lineNumber: codeBlock.lineNumber,
         blockType: codeBlock.blockType
@@ -122,10 +123,10 @@ internal class DocumentationTestHarness {
 
   /// Determines the type of code block based on context
   private func determineBlockType(from line: String) -> CodeBlockType {
-    // Look for type hints in the markdown
-    if line.contains("Package.swift") {
-      return .packageManifest
-    } else if line.contains("bash") || line.contains("shell") {
+    //    if line.contains("Package.swift") {
+    //      return .packageManifest
+    //    }
+    if line.contains("bash") || line.contains("shell") {
       return .shellCommand
     } else {
       return .example
@@ -135,7 +136,7 @@ internal class DocumentationTestHarness {
   /// Validates a single code block
   private func validateCodeBlock(
     code: String,
-    filePath: String,
+    fileURL: URL,
     blockIndex: Int,
     lineNumber: Int,
     blockType: CodeBlockType
@@ -143,12 +144,12 @@ internal class DocumentationTestHarness {
     switch blockType {
     case .example:
       // Test compilation and basic execution
-      return await validateSwiftExample(code, filePath: filePath, lineNumber: lineNumber)
+      return await validateSwiftExample(code, fileURL: fileURL, lineNumber: lineNumber)
 
     case .packageManifest:
       #if canImport(Foundation) && (os(macOS) || os(Linux))
         // Package.swift files need special handling
-        return await validatePackageManifest(code, filePath: filePath, lineNumber: lineNumber)
+        return await validatePackageManifest(code, fileURL: fileURL, lineNumber: lineNumber)
       #else
         return nil
       #endif
@@ -156,7 +157,7 @@ internal class DocumentationTestHarness {
       // Skip shell commands for now
       return ValidationResult(
         success: true,
-        filePath: filePath,
+        fileURL: fileURL,
         lineNumber: lineNumber,
         testType: .skipped,
         error: nil
@@ -167,7 +168,7 @@ internal class DocumentationTestHarness {
   /// Validates a Swift code example
   private func validateSwiftExample(
     _ code: String,
-    filePath: String,
+    fileURL: URL,
     lineNumber: Int
   ) async -> ValidationResult {
     do {
@@ -181,7 +182,7 @@ internal class DocumentationTestHarness {
       if !compileResult.success {
         return ValidationResult(
           success: false,
-          filePath: filePath,
+          fileURL: fileURL,
           lineNumber: lineNumber,
           testType: .compilation,
           error: "Compilation failed: \(compileResult.error ?? "Unknown error")"
@@ -193,7 +194,7 @@ internal class DocumentationTestHarness {
         // let executeResult = try await executeCompiledSwift(tempFile)
         return ValidationResult(
           success: true,
-          filePath: filePath,
+          fileURL: fileURL,
           lineNumber: lineNumber,
           testType: .execution,
           error: nil
@@ -202,7 +203,7 @@ internal class DocumentationTestHarness {
         // Just compilation test for non-runnable code
         return ValidationResult(
           success: true,
-          filePath: filePath,
+          fileURL: fileURL,
           lineNumber: lineNumber,
           testType: .compilation,
           error: nil
@@ -211,7 +212,7 @@ internal class DocumentationTestHarness {
     } catch {
       return ValidationResult(
         success: false,
-        filePath: filePath,
+        fileURL: fileURL,
         lineNumber: lineNumber,
         testType: .compilation,
         error: "Test setup failed: \(error.localizedDescription)"
@@ -223,7 +224,7 @@ internal class DocumentationTestHarness {
     /// Validates a Package.swift manifest
     private func validatePackageManifest(
       _ code: String,
-      filePath: String,
+      fileURL: URL,
       lineNumber: Int
     ) async -> ValidationResult {
       do {
@@ -255,7 +256,7 @@ internal class DocumentationTestHarness {
 
         return ValidationResult(
           success: success,
-          filePath: filePath,
+          fileURL: fileURL,
           lineNumber: lineNumber,
           testType: .compilation,
           error: error
@@ -263,7 +264,7 @@ internal class DocumentationTestHarness {
       } catch {
         return ValidationResult(
           success: false,
-          filePath: filePath,
+          fileURL: fileURL,
           lineNumber: lineNumber,
           testType: .compilation,
           error: "Package validation setup failed: \(error.localizedDescription)"
@@ -380,22 +381,26 @@ internal class DocumentationTestHarness {
   #endif
 
   /// Finds all documentation files containing code examples
-  @available(*, deprecated, message: "Use findDocumentationFiles(in:relativeTo:pathExtensions:) instead")
-  private static func findDocumentationFiles() throws -> [String] {
-    try FileManager.default.findDocumentationFiles(in: Self.docPaths, relativeTo: Self.projectRoot, pathExtensions: Self.defaultPathExtensions)
+  @available(*, deprecated, message: "Use findDocumentationFiles(in:pathExtensions:) instead")
+  private static func findDocumentationFiles() throws -> [URL] {
+    try Self.docPaths.flatMap { docPath in
+      let absolutePath = Self.projectRoot.appendingPathComponent(docPath)
+      return try FileManager.default.findDocumentationFiles(
+        in: absolutePath, pathExtensions: Self.defaultPathExtensions)
+    }
   }
 
   /// Resolves a relative file path to absolute path (public for use by test methods)
-  internal func resolveRelativePath(_ filePath: String) throws -> String {
+  internal func resolveRelativePath(_ filePath: String) throws -> URL {
     try resolveFilePath(filePath)
   }
 
   /// Resolves a relative file path to absolute path
-  private func resolveFilePath(_ filePath: String) throws -> String {
+  private func resolveFilePath(_ filePath: String) throws -> URL {
     if filePath.hasPrefix("/") {
-      return filePath
+      return .init(filePath: filePath)
     } else {
-      return Self.projectRoot.appendingPathComponent(filePath).path
+      return Self.projectRoot.appendingPathComponent(filePath)
     }
   }
 }

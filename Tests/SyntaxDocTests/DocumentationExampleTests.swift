@@ -16,7 +16,7 @@ internal struct DocumentationExampleTests {
     let failures = results.filter { !$0.success }
     if !failures.isEmpty {
       let failureReport = failures.map { result in
-        "\(result.filePath):\(result.lineNumber) - \(result.error ?? "Unknown error")"
+        "\(result.fileURL.path()):\(result.lineNumber) - \(result.error ?? "Unknown error")"
       }
       .joined(separator: "\n")
 

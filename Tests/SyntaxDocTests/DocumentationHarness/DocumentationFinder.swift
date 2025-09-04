@@ -5,8 +5,6 @@
 //  Created by Leo Dion on 9/4/25.
 //
 
-//protocol DocumentationFinder {
+// protocol DocumentationFinder {
 //  func searchForFiles(in: )
-//}
-
-
+// }

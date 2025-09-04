@@ -1,50 +1,59 @@
 import Foundation
 
+// MARK: - Documentation Error Types
+
+
+
 // MARK: - FileManager Extensions
 
+extension FileManager: FileSearcher {
+  private func searchItem(_ itemURL: URL, _ pathExtensions: [String]) throws(FileSearchError)
+    -> [URL]
+  {
+    var documentationFiles = [URL]()
 
-extension FileManager {
-  /// Finds documentation files in multiple relative paths
-  func findDocumentationFiles(in relativePaths: [String], relativeTo root: URL, pathExtensions: [String]) throws -> [String] {
-    try relativePaths.flatMap{
-      try findDocumentationFiles(in: $0, relativeTo: root, pathExtensions: pathExtensions)
-    }
-  }
-
-  /// Finds documentation files in a single directory or file
-  func findDocumentationFiles(in relativePath: String, relativeTo root: URL, pathExtensions: [String]) throws -> [String] {
-    let fullPath = root.appendingPathComponent(relativePath)
-    var documentationFiles: [String] = []
-
-    if fileExists(atPath: fullPath.path) {
-      if pathExtensions.contains(where: { relativePath.hasSuffix("." + $0) }) {
-        // Single file with matching extension
-        documentationFiles.append(relativePath)
-      } else {
-        // Directory - recursively find files with specified extensions
-        let foundFileURLs = try findMarkdownFiles(in: fullPath, pathExtensions: pathExtensions)
-        let relativePaths = foundFileURLs.map { fileURL in
-          String(fileURL.path.dropFirst(root.path.count + 1))
-        }
-        documentationFiles.append(contentsOf: relativePaths)
-      }
+    let itemResourceValues: URLResourceValues
+    do {
+      itemResourceValues = try itemURL.resourceValues(forKeys: [.isDirectoryKey])
+    } catch {
+      throw FileSearchError.cannotAccessPath(itemURL.path, underlying: error)
     }
 
+    if itemResourceValues.isDirectory == true {
+      // Recursively call this method for subdirectories
+      let subdirectoryFiles = try findDocumentationFiles(
+        in: itemURL, pathExtensions: pathExtensions)
+      documentationFiles.append(contentsOf: subdirectoryFiles)
+    } else if pathExtensions.contains(where: { itemURL.path.hasSuffix("." + $0) }) {
+      // Direct file with matching extension
+      documentationFiles.append(itemURL)
+    }
     return documentationFiles
   }
 
-  /// Recursively finds files with specified extensions in a directory
-  func findMarkdownFiles(in directory: URL, pathExtensions: [String]) throws -> [URL] {
-    let enumerator = self.enumerator(at: directory, includingPropertiesForKeys: nil)
-
-    var markdownFiles: [URL] = []
-
-    while let fileURL = enumerator?.nextObject() as? URL {
-      if pathExtensions.contains(fileURL.pathExtension) {
-        markdownFiles.append(fileURL)
-      }
+  internal func searchDirectory(at path: URL, forExtensions pathExtensions: [String])
+    throws(FileSearchError) -> [URL]
+  {
+    let contents: [URL]
+    do {
+      contents = try contentsOfDirectory(at: path, includingPropertiesForKeys: [.isDirectoryKey])
+    } catch {
+      throw FileSearchError.cannotReadDirectory(path.path, underlying: error)
     }
 
-    return markdownFiles
+    // Directory - recursively find files with specified extensions
+    let documentationFiles: [URL]
+    do {
+      documentationFiles = try contents.flatMap({ itemURL in
+        try searchItem(itemURL, pathExtensions)
+      })
+    } catch let fileSearchError as FileSearchError {
+      throw fileSearchError
+    } catch {
+      assertionFailure("Should only be a FileSearchError: \(error.localizedDescription)")
+      throw .unknownError(error)
+    }
+
+    return documentationFiles
   }
 }
