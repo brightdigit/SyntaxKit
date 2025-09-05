@@ -29,9 +29,12 @@
 
 import Foundation
 
-internal enum CodeBlockType {
+internal enum CodeBlockType: Sendable {
   case example
-  @available(*, unavailable)
+  @available(
+    *, unavailable,
+    message: "Parsing Package.swift manifests as documentation code blocks is unsupported."
+  )
   case packageManifest
   case shellCommand
 }

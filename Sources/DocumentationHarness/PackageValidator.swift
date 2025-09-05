@@ -64,10 +64,10 @@ import Foundation
       }
 
       guard process.terminationStatus == 0 else {
-        return
+        throw .packageValidationFailed
       }
 
-      throw .packageValidationFailed
+      return
     }
   }
 

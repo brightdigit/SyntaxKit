@@ -28,45 +28,61 @@
 //
 
 package import Foundation
+import SwiftParser
+import SwiftSyntax
+import Testing
 
-package protocol DocumentationValidator {
-  func validateFile(at fileURL: URL) throws -> [ValidationResult]
-}
+/// Test harness for extracting and validating Swift code examples from documentation
+package struct DocumentationValidator: Validator {
+  /// Swift code validator instance
+  private let codeValidator: any SyntaxValidator
+  private let codeBlocksFrom: CodeBlockExtractor
 
-private let privateDefaultPathExtensions = ["md"]
-extension DocumentationValidator {
-  /// Default file extensions for documentation files
-  package static var defaultPathExtensions: [String] {
-    privateDefaultPathExtensions
+  /// Creates a new documentation test harness
+  /// - Parameters:
+  ///   - codeValidator: Validator for Swift code syntax (defaults to CodeSyntaxValidator)
+  ///   - fileSearcher: File system searcher (defaults to FileManager.default)
+  ///   - codeBlocksFrom: Function to extract code blocks from content
+  package init(
+    codeValidator: any SyntaxValidator = CodeSyntaxValidator(),
+    codeBlocksFrom: @escaping CodeBlockExtractor = CodeBlockExtraction.callAsFunction(_:)
+  ) {
+    self.codeValidator = codeValidator
+    self.codeBlocksFrom = codeBlocksFrom
   }
 
-  /// Validates all Swift code examples found in documentation files
-  /// - Parameters:
-  ///   - relativePaths: Array of relative paths to search for documentation
-  ///   - projectRoot: Root URL of the project
-  ///   - pathExtensions: File extensions to search for (defaults to ["md"])
-  /// - Returns: Array of validation results for all code blocks found
-  /// - Throws: FileSearchError if file operations fail
-  package func validate(
-    relativePaths: [String],
-    atProjectRoot projectRoot: URL,
-    withPathExtensions pathExtensions: [String] = Self.defaultPathExtensions,
-    using fileSearcher: any FileSearcher = FileManager.default
-  ) throws -> [ValidationResult] {
-    let documentationFiles = try relativePaths.flatMap { docPath in
-      let absolutePath = projectRoot.appendingPathComponent(docPath)
-      return try fileSearcher.findDocumentationFiles(
-        in: absolutePath,
-        pathExtensions: pathExtensions
+  /// Validates all Swift code examples in a specific documentation file
+  /// - Parameter fileURL: URL of the file to validate
+  /// - Returns: Array of validation results for code blocks in the file
+  /// - Throws: Error if file cannot be read or parsed
+  package func validateFile(at fileURL: URL) throws -> [ValidationResult] {
+    // let fullPath = try resolveFilePath(filePath)
+    let content = try String(contentsOf: fileURL)
+
+    let codeBlocks = try codeBlocksFrom(content)
+    var results: [ValidationResult] = []
+
+    for (index, codeBlock) in codeBlocks.enumerated() {
+      results.append(
+        validateCodeBlock(fileURL.codeBlock(codeBlock, at: index))
       )
     }
-    var allResults: [ValidationResult] = []
 
-    for filePath in documentationFiles {
-      let results = try validateFile(at: filePath)
-      allResults.append(contentsOf: results)
+    return results
+  }
+
+  /// Validates a single code block
+  private func validateCodeBlock(
+    _ parameters: CodeBlockValidationParameters
+  ) -> ValidationResult {
+    guard case .example = parameters.codeBlock.blockType else {
+      return ValidationResult(
+        parameters: parameters,
+        testType: .skipped,
+        error: nil
+      )
     }
-
-    return allResults
+    // Test compilation and basic execution
+    return codeValidator.validateSyntax(from: parameters)
   }
 }

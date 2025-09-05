@@ -30,7 +30,7 @@
 import Foundation
 
 /// Represents a code block extracted from documentation
-package struct CodeBlock {
+package struct CodeBlock: Sendable {
   /// The raw Swift code content
   internal let code: String
   /// Line number where this code block starts in the source file

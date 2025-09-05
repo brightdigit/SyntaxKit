@@ -5,10 +5,11 @@ import Testing
 /// Integration tests that validate all code examples in DocC documentation
 @Suite("Documentation Code Examples")
 internal struct DocumentationExampleTests {
+  private let testHarness = DocumentationValidator()
+
   /// Test harness that extracts and validates Swift code examples from documentation
   @Test("All documentation code examples compile and execute correctly")
   internal func validateAllDocumentationExamples() throws {
-    let testHarness = DocumentationTestHarness()
     let results = try testHarness.validate(
       relativePaths: Settings.docPaths,
       atProjectRoot: Settings.projectRoot
@@ -40,7 +41,6 @@ internal struct DocumentationExampleTests {
 
   @Test("Quick Start Guide examples work correctly")
   internal func validateQuickStartGuideExamples() throws {
-    let testHarness = DocumentationTestHarness()
     let quickStartFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md"
     )
@@ -56,7 +56,6 @@ internal struct DocumentationExampleTests {
 
   @Test("Creating Macros tutorial examples work correctly")
   internal func validateMacroTutorialExamples() throws {
-    let testHarness = DocumentationTestHarness()
     let macroTutorialFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md"
     )
@@ -71,7 +70,6 @@ internal struct DocumentationExampleTests {
 
   @Test("Enum Generator examples work correctly")
   internal func validateEnumGeneratorExamples() throws {
-    let testHarness = DocumentationTestHarness()
     let enumExampleFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md"
     )
