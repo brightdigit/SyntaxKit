@@ -2,17 +2,8 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-
-
-
-
-
-
-
-
 /// Validates Swift code examples for syntax correctness
-internal struct CodeSyntaxValidator : SyntaxValidator, Sendable{
-
+internal struct CodeSyntaxValidator: SyntaxValidator, Sendable {
   /// Validates Swift syntax by parsing the code content
   /// - Parameter code: The Swift code to validate
   /// - Throws: SwiftSyntaxValidationError if validation failed

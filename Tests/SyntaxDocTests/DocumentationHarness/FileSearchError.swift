@@ -7,12 +7,12 @@
 
 import Foundation
 
-enum FileSearchError: Error, LocalizedError {
+internal enum FileSearchError: Error, LocalizedError {
   case cannotAccessPath(String, underlying: any Error)
   case cannotReadDirectory(String, underlying: any Error)
   case unknownError(any Error)
 
-  var errorDescription: String? {
+  internal var errorDescription: String? {
     switch self {
     case .cannotAccessPath(let path, let underlying):
       return "Cannot access path '\(path)': \(underlying.localizedDescription)"

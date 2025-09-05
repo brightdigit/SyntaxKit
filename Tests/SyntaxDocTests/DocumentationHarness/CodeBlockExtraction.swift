@@ -1,18 +1,5 @@
 import Foundation
 
-/// Errors that can occur during code block extraction
-internal enum CodeBlockExtractorError: Error {
-  case alreadyUsed
-}
-
-typealias CodeBlockExtractor = @Sendable (String) throws(CodeBlockExtractorError) -> [CodeBlock] 
-
-extension CodeBlockExtraction {
-  static func callAsFunction(_ content: String) throws(CodeBlockExtractorError) -> [CodeBlock] {
-    let extraction = CodeBlockExtraction()
-    return try extraction(content)
-  }
-}
 /// Extracts Swift code blocks from markdown content
 internal class CodeBlockExtraction {
   // MARK: - Properties
@@ -43,7 +30,7 @@ internal class CodeBlockExtraction {
 
   // MARK: - Public Methods
 
-  func callAsFunction(_ content: String) throws(CodeBlockExtractorError) -> [CodeBlock] {
+  internal func callAsFunction(_ content: String) throws(CodeBlockExtractorError) -> [CodeBlock] {
     try self.extractSwiftCodeBlocks(from: content)
   }
 
@@ -152,5 +139,14 @@ internal class CodeBlockExtraction {
     } else {
       return .example
     }
+  }
+}
+
+extension CodeBlockExtraction {
+  internal static func callAsFunction(_ content: String) throws(CodeBlockExtractorError)
+    -> [CodeBlock]
+  {
+    let extraction = CodeBlockExtraction()
+    return try extraction(content)
   }
 }

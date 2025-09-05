@@ -9,9 +9,24 @@ import Foundation
 
 /// Parameters for validating code blocks with additional metadata
 internal struct CodeBlockValidationParameters: ValidationParameters, Sendable {
-  internal let code: String
+  internal let codeBlock: CodeBlock
   internal let fileURL: URL
-  internal let lineNumber: Int
   internal let blockIndex: Int
-  internal let blockType: CodeBlockType
+
+  // MARK: - ValidationParameters conformance
+  internal var code: String {
+    codeBlock.code
+  }
+
+  internal var lineNumber: Int {
+    codeBlock.lineNumber
+  }
+}
+
+extension URL {
+  internal func codeBlock(_ codeBlock: CodeBlock, at blockIndex: Int)
+    -> CodeBlockValidationParameters
+  {
+    .init(codeBlock: codeBlock, fileURL: self, blockIndex: blockIndex)
+  }
 }

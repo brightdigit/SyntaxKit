@@ -1,23 +1,7 @@
 import Foundation
 
 internal struct ValidationResult {
-  internal init(fileURL: URL, lineNumber: Int, testType: TestType, error: ValidationError? = nil) {
-    self.fileURL = fileURL
-    self.lineNumber = lineNumber
-    self.testType = testType
-    self.error = error
-  }
-
-  internal init(
-    parameters: CodeBlockValidationParameters, testType: TestType, error: ValidationError? = nil
-  ) {
-    self.init(
-      fileURL: parameters.fileURL, lineNumber: parameters.lineNumber, testType: testType,
-      error: error)
-  }
-
-  internal let fileURL: URL
-  internal let lineNumber: Int
+  internal let parameters: any ValidationParameters
   internal let testType: TestType
   internal let error: ValidationError?
 
@@ -28,5 +12,22 @@ internal struct ValidationResult {
 
   internal var isSkipped: Bool {
     error?.isSkipped ?? false
+  }
+
+  // MARK: - Convenience Properties
+  internal var fileURL: URL {
+    parameters.fileURL
+  }
+
+  internal var lineNumber: Int {
+    parameters.lineNumber
+  }
+
+  internal init(
+    parameters: any ValidationParameters, testType: TestType, error: ValidationError? = nil
+  ) {
+    self.parameters = parameters
+    self.testType = testType
+    self.error = error
   }
 }

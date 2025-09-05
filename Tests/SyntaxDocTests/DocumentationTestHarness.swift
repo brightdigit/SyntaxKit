@@ -5,6 +5,11 @@ import Testing
 
 /// Harness for extracting and testing documentation code examples
 internal struct DocumentationTestHarness {
+  /// Swift code validator instance
+  private let codeValidator: any SyntaxValidator
+  private let fileSearcher: any FileSearcher
+  private let codeBlocksFrom: CodeBlockExtractor
+
   internal init(
     codeValidator: any SyntaxValidator = CodeSyntaxValidator(),
     fileSearcher: any FileSearcher = FileManager.default,
@@ -14,17 +19,12 @@ internal struct DocumentationTestHarness {
     self.fileSearcher = fileSearcher
     self.codeBlocksFrom = codeBlocksFrom
   }
-  
-  /// Swift code validator instance
-  private let codeValidator: any SyntaxValidator
-  private let fileSearcher : any FileSearcher
-  private let codeBlocksFrom : CodeBlockExtractor
 
   /// Validates all code examples in all documentation files
   internal func validateAllExamples() throws -> [ValidationResult] {
     let documentationFiles = try Settings.docPaths.flatMap { docPath in
       let absolutePath = Settings.projectRoot.appendingPathComponent(docPath)
-      return try FileManager.default.findDocumentationFiles(
+      return try self.fileSearcher.findDocumentationFiles(
         in: absolutePath,
         pathExtensions: Settings.defaultPathExtensions
       )
@@ -40,7 +40,7 @@ internal struct DocumentationTestHarness {
   }
 
   /// Validates code examples in a specific file
-  internal func validateExamplesInFile(_ fileURL: URL)  throws -> [ValidationResult] {
+  internal func validateExamplesInFile(_ fileURL: URL) throws -> [ValidationResult] {
     // let fullPath = try resolveFilePath(filePath)
     let content = try String(contentsOf: fileURL)
 
@@ -48,16 +48,9 @@ internal struct DocumentationTestHarness {
     var results: [ValidationResult] = []
 
     for (index, codeBlock) in codeBlocks.enumerated() {
-      let parameters = CodeBlockValidationParameters(
-        code: codeBlock.code,
-        fileURL: fileURL,
-        lineNumber: codeBlock.lineNumber,
-        blockIndex: index,
-        blockType: codeBlock.blockType
-      )
       try results.append(
         #require(
-          validateCodeBlock(parameters)
+          validateCodeBlock(fileURL.codeBlock(codeBlock, at: index))
         )
       )
     }
@@ -69,7 +62,7 @@ internal struct DocumentationTestHarness {
   private func validateCodeBlock(
     _ parameters: CodeBlockValidationParameters
   ) -> ValidationResult? {
-    switch parameters.blockType {
+    switch parameters.codeBlock.blockType {
     case .example:
       // Test compilation and basic execution
       return codeValidator.validateSyntax(from: parameters)
@@ -105,7 +98,7 @@ internal struct DocumentationTestHarness {
       )
     }
   }
-  
+
   #if canImport(Foundation) && (os(macOS) || os(Linux))
     /// Validates a Package.swift manifest
     private func validatePackageManifest(
@@ -145,5 +138,4 @@ internal struct DocumentationTestHarness {
       throw .packageValidationFailed
     }
   #endif
-
 }

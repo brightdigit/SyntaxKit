@@ -3,17 +3,18 @@
 //  SyntaxKit
 //
 //  Created by Leo Dion on 9/4/25.
-//Ô
+// Ô
 
 import Foundation
 
-protocol FileSearcher {
+internal protocol FileSearcher {
   func searchDirectory(at path: URL, forExtensions pathExtensions: [String]) throws(FileSearchError)
     -> [URL]
 }
 
 extension FileSearcher {
-  func findDocumentationFiles(in path: URL, pathExtensions: [String]) throws(FileSearchError)
+  internal func findDocumentationFiles(in path: URL, pathExtensions: [String])
+    throws(FileSearchError)
     -> [URL]
   {
     let resourceValues: URLResourceValues

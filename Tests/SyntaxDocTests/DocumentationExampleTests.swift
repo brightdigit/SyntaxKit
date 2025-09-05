@@ -16,6 +16,7 @@ internal struct DocumentationExampleTests {
     let failures = results.filter { !$0.isSuccess && !$0.isSkipped }
     if !failures.isEmpty {
       let failureReport = failures.map { result in
+        // swiftlint:disable:next line_length
         "\(result.fileURL.path()):\(result.lineNumber) - \(result.error?.localizedDescription ?? "Unknown error")"
       }
       .joined(separator: "\n")
@@ -30,12 +31,12 @@ internal struct DocumentationExampleTests {
   }
 
   @Test("Quick Start Guide examples work correctly")
-  internal func validateQuickStartGuideExamples()  throws {
+  internal func validateQuickStartGuideExamples() throws {
     let testHarness = DocumentationTestHarness()
     let quickStartFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md"
     )
-    let results = try  testHarness.validateExamplesInFile(quickStartFile)
+    let results = try testHarness.validateExamplesInFile(quickStartFile)
 
     // Specific validation for Quick Start examples
     #expect(!results.isEmpty, "Quick Start Guide should contain code examples")

@@ -37,7 +37,9 @@ extension FileManager: FileSearcher {
 
       // Recursively call this method for subdirectories
       let subdirectoryFiles = try findDocumentationFiles(
-        in: itemURL, pathExtensions: pathExtensions)
+        in: itemURL,
+        pathExtensions: pathExtensions
+      )
       documentationFiles.append(contentsOf: subdirectoryFiles)
     } else if pathExtensions.contains(where: { itemURL.path.hasSuffix("." + $0) }) {
       // Direct file with matching extension
