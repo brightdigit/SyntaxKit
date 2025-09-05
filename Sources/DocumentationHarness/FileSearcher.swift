@@ -29,7 +29,14 @@
 
 package import Foundation
 
+/// Protocol for searching files in directories
 package protocol FileSearcher {
+  /// Searches a directory for files with specific extensions
+  /// - Parameters:
+  ///   - path: The directory URL to search
+  ///   - pathExtensions: Array of file extensions to search for (without dots)
+  /// - Returns: Array of URLs for matching files
+  /// - Throws: FileSearchError if search fails
   func searchDirectory(at path: URL, forExtensions pathExtensions: [String]) throws(FileSearchError)
     -> [URL]
 }

@@ -27,5 +27,9 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+/// Function type for extracting code blocks from markdown content
+/// - Parameter content: The markdown content to parse
+/// - Returns: Array of extracted code blocks
+/// - Throws: CodeBlockExtractorError if extraction fails
 package typealias CodeBlockExtractor = @Sendable (String) throws(CodeBlockExtractorError) ->
   [CodeBlock]

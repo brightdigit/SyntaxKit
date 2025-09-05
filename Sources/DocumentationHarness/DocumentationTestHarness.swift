@@ -32,7 +32,7 @@ import SwiftParser
 import SwiftSyntax
 import Testing
 
-/// Harness for extracting and testing documentation code examples
+/// Test harness for extracting and validating Swift code examples from documentation
 package struct DocumentationTestHarness {
   /// Default file extensions for documentation files
   internal static let defaultPathExtensions = ["md"]
@@ -41,6 +41,11 @@ package struct DocumentationTestHarness {
   private let fileSearcher: any FileSearcher
   private let codeBlocksFrom: CodeBlockExtractor
 
+  /// Creates a new documentation test harness
+  /// - Parameters:
+  ///   - codeValidator: Validator for Swift code syntax (defaults to CodeSyntaxValidator)
+  ///   - fileSearcher: File system searcher (defaults to FileManager.default)
+  ///   - codeBlocksFrom: Function to extract code blocks from content
   package init(
     codeValidator: any SyntaxValidator = CodeSyntaxValidator(),
     fileSearcher: any FileSearcher = FileManager.default,
@@ -51,7 +56,13 @@ package struct DocumentationTestHarness {
     self.codeBlocksFrom = codeBlocksFrom
   }
 
-  /// Validates all code examples in all documentation files
+  /// Validates all Swift code examples found in documentation files
+  /// - Parameters:
+  ///   - relativePaths: Array of relative paths to search for documentation
+  ///   - projectRoot: Root URL of the project
+  ///   - pathExtensions: File extensions to search for (defaults to ["md"])
+  /// - Returns: Array of validation results for all code blocks found
+  /// - Throws: FileSearchError if file operations fail
   package func validate(
     relativePaths: [String], atProjectRoot projectRoot: URL,
     withPathExtensions pathExtensions: [String] = Self.defaultPathExtensions
@@ -73,7 +84,10 @@ package struct DocumentationTestHarness {
     return allResults
   }
 
-  /// Validates code examples in a specific file
+  /// Validates all Swift code examples in a specific documentation file
+  /// - Parameter fileURL: URL of the file to validate
+  /// - Returns: Array of validation results for code blocks in the file
+  /// - Throws: Error if file cannot be read or parsed
   package func validateExamplesInFile(_ fileURL: URL) throws -> [ValidationResult] {
     // let fullPath = try resolveFilePath(filePath)
     let content = try String(contentsOf: fileURL)

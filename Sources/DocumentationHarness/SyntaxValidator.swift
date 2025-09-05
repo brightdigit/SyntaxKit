@@ -27,7 +27,11 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+/// Protocol for validating Swift code syntax
 package protocol SyntaxValidator {
+  /// Validates the syntax of Swift code
+  /// - Parameter code: The Swift code to validate
+  /// - Throws: ValidationError if validation fails
   func validateCode(_ code: String) throws(ValidationError)
 }
 extension SyntaxValidator {

@@ -29,11 +29,16 @@
 
 import Foundation
 
+/// Errors that can occur during file searching operations
 package enum FileSearchError: Error, LocalizedError {
+  /// Cannot access the specified path
   case cannotAccessPath(String, underlying: any Error)
+  /// Cannot read the contents of a directory
   case cannotReadDirectory(String, underlying: any Error)
+  /// An unknown error occurred
   case unknownError(any Error)
 
+  /// Human-readable description of the file search error
   package var errorDescription: String? {
     switch self {
     case .cannotAccessPath(let path, let underlying):

@@ -27,7 +27,8 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Errors that can occur during code block extraction
+/// Errors that can occur during code block extraction from markdown
 package enum CodeBlockExtractorError: Error {
+  /// The extractor instance has already been used and cannot be reused
   case alreadyUsed
 }

@@ -29,25 +29,31 @@
 
 package import Foundation
 
+/// Result of validating a code block from documentation
 package struct ValidationResult {
   internal let parameters: any ValidationParameters
+  /// The type of test that was performed
   package let testType: TestType
+  /// Any error that occurred during validation (nil if successful)
   package let error: ValidationError?
 
-  /// Returns true if validation was successful (no error)
+  /// Whether the validation was successful (no error occurred)
   package var isSuccess: Bool {
     error == nil
   }
 
+  /// Whether the validation was skipped
   package var isSkipped: Bool {
     error?.isSkipped ?? false
   }
 
   // MARK: - Convenience Properties
+  /// The URL of the file containing the validated code
   package var fileURL: URL {
     parameters.fileURL
   }
 
+  /// The line number where the code block starts
   package var lineNumber: Int {
     parameters.lineNumber
   }

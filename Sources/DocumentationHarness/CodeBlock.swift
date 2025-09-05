@@ -29,8 +29,12 @@
 
 import Foundation
 
+/// Represents a code block extracted from documentation
 package struct CodeBlock {
+  /// The raw Swift code content
   internal let code: String
+  /// Line number where this code block starts in the source file
   internal let lineNumber: Int
+  /// The type of code block (example, shell command, etc.)
   internal let blockType: CodeBlockType
 }

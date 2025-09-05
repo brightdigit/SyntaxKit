@@ -29,7 +29,7 @@
 
 import Foundation
 
-/// Process execution errors
+/// Errors that can occur during process execution
 package enum ProcessError: Error, Sendable {
   /// Package.swift validation failed
   case packageValidationFailed
@@ -37,7 +37,7 @@ package enum ProcessError: Error, Sendable {
   case setupError(any Error)
 }
 
-/// Error type for Swift syntax validation failures
+/// Errors that can occur during Swift code validation
 package enum ValidationError: Error, Sendable {
   /// Syntax parsing detected errors in the code
   case syntaxError
@@ -51,7 +51,7 @@ package enum ValidationError: Error, Sendable {
   /// Unexpected error during validation
   case unexpectedError(any Error)
 
-  /// Reasons why code should be skipped
+  /// Reasons why code validation should be skipped
   package enum SkipReason: Equatable, Sendable {
     /// Package.swift or dependency configuration
     case packageFile
@@ -65,7 +65,7 @@ package enum ValidationError: Error, Sendable {
     case emptyOrTooShort
   }
 
-  /// Returns a human-readable description of the error
+  /// Human-readable description of the validation error
   package var localizedDescription: String {
     switch self {
     case .unexpectedError(let error):

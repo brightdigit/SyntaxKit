@@ -29,8 +29,12 @@
 
 import Foundation
 
+/// Represents the type of test performed on a code block
 package enum TestType {
+  /// Code was parsed for syntax validation only
   case parsing
+  /// Code was executed (compiled and run)
   case execution
+  /// Code validation was skipped
   case skipped
 }
