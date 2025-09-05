@@ -54,7 +54,7 @@ internal struct DocumentationExampleTests {
     let results = try await testHarness.validateExamplesInFile(macroTutorialFile)
 
     // Macro examples should compile (though they may not execute without full macro setup)
-    let compileResults = results.filter { $0.testType == .compilation }
+    let compileResults = results.filter { $0.testType == .parsing }
     #expect(
       compileResults.allSatisfy { $0.success }, "All macro examples should compile successfully")
   }

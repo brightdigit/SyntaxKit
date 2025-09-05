@@ -1,7 +1,7 @@
 import Foundation
 
 internal enum TestType {
-  case compilation
+  case parsing
   case execution
   case skipped
 }

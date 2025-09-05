@@ -1,6 +1,6 @@
 import Foundation
 
-internal struct CompilationResult {
-  internal let success: Bool
-  internal let error: String?
-}
+//internal struct SyntaxValidationResult {
+//  internal let success: Bool
+//  internal let error: String?
+//}
