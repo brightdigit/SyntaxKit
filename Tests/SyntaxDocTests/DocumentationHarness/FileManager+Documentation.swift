@@ -2,8 +2,6 @@ import Foundation
 
 // MARK: - Documentation Error Types
 
-
-
 // MARK: - FileManager Extensions
 
 extension FileManager: FileSearcher {
@@ -15,9 +13,9 @@ extension FileManager: FileSearcher {
     ".svn",
     "DerivedData",
     "build",
-    ".swiftpm"
+    ".swiftpm",
   ]
-  
+
   private func searchItem(_ itemURL: URL, _ pathExtensions: [String]) throws(FileSearchError)
     -> [URL]
   {
@@ -36,7 +34,7 @@ extension FileManager: FileSearcher {
       if Self.skipDirectories.contains(directoryName) {
         return documentationFiles
       }
-      
+
       // Recursively call this method for subdirectories
       let subdirectoryFiles = try findDocumentationFiles(
         in: itemURL, pathExtensions: pathExtensions)

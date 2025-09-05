@@ -5,26 +5,8 @@ import Testing
 
 /// Harness for extracting and testing documentation code examples
 internal class DocumentationTestHarness {
-  
   /// Swift code validator instance
   private let codeValidator = SwiftCodeValidator()
-  
-  /// Project root directory calculated from the current file location
-  private static let projectRoot: URL = {
-    let currentFileURL = URL(fileURLWithPath: #filePath)
-    return
-      currentFileURL
-      .deletingLastPathComponent()  // Tests/SyntaxDocTests
-      .deletingLastPathComponent()  // Tests
-      .deletingLastPathComponent()  // Project root
-  }()
-
-  /// Document paths to search for documentation files
-  private static let docPaths = [
-    "Sources/SyntaxKit/Documentation.docc",
-    "README.md",
-    "Examples",
-  ]
 
   /// Default file extensions for documentation files
   private static let defaultPathExtensions = ["md"]
@@ -70,7 +52,7 @@ internal class DocumentationTestHarness {
   /// Validates a single code block
   private func validateCodeBlock(
     _ parameters: CodeBlockValidationParameters
-  )  -> ValidationResult? {
+  ) -> ValidationResult? {
     switch parameters.blockType {
     case .example:
       // Test compilation and basic execution
@@ -79,12 +61,20 @@ internal class DocumentationTestHarness {
     case .packageManifest:
       #if canImport(Foundation) && (os(macOS) || os(Linux))
         // Package.swift files need special handling
-        return validatePackageManifest(parameters)
+        var processError: ProcessError?
+        do {
+          try validatePackageManifest(parameters.code)
+          processError = nil
+        } catch {
+          processError = error
+        }
+        return ValidationResult(
+          parameters: parameters, testType: .parsing,
+          error: processError.map { ValidationError.processError($0) })
       #else
         return ValidationResult(
           parameters: parameters,
           testType: .skipped,
-          success: true,
           error: nil
         )
       #endif
@@ -93,31 +83,30 @@ internal class DocumentationTestHarness {
       return ValidationResult(
         parameters: parameters,
         testType: .skipped,
-        success: true,
         error: nil
       )
     }
   }
-  
-//  /// Convenience method for backward compatibility
-//  private func validateCodeBlock(
-//
-//  ) async -> ValidationResult? {
-//    let parameters = CodeBlockValidationParameters(
-//      code: code,
-//      fileURL: fileURL,
-//      blockIndex: blockIndex,
-//      lineNumber: lineNumber,
-//      blockType: blockType
-//    )
-//    return await validateCodeBlock(parameters)
-//  }
+
+  //  /// Convenience method for backward compatibility
+  //  private func validateCodeBlock(
+  //
+  //  ) async -> ValidationResult? {
+  //    let parameters = CodeBlockValidationParameters(
+  //      code: code,
+  //      fileURL: fileURL,
+  //      blockIndex: blockIndex,
+  //      lineNumber: lineNumber,
+  //      blockType: blockType
+  //    )
+  //    return await validateCodeBlock(parameters)
+  //  }
 
   /// Validates a Swift code example
   private func validateSwiftExample(
     _ parameters: CodeBlockValidationParameters
-  )  -> ValidationResult {
-    return  codeValidator.validateSwiftExample(
+  ) -> ValidationResult {
+    codeValidator.validateSwiftExample(
       parameters
     )
   }
@@ -125,8 +114,9 @@ internal class DocumentationTestHarness {
   #if canImport(Foundation) && (os(macOS) || os(Linux))
     /// Validates a Package.swift manifest
     private func validatePackageManifest(
-      _ parameters: CodeBlockValidationParameters
-    )  -> ValidationResult {
+      _ code: String
+    ) throws(ProcessError) {
+      let process = Process()
       do {
         // Create temporary Package.swift and validate it parses
         let tempDir = FileManager.default.temporaryDirectory
@@ -136,10 +126,9 @@ internal class DocumentationTestHarness {
         defer { try? FileManager.default.removeItem(at: tempDir) }
 
         let packageFile = tempDir.appendingPathComponent("Package.swift")
-        try parameters.code.write(to: packageFile, atomically: true, encoding: .utf8)
+        try code.write(to: packageFile, atomically: true, encoding: .utf8)
 
         // Use swift package tools to validate
-        let process = Process()
         process.currentDirectoryURL = tempDir
         process.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
         process.arguments = ["package", "describe", "--type", "json"]
@@ -150,48 +139,25 @@ internal class DocumentationTestHarness {
 
         try process.run()
         process.waitUntilExit()
-
-        let success = process.terminationStatus == 0
-        let error = success ? nil : "Package.swift validation failed"
-
-        return ValidationResult(
-          parameters: parameters,
-          testType: .parsing,
-          success: success,
-          error: error
-        )
       } catch {
-        return ValidationResult(
-          parameters: parameters,
-          testType: .parsing,
-          success: false,
-          error: "Package validation setup failed: \(error.localizedDescription)"
-        )
+        throw .setupError(error)
       }
+
+      guard process.terminationStatus == 0 else {
+        return
+      }
+
+      throw .packageValidationFailed
     }
   #endif
 
   /// Finds all documentation files containing code examples
   @available(*, deprecated, message: "Use findDocumentationFiles(in:pathExtensions:) instead")
   private static func findDocumentationFiles() throws -> [URL] {
-    try Self.docPaths.flatMap { docPath in
-      let absolutePath = Self.projectRoot.appendingPathComponent(docPath)
+    try Settings.docPaths.flatMap { docPath in
+      let absolutePath = Settings.projectRoot.appendingPathComponent(docPath)
       return try FileManager.default.findDocumentationFiles(
         in: absolutePath, pathExtensions: Self.defaultPathExtensions)
-    }
-  }
-
-  /// Resolves a relative file path to absolute path (public for use by test methods)
-  internal func resolveRelativePath(_ filePath: String) throws -> URL {
-    try resolveFilePath(filePath)
-  }
-
-  /// Resolves a relative file path to absolute path
-  private func resolveFilePath(_ filePath: String) throws -> URL {
-    if filePath.hasPrefix("/") {
-      return .init(filePath: filePath)
-    } else {
-      return Self.projectRoot.appendingPathComponent(filePath)
     }
   }
 }
