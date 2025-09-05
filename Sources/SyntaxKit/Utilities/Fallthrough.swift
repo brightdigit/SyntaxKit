@@ -27,18 +27,18 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `fallthrough` statement.
 public struct Fallthrough: CodeBlock {
-  /// Creates a `fallthrough` statement.
-  public init() {}
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     StmtSyntax(
-      FallthroughStmtSyntax(
+      FallThroughStmtSyntax(
         fallthroughKeyword: .keyword(.fallthrough, trailingTrivia: .newline)
       )
     )
   }
+
+  /// Creates a `fallthrough` statement.
+  public init() {}
 }

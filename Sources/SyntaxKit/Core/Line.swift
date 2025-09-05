@@ -67,22 +67,3 @@ public struct Line: Sendable, Equatable {
     self.text = text
   }
 }
-
-// MARK: - Internal helpers
-
-extension Line {
-  /// Convert the `Line` to a SwiftSyntax `TriviaPiece`.
-  internal var triviaPiece: TriviaPiece {
-    switch kind {
-    case .line:
-      return .lineComment("// " + (text ?? ""))
-    case .doc:
-      // Empty doc line should still contain the comment marker so we keep a single `/` if no text.
-      if let text = text, !text.isEmpty {
-        return .docLineComment("/// " + text)
-      } else {
-        return .docLineComment("///")
-      }
-    }
-  }
-}

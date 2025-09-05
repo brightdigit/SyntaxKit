@@ -33,14 +33,8 @@ import Foundation
 internal struct ArrayLiteral: LiteralValue, CodeBlockable {
   internal let elements: [Literal]
 
-  /// Creates an array with the given elements.
-  /// - Parameter elements: The array elements.
-  internal init(_ elements: [Literal]) {
-    self.elements = elements
-  }
-
   /// The code block representation of this array literal.
-  internal var codeBlock: CodeBlock {
+  internal var codeBlock: any CodeBlock {
     Literal.array(elements)
   }
 
@@ -76,5 +70,11 @@ internal struct ArrayLiteral: LiteralValue, CodeBlockable {
       }
     }
     return "[\(elementStrings.joined(separator: ", "))]"
+  }
+
+  /// Creates an array with the given elements.
+  /// - Parameter elements: The array elements.
+  internal init(_ elements: [Literal]) {
+    self.elements = elements
   }
 }

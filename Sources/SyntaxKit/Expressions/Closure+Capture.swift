@@ -29,50 +29,6 @@
 
 import SwiftSyntax
 
-/// Represents capture specifier and name information for closure captures.
-private struct CaptureInfo {
-  let specifier: ClosureCaptureSpecifierSyntax?
-  let name: TokenSyntax
-
-  init(from param: ParameterExp) {
-    if let refExp = param.value as? ReferenceExp {
-      self.init(fromReference: refExp)
-    } else {
-      self.init(fromParameter: param)
-    }
-  }
-
-  private init(fromReference refExp: ReferenceExp) {
-    let keyword = refExp.captureReferenceType.keyword
-
-    self.specifier = ClosureCaptureSpecifierSyntax(
-      specifier: .keyword(keyword, trailingTrivia: .space)
-    )
-
-    if let varExp = refExp.captureExpression as? VariableExp {
-      self.name = .identifier(varExp.name)
-    } else {
-      self.name = .identifier("self")  // fallback
-      #warning(
-        "TODO: Review fallback for non-VariableExp capture expression"
-      )
-    }
-  }
-
-  private init(fromParameter param: ParameterExp) {
-    self.specifier = nil
-
-    if let varExp = param.value as? VariableExp {
-      self.name = .identifier(varExp.name)
-    } else {
-      self.name = .identifier("self")  // fallback
-      #warning(
-        "TODO: Review fallback for non-VariableExp parameter value"
-      )
-    }
-  }
-}
-
 extension Closure {
   /// Builds the capture clause for the closure.
   internal func buildCaptureClause() -> ClosureCaptureClauseSyntax? {

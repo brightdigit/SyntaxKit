@@ -27,47 +27,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `extension` declaration.
 public struct Extension: CodeBlock, Sendable {
   private let extendedType: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
-  /// Creates an extension declaration.
-  /// - Parameters:
-  ///   - extendedType: The type being extended.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the extension.
-  public init(_ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
-    rethrows
-  {
-    self.extendedType = extendedType
-    self.members = try content()
-  }
-
-  /// Sets one or more inherited protocols.
-  /// - Parameter types: The list of protocols this extension conforms to.
-  /// - Returns: A copy of the extension with the inheritance set.
-  public func inherits(_ types: String...) -> Self {
-    var copy = self
-    copy.inheritance = types
-    return copy
-  }
-
-  /// Adds an attribute to the extension declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the extension with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let extensionKeyword = TokenSyntax.keyword(.extension, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(extendedType, trailingTrivia: .space)
 
@@ -110,6 +79,39 @@ public struct Extension: CodeBlock, Sendable {
       inheritanceClause: inheritanceClause,
       memberBlock: memberBlock
     )
+  }
+
+  /// Creates an extension declaration.
+  /// - Parameters:
+  ///   - extendedType: The type being extended.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the extension.
+  public init(
+    _ extendedType: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
+  )
+    rethrows
+  {
+    self.extendedType = extendedType
+    self.members = try content()
+  }
+
+  /// Sets one or more inherited protocols.
+  /// - Parameter types: The list of protocols this extension conforms to.
+  /// - Returns: A copy of the extension with the inheritance set.
+  public func inherits(_ types: String...) -> Self {
+    var copy = self
+    copy.inheritance = types
+    return copy
+  }
+
+  /// Adds an attribute to the extension declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the extension with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

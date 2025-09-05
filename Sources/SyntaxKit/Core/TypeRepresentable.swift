@@ -27,15 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Types that can be represented as a Swift type.
 public protocol TypeRepresentable: Sendable {
   /// Returns the SwiftSyntax representation of the conforming type.
   var typeSyntax: TypeSyntax { get }
-}
-
-extension String: TypeRepresentable {
-  /// Returns the SwiftSyntax representation of the conforming type.
-  public var typeSyntax: TypeSyntax { TypeSyntax(IdentifierTypeSyntax(name: .identifier(self))) }
 }

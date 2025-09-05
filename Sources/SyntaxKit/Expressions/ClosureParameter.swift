@@ -27,13 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents a parameter in a closure signature.
 public struct ClosureParameter: TypeRepresentable {
   public var name: String
   public var type: String?
   internal var attributes: [AttributeInfo]
+
+  public var typeSyntax: TypeSyntax {
+    if let type = type {
+      return TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
+    } else {
+      return TypeSyntax(IdentifierTypeSyntax(name: .identifier("Any")))
+    }
+  }
 
   public init(_ name: String, type: String? = nil) {
     self.name = name
@@ -45,13 +53,5 @@ public struct ClosureParameter: TypeRepresentable {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
     return copy
-  }
-
-  public var typeSyntax: TypeSyntax {
-    if let type = type {
-      return TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
-    } else {
-      return TypeSyntax(IdentifierTypeSyntax(name: .identifier("Any")))
-    }
   }
 }

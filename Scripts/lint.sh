@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e  # Exit on any error
+# Remove set -e to prevent immediate exit on errors
+# set -e  # Exit on any error
 
 ERRORS=0
 
@@ -8,7 +9,7 @@ run_command() {
 		if [ "$LINT_MODE" = "STRICT" ]; then
 				"$@" || ERRORS=$((ERRORS + 1))
 		else
-				"$@"
+				"$@" || ERRORS=$((ERRORS + 1))
 		fi
 }
 
@@ -20,10 +21,10 @@ echo "LintMode: $LINT_MODE"
 
 # More portable way to get script directory
 if [ -z "$SRCROOT" ]; then
-    SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
     PACKAGE_DIR="${SCRIPT_DIR}/.."
 else
-    PACKAGE_DIR="${SRCROOT}"     
+    PACKAGE_DIR="${SRCROOT}"
 fi
 
 # Detect OS and set paths accordingly
@@ -66,8 +67,8 @@ if [ -z "$CI" ]; then
 fi
 
 if [ -z "$FORMAT_ONLY" ]; then
-    run_command $MINT_RUN swift-format lint --configuration .swift-format --recursive --parallel $SWIFTFORMAT_OPTIONS Sources Tests || exit 1
-    run_command $MINT_RUN swiftlint lint $SWIFTLINT_OPTIONS || exit 1
+    run_command $MINT_RUN swift-format lint --configuration .swift-format --recursive --parallel $SWIFTFORMAT_OPTIONS Sources Tests
+    run_command $MINT_RUN swiftlint lint $SWIFTLINT_OPTIONS
 fi
 
 $PACKAGE_DIR/Scripts/header.sh -d  $PACKAGE_DIR/Sources -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit"
@@ -79,4 +80,14 @@ if [ -z "$CI" ]; then
     run_command $MINT_RUN periphery scan $PERIPHERY_OPTIONS --disable-update-check
 fi
 
+
 popd
+
+# Return error count at the end instead of exiting immediately
+if [ $ERRORS -gt 0 ]; then
+    echo "Lint script completed with $ERRORS error(s)"
+    exit $ERRORS
+else
+    echo "Lint script completed successfully"
+    exit 0
+fi

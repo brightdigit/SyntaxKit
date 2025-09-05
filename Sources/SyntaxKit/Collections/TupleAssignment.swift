@@ -33,16 +33,24 @@ import SwiftSyntax
 /// A tuple assignment statement for destructuring multiple values.
 internal struct TupleAssignment: CodeBlock {
   private let elements: [String]
-  private let value: CodeBlock
+  private let value: any CodeBlock
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
   private var isAsyncSet: Bool = false
+
+  /// The syntax representation of this tuple assignment.
+  internal var syntax: any SyntaxProtocol {
+    if isAsyncSet {
+      return generateAsyncSetSyntax()
+    }
+    return generateRegularSyntax()
+  }
 
   /// Creates a tuple destructuring declaration.
   /// - Parameters:
   ///   - elements: The names of the variables to destructure into.
   ///   - value: The expression to destructure.
-  internal init(_ elements: [String], equals value: CodeBlock) {
+  internal init(_ elements: [String], equals value: any CodeBlock) {
     self.elements = elements
     self.value = value
   }
@@ -71,16 +79,8 @@ internal struct TupleAssignment: CodeBlock {
     return copy
   }
 
-  /// The syntax representation of this tuple assignment.
-  internal var syntax: SyntaxProtocol {
-    if isAsyncSet {
-      return generateAsyncSetSyntax()
-    }
-    return generateRegularSyntax()
-  }
-
   /// Generates the asyncSet tuple assignment syntax.
-  private func generateAsyncSetSyntax() -> SyntaxProtocol {
+  private func generateAsyncSetSyntax() -> any SyntaxProtocol {
     // Generate a single async let tuple destructuring assignment
     guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
       // Fallback to regular syntax if conditions aren't met for asyncSet
@@ -129,7 +129,7 @@ internal struct TupleAssignment: CodeBlock {
   }
 
   /// Generates the regular tuple assignment syntax.
-  private func generateRegularSyntax() -> SyntaxProtocol {
+  private func generateRegularSyntax() -> any SyntaxProtocol {
     // Build the tuple pattern
     let patternElements = TuplePatternElementListSyntax(
       elements.enumerated().map { index, element in

@@ -1,0 +1,40 @@
+//
+//  Settings.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion on 9/5/25.
+//
+
+import Foundation
+
+internal enum Settings {
+  /// Project root directory calculated from the current file location
+  internal static let projectRoot: URL = {
+    let currentFileURL = URL(fileURLWithPath: #filePath)
+    return
+      currentFileURL
+      .deletingLastPathComponent()  // Tests/SyntaxDocTests
+      .deletingLastPathComponent()  // Tests
+      .deletingLastPathComponent()  // Project root
+  }()
+
+  /// Document paths to search for documentation files
+  internal static let docPaths = [
+    "Sources/SyntaxKit/Documentation.docc",
+    "README.md",
+    "Examples",
+  ]
+
+  /// Resolves a relative file path to absolute path
+  internal static func resolveFilePath(_ filePath: String) throws -> URL {
+    if filePath.hasPrefix("/") {
+      if #available(iOS 16.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, *) {
+        return .init(filePath: filePath)
+      } else {
+        return .init(fileURLWithPath: filePath)
+      }
+    } else {
+      return Self.projectRoot.appendingPathComponent(filePath)
+    }
+  }
+}

@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents the type of reference capture in closures.
 public enum CaptureReferenceType: CaseIterable, Sendable, Equatable {
@@ -42,13 +42,5 @@ public enum CaptureReferenceType: CaseIterable, Sendable, Equatable {
     case .unowned:
       return .unowned
     }
-  }
-}
-
-extension Keyword {
-  /// Creates a Keyword from a CaptureReferenceType.
-  /// - Parameter captureReferenceType: The capture reference type to convert.
-  public init(_ captureReferenceType: CaptureReferenceType) {
-    self = captureReferenceType.keyword
   }
 }

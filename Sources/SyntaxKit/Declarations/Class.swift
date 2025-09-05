@@ -27,65 +27,18 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `class` declaration.
 public struct Class: CodeBlock, Sendable {
   private let name: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var genericParameters: [String] = []
   private var isFinal: Bool = false
   private var attributes: [AttributeInfo] = []
 
-  /// Creates a class declaration.
-  /// - Parameters:
-  ///   - name: The name of the class.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the class.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
-  {
-    self.name = name
-    self.members = try content()
-  }
-
-  /// Sets the generic parameters for the class.
-  /// - Parameter generics: The list of generic parameter names.
-  /// - Returns: A copy of the class with the generic parameters set.
-  public func generic(_ generics: String...) -> Self {
-    var copy = self
-    copy.genericParameters = generics
-    return copy
-  }
-
-  /// Sets the inheritance for the class.
-  /// - Parameter inheritance: The types to inherit from.
-  /// - Returns: A copy of the class with the inheritance set.
-  public func inherits(_ inheritance: String...) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Marks the class declaration as `final`.
-  /// - Returns: A copy of the class marked as `final`.
-  public func final() -> Self {
-    var copy = self
-    copy.isFinal = true
-    return copy
-  }
-
-  /// Adds an attribute to the class declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the class with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let classKeyword = TokenSyntax.keyword(.class, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
 
@@ -168,6 +121,54 @@ public struct Class: CodeBlock, Sendable {
       inheritanceClause: inheritanceClause,
       memberBlock: memberBlock
     )
+  }
+
+  /// Creates a class declaration.
+  /// - Parameters:
+  ///   - name: The name of the class.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the class.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
+  {
+    self.name = name
+    self.members = try content()
+  }
+
+  /// Sets the generic parameters for the class.
+  /// - Parameter generics: The list of generic parameter names.
+  /// - Returns: A copy of the class with the generic parameters set.
+  public func generic(_ generics: String...) -> Self {
+    var copy = self
+    copy.genericParameters = generics
+    return copy
+  }
+
+  /// Sets the inheritance for the class.
+  /// - Parameter inheritance: The types to inherit from.
+  /// - Returns: A copy of the class with the inheritance set.
+  public func inherits(_ inheritance: String...) -> Self {
+    var copy = self
+    copy.inheritance = inheritance
+    return copy
+  }
+
+  /// Marks the class declaration as `final`.
+  /// - Returns: A copy of the class marked as `final`.
+  public func final() -> Self {
+    var copy = self
+    copy.isFinal = true
+    return copy
+  }
+
+  /// Adds an attribute to the class declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the class with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

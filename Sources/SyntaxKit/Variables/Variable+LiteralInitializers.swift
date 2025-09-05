@@ -143,7 +143,7 @@ extension Variable {
   public init(
     _ kind: VariableKind,
     name: String,
-    @CodeBlockBuilderResult value: () throws -> [CodeBlock],
+    @CodeBlockBuilderResult value: () throws -> [any CodeBlock],
     explicitType: Bool? = nil
   ) rethrows {
     self.init(

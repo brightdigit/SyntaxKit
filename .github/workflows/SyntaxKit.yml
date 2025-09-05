@@ -9,15 +9,21 @@ jobs:
   build-ubuntu:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
-    container: swiftlang/swift:nightly-${{ matrix.swift-version }}-${{ matrix.os }}
+    container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     strategy:
       matrix:
-        os: ["noble", "jammy"]
-        swift-version: ["6.1", "6.2"]
+        os: [noble, jammy]
+        swift:
+          - version: "6.0"
+          - version: "6.1"
+          - version: "6.1"
+            nightly: true
+          - version: "6.2"
+            nightly: true
     steps:
       - uses: actions/checkout@v4
-      - uses: brightdigit/swift-build@v1.1.1
+      - uses: brightdigit/swift-build@v1.2.1
       - uses: sersoft-gmbh/swift-coverage-action@v4
         id: coverage-files
         with:          
@@ -42,52 +48,68 @@ jobs:
         include:
           # SPM Build Matrix
           - runs-on: macos-15
+            xcode: "/Applications/Xcode_26.0.app"
+
+          - runs-on: macos-15
             xcode: "/Applications/Xcode_16.4.app"
 
           # macOS Build Matrix
           - type: macos
             runs-on: macos-15
+            xcode: "/Applications/Xcode_26.0.app"
+
+          - type: macos
+            runs-on: macos-15
             xcode: "/Applications/Xcode_16.4.app"
+
+          - type: macos
+            runs-on: macos-15
+            xcode: "/Applications/Xcode_26.0.app"
                       
           # iOS Build Matrix
           - type: ios
             runs-on: macos-15
-            xcode: "/Applications/Xcode_16.4.app"
+            xcode: "/Applications/Xcode_26.0.app"
             deviceName: "iPhone 16 Pro"
-            osVersion: "18.5"
+            osVersion: "26.0"
+            download-platform: true
   
           # watchOS Build Matrix
           - type: watchos
             runs-on: macos-15
-            xcode: "/Applications/Xcode_16.4.app"
+            xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple Watch Ultra 2 (49mm)"
-            osVersion: "11.5"
+            osVersion: "26.0"
+            download-platform: true
 
           # tvOS Build Matrix
           - type: tvos
             runs-on: macos-15
-            xcode: "/Applications/Xcode_16.4.app"
+            xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple TV"
-            osVersion: "18.5"
+            osVersion: "26.0"
+            download-platform: true
 
           # visionOS Build Matrix              
           - type: visionos
             runs-on: macos-15
-            xcode: "/Applications/Xcode_16.4.app"
+            xcode: "/Applications/Xcode_26.0.app"
             deviceName: "Apple Vision Pro"
-            osVersion: "2.5"
+            osVersion: "26.0"
+            download-platform: true
   
     steps:
       - uses: actions/checkout@v4
 
       - name: Build and Test
-        uses: brightdigit/swift-build@v1.1.1
+        uses: brightdigit/swift-build@v1.2.1
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
           type: ${{ matrix.type }}
           xcode: ${{ matrix.xcode }}
           deviceName: ${{ matrix.deviceName }}
           osVersion: ${{ matrix.osVersion }}
+          download-platform: ${{ matrix.download-platform }}
           
       # Common Coverage Steps
       - name: Process Coverage
@@ -129,3 +151,13 @@ jobs:
           swift run mint install yonaskolb/mint
       - name: Lint
         run: ./Scripts/lint.sh
+
+  docs:
+    name: Documentation Validation
+    if: "!contains(github.event.head_commit.message, 'ci skip')"  
+    needs: [build-ubuntu, build-macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4    
+      - name: Validate Documentation
+        run: ./Scripts/validate-docs.sh

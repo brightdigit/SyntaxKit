@@ -27,32 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `let` declaration for use in an `if` statement.
 public struct Let: CodeBlock {
   internal let name: String
-  internal let value: CodeBlock
+  internal let value: any CodeBlock
 
-  /// Creates a `let` declaration for an `if` statement.
-  /// - Parameters:
-  ///   - name: The name of the constant.
-  ///   - value: The value to assign to the constant.
-  public init(_ name: String, _ value: CodeBlock) {
-    self.name = name
-    self.value = value
-  }
-
-  /// Creates a `let` declaration for an `if` statement with a string value.
-  /// - Parameters:
-  ///   - name: The name of the constant.
-  ///   - value: The string value to assign to the constant.
-  public init(_ name: String, _ value: String) {
-    self.name = name
-    self.value = VariableExp(value)
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     CodeBlockItemSyntax(
       item: .decl(
         DeclSyntax(
@@ -72,5 +54,23 @@ public struct Let: CodeBlock {
         )
       )
     )
+  }
+
+  /// Creates a `let` declaration for an `if` statement.
+  /// - Parameters:
+  ///   - name: The name of the constant.
+  ///   - value: The value to assign to the constant.
+  public init(_ name: String, _ value: any CodeBlock) {
+    self.name = name
+    self.value = value
+  }
+
+  /// Creates a `let` declaration for an `if` statement with a string value.
+  /// - Parameters:
+  ///   - name: The name of the constant.
+  ///   - value: The string value to assign to the constant.
+  public init(_ name: String, _ value: String) {
+    self.name = name
+    self.value = VariableExp(value)
   }
 }

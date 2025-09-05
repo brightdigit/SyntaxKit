@@ -34,7 +34,7 @@ extension Dictionary: LiteralValue, CodeBlockable where Key == Int, Value == Str
   public var typeName: String { "[Int: String]" }
 
   /// The code block representation of this dictionary.
-  public var codeBlock: CodeBlock {
+  public var codeBlock: any CodeBlock {
     Literal.dictionary(self.map { (.integer($0.key), .string($0.value)) })
   }
 

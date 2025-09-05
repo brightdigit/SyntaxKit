@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A protocol for types that can be represented as an ExprSyntax node.
 public protocol ExprCodeBlock: Sendable {

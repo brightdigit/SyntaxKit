@@ -27,18 +27,47 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A parameter for a function call.
 public struct ParameterExp: CodeBlock {
   internal let name: String
-  internal let value: CodeBlock
+  internal let value: any CodeBlock
+
+  public var syntax: any SyntaxProtocol {
+    if name.isEmpty {
+      if let exprBlock = value as? any ExprCodeBlock {
+        return exprBlock.exprSyntax
+      } else {
+        return value.syntax.as(ExprSyntax.self)
+          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
+    } else {
+      let expression: ExprSyntax
+      if let exprBlock = value as? any ExprCodeBlock {
+        expression = exprBlock.exprSyntax
+      } else {
+        expression =
+          value.syntax.as(ExprSyntax.self)
+          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
+      }
+      return LabeledExprSyntax(
+        label: .identifier(name),
+        colon: .colonToken(trailingTrivia: .init()),
+        expression: expression
+      )
+    }
+  }
+
+  internal var isUnlabeledClosure: Bool {
+    name.isEmpty && value is Closure
+  }
 
   /// Creates a parameter for a function call.
   /// - Parameters:
   ///   - name: The name of the parameter.
   ///   - value: The value of the parameter.
-  public init(name: String, value: CodeBlock) {
+  public init(name: String, value: any CodeBlock) {
     self.name = name
     self.value = value
   }
@@ -57,7 +86,7 @@ public struct ParameterExp: CodeBlock {
   }
 
   /// Convenience initializer for unlabeled parameter with a CodeBlock value.
-  public init(unlabeled value: CodeBlock) {
+  public init(unlabeled value: any CodeBlock) {
     self.name = ""
     self.value = value
   }
@@ -70,34 +99,5 @@ public struct ParameterExp: CodeBlock {
   public init(unlabeled value: String) {
     self.name = ""
     self.value = VariableExp(value)
-  }
-
-  public var syntax: SyntaxProtocol {
-    if name.isEmpty {
-      if let exprBlock = value as? ExprCodeBlock {
-        return exprBlock.exprSyntax
-      } else {
-        return value.syntax.as(ExprSyntax.self)
-          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-      }
-    } else {
-      let expression: ExprSyntax
-      if let exprBlock = value as? ExprCodeBlock {
-        expression = exprBlock.exprSyntax
-      } else {
-        expression =
-          value.syntax.as(ExprSyntax.self)
-          ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
-      }
-      return LabeledExprSyntax(
-        label: .identifier(name),
-        colon: .colonToken(trailingTrivia: .init()),
-        expression: expression
-      )
-    }
-  }
-
-  internal var isUnlabeledClosure: Bool {
-    name.isEmpty && value is Closure
   }
 }

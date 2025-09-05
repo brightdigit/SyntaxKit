@@ -32,6 +32,16 @@ import Foundation
 // MARK: - Convenience Methods
 
 extension Literal {
+  /// Converts a Literal.tuple to a TupleLiteral for use in Variable declarations.
+  public var asTupleLiteral: (any CodeBlockableLiteral)? {
+    switch self {
+    case .tuple(let elements):
+      return TupleLiteralArray(elements)
+    default:
+      return nil
+    }
+  }
+
   /// Creates a tuple literal from an array of optional literals (for patterns with wildcards).
   public static func tuplePattern(_ elements: [Literal?]) -> Literal {
     .tuple(elements)
@@ -40,15 +50,5 @@ extension Literal {
   /// Creates an integer literal.
   public static func int(_ value: Int) -> Literal {
     .integer(value)
-  }
-
-  /// Converts a Literal.tuple to a TupleLiteral for use in Variable declarations.
-  public var asTupleLiteral: CodeBlockableLiteral? {
-    switch self {
-    case .tuple(let elements):
-      return TupleLiteralArray(elements)
-    default:
-      return nil
-    }
   }
 }

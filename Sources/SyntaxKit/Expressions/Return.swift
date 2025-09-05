@@ -27,18 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `return` statement.
 public struct Return: CodeBlock {
-  private let exprs: [CodeBlock]
+  private let exprs: [any CodeBlock]
 
-  /// Creates a `return` statement.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the expression to return.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
-    self.exprs = try content()
-  }
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     if let expr = exprs.first {
       if let varExp = expr as? VariableExp {
         return ReturnStmtSyntax(
@@ -49,7 +44,7 @@ public struct Return: CodeBlock {
 
       // Try to get ExprSyntax from the expression
       let exprSyntax: ExprSyntax
-      if let exprCodeBlock = expr as? ExprCodeBlock {
+      if let exprCodeBlock = expr as? any ExprCodeBlock {
         exprSyntax = exprCodeBlock.exprSyntax
       } else if let syntax = expr.syntax.as(ExprSyntax.self) {
         exprSyntax = syntax
@@ -73,5 +68,11 @@ public struct Return: CodeBlock {
         returnKeyword: .keyword(.return, trailingTrivia: .space)
       )
     }
+  }
+
+  /// Creates a `return` statement.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the expression to return.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.exprs = try content()
   }
 }

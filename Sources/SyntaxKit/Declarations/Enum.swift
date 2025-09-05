@@ -27,46 +27,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `enum` declaration.
 public struct Enum: CodeBlock, Sendable {
   private let name: String
-  private let members: [CodeBlock]
+  private let members: [any CodeBlock]
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
-  /// Creates an enum declaration.
-  /// - Parameters:
-  ///   - name: The name of the enum.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the enum.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows
-  {
-    self.name = name
-    self.members = try content()
-  }
-
-  /// Sets the inheritance for the enum.
-  /// - Parameter inheritance: The types to inherit from.
-  /// - Returns: A copy of the enum with the inheritance set.
-  public func inherits(_ inheritance: String...) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Adds an attribute to the enum declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the enum with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let enumKeyword = TokenSyntax.keyword(.enum, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
 
@@ -114,6 +84,37 @@ public struct Enum: CodeBlock, Sendable {
       inheritanceClause: inheritanceClause,
       memberBlock: memberBlock
     )
+  }
+
+  /// Creates an enum declaration.
+  /// - Parameters:
+  ///   - name: The name of the enum.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the enum.
+  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    rethrows
+  {
+    self.name = name
+    self.members = try content()
+  }
+
+  /// Sets the inheritance for the enum.
+  /// - Parameter inheritance: The types to inherit from.
+  /// - Returns: A copy of the enum with the inheritance set.
+  public func inherits(_ inheritance: String...) -> Self {
+    var copy = self
+    copy.inheritance = inheritance
+    return copy
+  }
+
+  /// Adds an attribute to the enum declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the enum with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

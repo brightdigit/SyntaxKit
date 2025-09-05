@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 extension CodeBlock {
   /// Generates the Swift code for the ``CodeBlock``.

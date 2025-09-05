@@ -28,33 +28,14 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `do` statement for error handling.
 public struct Do: CodeBlock {
-  private let body: [CodeBlock]
+  private let body: [any CodeBlock]
   private let catchClauses: CatchClauseListSyntax
 
-  /// Creates a `do` statement.
-  /// - Parameter body: A ``CodeBlockBuilder`` that provides the body of the `do` block.
-  public init(@CodeBlockBuilderResult _ body: () throws -> [CodeBlock]) rethrows {
-    self.body = try body()
-    self.catchClauses = CatchClauseListSyntax([])
-  }
-
-  /// Creates a `do-catch` statement.
-  /// - Parameters:
-  ///   - body: A ``CodeBlockBuilder`` that provides the body of the do block.
-  ///   - catchClauses: A ``CatchBuilder`` that provides the catch clauses.
-  public init(
-    @CodeBlockBuilderResult _ body: () -> [CodeBlock],
-    @CatchBuilder catch catchClauses: () -> CatchClauseListSyntax
-  ) {
-    self.body = body()
-    self.catchClauses = catchClauses()
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     // Build the do body
     let doBody = CodeBlockSyntax(
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
@@ -81,5 +62,24 @@ public struct Do: CodeBlock {
         catchClauses: catchClauses
       )
     )
+  }
+
+  /// Creates a `do` statement.
+  /// - Parameter body: A ``CodeBlockBuilder`` that provides the body of the `do` block.
+  public init(@CodeBlockBuilderResult _ body: () throws -> [any CodeBlock]) rethrows {
+    self.body = try body()
+    self.catchClauses = CatchClauseListSyntax([])
+  }
+
+  /// Creates a `do-catch` statement.
+  /// - Parameters:
+  ///   - body: A ``CodeBlockBuilder`` that provides the body of the do block.
+  ///   - catchClauses: A ``CatchBuilder`` that provides the catch clauses.
+  public init(
+    @CodeBlockBuilderResult _ body: () -> [any CodeBlock],
+    @CatchBuilder catch catchClauses: () -> CatchClauseListSyntax
+  ) {
+    self.body = body()
+    self.catchClauses = catchClauses()
   }
 }

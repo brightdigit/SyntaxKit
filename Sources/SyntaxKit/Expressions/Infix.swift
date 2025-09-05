@@ -27,10 +27,23 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A generic binary (infix) operator expression, e.g. `a + b`.
 public struct Infix: CodeBlock, ExprCodeBlock {
+  /// Comparison operators that can be used in infix expressions.
+  public enum ComparisonOperator: String, CaseIterable {
+    case greaterThan = ">"
+    case lessThan = "<"
+    case equal = "=="
+    case notEqual = "!="
+
+    /// The string representation of the operator.
+    public var symbol: String {
+      rawValue
+    }
+  }
+
   public enum InfixError: Error, CustomStringConvertible {
     case wrongOperandCount(expected: Int, got: Int)
     case nonExprCodeBlockOperand
@@ -48,43 +61,6 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   private let operation: String
   private let leftOperand: any ExprCodeBlock
   private let rightOperand: any ExprCodeBlock
-
-  /// Creates an infix operator expression.
-  /// - Parameters:
-  ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
-  ///   - lhs: The left-hand side expression that conforms to ExprCodeBlock.
-  ///   - rhs: The right-hand side expression that conforms to ExprCodeBlock.
-  public init(_ operation: String, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
-    self.operation = operation
-    self.leftOperand = lhs
-    self.rightOperand = rhs
-  }
-
-  /// Creates an infix operator expression with a builder closure.
-  /// - Parameters:
-  ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
-  ///   - content: A ``CodeBlockBuilder`` that supplies exactly two operand expressions.
-  ///
-  /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
-  /// Each operand must conform to ExprCodeBlock.
-  @available(*, deprecated, message: "Use separate lhs and rhs parameters for compile-time safety")
-  public init(_ operation: String, @CodeBlockBuilderResult _ content: () throws -> [CodeBlock])
-    throws
-  {
-    self.operation = operation
-    let operands = try content()
-
-    guard operands.count == 2 else {
-      throw InfixError.wrongOperandCount(expected: 2, got: operands.count)
-    }
-    guard let lhs = operands[0] as? any ExprCodeBlock,
-      let rhs = operands[1] as? any ExprCodeBlock
-    else {
-      throw InfixError.nonExprCodeBlockOperand
-    }
-    self.leftOperand = lhs
-    self.rightOperand = rhs
-  }
 
   public var exprSyntax: ExprSyntax {
     let left = leftOperand.exprSyntax
@@ -107,25 +83,8 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     exprSyntax
-  }
-}
-
-// MARK: - Comparison Operators
-
-extension Infix {
-  /// Comparison operators that can be used in infix expressions.
-  public enum ComparisonOperator: String, CaseIterable {
-    case greaterThan = ">"
-    case lessThan = "<"
-    case equal = "=="
-    case notEqual = "!="
-
-    /// The string representation of the operator.
-    public var symbol: String {
-      rawValue
-    }
   }
 
   /// Creates an infix expression with a comparison operator.
@@ -135,6 +94,43 @@ extension Infix {
   ///   - rhs: The right-hand side expression.
   public init(_ operator: ComparisonOperator, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
     self.operation = `operator`.symbol
+    self.leftOperand = lhs
+    self.rightOperand = rhs
+  }
+
+  /// Creates an infix operator expression.
+  /// - Parameters:
+  ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
+  ///   - lhs: The left-hand side expression that conforms to ExprCodeBlock.
+  ///   - rhs: The right-hand side expression that conforms to ExprCodeBlock.
+  public init(_ operation: String, lhs: any ExprCodeBlock, rhs: any ExprCodeBlock) {
+    self.operation = operation
+    self.leftOperand = lhs
+    self.rightOperand = rhs
+  }
+
+  /// Creates an infix operator expression with a builder closure.
+  /// - Parameters:
+  ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
+  ///   - content: A ``CodeBlockBuilder`` that supplies exactly two operand expressions.
+  ///
+  /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
+  /// Each operand must conform to ExprCodeBlock.
+  @available(*, deprecated, message: "Use separate lhs and rhs parameters for compile-time safety")
+  public init(_ operation: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
+    throws
+  {
+    self.operation = operation
+    let operands = try content()
+
+    guard operands.count == 2 else {
+      throw InfixError.wrongOperandCount(expected: 2, got: operands.count)
+    }
+    guard let lhs = operands[0] as? any ExprCodeBlock,
+      let rhs = operands[1] as? any ExprCodeBlock
+    else {
+      throw InfixError.nonExprCodeBlockOperand
+    }
     self.leftOperand = lhs
     self.rightOperand = rhs
   }

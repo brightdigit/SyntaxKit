@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension If {
   /// Builds the else body for the if expression.
@@ -38,7 +38,7 @@ extension If {
     }
 
     // Build a chained else-if structure if the builder provided If blocks.
-    var current: SyntaxProtocol?
+    var current: (any SyntaxProtocol)?
 
     for block in elseBlocks.reversed() {
       current = processElseBlock(block, current: current)
@@ -49,9 +49,9 @@ extension If {
 
   /// Processes a single else block and updates the current syntax.
   private func processElseBlock(
-    _ block: CodeBlock,
-    current: SyntaxProtocol?
-  ) -> SyntaxProtocol? {
+    _ block: any CodeBlock,
+    current: (any SyntaxProtocol)?
+  ) -> (any SyntaxProtocol)? {
     switch block {
     case let thenBlock as Then:
       return buildThenBlock(thenBlock)
@@ -63,7 +63,7 @@ extension If {
   }
 
   /// Builds a Then block for the else clause.
-  private func buildThenBlock(_ thenBlock: Then) -> SyntaxProtocol {
+  private func buildThenBlock(_ thenBlock: Then) -> any SyntaxProtocol {
     let stmts = CodeBlockItemListSyntax(
       thenBlock.body.compactMap { element in
         createCodeBlockItem(from: element)?.with(\.trailingTrivia, .newline)
@@ -73,11 +73,11 @@ extension If {
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       statements: stmts,
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
-    ) as SyntaxProtocol
+    ) as any SyntaxProtocol
   }
 
   /// Creates an else choice from a syntax protocol.
-  private func createElseChoice(from nested: SyntaxProtocol) -> IfExprSyntax.ElseBody {
+  private func createElseChoice(from nested: any SyntaxProtocol) -> IfExprSyntax.ElseBody {
     if let codeBlock = nested.as(CodeBlockSyntax.self) {
       return IfExprSyntax.ElseBody(codeBlock)
     } else if let nestedIf = nested.as(IfExprSyntax.self) {
@@ -99,8 +99,8 @@ extension If {
   /// Processes an If block to build the else-if chain.
   private func processIfBlock(
     _ ifBlock: If,
-    current: SyntaxProtocol?
-  ) -> SyntaxProtocol? {
+    current: (any SyntaxProtocol)?
+  ) -> (any SyntaxProtocol)? {
     guard var ifExpr = ifBlock.syntax.as(IfExprSyntax.self) else {
       return current
     }
@@ -112,11 +112,11 @@ extension If {
         .with(\.elseKeyword, .keyword(.else, leadingTrivia: .space, trailingTrivia: .space))
         .with(\.elseBody, elseChoice)
     }
-    return ifExpr as SyntaxProtocol
+    return ifExpr as any SyntaxProtocol
   }
 
   /// Builds a default else block for any other CodeBlock type.
-  private func buildDefaultElseBlock(_ block: CodeBlock) -> SyntaxProtocol? {
+  private func buildDefaultElseBlock(_ block: any CodeBlock) -> (any SyntaxProtocol)? {
     guard let item = createCodeBlockItem(from: block) else {
       return nil
     }
@@ -132,7 +132,7 @@ extension If {
   }
 
   /// Creates the final else body from the processed syntax.
-  private func createElseBody(from current: SyntaxProtocol?) -> IfExprSyntax.ElseBody? {
+  private func createElseBody(from current: (any SyntaxProtocol)?) -> IfExprSyntax.ElseBody? {
     guard let final = current else {
       return nil
     }

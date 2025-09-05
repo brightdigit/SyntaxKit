@@ -27,44 +27,17 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `var` declaration with a computed value.
 public struct ComputedProperty: CodeBlock {
   private let name: String
   private let type: String
-  private let body: [CodeBlock]
+  private let body: [any CodeBlock]
   private var accessModifier: AccessModifier?
   private let explicitType: Bool
 
-  /// Creates a computed property declaration.
-  /// - Parameters:
-  ///   - name: The name of the property.
-  ///   - type: The type of the property.
-  ///   - explicitType: Whether the type should be explicitly marked.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the getter.
-  public init(
-    _ name: String,
-    type: String,
-    explicitType: Bool = true,
-    @CodeBlockBuilderResult _ content: () throws -> [CodeBlock]
-  ) rethrows {
-    self.name = name
-    self.type = type
-    self.explicitType = explicitType
-    self.body = try content()
-  }
-
-  /// Sets the access modifier for the computed property declaration.
-  /// - Parameter access: The access modifier.
-  /// - Returns: A copy of the computed property with the access modifier set.
-  public func access(_ access: AccessModifier) -> Self {
-    var copy = self
-    copy.accessModifier = access
-    return copy
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let accessor = AccessorBlockSyntax(
       leftBrace: TokenSyntax.leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
       accessors: .getter(
@@ -112,5 +85,32 @@ public struct ComputedProperty: CodeBlock {
         )
       ])
     )
+  }
+
+  /// Creates a computed property declaration.
+  /// - Parameters:
+  ///   - name: The name of the property.
+  ///   - type: The type of the property.
+  ///   - explicitType: Whether the type should be explicitly marked.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the getter.
+  public init(
+    _ name: String,
+    type: String,
+    explicitType: Bool = true,
+    @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.name = name
+    self.type = type
+    self.explicitType = explicitType
+    self.body = try content()
+  }
+
+  /// Sets the access modifier for the computed property declaration.
+  /// - Parameter access: The access modifier.
+  /// - Returns: A copy of the computed property with the access modifier set.
+  public func access(_ access: AccessModifier) -> Self {
+    var copy = self
+    copy.accessModifier = access
+    return copy
   }
 }

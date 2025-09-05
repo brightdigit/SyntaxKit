@@ -27,6 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
 import SwiftSyntax
 import Testing
 
@@ -104,8 +105,8 @@ internal final class VariableCoverageTests {
     // This tests when value is neither ExprCodeBlock nor ExprSyntax
 
     // Create a custom CodeBlock that doesn't conform to ExprCodeBlock
-    struct CustomCodeBlock: CodeBlock {
-      var syntax: SyntaxProtocol {
+    struct CustomCodeBlock: SyntaxKit.CodeBlock {
+      var syntax: any SyntaxProtocol {
         // Return something that's not ExprSyntax
         DeclSyntax(
           VariableDeclSyntax(

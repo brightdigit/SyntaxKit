@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A property requirement inside a protocol declaration.
 public struct PropertyRequirement: CodeBlock {
@@ -41,18 +41,7 @@ public struct PropertyRequirement: CodeBlock {
   private let type: String
   private let access: Access
 
-  /// Creates a property requirement.
-  /// - Parameters:
-  ///   - name: The property name.
-  ///   - type: The property type.
-  ///   - access: Whether the property is get-only or get/set.
-  public init(_ name: String, type: String, access: Access = .get) {
-    self.name = name
-    self.type = type
-    self.access = access
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let varKeyword = TokenSyntax.keyword(.var, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
 
@@ -98,5 +87,16 @@ public struct PropertyRequirement: CodeBlock {
         )
       ])
     )
+  }
+
+  /// Creates a property requirement.
+  /// - Parameters:
+  ///   - name: The property name.
+  ///   - type: The property type.
+  ///   - access: Whether the property is get-only or get/set.
+  public init(_ name: String, type: String, access: Access = .get) {
+    self.name = name
+    self.type = type
+    self.access = access
   }
 }

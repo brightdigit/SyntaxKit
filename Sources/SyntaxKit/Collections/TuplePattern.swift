@@ -31,11 +31,7 @@ import SwiftSyntax
 
 /// A tuple pattern for switch cases.
 internal struct TuplePattern: PatternConvertible {
-  private let elements: [PatternConvertible?]
-
-  internal init(elements: [PatternConvertible?]) {
-    self.elements = elements
-  }
+  private let elements: [(any PatternConvertible)?]
 
   internal var patternSyntax: PatternSyntax {
     let patternElements = TuplePatternElementListSyntax(
@@ -68,5 +64,8 @@ internal struct TuplePattern: PatternConvertible {
         rightParen: .rightParenToken()
       )
     )
+  }
+  internal init(elements: [(any PatternConvertible)?]) {
+    self.elements = elements
   }
 }

@@ -1,3 +1,5 @@
+import Foundation
+import SwiftSyntax
 import Testing
 
 @testable import SyntaxKit
