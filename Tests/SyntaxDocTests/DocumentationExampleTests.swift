@@ -1,6 +1,5 @@
+import DocumentationHarness
 import Foundation
-import SwiftParser
-import SwiftSyntax
 import Testing
 
 /// Integration tests that validate all code examples in DocC documentation
@@ -10,7 +9,8 @@ internal struct DocumentationExampleTests {
   @Test("All documentation code examples compile and execute correctly")
   internal func validateAllDocumentationExamples() throws {
     let testHarness = DocumentationTestHarness()
-    let results = try testHarness.validateAllExamples()
+    let results = try testHarness.validate(
+      relativePaths: Settings.docPaths, atProjectRoot: Settings.projectRoot)
 
     // Report any failures
     let failures = results.filter { !$0.isSuccess && !$0.isSkipped }

@@ -8,9 +8,6 @@
 import Foundation
 
 internal enum Settings {
-  /// Default file extensions for documentation files
-  internal static let defaultPathExtensions = ["md"]
-
   /// Project root directory calculated from the current file location
   internal static let projectRoot: URL = {
     let currentFileURL = URL(fileURLWithPath: #filePath)

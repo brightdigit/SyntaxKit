@@ -1,16 +1,47 @@
-import Foundation
+//
+//  DocumentationTestHarness.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion.
+//  Copyright © 2025 BrightDigit.
+//
+//  Permission is hereby granted, free of charge, to any person
+//  obtaining a copy of this software and associated documentation
+//  files (the “Software”), to deal in the Software without
+//  restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following
+//  conditions:
+//
+//  The above copyright notice and this permission notice shall be
+//  included in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+//  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+//  OTHER DEALINGS IN THE SOFTWARE.
+//
+
+package import Foundation
 import SwiftParser
 import SwiftSyntax
 import Testing
 
 /// Harness for extracting and testing documentation code examples
-internal struct DocumentationTestHarness {
+package struct DocumentationTestHarness {
+  /// Default file extensions for documentation files
+  internal static let defaultPathExtensions = ["md"]
   /// Swift code validator instance
   private let codeValidator: any SyntaxValidator
   private let fileSearcher: any FileSearcher
   private let codeBlocksFrom: CodeBlockExtractor
 
-  internal init(
+  package init(
     codeValidator: any SyntaxValidator = CodeSyntaxValidator(),
     fileSearcher: any FileSearcher = FileManager.default,
     codeBlocksFrom: @escaping CodeBlockExtractor = CodeBlockExtraction.callAsFunction(_:)
@@ -21,12 +52,15 @@ internal struct DocumentationTestHarness {
   }
 
   /// Validates all code examples in all documentation files
-  internal func validateAllExamples() throws -> [ValidationResult] {
-    let documentationFiles = try Settings.docPaths.flatMap { docPath in
-      let absolutePath = Settings.projectRoot.appendingPathComponent(docPath)
+  package func validate(
+    relativePaths: [String], atProjectRoot projectRoot: URL,
+    withPathExtensions pathExtensions: [String] = Self.defaultPathExtensions
+  ) throws -> [ValidationResult] {
+    let documentationFiles = try relativePaths.flatMap { docPath in
+      let absolutePath = projectRoot.appendingPathComponent(docPath)
       return try self.fileSearcher.findDocumentationFiles(
         in: absolutePath,
-        pathExtensions: Settings.defaultPathExtensions
+        pathExtensions: pathExtensions
       )
     }
     var allResults: [ValidationResult] = []
@@ -40,7 +74,7 @@ internal struct DocumentationTestHarness {
   }
 
   /// Validates code examples in a specific file
-  internal func validateExamplesInFile(_ fileURL: URL) throws -> [ValidationResult] {
+  package func validateExamplesInFile(_ fileURL: URL) throws -> [ValidationResult] {
     // let fullPath = try resolveFilePath(filePath)
     let content = try String(contentsOf: fileURL)
 

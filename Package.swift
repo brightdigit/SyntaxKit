@@ -110,6 +110,15 @@ let package = Package(
       ],
       swiftSettings: swiftSettings
     ),
+    .target(
+      name: "DocumentationHarness",
+      dependencies: [
+          .product(name: "SwiftSyntax", package: "swift-syntax"),
+          .product(name: "SwiftOperators", package: "swift-syntax"),
+          .product(name: "SwiftParser", package: "swift-syntax")
+      ],
+      swiftSettings: swiftSettings
+    ),
     .executableTarget(
       name: "skit",
       dependencies: ["SyntaxKit"],
@@ -122,7 +131,7 @@ let package = Package(
     ),
     .testTarget(
       name: "SyntaxDocTests",
-      dependencies: ["SyntaxKit"],
+      dependencies: ["SyntaxKit", "DocumentationHarness"],
       swiftSettings: swiftSettings
     ),
   ]
