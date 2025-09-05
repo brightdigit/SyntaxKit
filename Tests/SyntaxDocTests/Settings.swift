@@ -8,6 +8,10 @@
 import Foundation
 
 internal enum Settings {
+  
+  /// Default file extensions for documentation files
+  internal static let defaultPathExtensions = ["md"]
+  
   /// Project root directory calculated from the current file location
   internal static let projectRoot: URL = {
     let currentFileURL = URL(fileURLWithPath: #filePath)
@@ -32,7 +36,7 @@ internal enum Settings {
   }
 
   /// Resolves a relative file path to absolute path
-  private static func resolveFilePath(_ filePath: String) throws -> URL {
+  internal static func resolveFilePath(_ filePath: String) throws -> URL {
     if filePath.hasPrefix("/") {
       return .init(filePath: filePath)
     } else {

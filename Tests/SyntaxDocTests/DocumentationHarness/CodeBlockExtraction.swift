@@ -5,8 +5,16 @@ internal enum CodeBlockExtractorError: Error {
   case alreadyUsed
 }
 
+typealias CodeBlockExtractor = @Sendable (String) throws(CodeBlockExtractorError) -> [CodeBlock] 
+
+extension CodeBlockExtraction {
+  static func callAsFunction(_ content: String) throws(CodeBlockExtractorError) -> [CodeBlock] {
+    let extraction = CodeBlockExtraction()
+    return try extraction(content)
+  }
+}
 /// Extracts Swift code blocks from markdown content
-internal class CodeBlockExtractor {
+internal class CodeBlockExtraction {
   // MARK: - Properties
 
   /// The lines of content being parsed

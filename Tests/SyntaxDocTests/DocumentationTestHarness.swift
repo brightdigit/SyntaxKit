@@ -4,19 +4,35 @@ import SwiftSyntax
 import Testing
 
 /// Harness for extracting and testing documentation code examples
-internal class DocumentationTestHarness {
+internal struct DocumentationTestHarness {
+  internal init(
+    codeValidator: any SyntaxValidator = CodeSyntaxValidator(),
+    fileSearcher: any FileSearcher = FileManager.default,
+    codeBlocksFrom: @escaping CodeBlockExtractor = CodeBlockExtraction.callAsFunction(_:)
+  ) {
+    self.codeValidator = codeValidator
+    self.fileSearcher = fileSearcher
+    self.codeBlocksFrom = codeBlocksFrom
+  }
+  
   /// Swift code validator instance
-  private let codeValidator = SwiftCodeValidator()
+  private let codeValidator: any SyntaxValidator
+  private let fileSearcher : any FileSearcher
+  private let codeBlocksFrom : CodeBlockExtractor
 
-  /// Default file extensions for documentation files
-  private static let defaultPathExtensions = ["md"]
   /// Validates all code examples in all documentation files
-  internal func validateAllExamples() async throws -> [ValidationResult] {
-    let documentationFiles = try DocumentationTestHarness.findDocumentationFiles()
+  internal func validateAllExamples() throws -> [ValidationResult] {
+    let documentationFiles = try Settings.docPaths.flatMap { docPath in
+      let absolutePath = Settings.projectRoot.appendingPathComponent(docPath)
+      return try FileManager.default.findDocumentationFiles(
+        in: absolutePath,
+        pathExtensions: Settings.defaultPathExtensions
+      )
+    }
     var allResults: [ValidationResult] = []
 
     for filePath in documentationFiles {
-      let results = try await validateExamplesInFile(filePath)
+      let results = try validateExamplesInFile(filePath)
       allResults.append(contentsOf: results)
     }
 
@@ -24,11 +40,11 @@ internal class DocumentationTestHarness {
   }
 
   /// Validates code examples in a specific file
-  internal func validateExamplesInFile(_ fileURL: URL) async throws -> [ValidationResult] {
+  internal func validateExamplesInFile(_ fileURL: URL)  throws -> [ValidationResult] {
     // let fullPath = try resolveFilePath(filePath)
     let content = try String(contentsOf: fileURL)
 
-    let codeBlocks = try CodeBlockExtractor()(content)
+    let codeBlocks = try codeBlocksFrom(content)
     var results: [ValidationResult] = []
 
     for (index, codeBlock) in codeBlocks.enumerated() {
@@ -39,10 +55,10 @@ internal class DocumentationTestHarness {
         blockIndex: index,
         blockType: codeBlock.blockType
       )
-      let result = await validateCodeBlock(parameters)
-
       try results.append(
-        #require(result)
+        #require(
+          validateCodeBlock(parameters)
+        )
       )
     }
 
@@ -56,7 +72,7 @@ internal class DocumentationTestHarness {
     switch parameters.blockType {
     case .example:
       // Test compilation and basic execution
-      return validateSwiftExample(parameters)
+      return codeValidator.validateSyntax(from: parameters)
 
     case .packageManifest:
       #if canImport(Foundation) && (os(macOS) || os(Linux))
@@ -69,8 +85,10 @@ internal class DocumentationTestHarness {
           processError = error
         }
         return ValidationResult(
-          parameters: parameters, testType: .parsing,
-          error: processError.map { ValidationError.processError($0) })
+          parameters: parameters,
+          testType: .parsing,
+          error: processError.map { ValidationError.processError($0) }
+        )
       #else
         return ValidationResult(
           parameters: parameters,
@@ -87,30 +105,7 @@ internal class DocumentationTestHarness {
       )
     }
   }
-
-  //  /// Convenience method for backward compatibility
-  //  private func validateCodeBlock(
-  //
-  //  ) async -> ValidationResult? {
-  //    let parameters = CodeBlockValidationParameters(
-  //      code: code,
-  //      fileURL: fileURL,
-  //      blockIndex: blockIndex,
-  //      lineNumber: lineNumber,
-  //      blockType: blockType
-  //    )
-  //    return await validateCodeBlock(parameters)
-  //  }
-
-  /// Validates a Swift code example
-  private func validateSwiftExample(
-    _ parameters: CodeBlockValidationParameters
-  ) -> ValidationResult {
-    codeValidator.validateSwiftExample(
-      parameters
-    )
-  }
-
+  
   #if canImport(Foundation) && (os(macOS) || os(Linux))
     /// Validates a Package.swift manifest
     private func validatePackageManifest(
@@ -151,13 +146,4 @@ internal class DocumentationTestHarness {
     }
   #endif
 
-  /// Finds all documentation files containing code examples
-  @available(*, deprecated, message: "Use findDocumentationFiles(in:pathExtensions:) instead")
-  private static func findDocumentationFiles() throws -> [URL] {
-    try Settings.docPaths.flatMap { docPath in
-      let absolutePath = Settings.projectRoot.appendingPathComponent(docPath)
-      return try FileManager.default.findDocumentationFiles(
-        in: absolutePath, pathExtensions: Self.defaultPathExtensions)
-    }
-  }
 }
