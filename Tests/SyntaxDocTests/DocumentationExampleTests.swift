@@ -10,14 +10,22 @@ internal struct DocumentationExampleTests {
   internal func validateAllDocumentationExamples() throws {
     let testHarness = DocumentationTestHarness()
     let results = try testHarness.validate(
-      relativePaths: Settings.docPaths, atProjectRoot: Settings.projectRoot)
+      relativePaths: Settings.docPaths,
+      atProjectRoot: Settings.projectRoot
+    )
 
     // Report any failures
     let failures = results.filter { !$0.isSuccess && !$0.isSkipped }
     if !failures.isEmpty {
       let failureReport = failures.map { result in
-        // swiftlint:disable:next line_length
-        "\(result.fileURL.path()):\(result.lineNumber) - \(result.error?.localizedDescription ?? "Unknown error")"
+        let path: String
+        if #available(iOS 16.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, *) {
+          path = result.fileURL.path()
+        } else {
+          path = result.fileURL.path
+        }
+        return
+          "\(path):\(result.lineNumber) - \(result.error?.localizedDescription ?? "Unknown error")"
       }
       .joined(separator: "\n")
 
@@ -36,7 +44,7 @@ internal struct DocumentationExampleTests {
     let quickStartFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md"
     )
-    let results = try testHarness.validateExamplesInFile(quickStartFile)
+    let results = try testHarness.validateFile(at: quickStartFile)
 
     // Specific validation for Quick Start examples
     #expect(!results.isEmpty, "Quick Start Guide should contain code examples")
@@ -52,7 +60,7 @@ internal struct DocumentationExampleTests {
     let macroTutorialFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md"
     )
-    let results = try testHarness.validateExamplesInFile(macroTutorialFile)
+    let results = try testHarness.validateFile(at: macroTutorialFile)
 
     // Macro examples should compile (though they may not execute without full macro setup)
     let compileResults = results.filter { $0.testType == .parsing }
@@ -67,7 +75,7 @@ internal struct DocumentationExampleTests {
     let enumExampleFile = try Settings.resolveFilePath(
       "Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md"
     )
-    let results = try testHarness.validateExamplesInFile(enumExampleFile)
+    let results = try testHarness.validateFile(at: enumExampleFile)
 
     // Check that enum generation examples actually work
     let executionResults = results.filter { $0.testType == .execution }

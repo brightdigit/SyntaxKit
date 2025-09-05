@@ -113,9 +113,9 @@ let package = Package(
     .target(
       name: "DocumentationHarness",
       dependencies: [
-          .product(name: "SwiftSyntax", package: "swift-syntax"),
-          .product(name: "SwiftOperators", package: "swift-syntax"),
-          .product(name: "SwiftParser", package: "swift-syntax")
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftOperators", package: "swift-syntax"),
+        .product(name: "SwiftParser", package: "swift-syntax")
       ],
       swiftSettings: swiftSettings
     ),

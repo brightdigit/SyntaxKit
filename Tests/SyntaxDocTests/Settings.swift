@@ -28,7 +28,11 @@ internal enum Settings {
   /// Resolves a relative file path to absolute path
   internal static func resolveFilePath(_ filePath: String) throws -> URL {
     if filePath.hasPrefix("/") {
-      return .init(filePath: filePath)
+      if #available(iOS 16.0, watchOS 9.0, tvOS 16.0, macCatalyst 16.0, *) {
+        return .init(filePath: filePath)
+      } else {
+        return .init(fileURLWithPath: filePath)
+      }
     } else {
       return Self.projectRoot.appendingPathComponent(filePath)
     }
