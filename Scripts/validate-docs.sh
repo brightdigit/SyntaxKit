@@ -316,27 +316,54 @@ validate_code_examples() {
         
         echo -e "${BLUE}📄 Processing: $relative_path${NC}"
         
-        # Extract Swift code blocks using awk
+        # Extract Swift code blocks using awk, respecting skip markers
         awk -v temp_dir="$temp_dir" -v file_base="$(basename "$file" .md)" '
-            BEGIN { block_num = 0 }
+            BEGIN { block_num = 0; skip_block = 0 }
+            
+            # Check for skip markers in HTML comments
+            /<!-- (skip-test|no-test|incomplete|example-only) -->/ {
+                skip_block = 1
+                next
+            }
+            
             /^```swift/ { 
                 in_swift = 1
-                block_num++
-                output_file = temp_dir "/" file_base "_" block_num ".swift"
-                print "import Foundation" > output_file
-                print "import SyntaxKit" >> output_file
-                print "" >> output_file
+                
+                # Check preceding lines (up to 3 lines back) for skip markers
+                for (i = NR - 3; i < NR; i++) {
+                    if (i > 0 && lines[i] ~ /<!-- (skip-test|no-test|incomplete|example-only) -->/) {
+                        skip_block = 1
+                        break
+                    }
+                }
+                
+                if (!skip_block) {
+                    block_num++
+                    output_file = temp_dir "/" file_base "_" block_num ".swift"
+                    print "import Foundation" > output_file
+                    print "import SyntaxKit" >> output_file
+                    print "" >> output_file
+                }
                 next 
             }
             /^```$/ && in_swift { 
                 in_swift = 0
-                close(output_file)
-                print output_file
+                if (!skip_block && output_file) {
+                    close(output_file)
+                    print output_file
+                }
+                skip_block = 0
+                output_file = ""
                 next 
             }
-            in_swift { 
-                print $0 >> output_file 
+            in_swift && !skip_block { 
+                if (output_file) {
+                    print $0 >> output_file 
+                }
             }
+            
+            # Store lines for lookback
+            { lines[NR] = $0 }
         ' "$file"
     }
     

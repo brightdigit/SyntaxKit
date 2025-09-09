@@ -37,6 +37,8 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     case lessThan = "<"
     case equal = "=="
     case notEqual = "!="
+    case plusAssign = "+="
+    case minusAssign = "-="
 
     /// The string representation of the operator.
     public var symbol: String {

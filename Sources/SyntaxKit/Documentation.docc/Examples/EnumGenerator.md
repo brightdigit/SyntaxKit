@@ -446,10 +446,3 @@ SyntaxKit's enum generator transforms tedious manual maintenance into reliable a
 - **Improved developer experience** and satisfaction
 
 The approach scales from small personal projects to enterprise applications with hundreds of API endpoints. Once implemented, enum maintenance becomes completely automated, freeing developers to focus on building great features instead of maintaining boilerplate code.
-
-## Related Examples
-
-- ``Examples/API-Endpoints`` - Simple endpoint enum generation
-- ``Examples/Error-Handling`` - Complex error enum with associated values
-- ``Examples/Configuration-Driven`` - Multiple enum generation from single config
-- ``Tutorials/Code-Generation`` - Comprehensive code generation patterns

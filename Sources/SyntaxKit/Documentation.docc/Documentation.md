@@ -129,29 +129,30 @@ let structExample = Struct("BlackjackCard") {
             Variable(.let, name: "second", type: "Int?")
         }
         
-        ComputedProperty("values") {
+        ComputedProperty("values", type: "Values") {
             Switch("self") {
                 SwitchCase(".ace") {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "1")
-                            Parameter(name: "second", value: "11")
+                          
+                            ParameterExp(name: "first", value: Literal.integer(1))
+                          ParameterExp(name: "second", value: Literal.integer(11))
                         }
                     }
                 }
                 SwitchCase(".jack", ".queen", ".king") {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "10")
-                            Parameter(name: "second", value: "nil")
+                          ParameterExp(name: "first", value: Literal.integer(10))
+                          ParameterExp(name: "second", value: Literal.nil)
                         }
                     }
                 }
                 Default {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "self.rawValue")
-                            Parameter(name: "second", value: "nil")
+                          ParameterExp(name: "first", value: VariableExp("self.rawValue"))
+                          ParameterExp(name: "second", value: Literal.nil)
                         }
                     }
                 }
@@ -169,11 +170,19 @@ let structExample = Struct("BlackjackCard") {
         Line("BlackjackCard properties and methods")
     }
 
-    ComputedProperty("description") {
-        VariableDecl(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
-        PlusAssign("output", "\" value is \\(rank.values.first)\"")
+    ComputedProperty("description", type: "String") {
+        Variable(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
+        Infix(
+          .plusAssign,
+          lhs: VariableExp("output"),
+          rhs: Literal.string("\" value is \\(rank.values.first)\"")
+        )
         If(Let("second", "rank.values.second"), then: {
-            PlusAssign("output", "\" or \\(second)\"")
+          Infix(
+            .plusAssign,
+            lhs: VariableExp("output"),
+            rhs: Literal.string("\" or \\(second)\"")
+          )
         })
         Return {
             VariableExp("output")
@@ -339,7 +348,7 @@ struct MembersMacro: MemberMacro {
 ```
 
 **SyntaxKit Approach (Clean and readable):**
-<!-- example-only -->
+<!-- skip-test -->
 ```swift
 struct MembersMacro: MemberMacro {
     static func expansion(
@@ -356,8 +365,7 @@ struct MembersMacro: MemberMacro {
                 for variable in variables {
                     Parameter(variable.name, type: variable.type)
                 }
-            }
-            .body {
+            } _: {
                 for variable in variables {
                     Assignment("self.\(variable.name)", variable.name)
                 }
@@ -396,6 +404,7 @@ struct MembersMacro: MemberMacro {
 
 **Generated code performance is identical to hand-written Swift.** SyntaxKit operates at compile-time only:
 
+<!-- skip-test -->
 ```swift
 // SyntaxKit-generated code
 struct User: Equatable {
