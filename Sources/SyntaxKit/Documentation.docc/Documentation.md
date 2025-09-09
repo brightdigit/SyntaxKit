@@ -4,45 +4,30 @@
 
 SyntaxKit transforms complex Swift code generation from tedious AST manipulation into intuitive, readable declarations. Built for scenarios where you need to create Swift code dynamically—macro development, API client generators, model transformers, and migration utilities—rather than writing code by hand once.
 
-## Overview
-
 **When you're generating repetitive code structures, transforming external schemas into Swift types, or building developer tools that output Swift code, SyntaxKit provides the declarative approach you need.** Unlike manually constructing SwiftSyntax AST nodes, SyntaxKit uses result builders to make complex code generation maintainable and error-resistant.
 
 Perfect for macro authors who need to generate intricate Swift structures, developers building tools that automatically create boilerplate from APIs or databases, and teams creating migration utilities that transform data models. If you're writing application logic or view controllers—code you'd normally type by hand—stick with regular Swift. If you're programmatically generating Swift code structures, SyntaxKit is designed for you.
 
 **Core scenarios where SyntaxKit excels:**
 - **Swift Macro Development**: Replace complex AST manipulation with declarative macro logic
-- **API Client Generation**: Transform OpenAPI specs into type-safe Swift networking code  
 - **Model Generation**: Convert database schemas or JSON into Swift data models with computed properties
 - **Migration Utilities**: Build tools that automatically transform legacy code structures
 - **Developer Tools**: Create code generators for repetitive patterns and boilerplate
 
-## When to Use SyntaxKit vs Raw Swift
+## When to Use SyntaxKit
 
 **Choose SyntaxKit when you're generating Swift code programmatically. Choose raw Swift when you're writing application logic.**
 
 | Scenario | Use SyntaxKit ✅ | Use Raw Swift ❌ | Why |
 |----------|------------------|-------------------|-----|
 | **Swift Macros** | Always | Never | Declarative syntax dramatically simplifies AST manipulation |
-| **API Client Generation** | Yes | No | Transform OpenAPI specs into hundreds of type-safe endpoints |
 | **Model Generation** | Yes | No | Convert schemas into Swift models with computed properties |
 | **Migration Tools** | Yes | No | Build utilities that transform legacy code structures |
 | **Code Templates** | Yes | No | Generate repetitive patterns from configurations |
 | **Application Logic** | No | Always | Business logic, view controllers, standard app features |
-| **One-time Scripts** | No | Maybe | Simple, write-once utilities don't need generation |
+| **One-time Scripts** | No | Yes | Simple, write-once utilities don't need generation |
 | **Performance-Critical** | No | Yes | Raw Swift avoids generation overhead |
 
-### Decision Flow
-
-```
-Need to create Swift code?
-├─ Will you write this code once by hand? → Use Raw Swift
-└─ Will you generate this code programmatically?
-   ├─ Building macros or compiler plugins? → Use SyntaxKit  
-   ├─ Transforming external schemas/APIs? → Use SyntaxKit
-   ├─ Creating developer tools? → Use SyntaxKit
-   └─ Writing app business logic? → Use Raw Swift
-```
 
 **Key Questions:**
 - Am I writing code that transforms data into Swift structures?
@@ -388,70 +373,6 @@ struct MembersMacro: MemberMacro {
 
 > 📖 **Learn macro development:** Our comprehensive <doc:Creating-Macros-with-SyntaxKit> tutorial covers these patterns and more advanced techniques.
 
-## Performance Considerations
-
-**SyntaxKit optimizes for developer productivity and code maintainability, with minimal runtime performance impact on generated code.**
-
-### Compilation Time
-
-| Aspect | Impact | Mitigation |
-|--------|--------|------------|
-| **Build Time** | +5-15% for macro compilation | SyntaxKit compilation is one-time cost |
-| **Code Generation** | Negligible runtime overhead | Generated code is standard Swift |
-| **SwiftSyntax Dependency** | Larger binary size during development | Not included in final app binaries |
-
-### Runtime Performance
-
-**Generated code performance is identical to hand-written Swift.** SyntaxKit operates at compile-time only:
-
-<!-- skip-test -->
-```swift
-// SyntaxKit-generated code
-struct User: Equatable {
-    let id: UUID
-    let name: String
-}
-
-// Hand-written code  
-struct User: Equatable {
-    let id: UUID
-    let name: String
-}
-```
-
-Both compile to identical machine code with zero performance difference.
-
-### Memory Usage
-
-- **Development**: SwiftSyntax increases memory usage during compilation
-- **Production**: No memory overhead—SyntaxKit isn't included in final binaries
-- **Code Generation**: Uses standard Swift memory patterns
-
-### When Performance Matters
-
-**Choose SyntaxKit when:**
-- Developer productivity outweighs small compilation time increases
-- Generating complex, error-prone code structures
-- Building macros or development tools
-- Maintainability is more important than build speed
-
-**Consider raw Swift when:**
-- Extremely performance-sensitive build pipelines
-- Simple, one-time code generation
-- Minimal external dependencies required
-- Team unfamiliar with result builder patterns
-
-### Optimization Strategies
-
-1. **Selective Usage**: Use SyntaxKit for complex generation, raw Swift for simple cases
-2. **Caching**: Cache generated code structures when possible
-3. **Lazy Generation**: Generate code on-demand rather than upfront
-4. **Modular Design**: Break large generators into smaller, focused components
-
-**Bottom Line:** SyntaxKit's compilation overhead is typically 5-15%, but saves hours of development time and prevents entire classes of AST manipulation errors.
-
-> Important: SyntaxKit is designed for code generation scenarios. For standard application development, use regular Swift syntax.
-
 ## Topics
 
 ### Getting Started
@@ -495,6 +416,7 @@ Both compile to identical machine code with zero performance difference.
 - ``PlusAssign``
 - ``Return``
 - ``VariableExp``
+- ``DictionaryExpr``
 
 ### Control Flow
 - ``Break``
