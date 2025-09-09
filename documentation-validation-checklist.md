@@ -272,3 +272,104 @@
 2. **Lower Priority (Non-blocking)**: Fix Swift code examples compilation issues
 
 Generated from documentation validation script output on 2025-09-08.
+
+---
+Swift Code Examples Compilation Failures Report
+
+  Based on the validation run, here are the specific compilation errors found in the documentation:
+
+  Major Compilation Error Categories
+
+  1. Missing Variables/Context Issues
+
+  - Error: cannot find 'url' in scope
+  - Location: Best-Practices.md
+  - Issue: Code examples reference undefined variables like url, config
+  - Example: Variable(.static, name: "apiURL", equals: Literal.string(url))
+
+  2. API Changes - VariableKind enum
+
+  - Error: type 'VariableKind' has no member 'static'
+  - Location: Best-Practices.md
+  - Issue: Documentation uses .static but the actual API doesn't support this
+  - Impact: Multiple examples using static variables fail
+
+  3. Missing Function Definitions
+
+  - Error: cannot find 'generateAllEndpoints' in scope
+  - Error: cannot find 'generateAllModels' in scope
+  - Error: cannot find 'generateAllErrors' in scope
+  - Location: EnumGenerator.md examples
+  - Issue: Examples reference functions that don't exist in SyntaxKit
+
+  4. Undefined Configuration Objects
+
+  - Error: cannot find 'config' in scope
+  - Location: Multiple examples
+  - Issue: Examples use config parameter without defining it
+
+  Specific Failed Code Examples
+
+  Best-Practices.md Issues:
+
+  Example 1: Static Variable Issue
+
+  // ❌ This fails compilation
+  let complexGenerator = Struct("Constants") {
+      Variable(.static, name: "apiURL", equals: Literal.string(url))
+      //       ^~~~~~~                                        ^~~
+      //       No .static member                              Undefined variable
+  }
+
+  Problems:
+  1. VariableKind doesn't have .static member
+  2. url variable is undefined
+
+  Example 2: Missing Context Variables
+
+  // ❌ These fail - missing functions and config
+  generateAllEndpoints(from: config)
+  generateAllModels(from: config)
+  generateAllErrors(from: config)
+
+  Problems:
+  1. Functions generateAllEndpoints, generateAllModels, generateAllErrors don't exist
+  2. config parameter is undefined
+
+  Validation Results Summary
+
+  - Total Examples Found: ~44+ code examples processed
+  - Failed Examples: Multiple failures in Best-Practices.md and other files
+  - Main Issues: API mismatches, undefined variables, missing context
+
+  Root Causes
+
+  1. Documentation Out of Sync: Examples use old or non-existent API
+  2. Incomplete Code Fragments: Missing variable declarations and context
+  3. API Evolution: SyntaxKit API has changed but docs weren't updated
+
+  Recommended Fixes
+
+  1. Fix VariableKind API Usage
+
+  // Instead of .static, use proper API
+  Variable(name: "apiURL", equals: Literal.string("https://api.example.com"))
+
+  2. Define Missing Variables
+
+  // Add context to examples
+  let url = "https://api.example.com"
+  let complexGenerator = Struct("Constants") {
+      Variable(name: "apiURL", equals: Literal.string(url))
+  }
+
+  3. Remove Non-existent Functions
+
+  Replace examples calling generateAllEndpoints, etc. with actual working SyntaxKit code.
+
+  4. Add <!-- skip-test --> for Pseudo-code
+
+  For examples that are meant as pseudo-code, add the skip marker to prevent compilation testing.
+
+  The validation script correctly identifies these compilation failures that need to be fixed for the documentation
+  to pass CI/CD checks.

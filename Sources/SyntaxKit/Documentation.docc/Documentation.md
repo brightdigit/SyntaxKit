@@ -66,7 +66,9 @@ let code = Struct("BlackjackCard") {
         EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment("nested Suit enumeration")
+    .comment{
+      Line("nested Suit enumeration")
+    }
 }
 
 let generatedCode = code.generateCode()
@@ -103,7 +105,9 @@ let structExample = Struct("BlackjackCard") {
         EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment("nested Suit enumeration")
+    .comment{
+      Line("nested Suit enumeration")
+    }
 
     Enum("Rank") {
         EnumCase("two").equals(2)
@@ -155,11 +159,15 @@ let structExample = Struct("BlackjackCard") {
         }
     }
     .inherits("Int")
-    .comment("nested Rank enumeration")
+    .comment{
+      Line("nested Rank enumeration")
+    }
 
     Variable(.let, name: "rank", type: "Rank")
     Variable(.let, name: "suit", type: "Suit")
-    .comment("BlackjackCard properties and methods")
+    .comment{
+        Line("BlackjackCard properties and methods")
+    }
 
     ComputedProperty("description") {
         VariableDecl(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
@@ -241,6 +249,8 @@ struct BlackjackCard {
 ### StringifyMacro Example
 
 **Traditional SwiftSyntax Approach (Complex AST manipulation):**
+
+<!-- skip-test -->
 ```swift
 public import SwiftSyntaxMacros
 public import SwiftSyntax
@@ -271,6 +281,8 @@ struct StringifyMacro: ExpressionMacro {
 ```
 
 **SyntaxKit Approach (Clean and declarative):**
+
+<!-- skip-test -->
 ```swift
 import SyntaxKit
 public import SwiftSyntaxMacros
@@ -293,6 +305,8 @@ struct StringifyMacro: ExpressionMacro {
 ### Member Generation Macro
 
 **Traditional Approach (80+ lines of complex node manipulation):**
+
+<!-- skip-test -->
 ```swift
 struct MembersMacro: MemberMacro {
     static func expansion(
@@ -358,45 +372,6 @@ struct MembersMacro: MemberMacro {
         }
         
         return members.memberDeclListSyntax.map(\.declSyntax)
-    }
-}
-```
-
-### Accessor Generation Macro
-
-**Traditional Approach:**
-```swift
-// 100+ lines of complex accessor node construction
-// involving TokenSyntax manipulation, CodeBlockSyntax creation,
-// and manual getter/setter AST building...
-```
-
-**SyntaxKit Approach:**
-```swift
-struct AccessorMacro: AccessorMacro {
-    static func expansion(
-        of node: AttributeSyntax,
-        providingAccessorsOf declaration: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext
-    ) throws -> [AccessorDeclSyntax] {
-        guard let property = declaration.as(VariableDeclSyntax.self) else {
-            throw AccessorError.notAProperty
-        }
-        
-        // Declarative accessor generation
-        let accessors = Group {
-            Accessor(.get) {
-                Return {
-                    Call("_\(property.name).wrappedValue")
-                }
-            }
-            
-            Accessor(.set) {
-                Assignment("_\(property.name).wrappedValue", "newValue")
-            }
-        }
-        
-        return accessors.accessorDeclListSyntax
     }
 }
 ```

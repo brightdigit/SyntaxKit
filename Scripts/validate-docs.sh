@@ -6,6 +6,7 @@ ERRORS=0
 WARNINGS=0
 SKIP_BUILD=true
 SKIP_CODE_EXAMPLES=false
+TARGET_FILE=""
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -18,15 +19,24 @@ while [[ $# -gt 0 ]]; do
             SKIP_CODE_EXAMPLES=true
             shift
             ;;
+        --file)
+            TARGET_FILE="$2"
+            shift 2
+            ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
             echo "Options:"
             echo "  --build              Force rebuild of SyntaxKit before validation"
             echo "  --skip-code-examples Skip validating Swift code examples"
+            echo "  --file <path>        Validate only the specified markdown file"
             echo "  -h, --help          Show this help message"
             echo ""
             echo "By default, the script will use existing builds to speed up validation."
             echo "Use --build if you need to ensure a fresh build before validation."
+            echo ""
+            echo "Examples:"
+            echo "  $0 --file Sources/SyntaxKit/Documentation.docc/Best-Practices.md"
+            echo "  $0 --file Documentation.md --skip-code-examples"
             exit 0
             ;;
         *)
@@ -351,8 +361,24 @@ validate_code_examples() {
         fi
     fi
     
-    # Process all documentation files
-    while IFS= read -r doc_file; do
+    # Process documentation files (single file or all files)
+    if [ -n "$TARGET_FILE" ]; then
+        # Validate single file
+        if [ ! -f "$TARGET_FILE" ]; then
+            echo -e "${RED}❌ File not found: $TARGET_FILE${NC}"
+            ((ERRORS++))
+            return 1
+        fi
+        echo -e "${BLUE}📄 Processing single file: $TARGET_FILE${NC}"
+        file_list=("$TARGET_FILE")
+    else
+        # Process all documentation files
+        mapfile -t file_list < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f 2>/dev/null; \
+                                 find . -maxdepth 1 -name "README.md" -type f 2>/dev/null; \
+                                 find Examples -name "README.md" -type f 2>/dev/null || true)
+    fi
+    
+    for doc_file in "${file_list[@]}"; do
         local swift_files
         swift_files=$(validate_file_examples "$doc_file")
         
@@ -417,9 +443,7 @@ EOF
                 fi
             done <<< "$swift_files"
         fi
-    done < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f 2>/dev/null; \
-             find . -maxdepth 1 -name "README.md" -type f 2>/dev/null; \
-             find Examples -name "README.md" -type f 2>/dev/null || true)
+    done
     
     # Clean up
     rm -rf "$temp_dir"
@@ -484,6 +508,7 @@ provide_error_recovery() {
     echo "• Fast validation (default): ./Scripts/validate-docs.sh"
     echo "• Skip slow code validation: ./Scripts/validate-docs.sh --skip-code-examples" 
     echo "• Full validation with rebuild: ./Scripts/validate-docs.sh --build"
+    echo "• Single file validation: ./Scripts/validate-docs.sh --file path/to/file.md"
     echo "• Generate docs: swift package generate-documentation"
     echo "• Check API coverage: ./Scripts/api-coverage.sh --threshold 90"
     echo "• Format code: ./Scripts/lint.sh"
@@ -491,16 +516,27 @@ provide_error_recovery() {
 
 # Main validation workflow
 main() {
-    validate_external_urls
-    validate_docc_links  
-    validate_swift_symbols
-    validate_cross_references
-    validate_api_coverage
-    
-    if [ "$SKIP_CODE_EXAMPLES" = false ]; then
-        validate_code_examples
+    if [ -n "$TARGET_FILE" ]; then
+        # Single file mode - only validate Swift code examples
+        echo -e "${BLUE}🎯 Single file validation mode: $TARGET_FILE${NC}"
+        if [ "$SKIP_CODE_EXAMPLES" = false ]; then
+            validate_code_examples
+        else
+            echo -e "\n${BLUE}⚡ Skipping Swift code examples validation${NC}"
+        fi
     else
-        echo -e "\n${BLUE}⚡ Skipping Swift code examples validation${NC}"
+        # Full validation mode
+        validate_external_urls
+        validate_docc_links  
+        validate_swift_symbols
+        validate_cross_references
+        validate_api_coverage
+        
+        if [ "$SKIP_CODE_EXAMPLES" = false ]; then
+            validate_code_examples
+        else
+            echo -e "\n${BLUE}⚡ Skipping Swift code examples validation${NC}"
+        fi
     fi
     
     echo -e "\n${BLUE}📊 Validation Summary${NC}"
