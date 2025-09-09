@@ -73,11 +73,13 @@ struct BlackjackCard {
 }
 ```
 
-## Full Example
+## Examples
 
 Here is a more comprehensive example that demonstrates many of SyntaxKit's features to generate a `BlackjackCard` struct.
 
-### DSL Code
+### Blackjack Card
+
+#### DSL Code
 
 ```swift
 import SyntaxKit
@@ -176,7 +178,7 @@ let structExample = Struct("BlackjackCard") {
 }
 ```
 
-### Generated Code
+#### Generated Code
 
 ```swift
 import Foundation
@@ -236,11 +238,7 @@ struct BlackjackCard {
 }
 ```
 
-## Macro Development Showcase
-
-**SyntaxKit transforms complex macro development from error-prone AST manipulation into maintainable, declarative code.** Here are compelling before/after comparisons showing how SyntaxKit simplifies common macro patterns.
-
-### StringifyMacro Example
+### StringifyMacro 
 
 **Traditional SwiftSyntax Approach (Complex AST manipulation):**
 
@@ -369,13 +367,14 @@ struct MembersMacro: MemberMacro {
 }
 ```
 
-**Result:** SyntaxKit reduces macro complexity by 60-80%, improves readability, and eliminates most AST manipulation errors.
-
 > 📖 **Learn macro development:** Our comprehensive <doc:Creating-Macros-with-SyntaxKit> tutorial covers these patterns and more advanced techniques.
+
+> **More Examples:** Check out our <doc:Best-Practices> for common Swift patterns. 
 
 ## Topics
 
 ### Getting Started
+- <doc:Quick-Start-Guide>
 - <doc:Creating-Macros-with-SyntaxKit>
 - <doc:Best-Practices>
 
