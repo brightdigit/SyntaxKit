@@ -1,6 +1,6 @@
 # Complete Documentation Validation Issues
 
-## External URL Failures
+## External URL Failures (5 Failed URLs)
 - [ ] Fix `https://codebeat.co/badges/ad53f31b-de7a-4579-89db-d94eb57dfcaa` - Service appears down/discontinued
 - [ ] Fix `https://codebeat.co/projects/github-com-brightdigit-SyntaxKit-main` - Service appears down/discontinued  
 - [ ] Fix `https://github.com/brightdigit/SyntaxKit/releases/latest/download/SyntaxKit-QuickStart.playground.zip` - Release asset missing
@@ -9,6 +9,11 @@
 
 ## API Documentation Coverage (93 Missing Entries)
 **Current: 75% (280/373) | Required: 90%**
+
+### Critical Coverage Issues
+- **Coverage Gap**: 15% short of 90% threshold  
+- **Missing Entries**: 93 undocumented public APIs
+- **Status**: Blocking - prevents documentation generation
 
 - [ ] Add documentation to `Sources/SyntaxKit/Attributes/Attribute.swift:37` - var syntax
 - [ ] Add documentation to `Sources/SyntaxKit/CodeBlocks/CodeBlockBuilderResult.swift:34` - enum CodeBlockBuilderResult
@@ -104,272 +109,96 @@
 - [ ] Add documentation to `Sources/SyntaxKit/Variables/VariableExp.swift:40` - var exprSyntax
 - [ ] Add documentation to `Sources/SyntaxKit/Variables/VariableExp.swift:44` - var patternSyntax
 
-## Swift Code Examples Compilation Failures (121 Total)
+## DocC Internal Link Status
+- ✅ **All DocC internal links are now valid!** (2 links found, both valid)
+- ✅ `<doc:Creating-Macros-with-SyntaxKit>` - Valid
+- ✅ `<doc:Quick-Start-Guide>` - Valid
+- **Status**: Fixed - No broken DocC links remaining
 
-### README Documentation
-- [ ] Fix Block at Index 1: README_1.swift
-- [ ] Fix Block at Index 2: README_2.swift
-- [ ] Fix Block at Index 4: README_4.swift
-- [ ] Fix Block at Index 5: README_5.swift
-- [ ] Fix Block at Index 7: README_7.swift
-- [ ] Fix Block at Index 8: README_8.swift
-- [ ] Fix Block at Index 10: README_10.swift
-- [ ] Fix Block at Index 11: README_11.swift
+## Swift Symbol Reference Validation
+- ✅ All 72 Swift symbol references validated successfully
+- No broken symbol references found
 
-### Best Practices Documentation
-- [ ] Fix Block at Index 3: Best-Practices_3.swift
-- [ ] Fix Block at Index 4: Best-Practices_4.swift
-- [ ] Fix Block at Index 5: Best-Practices_5.swift
-- [ ] Fix Block at Index 6: Best-Practices_6.swift
-- [ ] Fix Block at Index 7: Best-Practices_7.swift
-- [ ] Fix Block at Index 8: Best-Practices_8.swift
-- [ ] Fix Block at Index 9: Best-Practices_9.swift
-- [ ] Fix Block at Index 10: Best-Practices_10.swift
-- [ ] Fix Block at Index 11: Best-Practices_11.swift
-- [ ] Fix Block at Index 12: Best-Practices_12.swift
-- [ ] Fix Block at Index 13: Best-Practices_13.swift
-- [ ] Fix Block at Index 15: Best-Practices_15.swift
-- [ ] Fix Block at Index 16: Best-Practices_16.swift
-- [ ] Fix Block at Index 17: Best-Practices_17.swift
-- [ ] Fix Block at Index 18: Best-Practices_18.swift
-- [ ] Fix Block at Index 19: Best-Practices_19.swift
-- [ ] Fix Block at Index 20: Best-Practices_20.swift
-- [ ] Fix Block at Index 23: Best-Practices_23.swift
-- [ ] Fix Block at Index 24: Best-Practices_24.swift
-- [ ] Fix Block at Index 25: Best-Practices_25.swift
-- [ ] Fix Block at Index 26: Best-Practices_26.swift
-- [ ] Fix Block at Index 27: Best-Practices_27.swift
-- [ ] Fix Block at Index 28: Best-Practices_28.swift
-- [ ] Fix Block at Index 29: Best-Practices_29.swift
-- [ ] Fix Block at Index 30: Best-Practices_30.swift
-- [ ] Fix Block at Index 31: Best-Practices_31.swift
-- [ ] Fix Block at Index 32: Best-Practices_32.swift
-- [ ] Fix Block at Index 33: Best-Practices_33.swift
-- [ ] Fix Block at Index 34: Best-Practices_34.swift
-- [ ] Fix Block at Index 35: Best-Practices_35.swift
-- [ ] Fix Block at Index 36: Best-Practices_36.swift
-- [ ] Fix Block at Index 37: Best-Practices_37.swift
-- [ ] Fix Block at Index 38: Best-Practices_38.swift
-- [ ] Fix Block at Index 39: Best-Practices_39.swift
-- [ ] Fix Block at Index 40: Best-Practices_40.swift
-- [ ] Fix Block at Index 41: Best-Practices_41.swift
-- [ ] Fix Block at Index 42: Best-Practices_42.swift
-- [ ] Fix Block at Index 43: Best-Practices_43.swift
-- [ ] Fix Block at Index 44: Best-Practices_44.swift
-- [ ] Fix Block at Index 45: Best-Practices_45.swift
-- [ ] Fix Block at Index 46: Best-Practices_46.swift
+## Swift Code Examples Validation Results
+- 📊 **49 Swift code examples found** in documentation
+- ✅ **13 examples valid** (26% success rate)
+- ❌ **36 examples failed** compilation (74% failure rate)
+- **Status**: Critical - Most code examples are broken
 
-### Quick Start Guide Documentation
-- [ ] Fix Block at Index 1: Quick-Start-Guide_1.swift
-- [ ] Fix Block at Index 5: Quick-Start-Guide_5.swift
+## Current Swift Code Examples Status
 
-### Creating Macros Documentation
-- [ ] Fix Block at Index 1: Creating-Macros-with-SyntaxKit_1.swift
-- [ ] Fix Block at Index 2: Creating-Macros-with-SyntaxKit_2.swift
-- [ ] Fix Block at Index 3: Creating-Macros-with-SyntaxKit_3.swift
-- [ ] Fix Block at Index 5: Creating-Macros-with-SyntaxKit_5.swift
-- [ ] Fix Block at Index 6: Creating-Macros-with-SyntaxKit_6.swift
-- [ ] Fix Block at Index 7: Creating-Macros-with-SyntaxKit_7.swift
-- [ ] Fix Block at Index 8: Creating-Macros-with-SyntaxKit_8.swift
-- [ ] Fix Block at Index 9: Creating-Macros-with-SyntaxKit_9.swift
-- [ ] Fix Block at Index 10: Creating-Macros-with-SyntaxKit_10.swift
-- [ ] Fix Block at Index 11: Creating-Macros-with-SyntaxKit_11.swift
-- [ ] Fix Block at Index 12: Creating-Macros-with-SyntaxKit_12.swift
-- [ ] Fix Block at Index 13: Creating-Macros-with-SyntaxKit_13.swift
-- [ ] Fix Block at Index 14: Creating-Macros-with-SyntaxKit_14.swift
-- [ ] Fix Block at Index 15: Creating-Macros-with-SyntaxKit_15.swift
-- [ ] Fix Block at Index 16: Creating-Macros-with-SyntaxKit_16.swift
-- [ ] Fix Block at Index 17: Creating-Macros-with-SyntaxKit_17.swift
-- [ ] Fix Block at Index 18: Creating-Macros-with-SyntaxKit_18.swift
-- [ ] Fix Block at Index 19: Creating-Macros-with-SyntaxKit_19.swift
-- [ ] Fix Block at Index 20: Creating-Macros-with-SyntaxKit_20.swift
-- [ ] Fix Block at Index 21: Creating-Macros-with-SyntaxKit_21.swift
-- [ ] Fix Block at Index 22: Creating-Macros-with-SyntaxKit_22.swift
-- [ ] Fix Block at Index 23: Creating-Macros-with-SyntaxKit_23.swift
-- [ ] Fix Block at Index 24: Creating-Macros-with-SyntaxKit_24.swift
+### Active Documentation Files with Code Examples
+- **README.md**: Contains examples (some failing due to string interpolation issues)
+- **Documentation.md**: Contains SyntaxKit API examples  
+- **Creating-Macros-with-SyntaxKit.md**: Contains macro examples (many failing due to missing Swift macro imports)
+- **Quick-Start-Guide.md**: Contains tutorial examples
 
-### When to Use SyntaxKit Documentation
-- [ ] Fix Block at Index 1: When-to-Use-SyntaxKit_1.swift
-- [ ] Fix Block at Index 2: When-to-Use-SyntaxKit_2.swift
-- [ ] Fix Block at Index 3: When-to-Use-SyntaxKit_3.swift
-- [ ] Fix Block at Index 4: When-to-Use-SyntaxKit_4.swift
-- [ ] Fix Block at Index 5: When-to-Use-SyntaxKit_5.swift
-- [ ] Fix Block at Index 7: When-to-Use-SyntaxKit_7.swift
-- [ ] Fix Block at Index 8: When-to-Use-SyntaxKit_8.swift
-- [ ] Fix Block at Index 9: When-to-Use-SyntaxKit_9.swift
-- [ ] Fix Block at Index 10: When-to-Use-SyntaxKit_10.swift
+### Primary Code Example Issues
+1. **Missing Imports**: Many examples need additional imports beyond `import SyntaxKit`
+2. **String Interpolation**: Examples with multiline strings containing variables fail compilation
+3. **Macro API Dependencies**: Macro examples require SwiftSyntax macro types not available in SyntaxKit
+4. **Context Dependencies**: Some examples reference undefined variables or configuration objects
 
-### Troubleshooting Documentation
-- [ ] Fix Block at Index 2: Troubleshooting_2.swift
-- [ ] Fix Block at Index 5: Troubleshooting_5.swift
-- [ ] Fix Block at Index 6: Troubleshooting_6.swift
-- [ ] Fix Block at Index 7: Troubleshooting_7.swift
-- [ ] Fix Block at Index 8: Troubleshooting_8.swift
-- [ ] Fix Block at Index 9: Troubleshooting_9.swift
-- [ ] Fix Block at Index 11: Troubleshooting_11.swift
-- [ ] Fix Block at Index 12: Troubleshooting_12.swift
-- [ ] Fix Block at Index 14: Troubleshooting_14.swift
-- [ ] Fix Block at Index 15: Troubleshooting_15.swift
-- [ ] Fix Block at Index 16: Troubleshooting_16.swift
-- [ ] Fix Block at Index 17: Troubleshooting_17.swift
-- [ ] Fix Block at Index 18: Troubleshooting_18.swift
-- [ ] Fix Block at Index 19: Troubleshooting_19.swift
-- [ ] Fix Block at Index 20: Troubleshooting_20.swift
-- [ ] Fix Block at Index 22: Troubleshooting_22.swift
-- [ ] Fix Block at Index 24: Troubleshooting_24.swift
-- [ ] Fix Block at Index 25: Troubleshooting_25.swift
-- [ ] Fix Block at Index 26: Troubleshooting_26.swift
-- [ ] Fix Block at Index 27: Troubleshooting_27.swift
-- [ ] Fix Block at Index 28: Troubleshooting_28.swift
-- [ ] Fix Block at Index 29: Troubleshooting_29.swift
-- [ ] Fix Block at Index 30: Troubleshooting_30.swift
-
-### Integration Guide Documentation
-- [ ] Fix Block at Index 2: Integration-Guide_2.swift
-- [ ] Fix Block at Index 4: Integration-Guide_4.swift
-- [ ] Fix Block at Index 5: Integration-Guide_5.swift
-- [ ] Fix Block at Index 6: Integration-Guide_6.swift
-- [ ] Fix Block at Index 8: Integration-Guide_8.swift
-- [ ] Fix Block at Index 9: Integration-Guide_9.swift
-- [ ] Fix Block at Index 10: Integration-Guide_10.swift
-- [ ] Fix Block at Index 12: Integration-Guide_12.swift
-- [ ] Fix Block at Index 13: Integration-Guide_13.swift
-- [ ] Fix Block at Index 14: Integration-Guide_14.swift
-- [ ] Fix Block at Index 15: Integration-Guide_15.swift
-- [ ] Fix Block at Index 16: Integration-Guide_16.swift
-- [ ] Fix Block at Index 17: Integration-Guide_17.swift
-- [ ] Fix Block at Index 18: Integration-Guide_18.swift
-- [ ] Fix Block at Index 20: Integration-Guide_20.swift
-
-### General Documentation
-- [ ] Fix Block at Index 1: Documentation_1.swift
-- [ ] Fix Block at Index 3: Documentation_3.swift
-- [ ] Fix Block at Index 5: Documentation_5.swift
-- [ ] Fix Block at Index 6: Documentation_6.swift
-- [ ] Fix Block at Index 7: Documentation_7.swift
-- [ ] Fix Block at Index 8: Documentation_8.swift
-- [ ] Fix Block at Index 10: Documentation_10.swift
-- [ ] Fix Block at Index 11: Documentation_11.swift
-
-### Enum Generator Documentation
-- [ ] Fix Block at Index 2: EnumGenerator_2.swift
-- [ ] Fix Block at Index 4: EnumGenerator_4.swift
-- [ ] Fix Block at Index 6: EnumGenerator_6.swift
-- [ ] Fix Block at Index 7: EnumGenerator_7.swift
-- [ ] Fix Block at Index 8: EnumGenerator_8.swift
+### Files Successfully Fixed  
+- ✅ **Removed obsolete references**: No longer referencing non-existent Best-Practices.md, When-to-Use-SyntaxKit.md, etc.
 
 ---
 
-## Summary
+## Current Validation Summary (Latest Run)
 - **5 External URLs** failing validation (blocking)
+- ✅ **0 DocC Internal Links** failing (fixed!)
 - **93 Missing API Documentation** entries (15% gap to reach 90% threshold) (blocking)
-- **121 Swift Code Examples** failing compilation (warnings, non-blocking)
+- **36 Swift Code Examples** failing compilation (74% failure rate)
+- **Previously: 121 Swift Code Examples** failing compilation (historical data)
 
-**Total Issues: 219 documentation validation issues to fix**
+**Current Issues: 134 active documentation validation issues to fix**
+**Blocking Issues: 134 (External URLs + API Coverage + Code Examples)**
 
-## Priority
-1. **High Priority (Blocking)**: Fix external URLs and API documentation coverage first
-2. **Lower Priority (Non-blocking)**: Fix Swift code examples compilation issues
+## Priority (Updated)
+1. **Critical Priority (Blocking)**: 
+   - Fix 36 failing Swift code examples (74% failure rate)
+   - Add documentation to 93 missing API entries (15% coverage gap)
+2. **High Priority (Blocking)**: 
+   - Fix 5 external URLs
+   - ✅ **Fixed**: DocC internal links (was 2 failures, now 0)
+3. **Lower Priority**: Address historical compilation issues from previous validation runs
 
-Generated from documentation validation script output on 2025-09-08.
+Generated from documentation validation script output on 2025-09-09.
+
+### Latest Validation Run Results
+- **Script**: `Scripts/validate-docs.sh` (ran successfully)
+- **Total Errors**: 42 validation errors (6 infrastructure + 36 code examples)
+- **Status**: Failed validation
+- **Key Issues**: 74% of Swift code examples failing compilation, missing API docs, external URLs
+- ✅ **Improvement**: Fixed DocC internal link failures (was 2, now 0)
+- **Code Examples**: 49 found, 13 valid, 36 failed
+
+### Code Example Failure Analysis
+- **Primary Issue**: API mismatches and missing imports
+- **Success Rate**: Only 26% of code examples compile successfully
+- **Impact**: Critical - Documentation examples don't match actual SyntaxKit API
+- **Recommendation**: Urgent fix needed for code example compilation
+
+### Recent Improvements ✅
+- **Fixed DocC Links**: Removed broken references to non-existent Best-Practices.md and When-to-Use-SyntaxKit.md
+- **Reduced Errors**: Total errors decreased from 44 to 42 (2 fewer infrastructure issues)
+- **Clean DocC Validation**: All internal documentation links now valid
 
 ---
-Swift Code Examples Compilation Failures Report
 
-  Based on the validation run, here are the specific compilation errors found in the documentation:
+## Validation Script Information
 
-  Major Compilation Error Categories
+The documentation validation script (`Scripts/validate-docs.sh`) now provides comprehensive testing of:
 
-  1. Missing Variables/Context Issues
+1. **External URL Accessibility** - Tests all HTTP/HTTPS links in documentation
+2. **DocC Internal Links** - Validates `<doc:>` references point to existing files
+3. **Swift Symbol References** - Checks that `` `SymbolName` `` references exist in source code
+4. **Cross-References** - Validates markdown file references
+5. **API Documentation Coverage** - Ensures 90% of public APIs are documented
+6. **Swift Code Examples** - Compiles all `swift` code blocks to ensure they work
 
-  - Error: cannot find 'url' in scope
-  - Location: Best-Practices.md
-  - Issue: Code examples reference undefined variables like url, config
-  - Example: Variable(.static, name: "apiURL", equals: Literal.string(url))
-
-  2. API Changes - VariableKind enum
-
-  - Error: type 'VariableKind' has no member 'static'
-  - Location: Best-Practices.md
-  - Issue: Documentation uses .static but the actual API doesn't support this
-  - Impact: Multiple examples using static variables fail
-
-  3. Missing Function Definitions
-
-  - Error: cannot find 'generateAllEndpoints' in scope
-  - Error: cannot find 'generateAllModels' in scope
-  - Error: cannot find 'generateAllErrors' in scope
-  - Location: EnumGenerator.md examples
-  - Issue: Examples reference functions that don't exist in SyntaxKit
-
-  4. Undefined Configuration Objects
-
-  - Error: cannot find 'config' in scope
-  - Location: Multiple examples
-  - Issue: Examples use config parameter without defining it
-
-  Specific Failed Code Examples
-
-  Best-Practices.md Issues:
-
-  Example 1: Static Variable Issue
-
-  // ❌ This fails compilation
-  let complexGenerator = Struct("Constants") {
-      Variable(.static, name: "apiURL", equals: Literal.string(url))
-      //       ^~~~~~~                                        ^~~
-      //       No .static member                              Undefined variable
-  }
-
-  Problems:
-  1. VariableKind doesn't have .static member
-  2. url variable is undefined
-
-  Example 2: Missing Context Variables
-
-  // ❌ These fail - missing functions and config
-  generateAllEndpoints(from: config)
-  generateAllModels(from: config)
-  generateAllErrors(from: config)
-
-  Problems:
-  1. Functions generateAllEndpoints, generateAllModels, generateAllErrors don't exist
-  2. config parameter is undefined
-
-  Validation Results Summary
-
-  - Total Examples Found: ~44+ code examples processed
-  - Failed Examples: Multiple failures in Best-Practices.md and other files
-  - Main Issues: API mismatches, undefined variables, missing context
-
-  Root Causes
-
-  1. Documentation Out of Sync: Examples use old or non-existent API
-  2. Incomplete Code Fragments: Missing variable declarations and context
-  3. API Evolution: SyntaxKit API has changed but docs weren't updated
-
-  Recommended Fixes
-
-  1. Fix VariableKind API Usage
-
-  // Instead of .static, use proper API
-  Variable(name: "apiURL", equals: Literal.string("https://api.example.com"))
-
-  2. Define Missing Variables
-
-  // Add context to examples
-  let url = "https://api.example.com"
-  let complexGenerator = Struct("Constants") {
-      Variable(name: "apiURL", equals: Literal.string(url))
-  }
-
-  3. Remove Non-existent Functions
-
-  Replace examples calling generateAllEndpoints, etc. with actual working SyntaxKit code.
-
-  4. Add <!-- skip-test --> for Pseudo-code
-
-  For examples that are meant as pseudo-code, add the skip marker to prevent compilation testing.
-
-  The validation script correctly identifies these compilation failures that need to be fixed for the documentation
-  to pass CI/CD checks.
+### Script Usage
+- **Full validation**: `Scripts/validate-docs.sh`  
+- **Skip slow code examples**: `Scripts/validate-docs.sh --skip-code-examples`
+- **Single file**: `Scripts/validate-docs.sh --file path/to/file.md`
+- **With fresh build**: `Scripts/validate-docs.sh --build`

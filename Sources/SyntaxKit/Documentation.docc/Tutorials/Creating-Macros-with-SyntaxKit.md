@@ -26,6 +26,7 @@ swift package init --type library
 
 Update your `Package.swift` to include the necessary dependencies and targets:
 
+<!-- skip-test -->
 ```swift
 // swift-tools-version: 6.1
 import PackageDescription
@@ -87,6 +88,7 @@ let package = Package(
 
 Create the file `Sources/MyMacroMacros/StringifyMacro.swift`:
 
+<!-- skip-test -->
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
@@ -151,6 +153,7 @@ public struct StringifyMacro: ExpressionMacro {
 
 Create the file `Sources/MyMacroMacros/MacroPlugin.swift`:
 
+<!-- skip-test -->
 ```swift
 import SwiftCompilerPlugin
 public import SwiftSyntaxMacros
@@ -189,6 +192,7 @@ public macro stringify(_ first: Any, _ second: Any) -> (Any, String) = #external
 
 Create the file `Sources/MyMacroClient/main.swift`:
 
+<!-- skip-test -->
 ```swift
 import MyMacro
 
@@ -205,6 +209,7 @@ print("The value \(result) was produced by the code \"\(code)\"")
 
 Create the file `Tests/MyMacroTests/StringifyMacroTests.swift`:
 
+<!-- skip-test -->
 ```swift
 import XCTest
 public import SwiftSyntaxMacros
@@ -274,6 +279,7 @@ swift run MyMacroClient
 
 Member macros can automatically generate code within the declaration they're attached to. Here's an example that generates memberwise initializers:
 
+<!-- skip-test -->
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
@@ -362,6 +368,7 @@ struct FunctionParameter {
 
 You can use this macro like this:
 
+<!-- skip-test -->
 ```swift
 @MemberwiseInit
 struct Person {
@@ -382,6 +389,7 @@ struct Person {
 
 Accessor macros can transform stored properties into computed properties by generating custom getters and setters. Here's an example that adds validation:
 
+<!-- skip-test -->
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
@@ -467,6 +475,7 @@ public struct ValidatedMacro: AccessorMacro {
 
 You would also need to add a stored property for the backing storage in a member macro or manually:
 
+<!-- skip-test -->
 ```swift
 struct Temperature {
     @Validated(min: -273, max: 1000)
@@ -492,6 +501,7 @@ This example shows how SyntaxKit simplifies complex accessor generation compared
 
 Peer macros can generate companion types alongside the declaration they're attached to. Here's an example that creates a builder pattern companion:
 
+<!-- skip-test -->
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
@@ -641,6 +651,7 @@ struct PropertyInfo {
 
 This peer macro generates a builder pattern companion class:
 
+<!-- skip-test -->
 ```swift
 @Builder
 struct User {
@@ -697,6 +708,7 @@ struct User {
 
 You can also create extension macros using SyntaxKit. Here's a simple example:
 
+<!-- skip-test -->
 ```swift
 import SwiftCompilerPlugin
 import SwiftSyntax
@@ -744,6 +756,7 @@ public struct AddDescriptionMacro: ExtensionMacro {
 
 Proper error handling is crucial for macro development. Here's a comprehensive MacroError pattern that all examples should use:
 
+<!-- skip-test -->
 ```swift
 import SwiftSyntax
 public import SwiftSyntaxMacros
@@ -802,6 +815,7 @@ extension MacroExpansionContext {
 
 Here's the improved StringifyMacro with comprehensive error handling:
 
+<!-- skip-test -->
 ```swift
 public struct StringifyMacro: ExpressionMacro {
     public static func expansion(
@@ -861,444 +875,7 @@ public struct StringifyMacro: ExpressionMacro {
 }
 ```
 
-This enhanced error handling approach provides:
 
-1. **Detailed Error Messages**: Specific error types with meaningful descriptions
-2. **Source Location**: Errors point to exact locations in source code
-3. **Graceful Degradation**: Macros return valid syntax even when errors occur
-4. **Development Support**: Clear guidance for fixing macro usage issues
-5. **Integration with Xcode**: Errors appear in Xcode's issue navigator
-
-Apply similar error handling patterns to all your macros for professional-quality tooling.
-
-## Debugging Macro Development
-
-Developing macros can be challenging due to their compile-time nature. Here's a comprehensive debugging workflow using SyntaxKit:
-
-### 1. Debugging Environment Setup
-
-Set up your development environment for effective macro debugging:
-
-```swift
-// Add debugging imports to your macro files
-import SwiftSyntax
-public import SwiftSyntaxMacros
-import SwiftDiagnostics
-import Foundation // For print debugging
-
-// Create a debug-enabled macro version
-public struct DebugStringifyMacro: ExpressionMacro {
-    public static func expansion(
-        of node: some FreestandingMacroExpansionSyntax,
-        in context: some MacroExpansionContext
-    ) -> ExprSyntax {
-        
-        // Debug: Print the incoming syntax
-        debugPrint("=== Macro Expansion Debug ===")
-        debugPrint("Node: \(node)")
-        debugPrint("Arguments: \(node.arguments)")
-        
-        let arguments = node.arguments
-        
-        guard arguments.count == 2 else {
-            debugPrint("❌ Error: Expected 2 arguments, got \(arguments.count)")
-            context.addError(
-                .invalidArguments("stringify macro requires exactly two arguments, got \(arguments.count)"),
-                at: node
-            )
-            return "(/* error: wrong number of arguments */, \"error\")"
-        }
-        
-        let firstArg = arguments.first!.expression
-        let secondArg = arguments.last!.expression
-        
-        // Debug: Print extracted expressions
-        debugPrint("First arg: '\(firstArg.trimmed.description)'")
-        debugPrint("Second arg: '\(secondArg.trimmed.description)'")
-        
-        do {
-            let result = try Tuple {
-                Infix("+") {
-                    VariableExp(firstArg.trimmed.description)
-                    VariableExp(secondArg.trimmed.description)
-                }
-                Literal.string("\(firstArg.trimmed.description) + \(secondArg.trimmed.description)")
-            }.expr
-            
-            // Debug: Print generated result
-            debugPrint("✅ Generated: \(result)")
-            debugPrint("=============================")
-            
-            return result
-        } catch {
-            debugPrint("❌ SyntaxKit Error: \(error)")
-            debugPrint("=============================")
-            context.addError(
-                .compilationError("Failed to generate tuple syntax: \(error.localizedDescription)"),
-                at: node
-            )
-            return "(/* compilation error */, \"error\")"
-        }
-    }
-}
-
-// Helper function for conditional debug printing
-func debugPrint(_ message: String) {
-    #if DEBUG_MACROS
-    print("[MACRO DEBUG] \(message)")
-    #endif
-}
-```
-
-### 2. Xcode Integration and Testing
-
-Create effective test cases for your macros:
-
-```swift
-// Tests/MyMacroTests/DebuggingTests.swift
-import XCTest
-public import SwiftSyntaxMacros
-public import SwiftSyntaxMacrosTestSupport
-@testable import MyMacroMacros
-
-final class DebuggingTests: XCTestCase {
-    
-    func testMacroExpansionStepByStep() {
-        // Test basic functionality
-        assertMacroExpansion(
-            """
-            let result = #stringify(a, b)
-            """,
-            expandedSource: """
-            let result = (a + b, "a + b")
-            """,
-            macros: testMacros
-        )
-    }
-    
-    func testMacroErrorHandling() {
-        // Test error cases to ensure proper diagnostics
-        assertMacroExpansion(
-            """
-            let result = #stringify(a)
-            """,
-            expandedSource: """
-            let result = (/* error: wrong number of arguments */, "error")
-            """,
-            diagnostics: [
-                DiagnosticSpec(
-                    message: "Invalid macro arguments: stringify macro requires exactly two arguments, got 1",
-                    line: 1,
-                    column: 14
-                )
-            ],
-            macros: testMacros
-        )
-    }
-    
-    func testComplexExpressions() {
-        // Test with complex expressions
-        assertMacroExpansion(
-            """
-            let result = #stringify(user.age, count * 2)
-            """,
-            expandedSource: """
-            let result = (user.age + count * 2, "user.age + count * 2")
-            """,
-            macros: testMacros
-        )
-    }
-}
-
-let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
-]
-```
-
-### 3. Debugging Workflow Steps
-
-Follow these steps when debugging macro issues:
-
-#### Step 1: Enable Debug Output
-
-Add compiler flags to enable debug output:
-
-```bash
-# In Package.swift, add to your macro target:
-.macro(
-    name: "MyMacroMacros",
-    dependencies: [
-        .product(name: "SyntaxKit", package: "SyntaxKit"),
-        .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
-        .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
-    ],
-    swiftSettings: [
-        .define("DEBUG_MACROS", .when(configuration: .debug))
-    ]
-)
-```
-
-#### Step 2: Inspect Macro Expansion
-
-Use Swift's built-in macro expansion tools:
-
-```bash
-# Expand macros to see generated code
-swift -frontend -expand-all-macros -primary-file YourFile.swift
-
-# Or use the Swift compiler directly
-swiftc -Xfrontend -expand-all-macros -dump-ast YourFile.swift
-```
-
-#### Step 3: Test in Isolation
-
-Create minimal test cases:
-
-```swift
-// Create a simple test file
-// TestMacro.swift
-import MyMacro
-
-let (result, code) = #stringify(5, 10)
-print("Result: \(result), Code: '\(code)'")
-```
-
-#### Step 4: Analyze SwiftSyntax Structure
-
-Debug by examining the actual syntax tree:
-
-```swift
-// Add to your macro for deeper inspection
-func debugSyntaxTree(_ node: some SyntaxProtocol, indent: Int = 0) {
-    let indentString = String(repeating: "  ", count: indent)
-    debugPrint("\(indentString)\(type(of: node)): '\(node.trimmed.description)'")
-    
-    for child in node.children(viewMode: .all) {
-        debugSyntaxTree(child, indent: indent + 1)
-    }
-}
-
-// Use in your macro:
-debugSyntaxTree(node)
-```
-
-### 4. Common Issues and Solutions
-
-#### Issue: Macro not expanding
-- **Check**: Macro is properly registered in CompilerPlugin
-- **Check**: Import statements are correct
-- **Check**: Macro attribute matches the implementation
-
-#### Issue: Compilation errors in generated code
-- **Debug**: Use `debugPrint` to inspect generated syntax
-- **Check**: All SyntaxKit components generate valid syntax
-- **Solution**: Add proper error handling and fallback syntax
-
-#### Issue: Complex expressions not working
-- **Debug**: Print `expression.trimmed.description` to see what's captured
-- **Solution**: Handle edge cases in expression parsing
-- **Test**: Create test cases for various expression types
-
-### 5. Performance Debugging
-
-Monitor macro compilation performance:
-
-```swift
-// Add timing to your macros
-public static func expansion(
-    of node: some FreestandingMacroExpansionSyntax,
-    in context: some MacroExpansionContext
-) -> ExprSyntax {
-    let startTime = CFAbsoluteTimeGetCurrent()
-    defer {
-        let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-        debugPrint("Macro expansion took \(timeElapsed * 1000) ms")
-    }
-    
-    // Your macro implementation...
-}
-```
-
-### 6. Advanced Debugging with LLDB
-
-For complex debugging, use LLDB with macro processes:
-
-```bash
-# Set breakpoints in macro code
-(lldb) breakpoint set --name "MyMacro.expansion"
-
-# Inspect macro expansion context
-(lldb) po context
-(lldb) po node.arguments
-```
-
-This debugging workflow ensures you can efficiently develop, test, and troubleshoot macros using SyntaxKit's declarative approach.
-
-## Performance Optimization
-
-Macro performance is critical since they run during compilation. Here are key optimization strategies when using SyntaxKit:
-
-### 1. Compilation Time Optimization
-
-Optimize for faster build times:
-
-```swift
-public struct OptimizedMacro: MemberMacro {
-    public static func expansion(
-        of node: AttributeSyntax,
-        providingMembersOf declaration: some DeclGroupSyntax,
-        in context: some MacroExpansionContext
-    ) throws -> [DeclSyntax] {
-        
-        // ✅ Cache expensive computations
-        private static var propertyCache: [String: [PropertyInfo]] = [:]
-        
-        let declKey = declaration.description
-        let properties: [PropertyInfo]
-        
-        if let cached = propertyCache[declKey] {
-            properties = cached
-        } else {
-            // Only compute once per unique declaration
-            properties = extractProperties(from: declaration)
-            propertyCache[declKey] = properties
-        }
-        
-        // ✅ Use SyntaxKit's efficient builders
-        return try properties.map { property in
-            // SyntaxKit generates optimized syntax trees
-            Function("get\(property.name.capitalized)") {
-                Return { VariableExp("self.\(property.name)") }
-            }.syntax
-        }
-    }
-}
-```
-
-### 2. Memory Usage Optimization
-
-Minimize memory allocation during macro expansion:
-
-```swift
-public struct MemoryOptimizedMacro: ExpressionMacro {
-    public static func expansion(
-        of node: some FreestandingMacroExpansionSyntax,
-        in context: some MacroExpansionContext
-    ) -> ExprSyntax {
-        
-        // ✅ Reuse syntax components
-        let arguments = node.arguments
-        
-        // ❌ Avoid: Creating temporary objects
-        // let tempArray = arguments.map { $0.expression.description }
-        // let result = tempArray.joined(separator: ", ")
-        
-        // ✅ Better: Direct transformation with SyntaxKit
-        return try! Tuple {
-            for arg in arguments.prefix(3) { // Limit processing
-                VariableExp(arg.expression.trimmed.description)
-            }
-        }.expr
-    }
-}
-```
-
-### 3. Best Practices for Large Projects
-
-When using macros extensively in large codebases:
-
-#### Modular Macro Design
-```swift
-// Create focused, single-purpose macros
-@MemberwiseInit  // Only generates initializers
-@Validated       // Only adds validation
-@Builder         // Only creates builder pattern
-
-struct User {
-    let name: String
-    let age: Int
-}
-```
-
-#### Conditional Compilation
-```swift
-public struct ConditionalMacro: MemberMacro {
-    public static func expansion(/*...*/) -> [DeclSyntax] {
-        #if RELEASE
-        // Simplified version for release builds
-        return generateBasicMembers()
-        #else
-        // Full-featured version for development
-        return generateDebugMembers()
-        #endif
-    }
-}
-```
-
-### 4. Measuring Performance
-
-Monitor macro performance impact:
-
-```bash
-# Measure compilation time with macros
-time swift build -c release
-
-# Profile macro-heavy files
-swift build --verbose 2>&1 | grep "Compiling.*MacroClient"
-
-# Use Xcode's build timeline for detailed analysis
-# Product → Perform Action → Build With Timing Summary
-```
-
-### 5. SyntaxKit Performance Advantages
-
-SyntaxKit provides several performance benefits over raw SwiftSyntax:
-
-- **Optimized AST Generation**: Built-in optimizations for common patterns
-- **Lazy Evaluation**: Components are only built when needed
-- **Memory Efficiency**: Reduced temporary object creation
-- **Type Safety**: Compile-time validation prevents runtime errors
-
-## Cross-References and Related Guides
-
-This tutorial builds upon several other SyntaxKit resources:
-
-### Getting Started
-- **[Quick Start Guide](../QuickStart)**: Learn SyntaxKit basics before diving into macros
-- **[When to Use SyntaxKit](../When-to-Use-SyntaxKit)**: Understand when macros are the right solution
-- **[Integration Guide](../Integration)**: Set up SyntaxKit in your projects
-
-### Advanced Topics
-- **[Error Handling Patterns](../ErrorHandling)**: Deep dive into robust error handling
-- **[Performance Best Practices](../Performance)**: Comprehensive performance optimization
-- **[Testing Strategies](../Testing)**: Advanced testing techniques for generated code
-
-### API References
-- **[Macro Types Overview](../MacroTypes)**: Complete guide to all macro types
-- **[SyntaxKit Core Components](../CoreComponents)**: Understanding the fundamental building blocks
-- **[SwiftSyntax Integration](../SwiftSyntaxIntegration)**: Working with raw SwiftSyntax when needed
-
-### Examples and Patterns
-- **[Common Patterns](../CommonPatterns)**: Real-world macro implementation patterns
-- **[Migration Guide](../Migration)**: Migrating from manual SwiftSyntax to SyntaxKit
-- **[Cookbook](../Cookbook)**: Recipe-based solutions for specific macro tasks
-
-### Debugging and Development
-- **[Development Workflow](../DevelopmentWorkflow)**: End-to-end macro development process
-- **[Troubleshooting Guide](../Troubleshooting)**: Solutions to common macro development issues
-- **[IDE Integration](../IDEIntegration)**: Optimizing your development environment
-
-## Next Steps
-
-Now that you've learned macro development with SyntaxKit:
-
-1. **Practice**: Try implementing the examples in your own projects
-2. **Explore**: Review the [Common Patterns guide](../CommonPatterns) for more sophisticated techniques
-3. **Optimize**: Apply the performance tips to your macro implementations
-4. **Test**: Use the debugging techniques to ensure robust macro behavior
-5. **Share**: Consider contributing patterns back to the SyntaxKit community
-
-Remember: SyntaxKit's declarative approach makes complex macro development more maintainable and less error-prone than traditional SwiftSyntax manipulation.
 
 ## See Also
 

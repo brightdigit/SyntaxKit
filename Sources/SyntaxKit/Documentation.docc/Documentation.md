@@ -369,14 +369,11 @@ struct MembersMacro: MemberMacro {
 
 > 📖 **Learn macro development:** Our comprehensive <doc:Creating-Macros-with-SyntaxKit> tutorial covers these patterns and more advanced techniques.
 
-> **More Examples:** Check out our <doc:Best-Practices> for common Swift patterns. 
-
 ## Topics
 
 ### Getting Started
 - <doc:Quick-Start-Guide>
 - <doc:Creating-Macros-with-SyntaxKit>
-- <doc:Best-Practices>
 
 ### Declarations
 - ``AccessModifier``

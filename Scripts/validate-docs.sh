@@ -399,10 +399,13 @@ validate_code_examples() {
         echo -e "${BLUE}📄 Processing single file: $TARGET_FILE${NC}"
         file_list=("$TARGET_FILE")
     else
-        # Process all documentation files
-        mapfile -t file_list < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f 2>/dev/null; \
-                                 find . -maxdepth 1 -name "README.md" -type f 2>/dev/null; \
-                                 find Examples -name "README.md" -type f 2>/dev/null || true)
+        # Process all documentation files (portable alternative to mapfile)
+        file_list=()
+        while IFS= read -r -d '' file; do
+            file_list+=("$file")
+        done < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f -print0 2>/dev/null; \
+                 find . -maxdepth 1 -name "README.md" -type f -print0 2>/dev/null; \
+                 find Examples -name "README.md" -type f -print0 2>/dev/null || true)
     fi
     
     for doc_file in "${file_list[@]}"; do
