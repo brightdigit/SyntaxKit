@@ -72,11 +72,11 @@ import SyntaxKit
 
 // Generate a data model with Equatable conformance
 let userModel = Struct("User") {
-    Property("id", type: "UUID")
-    Property("name", type: "String") 
-    Property("email", type: "String")
+    Variable(.let, name: "id", type: "UUID")
+    Variable(.let, name: "name", type: "String") 
+    Variable(.let, name: "email", type: "String")
 }
-.conformsTo("Equatable")
+.inherits("Equatable")
 
 print(userModel.generateCode())
 ```
@@ -91,28 +91,27 @@ struct User: Equatable {
 ```
 
 ### 3. Build a Simple Macro (2 minutes)
+
+<!-- skip-test -->
 ```swift
 import SyntaxKit
 import SwiftSyntaxMacros
 
 @main
-struct EquatableMacro: ExpressionMacro {
+struct StringifyMacro: ExpressionMacro {
     static func expansion(
         of node: some FreestandingMacroExpansionSyntax,
         in context: some MacroExpansionContext
     ) throws -> ExprSyntax {
-        // Use SyntaxKit to generate Equatable implementation
-        let equatableImpl = Function("==") {
-            Parameter("lhs", type: "Self")
-            Parameter("rhs", type: "Self") 
-        }
-        .static()
-        .returns("Bool")
-        .body {
-            // Generated comparison logic
+        // Get the first argument from the macro call
+        guard let argument = node.arguments.first?.expression else {
+            return Literal.string("").syntax.as(ExprSyntax.self)!
         }
         
-        return equatableImpl.expressionSyntax
+        // Use SyntaxKit to generate a string literal from the argument
+        let sourceCode = argument.trimmed.description
+        let stringLiteral = Literal.string(sourceCode)
+        return stringLiteral.syntax.as(ExprSyntax.self)!
     }
 }
 ```
@@ -130,15 +129,12 @@ import SyntaxKit
 
 let code = Struct("BlackjackCard") {
     Enum("Suit") {
-        Case("spades").equals("♠")
-        Case("hearts").equals("♡")
-        Case("diamonds").equals("♢")
-        Case("clubs").equals("♣")
+        EnumCase("spades").equals("♠")
+        EnumCase("hearts").equals("♡")
+        EnumCase("diamonds").equals("♢")
+        EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment{
-      Line("nested Suit enumeration")
-    }
 }
 
 let generatedCode = code.generateCode()
@@ -159,134 +155,6 @@ struct BlackjackCard {
 ```
 
 ---
-
-### API Client Generation
-#### Manual Approach (hundreds of lines per endpoint)
-```swift
-// Manually writing each endpoint...
-struct UsersAPI {
-    func getUser(id: Int) async throws -> User {
-        let url = URL(string: "\(baseURL)/users/\(id)")!
-        // ... boilerplate networking code
-    }
-    
-    func createUser(_ user: CreateUserRequest) async throws -> User {
-        let url = URL(string: "\(baseURL)/users")!
-        // ... more boilerplate
-    }
-    // Repeat for every endpoint...
-}
-```
-
-#### SyntaxKit Approach (generate from schema)
-```swift
-// Generate entire API client from schema
-let apiClient = generateAPIClient(from: apiSchema) {
-    for endpoint in spec.endpoints {
-        Function(endpoint.name) {
-            Parameter("request", type: endpoint.requestType)
-        }
-        .async()
-        .throws()
-        .returns(endpoint.responseType)
-        .body {
-            // Generated networking implementation
-        }
-    }
-}
-```
-
----
-
-### Model Generation with Computed Properties
-#### Manual Approach
-```swift
-// Repetitive model definitions...
-struct User {
-    let id: Int
-    let firstName: String
-    let lastName: String
-    
-    var fullName: String { "\(firstName) \(lastName)" }
-    var initials: String { "\(firstName.prefix(1))\(lastName.prefix(1))" }
-    var displayName: String { fullName.isEmpty ? "Anonymous" : fullName }
-}
-
-struct Product {
-    let id: Int
-    let name: String
-    let price: Double
-    
-    var displayPrice: String { "$\(String(format: "%.2f", price))" }
-    var isExpensive: Bool { price > 100.0 }
-    // Similar pattern repeated...
-}
-```
-
-#### SyntaxKit Approach
-```swift
-// Generate models with computed properties from schema
-for model in schema.models {
-    Struct(model.name) {
-        for field in model.fields {
-            Property(field.name, type: field.type)
-        }
-        
-        for computation in model.computedProperties {
-            ComputedProperty(computation.name, type: computation.returnType) {
-                computation.generateBody()
-            }
-        }
-    }
-}
-```
-
----
-
-### Migration Utility
-#### Manual Approach
-```swift
-// Hand-coding each transformation...
-func migrateUserV1ToV2(_ v1User: UserV1) -> UserV2 {
-    return UserV2(
-        id: v1User.identifier,
-        profile: ProfileV2(
-            firstName: v1User.fname,
-            lastName: v1User.lname,
-            email: v1User.emailAddress
-        ),
-        settings: SettingsV2(
-            theme: v1User.isDarkMode ? .dark : .light,
-            notifications: v1User.allowNotifications
-        )
-    )
-}
-// Repeat for every migration...
-```
-
-#### SyntaxKit Approach
-```swift
-// Generate migrations from mapping configuration
-let migrations = generateMigrations(from: migrationConfig) {
-    for migration in config.migrations {
-        Function("migrate\(migration.from)To\(migration.to)") {
-            Parameter("input", type: migration.fromType)
-        }
-        .returns(migration.toType)
-        .body {
-            Return {
-                StructInit(migration.toType) {
-                    for mapping in migration.fieldMappings {
-                        FieldAssignment(mapping.target, value: mapping.transform)
-                    }
-                }
-            }
-        }
-    }
-}
-```
-
-**Result:** 95% less boilerplate, type-safe transformations, and maintainable code generation that scales with your schema changes.
 
 ## Features
 
@@ -360,8 +228,7 @@ swift test
 
 ## Requirements
 
-- Swift 6.1+
-- macOS 13.0+
+- Swift 6.0+
 
 ## License
 

@@ -314,8 +314,8 @@ Try generating a different enum entirely:
 }
 ```
 
-### Experiment 3: Playground Fun
-Copy all the code above into a Swift Playground and experiment with different configurations. See how quickly you can generate completely different enums!
+### Experiment 3: Try It Yourself
+Copy all the code above into a Swift file and experiment with different configurations. See how quickly you can generate completely different enums!
 
 ## What You've Accomplished
 
@@ -331,12 +331,9 @@ In just 5 minutes, you've:
 
 Congratulations! You've just generated Swift code from external data. Ready to explore what else SyntaxKit can do?
 
-### 🎮 **Start Here: Download the Playground**
-**[📥 Download Quick Start Playground](https://github.com/brightdigit/SyntaxKit/releases/latest/download/SyntaxKit-QuickStart.playground.zip)** - All examples above, ready to run in Xcode
-
 ### 🎯 **Quick Wins to Try Right Now**
 
-1. **Modify the playground**: Change the JSON configs and see instant results
+1. **Create a Swift file**: Copy the examples above and experiment with different JSON configs
 2. **Add SyntaxKit to your project**: Use the installation steps above
 3. **Generate your own enums**: Replace the JSON with your app's actual data
 

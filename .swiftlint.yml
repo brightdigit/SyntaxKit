@@ -121,7 +121,6 @@ excluded:
   - Examples
   - Macros
   - Sources/SyntaxKit/Parser
-  - Playgrounds
   - Sources/SyntaxKit/Documentation.docc/Tutorials/Resources
 indentation_width:
   indentation_width: 2

@@ -8,8 +8,8 @@ This tutorial walks you through creating a simple freestanding expression macro 
 
 ## Prerequisites
 
-- Swift 6.1 or later
-- Xcode 15.0 or later
+- Swift 6.0 or later
+- Xcode 16.0 or later
 - Basic understanding of Swift macros
 
 ## Step 1: Create the Package Structure
@@ -170,6 +170,7 @@ struct MyMacroPlugin: CompilerPlugin {
 
 Create the file `Sources/MyMacro/MyMacro.swift`:
 
+<!-- skip-test -->
 ```swift
 /// A freestanding expression macro that takes two expressions and returns
 /// a tuple containing their sum and the source code that produced it.

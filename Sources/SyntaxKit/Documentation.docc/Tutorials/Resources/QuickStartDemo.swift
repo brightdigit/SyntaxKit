@@ -129,7 +129,7 @@ func runDemo() {
   print("   • Try modifying the JSON configuration above")
   print("   • Add more enum cases or change the enum name")
   print("   • Check out the macro tutorial for advanced usage")
-  print("   • Download the complete Swift Playground")
+  print("   • Integrate SyntaxKit into your own projects")
 }
 
 // MARK: - Run the Demo

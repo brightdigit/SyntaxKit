@@ -405,7 +405,7 @@ validate_code_examples() {
             file_list+=("$file")
         done < <(find Sources/SyntaxKit/Documentation.docc -name "*.md" -type f -print0 2>/dev/null; \
                  find . -maxdepth 1 -name "README.md" -type f -print0 2>/dev/null; \
-                 find Examples -name "README.md" -type f -print0 2>/dev/null || true)
+                 find Examples -name "README.md" -type f \( ! -path "*/.build/*" ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/DerivedData/*" \) -print0 2>/dev/null || true)
     fi
     
     for doc_file in "${file_list[@]}"; do
@@ -527,7 +527,7 @@ provide_error_recovery() {
     echo "  → Add missing import statements"
     echo "  → Fix syntax errors in code blocks"
     echo "  → Ensure examples use current API signatures"
-    echo "  → Test examples in Xcode playground first"
+    echo "  → Test examples in a Swift file first"
     echo ""
     echo "• Low API coverage:"
     echo "  → Add /// documentation comments to public APIs"

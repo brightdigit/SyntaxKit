@@ -38,6 +38,21 @@ Perfect for macro authors who need to generate intricate Swift structures, devel
 
 > 🚀 **Ready to start?** Follow our step-by-step <doc:Creating-Macros-with-SyntaxKit> tutorial to build your first macro in 15 minutes.
 
+## Installation
+
+Add SyntaxKit to your project using Swift Package Manager:
+
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.3")
+]
+```
+
+## Requirements
+
+- Swift 6.0+
+
 Here's a simple example showing SyntaxKit's declarative approach:
 
 ```swift
@@ -289,7 +304,7 @@ struct StringifyMacro: ExpressionMacro {
         }
         
         // Declarative string literal generation
-        return Literal(argument.description).expressionSyntax
+        return Literal(argument.description).exprSyntax
     }
 }
 ```
