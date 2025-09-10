@@ -29,23 +29,6 @@
 
 import SwiftSyntax
 
-/// Represents attribute arguments for variable declarations.
-private struct AttributeArguments {
-  let leftParen: TokenSyntax?
-  let rightParen: TokenSyntax?
-  let arguments: AttributeSyntax.Arguments?
-
-  init(
-    leftParen: TokenSyntax? = nil,
-    rightParen: TokenSyntax? = nil,
-    arguments: AttributeSyntax.Arguments? = nil
-  ) {
-    self.leftParen = leftParen
-    self.rightParen = rightParen
-    self.arguments = arguments
-  }
-}
-
 extension Variable {
   /// Builds the attribute list for the variable declaration.
   internal func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

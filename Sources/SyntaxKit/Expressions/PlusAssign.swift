@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `+=` expression.
 ///
@@ -37,9 +37,33 @@ import SwiftSyntax
   message:
     "Use Infix(target, \"+=\", value) instead. This type will be removed in a future version."
 )
+/// A `+=` expression.
+///
+/// **Deprecated**: Use `Infix(target, "+=", value)` instead. This type will be removed in a future version.
 public struct PlusAssign: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
+
+  /// The SwiftSyntax representation of this += expression.
+  public var syntax: any SyntaxProtocol {
+    let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
+    let assign = ExprSyntax(
+      BinaryOperatorExprSyntax(
+        operator: .binaryOperator(
+          "+=",
+          leadingTrivia: .space,
+          trailingTrivia: .space
+        )
+      )
+    )
+    return SequenceExprSyntax(
+      elements: ExprListSyntax([
+        left,
+        assign,
+        valueExpr,
+      ])
+    )
+  }
 
   /// Creates a `+=` expression with an expression value.
   ///
@@ -89,25 +113,5 @@ public struct PlusAssign: CodeBlock {
   @available(*, deprecated, message: "Use Infix(target, \"+=\", value) instead.")
   public init(_ target: String, _ value: Double) {
     self.init(target, .float(value))
-  }
-
-  public var syntax: SyntaxProtocol {
-    let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
-    let assign = ExprSyntax(
-      BinaryOperatorExprSyntax(
-        operator: .binaryOperator(
-          "+=",
-          leadingTrivia: .space,
-          trailingTrivia: .space
-        )
-      )
-    )
-    return SequenceExprSyntax(
-      elements: ExprListSyntax([
-        left,
-        assign,
-        valueExpr,
-      ])
-    )
   }
 }

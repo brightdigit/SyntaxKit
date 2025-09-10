@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A helper that represents the *final* `else` body in an `if` / `else-if` chain.
 ///
@@ -44,15 +44,9 @@ import SwiftSyntax
 /// *terminal* `else` body.
 public struct Then: CodeBlock {
   /// The statements that make up the `else` body.
-  public let body: [CodeBlock]
+  public let body: [any CodeBlock]
 
-  /// Creates a then block.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the then block.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
-    self.body = try content()
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let statements = CodeBlockItemListSyntax(
       body.compactMap { element in
         if let decl = element.syntax.as(DeclSyntax.self) {
@@ -71,5 +65,11 @@ public struct Then: CodeBlock {
       statements: statements,
       rightBrace: .rightBraceToken(leadingTrivia: .newline)
     )
+  }
+
+  /// Creates a then block.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the then block.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.body = try content()
   }
 }

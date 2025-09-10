@@ -27,17 +27,12 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `default` case in a `switch` statement.
 public struct Default: CodeBlock {
-  private let body: [CodeBlock]
+  private let body: [any CodeBlock]
 
-  /// Creates a default case declaration.
-  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the default case.
-  public init(@CodeBlockBuilderResult _ content: () throws -> [CodeBlock]) rethrows {
-    self.body = try content()
-  }
   public var switchCaseSyntax: SwitchCaseSyntax {
     let statements = CodeBlockItemListSyntax(
       body.compactMap {
@@ -61,5 +56,11 @@ public struct Default: CodeBlock {
       statements: statements
     )
   }
-  public var syntax: SyntaxProtocol { switchCaseSyntax }
+  public var syntax: any SyntaxProtocol { switchCaseSyntax }
+
+  /// Creates a default case declaration.
+  /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the default case.
+  public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.body = try content()
+  }
 }

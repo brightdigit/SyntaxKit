@@ -77,7 +77,7 @@ opt_in_rules:
   - strong_iboutlet
   - toggle_bool
 #  - trailing_closure
-#  - type_contents_order
+  - type_contents_order
   - unavailable_function
   - unneeded_parentheses_in_closure_argument
   - unowned_variable_capture
@@ -121,6 +121,7 @@ excluded:
   - Examples
   - Macros
   - Sources/SyntaxKit/Parser
+  - Sources/SyntaxKit/Documentation.docc/Tutorials/Resources
 indentation_width:
   indentation_width: 2
 file_name:
@@ -132,6 +133,8 @@ disabled_rules:
     - implicit_getter
     - switch_case_alignment
     - closure_parameter_position
+    - pattern_matching_keywords
     - trailing_comma
     - opening_brace
     - optional_data_string_conversion
+    - todo

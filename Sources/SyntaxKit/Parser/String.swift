@@ -27,6 +27,8 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
+import Foundation
+
 extension String {
   internal func escapeHTML() -> String {
     var string = self

@@ -27,18 +27,38 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents a closure expression in Swift code.
 public struct Closure: CodeBlock {
+  /// The capture list for the closure.
   public let capture: [ParameterExp]
+  /// The parameters for the closure.
   public let parameters: [ClosureParameter]
+  /// The return type for the closure, if specified.
   public let returnType: String?
-  public let body: [CodeBlock]
+  /// The body of the closure.
+  public let body: [any CodeBlock]
   internal var attributes: [AttributeInfo] = []
 
   internal var needsSignature: Bool {
     !parameters.isEmpty || returnType != nil || !capture.isEmpty || !attributes.isEmpty
+  }
+
+  /// The SwiftSyntax representation of this closure.
+  public var syntax: any SyntaxProtocol {
+    let captureClause = buildCaptureClause()
+    let signature = buildSignature(captureClause: captureClause)
+    let bodyBlock = buildBodyBlock()
+
+    return ExprSyntax(
+      ClosureExprSyntax(
+        leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
+        signature: signature,
+        statements: bodyBlock,
+        rightBrace: .rightBraceToken(leadingTrivia: .newline)
+      )
+    )
   }
 
   /// Creates a closure with all parameters.
@@ -51,7 +71,7 @@ public struct Closure: CodeBlock {
     @ParameterExpBuilderResult capture: () -> [ParameterExp],
     @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
     returns returnType: String?,
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     self.capture = capture()
     self.parameters = parameters()
@@ -67,7 +87,7 @@ public struct Closure: CodeBlock {
   public init(
     @ParameterExpBuilderResult capture: () -> [ParameterExp],
     @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(capture: capture, parameters: parameters, returns: nil, body: body)
   }
@@ -80,7 +100,7 @@ public struct Closure: CodeBlock {
   public init(
     @ParameterExpBuilderResult capture: () -> [ParameterExp],
     returns returnType: String?,
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       capture: capture,
@@ -96,7 +116,7 @@ public struct Closure: CodeBlock {
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     @ParameterExpBuilderResult capture: () -> [ParameterExp],
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       capture: capture,
@@ -112,7 +132,7 @@ public struct Closure: CodeBlock {
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       capture: [ParameterExp].init,
@@ -130,7 +150,7 @@ public struct Closure: CodeBlock {
   public init(
     @ClosureParameterBuilderResult parameters: () -> [ClosureParameter],
     returns returnType: String?,
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       capture: [ParameterExp].init,
@@ -144,7 +164,7 @@ public struct Closure: CodeBlock {
   /// - Parameters:
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       capture: [ParameterExp].init,
@@ -154,13 +174,23 @@ public struct Closure: CodeBlock {
     )
   }
 
+  /// Creates a closure with just a CodeBlock array.
+  /// - Parameters:
+  ///   - body: An array of CodeBlock elements that form the body of the closure.
+  public init(body: [any CodeBlock]) {
+    self.capture = []
+    self.parameters = []
+    self.returnType = nil
+    self.body = body
+  }
+
   /// Creates a closure without capture list and parameters.
   /// - Parameters:
   ///   - returnType: The return type of the closure.
   ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     returns returnType: String?,
-    @CodeBlockBuilderResult body: () throws -> [CodeBlock]
+    @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
     try self.init(
       capture: [ParameterExp].init,
@@ -174,20 +204,5 @@ public struct Closure: CodeBlock {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
     return copy
-  }
-
-  public var syntax: SyntaxProtocol {
-    let captureClause = buildCaptureClause()
-    let signature = buildSignature(captureClause: captureClause)
-    let bodyBlock = buildBodyBlock()
-
-    return ExprSyntax(
-      ClosureExprSyntax(
-        leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
-        signature: signature,
-        statements: bodyBlock,
-        rightBrace: .rightBraceToken(leadingTrivia: .newline)
-      )
-    )
   }
 }

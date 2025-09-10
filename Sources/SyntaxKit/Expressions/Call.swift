@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// An expression that calls a global function.
 public struct Call: CodeBlock {
@@ -36,41 +36,8 @@ public struct Call: CodeBlock {
   private var isThrowing: Bool = false
   private var isAsync: Bool = false
 
-  /// Creates a global function call expression.
-  /// - Parameter functionName: The name of the function to call.
-  public init(_ functionName: String) {
-    self.functionName = functionName
-    self.parameters = []
-  }
-
-  /// Creates a global function call expression with parameters.
-  /// - Parameters:
-  ///   - functionName: The name of the function to call.
-  ///   - params: A ``ParameterExpBuilderResult`` that provides the parameters for the function call.
-  public init(
-    _ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]
-  ) rethrows {
-    self.functionName = functionName
-    self.parameters = try params()
-  }
-
-  /// Marks this function call as throwing.
-  /// - Returns: A copy of the call marked as throwing.
-  public func throwing() -> Self {
-    var copy = self
-    copy.isThrowing = true
-    return copy
-  }
-
-  /// Marks this function call as async.
-  /// - Returns: A copy of the call marked as async.
-  public func async() -> Self {
-    var copy = self
-    copy.isAsync = true
-    return copy
-  }
-
-  public var syntax: SyntaxProtocol {
+  /// The SwiftSyntax representation of this function call.
+  public var syntax: any SyntaxProtocol {
     let function = TokenSyntax.identifier(functionName)
     let args = LabeledExprListSyntax(
       parameters.enumerated().compactMap { index, param in
@@ -125,5 +92,39 @@ public struct Call: CodeBlock {
     } else {
       return ExprSyntax(functionCall)
     }
+  }
+
+  /// Creates a global function call expression.
+  /// - Parameter functionName: The name of the function to call.
+  public init(_ functionName: String) {
+    self.functionName = functionName
+    self.parameters = []
+  }
+
+  /// Creates a global function call expression with parameters.
+  /// - Parameters:
+  ///   - functionName: The name of the function to call.
+  ///   - params: A ``ParameterExpBuilderResult`` that provides the parameters for the function call.
+  public init(
+    _ functionName: String, @ParameterExpBuilderResult _ params: () throws -> [ParameterExp]
+  ) rethrows {
+    self.functionName = functionName
+    self.parameters = try params()
+  }
+
+  /// Marks this function call as throwing.
+  /// - Returns: A copy of the call marked as throwing.
+  public func throwing() -> Self {
+    var copy = self
+    copy.isThrowing = true
+    return copy
+  }
+
+  /// Marks this function call as async.
+  /// - Returns: A copy of the call marked as async.
+  public func async() -> Self {
+    var copy = self
+    copy.isAsync = true
+    return copy
   }
 }

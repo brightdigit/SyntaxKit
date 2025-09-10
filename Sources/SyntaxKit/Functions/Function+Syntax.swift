@@ -27,11 +27,11 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension Function {
   /// The syntax representation of this function.
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let funcKeyword = TokenSyntax.keyword(.func, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
 

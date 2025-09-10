@@ -148,7 +148,7 @@ internal final class TokenVisitor: SyntaxRewriter {
               )
             }
           case let value?:
-            if let value = value as? SyntaxProtocol {
+            if let value = value as? any SyntaxProtocol {
               let type = "\(value.syntaxNodeType)"
               treeNode.structure.append(
                 StructureProperty(

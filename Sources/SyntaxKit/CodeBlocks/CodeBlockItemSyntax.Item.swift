@@ -27,13 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension CodeBlockItemSyntax.Item {
   /// Creates a `CodeBlockItemSyntax.Item` from a `SyntaxProtocol`.
   /// - Parameter syntax: The syntax to convert.
   /// - Returns: A `CodeBlockItemSyntax.Item` if the conversion is successful, `nil` otherwise.
-  public static func create(from syntax: SyntaxProtocol) -> CodeBlockItemSyntax.Item? {
+  public static func create(from syntax: any SyntaxProtocol) -> CodeBlockItemSyntax.Item? {
     if let decl = syntax.as(DeclSyntax.self) {
       return .decl(decl)
     } else if let stmt = syntax.as(StmtSyntax.self) {

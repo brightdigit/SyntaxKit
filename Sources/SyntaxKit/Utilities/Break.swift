@@ -27,19 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `break` statement.
 public struct Break: CodeBlock {
   private let label: String?
 
-  /// Creates a `break` statement.
-  /// - Parameter label: An optional label to break from a specific loop or switch.
-  public init(_ label: String? = nil) {
-    self.label = label
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let breakStmt = BreakStmtSyntax(
       breakKeyword: .keyword(.break, trailingTrivia: .newline)
     )
@@ -54,5 +48,11 @@ public struct Break: CodeBlock {
     } else {
       return StmtSyntax(breakStmt)
     }
+  }
+
+  /// Creates a `break` statement.
+  /// - Parameter label: An optional label to break from a specific loop or switch.
+  public init(_ label: String? = nil) {
+    self.label = label
   }
 }

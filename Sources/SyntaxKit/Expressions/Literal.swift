@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Represents Swift literal values.
 public enum Literal: CodeBlock, CodeBlockable, Sendable {
@@ -51,7 +51,7 @@ public enum Literal: CodeBlock, CodeBlockable, Sendable {
   case dictionary([(Literal, Literal)])
 
   /// The code block representation of this literal.
-  public var codeBlock: CodeBlock {
+  public var codeBlock: any CodeBlock {
     self
   }
 
@@ -105,7 +105,7 @@ public enum Literal: CodeBlock, CodeBlockable, Sendable {
   }
 
   /// The SwiftSyntax representation of this literal.
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     switch self {
     case .string(let value):
       return StringLiteralExprSyntax(

@@ -28,12 +28,12 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A protocol for types that can be represented as a SwiftSyntax node.
 public protocol CodeBlock: PatternConvertible, Sendable {
   /// The SwiftSyntax representation of the code block.
-  var syntax: SyntaxProtocol { get }
+  var syntax: any SyntaxProtocol { get }
 
   /// Calls a method on this code block with the given name and parameters.
   /// - Parameters:
@@ -41,21 +41,10 @@ public protocol CodeBlock: PatternConvertible, Sendable {
   ///   - parameters: A closure that returns the parameters for the method call.
   /// - Returns: A code block representing the method call.
   func call(_ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp])
-    -> CodeBlock
+    -> any CodeBlock
 }
 
 extension CodeBlock {
-  /// Calls a method on this code block with the given name and parameters.
-  /// - Parameters:
-  ///   - name: The name of the method to call.
-  ///   - parameters: A closure that returns the parameters for the method call.
-  /// - Returns: A code block representing the method call.
-  public func call(
-    _ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp] = { [] }
-  ) -> CodeBlock {
-    FunctionCallExp(base: self, methodName: name, parameters: parameters())
-  }
-
   /// The pattern syntax representation of this code block.
   public var patternSyntax: PatternSyntax {
     let expr = ExprSyntax(
@@ -63,5 +52,16 @@ extension CodeBlock {
         ?? DeclReferenceExprSyntax(baseName: .identifier(""))
     )
     return PatternSyntax(ExpressionPatternSyntax(expression: expr))
+  }
+
+  /// Calls a method on this code block with the given name and parameters.
+  /// - Parameters:
+  ///   - name: The name of the method to call.
+  ///   - parameters: A closure that returns the parameters for the method call.
+  /// - Returns: A code block representing the method call.
+  public func call(
+    _ name: String, @ParameterExpBuilderResult _ parameters: () -> [ParameterExp] = { [] }
+  ) -> any CodeBlock {
+    FunctionCallExp(base: self, methodName: name, parameters: parameters())
   }
 }

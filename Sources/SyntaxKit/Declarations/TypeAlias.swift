@@ -27,13 +27,34 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `typealias` declaration.
 public struct TypeAlias: CodeBlock, Sendable {
   private let name: String
   private let existingType: String
   private var attributes: [AttributeInfo] = []
+
+  public var syntax: any SyntaxProtocol {
+    // `typealias` keyword token
+    let keyword = TokenSyntax.keyword(.typealias, trailingTrivia: .space)
+
+    // Alias identifier
+    let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
+
+    // Initializer clause – `= ExistingType`
+    let initializer = TypeInitializerClauseSyntax(
+      equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
+      value: IdentifierTypeSyntax(name: .identifier(existingType))
+    )
+
+    return TypeAliasDeclSyntax(
+      attributes: buildAttributeList(from: attributes),
+      typealiasKeyword: keyword,
+      name: identifier,
+      initializer: initializer
+    )
+  }
 
   /// Creates a `typealias` declaration.
   /// - Parameters:
@@ -53,27 +74,6 @@ public struct TypeAlias: CodeBlock, Sendable {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
     return copy
-  }
-
-  public var syntax: SyntaxProtocol {
-    // `typealias` keyword token
-    let keyword = TokenSyntax.keyword(.typealias, trailingTrivia: .space)
-
-    // Alias identifier
-    let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)
-
-    // Initializer clause – `= ExistingType`
-    let initializer = TypeInitializerClauseSyntax(
-      equal: .equalToken(leadingTrivia: .space, trailingTrivia: .space),
-      value: IdentifierTypeSyntax(name: .identifier(existingType))
-    )
-
-    return TypeAliasDeclSyntax(
-      attributes: buildAttributeList(from: attributes),
-      typealiasKeyword: keyword,
-      name: identifier,
-      initializer: initializer
-    )
   }
 
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {

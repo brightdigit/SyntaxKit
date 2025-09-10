@@ -1,10 +1,60 @@
 # ``SyntaxKit``
 
-SyntaxKit provides a declarative way to generate Swift code structures using SwiftSyntax.
+**Generate Swift code programmatically with declarative, type-safe syntax.** 
 
-## Overview
+SyntaxKit transforms complex Swift code generation from tedious AST manipulation into intuitive, readable declarations. Built for scenarios where you need to create Swift code dynamically—macro development, API client generators, model transformers, and migration utilities—rather than writing code by hand once.
 
-SyntaxKit allows developers to build Swift code using result builders which enable the creation of Swift code structures in a declarative way. Here's an example:
+**When you're generating repetitive code structures, transforming external schemas into Swift types, or building developer tools that output Swift code, SyntaxKit provides the declarative approach you need.** Unlike manually constructing SwiftSyntax AST nodes, SyntaxKit uses result builders to make complex code generation maintainable and error-resistant.
+
+Perfect for macro authors who need to generate intricate Swift structures, developers building tools that automatically create boilerplate from APIs or databases, and teams creating migration utilities that transform data models. If you're writing application logic or view controllers—code you'd normally type by hand—stick with regular Swift. If you're programmatically generating Swift code structures, SyntaxKit is designed for you.
+
+**Core scenarios where SyntaxKit excels:**
+- **Swift Macro Development**: Replace complex AST manipulation with declarative macro logic
+- **Model Generation**: Convert database schemas or JSON into Swift data models with computed properties
+- **Migration Utilities**: Build tools that automatically transform legacy code structures
+- **Developer Tools**: Create code generators for repetitive patterns and boilerplate
+
+## When to Use SyntaxKit
+
+**Choose SyntaxKit when you're generating Swift code programmatically. Choose raw Swift when you're writing application logic.**
+
+| Scenario | Use SyntaxKit ✅ | Use Raw Swift ❌ | Why |
+|----------|------------------|-------------------|-----|
+| **Swift Macros** | Always | Never | Declarative syntax dramatically simplifies AST manipulation |
+| **Model Generation** | Yes | No | Convert schemas into Swift models with computed properties |
+| **Migration Tools** | Yes | No | Build utilities that transform legacy code structures |
+| **Code Templates** | Yes | No | Generate repetitive patterns from configurations |
+| **Application Logic** | No | Always | Business logic, view controllers, standard app features |
+| **One-time Scripts** | No | Yes | Simple, write-once utilities don't need generation |
+| **Performance-Critical** | No | Yes | Raw Swift avoids generation overhead |
+
+
+**Key Questions:**
+- Am I writing code that transforms data into Swift structures?
+- Will this code be generated multiple times or from external inputs?
+- Do I need type-safe programmatic Swift construction?
+
+**If yes to any:** Use SyntaxKit. **If no to all:** Use raw Swift.
+
+> 🚀 **Ready to start?** Follow our step-by-step <doc:Creating-Macros-with-SyntaxKit> tutorial to build your first macro in 15 minutes.
+
+## Installation
+
+Add SyntaxKit to your project using Swift Package Manager:
+
+<!-- skip-test -->
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.3")
+]
+```
+
+## Requirements
+
+- Swift 6.0+
+
+Here's a simple example showing SyntaxKit's declarative approach:
 
 ```swift
 import SyntaxKit
@@ -17,7 +67,9 @@ let code = Struct("BlackjackCard") {
         EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment("nested Suit enumeration")
+    .comment{
+      Line("nested Suit enumeration")
+    }
 }
 
 let generatedCode = code.generateCode()
@@ -37,11 +89,13 @@ struct BlackjackCard {
 }
 ```
 
-## Full Example
+## Examples
 
 Here is a more comprehensive example that demonstrates many of SyntaxKit's features to generate a `BlackjackCard` struct.
 
-### DSL Code
+### Blackjack Card
+
+#### DSL Code
 
 ```swift
 import SyntaxKit
@@ -54,7 +108,9 @@ let structExample = Struct("BlackjackCard") {
         EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment("nested Suit enumeration")
+    .comment{
+      Line("nested Suit enumeration")
+    }
 
     Enum("Rank") {
         EnumCase("two").equals(2)
@@ -76,29 +132,30 @@ let structExample = Struct("BlackjackCard") {
             Variable(.let, name: "second", type: "Int?")
         }
         
-        ComputedProperty("values") {
+        ComputedProperty("values", type: "Values") {
             Switch("self") {
                 SwitchCase(".ace") {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "1")
-                            Parameter(name: "second", value: "11")
+                          
+                            ParameterExp(name: "first", value: Literal.integer(1))
+                          ParameterExp(name: "second", value: Literal.integer(11))
                         }
                     }
                 }
                 SwitchCase(".jack", ".queen", ".king") {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "10")
-                            Parameter(name: "second", value: "nil")
+                          ParameterExp(name: "first", value: Literal.integer(10))
+                          ParameterExp(name: "second", value: Literal.nil)
                         }
                     }
                 }
                 Default {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "self.rawValue")
-                            Parameter(name: "second", value: "nil")
+                          ParameterExp(name: "first", value: VariableExp("self.rawValue"))
+                          ParameterExp(name: "second", value: Literal.nil)
                         }
                     }
                 }
@@ -106,17 +163,29 @@ let structExample = Struct("BlackjackCard") {
         }
     }
     .inherits("Int")
-    .comment("nested Rank enumeration")
+    .comment{
+      Line("nested Rank enumeration")
+    }
 
     Variable(.let, name: "rank", type: "Rank")
     Variable(.let, name: "suit", type: "Suit")
-    .comment("BlackjackCard properties and methods")
+    .comment{
+        Line("BlackjackCard properties and methods")
+    }
 
-    ComputedProperty("description") {
-        VariableDecl(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
-        PlusAssign("output", "\" value is \\(rank.values.first)\"")
+    ComputedProperty("description", type: "String") {
+        Variable(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
+        Infix(
+          .plusAssign,
+          lhs: VariableExp("output"),
+          rhs: Literal.string("\" value is \\(rank.values.first)\"")
+        )
         If(Let("second", "rank.values.second"), then: {
-            PlusAssign("output", "\" or \\(second)\"")
+          Infix(
+            .plusAssign,
+            lhs: VariableExp("output"),
+            rhs: Literal.string("\" or \\(second)\"")
+          )
         })
         Return {
             VariableExp("output")
@@ -125,7 +194,7 @@ let structExample = Struct("BlackjackCard") {
 }
 ```
 
-### Generated Code
+#### Generated Code
 
 ```swift
 import Foundation
@@ -185,9 +254,141 @@ struct BlackjackCard {
 }
 ```
 
+### StringifyMacro 
+
+**Traditional SwiftSyntax Approach (Complex AST manipulation):**
+
+<!-- skip-test -->
+```swift
+public import SwiftSyntaxMacros
+public import SwiftSyntax
+
+struct StringifyMacro: ExpressionMacro {
+    static func expansion(
+        of node: some FreestandingMacroExpansionSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> ExprSyntax {
+        guard let argument = node.argumentList.first?.expression else {
+            throw StringifyError.missingArgument
+        }
+        
+        // Complex AST node construction
+        let stringLiteral = StringLiteralExprSyntax(
+            openDelimiter: .stringQuoteToken(),
+            segments: StringLiteralSegmentsSyntax([
+                .stringSegment(StringSegmentSyntax(
+                    content: .stringSegment(argument.description)
+                ))
+            ]),
+            closeDelimiter: .stringQuoteToken()
+        )
+        
+        return ExprSyntax(stringLiteral)
+    }
+}
+```
+
+**SyntaxKit Approach (Clean and declarative):**
+
+<!-- skip-test -->
+```swift
+import SyntaxKit
+public import SwiftSyntaxMacros
+
+struct StringifyMacro: ExpressionMacro {
+    static func expansion(
+        of node: some FreestandingMacroExpansionSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> ExprSyntax {
+        guard let argument = node.argumentList.first?.expression else {
+            throw StringifyError.missingArgument
+        }
+        
+        // Declarative string literal generation
+        return Literal(argument.description).exprSyntax
+    }
+}
+```
+
+### Member Generation Macro
+
+**Traditional Approach (80+ lines of complex node manipulation):**
+
+<!-- skip-test -->
+```swift
+struct MembersMacro: MemberMacro {
+    static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        // Complex variable extraction logic
+        let variables = try extractStoredProperties(from: declaration)
+        
+        // Manual AST construction for each member
+        var members: [DeclSyntax] = []
+        
+        // Manually build init function AST
+        let initParams = ParameterClauseSyntax(
+            parameterList: FunctionParameterListSyntax(
+                variables.map { variable in
+                    FunctionParameterSyntax(
+                        firstName: .identifier(variable.name),
+                        type: variable.type
+                    )
+                }
+            )
+        )
+        // ... 60+ more lines of AST construction
+        
+        return members
+    }
+}
+```
+
+**SyntaxKit Approach (Clean and readable):**
+<!-- skip-test -->
+```swift
+struct MembersMacro: MemberMacro {
+    static func expansion(
+        of node: AttributeSyntax,
+        providingMembersOf declaration: some DeclGroupSyntax,
+        in context: some MacroExpansionContext
+    ) throws -> [DeclSyntax] {
+        let variables = try extractStoredProperties(from: declaration)
+        
+        // Declarative member generation
+        let members = Group {
+            // Generate memberwise initializer
+            Function("init") {
+                for variable in variables {
+                    Parameter(variable.name, type: variable.type)
+                }
+            } _: {
+                for variable in variables {
+                    Assignment("self.\(variable.name)", variable.name)
+                }
+            }
+            
+            // Generate description computed property
+            ComputedProperty("description", type: "String") {
+                Return {
+                    Literal("\\(Self.self)(\\(variables.map { "\\($0.name): \\(\\($0.name))" }.joined(separator: ", ")))")
+                }
+            }
+        }
+        
+        return members.memberDeclListSyntax.map(\.declSyntax)
+    }
+}
+```
+
+> 📖 **Learn macro development:** Our comprehensive <doc:Creating-Macros-with-SyntaxKit> tutorial covers these patterns and more advanced techniques.
+
 ## Topics
 
-### Tutorials
+### Getting Started
+- <doc:Quick-Start-Guide>
 - <doc:Creating-Macros-with-SyntaxKit>
 
 ### Declarations
@@ -227,6 +428,7 @@ struct BlackjackCard {
 - ``PlusAssign``
 - ``Return``
 - ``VariableExp``
+- ``DictionaryExpr``
 
 ### Control Flow
 - ``Break``
@@ -252,7 +454,6 @@ struct BlackjackCard {
 ### Building Blocks
 - ``Attribute``
 - ``CodeBlock``
-- ``EmptyCodeBlock``
 - ``Literal``
 
 ### Protocols
@@ -275,3 +476,5 @@ struct BlackjackCard {
 - ``ParameterBuilderResult``
 - ``ParameterExpBuilderResult``
 - ``PatternConvertibleBuilder``
+
+> 💡 **Pro tip:** Most result builders are used automatically—focus on the type declarations and expressions above for your code generation needs.

@@ -29,7 +29,7 @@
 
 import Foundation
 import SwiftParser
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A parameter for a function or initializer.
 public struct Parameter: CodeBlock {
@@ -41,35 +41,15 @@ public struct Parameter: CodeBlock {
   /// If the label is the underscore character "_", the parameter is treated as unnamed.
   internal let label: String?
 
-  internal let type: TypeRepresentable
+  internal let type: any TypeRepresentable
   internal let defaultValue: String?
+
+  internal var attributes: [AttributeInfo] = []
 
   /// Convenience flag – true when the parameter uses the underscore label.
   internal var isUnnamed: Bool { label == "_" }
 
-  internal var attributes: [AttributeInfo] = []
-
-  /// Creates an unlabeled parameter for function calls or initializers.
-  /// - Parameter value: The value of the parameter.
-  public init(unlabeled value: String) {
-    self.name = ""
-    self.label = "_"
-    self.type = ""
-    self.defaultValue = value
-  }
-
-  /// Adds an attribute to the parameter declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the parameter with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let callLabel = label ?? name
 
     if let defaultValue = defaultValue {
@@ -89,8 +69,17 @@ public struct Parameter: CodeBlock {
     // update the function signature generation in Function.swift to use these attributes.
   }
 
+  /// Creates an unlabeled parameter for function calls or initializers.
+  /// - Parameter value: The value of the parameter.
+  public init(unlabeled value: String) {
+    self.name = ""
+    self.label = "_"
+    self.type = ""
+    self.defaultValue = value
+  }
+
   /// Creates a single-name parameter (same label and internal name).
-  public init(name: String, type: TypeRepresentable, defaultValue: String? = nil) {
+  public init(name: String, type: any TypeRepresentable, defaultValue: String? = nil) {
     self.name = name
     self.label = nil
     self.type = type
@@ -103,7 +92,7 @@ public struct Parameter: CodeBlock {
   public init(
     _ internalName: String,
     labeled externalLabel: String,
-    type: TypeRepresentable,
+    type: any TypeRepresentable,
     defaultValue: String? = nil
   ) {
     self.name = internalName
@@ -113,8 +102,9 @@ public struct Parameter: CodeBlock {
   }
 
   /// Creates an unlabeled (anonymous) parameter using the underscore label.
-  public init(unlabeled internalName: String, type: TypeRepresentable, defaultValue: String? = nil)
-  {
+  public init(
+    unlabeled internalName: String, type: any TypeRepresentable, defaultValue: String? = nil
+  ) {
     self.name = internalName
     self.label = "_"
     self.type = type
@@ -124,11 +114,24 @@ public struct Parameter: CodeBlock {
   /// Deprecated: retains source compatibility with earlier API that used an `isUnnamed` flag.
   /// Prefer `Parameter(unlabeled:type:)` or the new labelled initialisers.
   @available(*, deprecated, message: "Use Parameter(unlabeled:type:) or Parameter(_:labeled:type:)")
-  public init(name: String, type: TypeRepresentable, defaultValue: String? = nil, isUnnamed: Bool) {
+  public init(
+    name: String, type: any TypeRepresentable, defaultValue: String? = nil, isUnnamed: Bool
+  ) {
     if isUnnamed {
       self.init(unlabeled: name, type: type, defaultValue: defaultValue)
     } else {
       self.init(name: name, type: type, defaultValue: defaultValue)
     }
+  }
+
+  /// Adds an attribute to the parameter declaration.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A copy of the parameter with the attribute added.
+  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
+    var copy = self
+    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
+    return copy
   }
 }

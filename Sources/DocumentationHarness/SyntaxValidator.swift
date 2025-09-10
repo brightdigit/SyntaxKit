@@ -1,0 +1,58 @@
+//
+//  SyntaxValidator.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion.
+//  Copyright © 2025 BrightDigit.
+//
+//  Permission is hereby granted, free of charge, to any person
+//  obtaining a copy of this software and associated documentation
+//  files (the “Software”), to deal in the Software without
+//  restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following
+//  conditions:
+//
+//  The above copyright notice and this permission notice shall be
+//  included in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+//  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+//  OTHER DEALINGS IN THE SOFTWARE.
+//
+
+/// Protocol for validating Swift code syntax
+package protocol SyntaxValidator {
+  /// Validates the syntax of Swift code
+  /// - Parameter code: The Swift code to validate
+  /// - Throws: ValidationError if validation fails
+  func validateCode(_ code: String) throws(ValidationError)
+}
+extension SyntaxValidator {
+  internal func validateSyntax(from parameters: any ValidationParameters) -> ValidationResult {
+    do {
+      // Validate the syntax directly from the code string
+      try self.validateCode(parameters.code)
+
+      // If syntax validation succeeded, return success
+      // Note: This only validates syntax, not full compilation or execution
+      return ValidationResult(
+        parameters: parameters,
+        testType: .parsing,
+        error: nil
+      )
+    } catch {
+      return ValidationResult(
+        parameters: parameters,
+        testType: .parsing,
+        error: error
+      )
+    }
+  }
+}

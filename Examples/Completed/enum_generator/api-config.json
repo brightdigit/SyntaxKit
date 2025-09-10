@@ -1,0 +1,38 @@
+{
+  "endpoints": {
+    "users": "/api/v2/users",
+    "posts": "/api/v2/posts", 
+    "comments": "/api/v2/comments",
+    "userProfile": "/api/v2/users/{id}",
+    "analytics": "/api/v2/analytics",
+    "search": "/api/v2/search",
+    "notifications": "/api/v2/notifications"
+  },
+  "statusCodes": {
+    "success": 200,
+    "created": 201, 
+    "badRequest": 400,
+    "unauthorized": 401,
+    "forbidden": 403,
+    "notFound": 404,
+    "internalError": 500,
+    "serviceUnavailable": 503
+  },
+  "errorTypes": [
+    {
+      "name": "invalidURL",
+      "associatedData": ["url: String"]
+    },
+    {
+      "name": "httpError", 
+      "associatedData": ["statusCode: Int", "message: String"]
+    },
+    {
+      "name": "networkUnavailable"
+    },
+    {
+      "name": "decodingError",
+      "associatedData": ["DecodingError"]
+    }
+  ]
+}

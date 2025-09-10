@@ -27,18 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A value binding pattern for use in switch cases.
 public struct SwitchLet: PatternConvertible, CodeBlock {
   internal let name: String
 
-  /// Creates a value binding pattern for a switch case.
-  /// - Parameter name: The name of the variable to bind.
-  public init(_ name: String) {
-    self.name = name
-  }
-
+  /// The SwiftSyntax pattern representation of this value binding.
   public var patternSyntax: PatternSyntax {
     let identifier = IdentifierPatternSyntax(
       identifier: .identifier(name)
@@ -51,8 +46,15 @@ public struct SwitchLet: PatternConvertible, CodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol {
+  /// The SwiftSyntax representation of this value binding pattern.
+  public var syntax: any SyntaxProtocol {
     // For CodeBlock conformance, return the pattern syntax
     patternSyntax
+  }
+
+  /// Creates a value binding pattern for a switch case.
+  /// - Parameter name: The name of the variable to bind.
+  public init(_ name: String) {
+    self.name = name
   }
 }

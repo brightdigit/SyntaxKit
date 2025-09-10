@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 extension If {
   /// Builds the conditions for the if expression.
@@ -43,7 +43,7 @@ extension If {
 
   /// Builds a single condition element from a code block.
   private func buildConditionElement(
-    from block: CodeBlock,
+    from block: any CodeBlock,
     needsComma: Bool
   ) -> ConditionElementSyntax {
     let element = createConditionElement(from: block)
@@ -51,7 +51,7 @@ extension If {
   }
 
   /// Creates a condition element from a code block.
-  private func createConditionElement(from block: CodeBlock) -> ConditionElementSyntax {
+  private func createConditionElement(from block: any CodeBlock) -> ConditionElementSyntax {
     if let letCond = block as? Let {
       return ConditionElementSyntax(
         condition: .optionalBinding(

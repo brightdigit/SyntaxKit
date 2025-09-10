@@ -29,7 +29,7 @@
 
 import Foundation
 
-/// A result builder for creating arrays of ``Parameter``s.
+/// A result builder for creating arrays of ``Parameter``.
 @resultBuilder
 public enum ParameterBuilderResult: Sendable, Equatable {
   /// Builds a block of ``Parameter``s.

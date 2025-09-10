@@ -32,9 +32,9 @@ public protocol PropertyAccessible: CodeBlock, Sendable {
   /// Accesses a property on the current property access expression (chaining).
   /// - Parameter propertyName: The name of the next property to access.
   /// - Returns: A property accessible code block representing the chained property access.
-  func property(_ propertyName: String) -> PropertyAccessible
+  func property(_ propertyName: String) -> any PropertyAccessible
 
   /// Negates the property access expression.
   /// - Returns: A negated property access expression.
-  func not() -> CodeBlock
+  func not() -> any CodeBlock
 }

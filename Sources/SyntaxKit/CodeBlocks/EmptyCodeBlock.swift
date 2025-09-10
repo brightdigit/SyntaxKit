@@ -28,12 +28,12 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// An empty code block that generates no syntax.
 internal struct EmptyCodeBlock: CodeBlock, Sendable, Equatable {
   /// The syntax for an empty code block.
-  internal var syntax: SyntaxProtocol {
+  internal var syntax: any SyntaxProtocol {
     StringSegmentSyntax(content: .unknown(""))
   }
 }

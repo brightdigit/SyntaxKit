@@ -28,24 +28,28 @@
 //
 
 @testable import Options
-import XCTest
+import Testing
 
-internal final class MappedValueCollectionRepresentedTests: XCTestCase {
-  internal func testRawValue() {
-    try XCTAssertEqual(MockCollectionEnum.rawValue(basedOn: "a"), 0)
-    try XCTAssertEqual(MockCollectionEnum.rawValue(basedOn: "b"), 1)
-    try XCTAssertEqual(MockCollectionEnum.rawValue(basedOn: "c"), 2)
-    try XCTAssertEqual(MockCollectionEnum.rawValue(basedOn: "d"), 3)
+@Suite
+internal struct MappedValueCollectionRepresentedTests {
+  @Test
+  internal func rawValue() throws {
+    #expect(try MockCollectionEnum.rawValue(basedOn: "a") == 0)
+    #expect(try MockCollectionEnum.rawValue(basedOn: "b") == 1)
+    #expect(try MockCollectionEnum.rawValue(basedOn: "c") == 2)
+    #expect(try MockCollectionEnum.rawValue(basedOn: "d") == 3)
   }
 
-  internal func testString() {
-    try XCTAssertEqual(MockCollectionEnum.mappedValue(basedOn: 0), "a")
-    try XCTAssertEqual(MockCollectionEnum.mappedValue(basedOn: 1), "b")
-    try XCTAssertEqual(MockCollectionEnum.mappedValue(basedOn: 2), "c")
-    try XCTAssertEqual(MockCollectionEnum.mappedValue(basedOn: 3), "d")
+  @Test
+  internal func string() throws {
+    #expect(try MockCollectionEnum.mappedValue(basedOn: 0) == "a")
+    #expect(try MockCollectionEnum.mappedValue(basedOn: 1) == "b")
+    #expect(try MockCollectionEnum.mappedValue(basedOn: 2) == "c")
+    #expect(try MockCollectionEnum.mappedValue(basedOn: 3) == "d")
   }
 
-  internal func testRawValueFailure() {
+  @Test
+  internal func rawValueFailure() {
     let caughtError: MappedValueRepresentableError?
     do {
       _ = try MockCollectionEnum.rawValue(basedOn: "e")
@@ -53,14 +57,15 @@ internal final class MappedValueCollectionRepresentedTests: XCTestCase {
     } catch let error as MappedValueRepresentableError {
       caughtError = error
     } catch {
-      XCTAssertNil(error)
+      Issue.record("Unexpected error: \(error)")
       caughtError = nil
     }
 
-    XCTAssertEqual(caughtError, .valueNotFound)
+    #expect(caughtError == .valueNotFound)
   }
 
-  internal func testStringFailure() {
+  @Test
+  internal func stringFailure() {
     let caughtError: MappedValueRepresentableError?
     do {
       _ = try MockCollectionEnum.mappedValue(basedOn: .max)
@@ -68,18 +73,20 @@ internal final class MappedValueCollectionRepresentedTests: XCTestCase {
     } catch let error as MappedValueRepresentableError {
       caughtError = error
     } catch {
-      XCTAssertNil(error)
+      Issue.record("Unexpected error: \(error)")
       caughtError = nil
     }
 
-    XCTAssertEqual(caughtError, .valueNotFound)
+    #expect(caughtError == .valueNotFound)
   }
 
-  internal func testCodingOptions() {
-    XCTAssertEqual(MockDictionaryEnum.codingOptions, .default)
+  @Test
+  internal func codingOptions() {
+    #expect(MockDictionaryEnum.codingOptions == .default)
   }
 
-  internal func testInvalidRaw() throws {
+  @Test
+  internal func invalidRaw() throws {
     let rawValue = Int.random(in: 5 ... 1_000)
 
     let rawValueJSON = "\(rawValue)"
@@ -89,16 +96,18 @@ internal final class MappedValueCollectionRepresentedTests: XCTestCase {
     let decodingError: DecodingError
     do {
       let value = try Self.decoder.decode(MockCollectionEnum.self, from: rawValueJSONData)
-      XCTAssertNil(value)
+      Issue.record("Expected decoding to fail but got value: \(value)")
       return
     } catch let error as DecodingError {
       decodingError = error
     }
 
-    XCTAssertNotNil(decodingError)
+    // Expect that we caught a decoding error (test passes if we reach here)
+    _ = decodingError
   }
 
-  internal func testCodable() throws {
+  @Test
+  internal func codable() throws {
     let argumentSets = MockCollectionEnum.allCases.flatMap {
       [($0, true), ($0, false)]
     }.flatMap {
@@ -143,15 +152,15 @@ internal final class MappedValueCollectionRepresentedTests: XCTestCase {
 
     switch (allowMappedValue, mappedDecodeResult) {
     case (true, let .success(actualMappedDecodedValue)):
-      XCTAssertEqual(actualMappedDecodedValue, value)
+      #expect(actualMappedDecodedValue == value)
     case (false, let .failure(error)):
-      XCTAssert(error is DecodingError)
+      #expect(error is DecodingError)
     default:
-      XCTFail("Unmatched situation \(allowMappedValue): \(mappedDecodeResult)")
+      Issue.record("Unmatched situation \(allowMappedValue): \(mappedDecodeResult)")
     }
 
-    XCTAssertEqual(actualRawValueDecoded, value)
+    #expect(actualRawValueDecoded == value)
 
-    XCTAssertEqual(actualEncodedJSON, encodeAsMappedValue ? mappedValueJSONData : rawValueJSONData)
+    #expect(actualEncodedJSON == (encodeAsMappedValue ? mappedValueJSONData : rawValueJSONData))
   }
 }

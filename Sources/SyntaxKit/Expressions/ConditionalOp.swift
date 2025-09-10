@@ -27,30 +27,15 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift ternary conditional operator expression (`condition ? then : else`).
 public struct ConditionalOp: CodeBlock {
-  private let condition: CodeBlock
-  private let thenExpression: CodeBlock
-  private let elseExpression: CodeBlock
+  private let condition: any CodeBlock
+  private let thenExpression: any CodeBlock
+  private let elseExpression: any CodeBlock
 
-  /// Creates a ternary conditional operator expression.
-  /// - Parameters:
-  ///   - condition: The condition expression.
-  ///   - thenExpression: The expression to evaluate if the condition is true.
-  ///   - elseExpression: The expression to evaluate if the condition is false.
-  public init(
-    if condition: CodeBlock,
-    then thenExpression: CodeBlock,
-    else elseExpression: CodeBlock
-  ) {
-    self.condition = condition
-    self.thenExpression = thenExpression
-    self.elseExpression = elseExpression
-  }
-
-  public var syntax: SyntaxProtocol {
+  public var syntax: any SyntaxProtocol {
     let conditionExpr = ExprSyntax(
       fromProtocol: condition.syntax.as(ExprSyntax.self)
         ?? DeclReferenceExprSyntax(baseName: .identifier(""))
@@ -84,5 +69,20 @@ public struct ConditionalOp: CodeBlock {
       colon: .colonToken(leadingTrivia: .space, trailingTrivia: .space),
       elseExpression: elseExpr
     )
+  }
+
+  /// Creates a ternary conditional operator expression.
+  /// - Parameters:
+  ///   - condition: The condition expression.
+  ///   - thenExpression: The expression to evaluate if the condition is true.
+  ///   - elseExpression: The expression to evaluate if the condition is false.
+  public init(
+    if condition: any CodeBlock,
+    then thenExpression: any CodeBlock,
+    else elseExpression: any CodeBlock
+  ) {
+    self.condition = condition
+    self.thenExpression = thenExpression
+    self.elseExpression = elseExpression
   }
 }

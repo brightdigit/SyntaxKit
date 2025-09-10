@@ -28,13 +28,15 @@
 //
 
 @testable import Options
-import XCTest
+import Testing
 
-internal final class MappedValueRepresentableTests: XCTestCase {
-  internal func testStringValue() {
-    try XCTAssertEqual(MockCollectionEnum.a.mappedValue(), "a")
-    try XCTAssertEqual(MockCollectionEnum.b.mappedValue(), "b")
-    try XCTAssertEqual(MockCollectionEnum.c.mappedValue(), "c")
-    try XCTAssertEqual(MockCollectionEnum.d.mappedValue(), "d")
+@Suite
+internal struct MappedValueRepresentableTests {
+  @Test
+  internal func stringValue() throws {
+    #expect(try MockCollectionEnum.a.mappedValue() == "a")
+    #expect(try MockCollectionEnum.b.mappedValue() == "b")
+    #expect(try MockCollectionEnum.c.mappedValue() == "c")
+    #expect(try MockCollectionEnum.d.mappedValue() == "d")
   }
 }

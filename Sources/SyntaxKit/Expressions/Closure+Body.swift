@@ -38,12 +38,12 @@ extension Closure {
   }
 
   /// Builds a body item from a code block.
-  private func buildBodyItem(from codeBlock: CodeBlock) -> CodeBlockItemSyntax? {
+  private func buildBodyItem(from codeBlock: any CodeBlock) -> CodeBlockItemSyntax? {
     if let decl = codeBlock.syntax.as(DeclSyntax.self) {
       return CodeBlockItemSyntax(item: .decl(decl)).with(\.trailingTrivia, .newline)
     } else if let paramExp = codeBlock as? ParameterExp {
       return buildParameterExpressionItem(paramExp)
-    } else if let exprBlock = codeBlock as? ExprCodeBlock {
+    } else if let exprBlock = codeBlock as? any ExprCodeBlock {
       return CodeBlockItemSyntax(item: .expr(exprBlock.exprSyntax)).with(
         \.trailingTrivia, .newline
       )
@@ -59,7 +59,7 @@ extension Closure {
 
   /// Builds a parameter expression item.
   private func buildParameterExpressionItem(_ paramExp: ParameterExp) -> CodeBlockItemSyntax? {
-    if let exprBlock = paramExp.value as? ExprCodeBlock {
+    if let exprBlock = paramExp.value as? any ExprCodeBlock {
       return CodeBlockItemSyntax(item: .expr(exprBlock.exprSyntax)).with(
         \.trailingTrivia, .newline
       )

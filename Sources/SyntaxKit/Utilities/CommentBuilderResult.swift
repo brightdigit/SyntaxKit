@@ -33,25 +33,3 @@ public enum CommentBuilderResult: Sendable, Equatable {
   /// Builds a block of ``Line``s.
   public static func buildBlock(_ components: Line...) -> [Line] { components }
 }
-
-// MARK: - Public DSL surface
-
-extension CodeBlock {
-  /// Attaches comments to the current ``CodeBlock``.
-  ///
-  /// The provided lines are injected as leading trivia to the declaration produced by this ``CodeBlock``.
-  ///
-  /// Usage:
-  /// ```swift
-  /// Struct("MyStruct") { ... }
-  ///   .comment {
-  ///       Line("MARK: - Models")
-  ///       Line(.doc, "This is a documentation comment")
-  ///   }
-  /// ```
-  /// - Parameter content: A ``CommentBuilderResult`` that provides the comment lines.
-  /// - Returns: A new ``CodeBlock`` with the comments attached.
-  public func comment(@CommentBuilderResult _ content: () -> [Line]) -> CodeBlock {
-    CommentedCodeBlock(base: self, lines: content())
-  }
-}

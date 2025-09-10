@@ -1,6 +1,7 @@
 name: SyntaxKit
 settings:
   LINT_MODE: ${LINT_MODE}
+  SKIP_DOCS: 1
 packages:
   SyntaxKit:
     path: .

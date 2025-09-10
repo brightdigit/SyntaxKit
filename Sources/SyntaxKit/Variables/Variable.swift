@@ -28,19 +28,41 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `let` or `var` declaration with an explicit type.
 public struct Variable: CodeBlock {
   private let kind: VariableKind
   private let name: String
-  private let type: TypeRepresentable
-  private let defaultValue: CodeBlock?
+  private let type: any TypeRepresentable
+  private let defaultValue: (any CodeBlock)?
   internal var isStatic: Bool = false
   internal var isAsync: Bool = false
   private var attributes: [AttributeInfo] = []
   private var explicitType: Bool = false
   internal var accessModifier: AccessModifier?
+
+  /// The SwiftSyntax representation of this variable declaration.
+  public var syntax: any SyntaxProtocol {
+    let bindingKeyword = buildBindingKeyword()
+    let identifier = buildIdentifier()
+    let typeAnnotation = buildTypeAnnotation()
+    let initializer = buildInitializer()
+    let modifiers = buildModifiers()
+
+    return VariableDeclSyntax(
+      attributes: buildAttributeList(from: attributes),
+      modifiers: modifiers,
+      bindingSpecifier: bindingKeyword,
+      bindings: PatternBindingListSyntax([
+        PatternBindingSyntax(
+          pattern: IdentifierPatternSyntax(identifier: identifier),
+          typeAnnotation: typeAnnotation,
+          initializer: initializer
+        )
+      ])
+    )
+  }
 
   /// Internal initializer used by extension initializers to reduce code duplication.
   /// - Parameters:
@@ -52,8 +74,8 @@ public struct Variable: CodeBlock {
   internal init(
     kind: VariableKind,
     name: String,
-    type: TypeRepresentable? = nil,
-    defaultValue: CodeBlock? = nil,
+    type: (any TypeRepresentable)? = nil,
+    defaultValue: (any CodeBlock)? = nil,
     explicitType: Bool = false
   ) {
     self.kind = kind
@@ -105,31 +127,12 @@ public struct Variable: CodeBlock {
     return copy
   }
 
+  /// Returns a copy of the variable with explicit type annotation enabled.
+  /// - Returns: A new variable instance with explicit type annotation enabled.
   public func withExplicitType() -> Self {
     var copy = self
     copy.explicitType = true
     return copy
-  }
-
-  public var syntax: SyntaxProtocol {
-    let bindingKeyword = buildBindingKeyword()
-    let identifier = buildIdentifier()
-    let typeAnnotation = buildTypeAnnotation()
-    let initializer = buildInitializer()
-    let modifiers = buildModifiers()
-
-    return VariableDeclSyntax(
-      attributes: buildAttributeList(from: attributes),
-      modifiers: modifiers,
-      bindingSpecifier: bindingKeyword,
-      bindings: PatternBindingListSyntax([
-        PatternBindingSyntax(
-          pattern: IdentifierPatternSyntax(identifier: identifier),
-          typeAnnotation: typeAnnotation,
-          initializer: initializer
-        )
-      ])
-    )
   }
 
   // MARK: - Private Helper Methods
@@ -170,8 +173,8 @@ public struct Variable: CodeBlock {
     )
   }
 
-  private func buildExpressionFromValue(_ value: CodeBlock) -> ExprSyntax {
-    if let exprBlock = value as? ExprCodeBlock {
+  private func buildExpressionFromValue(_ value: any CodeBlock) -> ExprSyntax {
+    if let exprBlock = value as? any ExprCodeBlock {
       return exprBlock.exprSyntax
     } else if let exprSyntax = value.syntax.as(ExprSyntax.self) {
       return exprSyntax

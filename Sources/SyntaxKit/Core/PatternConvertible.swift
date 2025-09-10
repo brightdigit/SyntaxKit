@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SwiftSyntax
+public import SwiftSyntax
 
 /// Types that can be turned into a `PatternSyntax` suitable for a `switch` case pattern.
 public protocol PatternConvertible: Sendable {

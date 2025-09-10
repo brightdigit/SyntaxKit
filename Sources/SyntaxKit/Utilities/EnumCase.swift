@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A Swift `case` declaration inside an `enum`.
 public struct EnumCase: CodeBlock {
@@ -40,6 +40,63 @@ public struct EnumCase: CodeBlock {
 
   /// The associated values for the enum case, if any.
   public var caseAssociatedValues: [(name: String, type: String)] { associatedValues }
+
+  /// Returns a SwiftSyntax expression for this enum case (for use in throw/return/etc).
+  public var asExpressionSyntax: ExprSyntax {
+    let parts = name.split(separator: ".", maxSplits: 1)
+    let hasAssociated = !associatedValues.isEmpty
+    if parts.count == 1 && !hasAssociated {
+      // Only a case name, no type, no associated values: generate `.caseName`
+      return ExprSyntax(
+        MemberAccessExprSyntax(
+          base: nil as ExprSyntax?,
+          period: .periodToken(),
+          declName: DeclReferenceExprSyntax(baseName: .identifier(name))
+        )
+      )
+    }
+    let base: ExprSyntax? =
+      parts.count == 2
+      ? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(String(parts[0]))))
+      : nil
+    let caseName = parts.count == 2 ? String(parts[1]) : name
+    let memberAccess = MemberAccessExprSyntax(
+      base: base,
+      period: .periodToken(),
+      declName: DeclReferenceExprSyntax(baseName: .identifier(caseName))
+    )
+    if hasAssociated {
+      let args = LabeledExprListSyntax(
+        associatedValues.enumerated().map { index, associated in
+          LabeledExprSyntax(
+            label: nil,
+            colon: nil,
+            expression: ExprSyntax(
+              DeclReferenceExprSyntax(baseName: .identifier(associated.name))
+            ),
+            trailingComma: index < associatedValues.count - 1
+              ? .commaToken(trailingTrivia: .space) : nil
+          )
+        }
+      )
+      return ExprSyntax(
+        FunctionCallExprSyntax(
+          calledExpression: ExprSyntax(memberAccess),
+          leftParen: .leftParenToken(),
+          arguments: args,
+          rightParen: .rightParenToken()
+        )
+      )
+    } else {
+      return ExprSyntax(memberAccess)
+    }
+  }
+
+  /// Returns the expression syntax for this enum case.
+  /// This is the preferred method when using EnumCase in expression contexts.
+  public var exprSyntax: ExprSyntax {
+    asExpressionSyntax
+  }
 
   /// Creates a `case` declaration.
   /// - Parameter name: The name of the case.
@@ -87,65 +144,5 @@ public struct EnumCase: CodeBlock {
   /// - Returns: A copy of the case with the raw value set.
   public func equals(_ value: Double) -> Self {
     self.equals(.float(value))
-  }
-
-  /// Returns a SwiftSyntax expression for this enum case (for use in throw/return/etc).
-  public var asExpressionSyntax: ExprSyntax {
-    let parts = name.split(separator: ".", maxSplits: 1)
-    let hasAssociated = !associatedValues.isEmpty
-    if parts.count == 1 && !hasAssociated {
-      // Only a case name, no type, no associated values: generate `.caseName`
-      return ExprSyntax(
-        MemberAccessExprSyntax(
-          base: nil as ExprSyntax?,
-          dot: .periodToken(),
-          name: .identifier(name)
-        )
-      )
-    }
-    let base: ExprSyntax? =
-      parts.count == 2
-      ? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(String(parts[0]))))
-      : nil
-    let caseName = parts.count == 2 ? String(parts[1]) : name
-    let memberAccess = MemberAccessExprSyntax(
-      base: base,
-      period: .periodToken(),
-      declName: DeclReferenceExprSyntax(baseName: .identifier(caseName))
-    )
-    if hasAssociated {
-      let tuple = TupleExprSyntax(
-        leftParen: .leftParenToken(),
-        elements: TupleExprElementListSyntax(
-          associatedValues.map { associated in
-            TupleExprElementSyntax(
-              label: nil,
-              colon: nil,
-              expression: ExprSyntax(
-                DeclReferenceExprSyntax(baseName: .identifier(associated.name))
-              ),
-              trailingComma: nil
-            )
-          }
-        ),
-        rightParen: .rightParenToken()
-      )
-      return ExprSyntax(
-        FunctionCallExprSyntax(
-          calledExpression: ExprSyntax(memberAccess),
-          leftParen: tuple.leftParen,
-          arguments: tuple.elements,
-          rightParen: tuple.rightParen
-        )
-      )
-    } else {
-      return ExprSyntax(memberAccess)
-    }
-  }
-
-  /// Returns the expression syntax for this enum case.
-  /// This is the preferred method when using EnumCase in expression contexts.
-  public var exprSyntax: ExprSyntax {
-    asExpressionSyntax
   }
 }

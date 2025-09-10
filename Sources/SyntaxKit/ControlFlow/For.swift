@@ -27,53 +27,17 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `for-in` loop statement.
 public struct For: CodeBlock, Sendable {
   private let pattern: any CodeBlock & PatternConvertible
-  private let sequence: CodeBlock
-  private let whereClause: CodeBlock?
-  private let body: [CodeBlock]
+  private let sequence: any CodeBlock
+  private let whereClause: (any CodeBlock)?
+  private let body: [any CodeBlock]
 
-  /// Creates a `for-in` loop statement.
-  /// - Parameters:
-  ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
-  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - whereClause: A `CodeBlockBuilder` that produces the where clause condition.
-  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  public init(
-    _ pattern: any CodeBlock & PatternConvertible,
-    in sequence: CodeBlock,
-    @CodeBlockBuilderResult where whereClause: () throws -> [CodeBlock],
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
-  ) rethrows {
-    self.pattern = pattern
-    self.sequence = sequence
-    let whereBlocks = try whereClause()
-    self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
-    self.body = try then()
-  }
-
-  /// Creates a `for-in` loop statement without a where clause.
-  /// - Parameters:
-  ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
-  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
-  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
-  public init(
-    _ pattern: any CodeBlock & PatternConvertible,
-    in sequence: CodeBlock,
-    @CodeBlockBuilderResult then: () throws -> [CodeBlock]
-  ) rethrows {
-    try self.init(
-      pattern,
-      in: sequence,
-      where: [CodeBlock].init,
-      then: then
-    )
-  }
-
-  public var syntax: SyntaxProtocol {
+  /// The SwiftSyntax representation of this for-in loop.
+  public var syntax: any SyntaxProtocol {
     // Build the pattern using the PatternConvertible protocol
     let patternSyntax = pattern.patternSyntax
 
@@ -128,6 +92,43 @@ public struct For: CodeBlock, Sendable {
         whereClause: whereClauseSyntax,
         body: bodyBlock
       )
+    )
+  }
+
+  /// Creates a `for-in` loop statement.
+  /// - Parameters:
+  ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
+  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
+  ///   - whereClause: A `CodeBlockBuilder` that produces the where clause condition.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    _ pattern: any CodeBlock & PatternConvertible,
+    in sequence: any CodeBlock,
+    @CodeBlockBuilderResult where whereClause: () throws -> [any CodeBlock],
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.pattern = pattern
+    self.sequence = sequence
+    let whereBlocks = try whereClause()
+    self.whereClause = whereBlocks.isEmpty ? nil : whereBlocks[0]
+    self.body = try then()
+  }
+
+  /// Creates a `for-in` loop statement without a where clause.
+  /// - Parameters:
+  ///   - pattern: A `CodeBlock` that also conforms to `PatternConvertible` for the loop variable(s).
+  ///   - sequence: A `CodeBlock` that produces the sequence to iterate over.
+  ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
+  public init(
+    _ pattern: any CodeBlock & PatternConvertible,
+    in sequence: any CodeBlock,
+    @CodeBlockBuilderResult then: () throws -> [any CodeBlock]
+  ) rethrows {
+    try self.init(
+      pattern,
+      in: sequence,
+      where: [any CodeBlock].init,
+      then: then
     )
   }
 }

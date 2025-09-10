@@ -27,38 +27,14 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+public import SwiftSyntax
 
 /// A `case` in a `switch` statement.
 public struct SwitchCase: CodeBlock {
-  private let patterns: [PatternConvertible]
-  private let body: [CodeBlock]
+  private let patterns: [any PatternConvertible]
+  private let body: [any CodeBlock]
 
-  /// Creates a `case` for a `switch` statement.
-  /// - Parameters:
-  ///   - patterns: The patterns to match for the case. Must conform to `PatternConvertible`.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(
-    _ patterns: PatternConvertible..., @CodeBlockBuilderResult content: () throws -> [CodeBlock]
-  )
-    rethrows
-  {
-    self.patterns = patterns
-    self.body = try content()
-  }
-
-  /// Creates a `case` for a `switch` statement with a builder closure for the conditional.
-  /// - Parameters:
-  ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
-  public init(
-    @CodeBlockBuilderResult conditional: () throws -> [PatternConvertible],
-    @CodeBlockBuilderResult content: () throws -> [CodeBlock]
-  ) rethrows {
-    self.patterns = try conditional()
-    self.body = try content()
-  }
-
+  /// The SwiftSyntax representation of this switch case.
   public var switchCaseSyntax: SwitchCaseSyntax {
     let caseItems = SwitchCaseItemListSyntax(
       patterns.enumerated().compactMap { index, pattern -> SwitchCaseItemSyntax? in
@@ -80,7 +56,7 @@ public struct SwitchCase: CodeBlock {
     if patterns.count >= 2 {
       // Check if we have a let binding followed by an expression (where clause)
       if let firstPattern = patterns.first as? SwitchLet,
-        let secondPattern = patterns[1] as? CodeBlock
+        let secondPattern = patterns[1] as? any CodeBlock
       {
         let letIdentifier = IdentifierPatternSyntax(identifier: .identifier(firstPattern.name))
         let whereExpr = ExprSyntax(
@@ -138,5 +114,32 @@ public struct SwitchCase: CodeBlock {
     )
   }
 
-  public var syntax: SyntaxProtocol { switchCaseSyntax }
+  /// The SwiftSyntax representation of this switch case.
+  public var syntax: any SyntaxProtocol { switchCaseSyntax }
+
+  /// Creates a `case` for a `switch` statement.
+  /// - Parameters:
+  ///   - patterns: The patterns to match for the case. Must conform to `PatternConvertible`.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
+  public init(
+    _ patterns: any PatternConvertible...,
+    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
+  )
+    rethrows
+  {
+    self.patterns = patterns
+    self.body = try content()
+  }
+
+  /// Creates a `case` for a `switch` statement with a builder closure for the conditional.
+  /// - Parameters:
+  ///   - conditional: A ``CodeBlockBuilder`` that provides the conditional patterns for the case.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the case.
+  public init(
+    @CodeBlockBuilderResult conditional: () throws -> [any PatternConvertible],
+    @CodeBlockBuilderResult content: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.patterns = try conditional()
+    self.body = try content()
+  }
 }
