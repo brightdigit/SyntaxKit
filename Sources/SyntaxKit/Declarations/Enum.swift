@@ -36,6 +36,7 @@ public struct Enum: CodeBlock, Sendable {
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this enum declaration.
   public var syntax: any SyntaxProtocol {
     let enumKeyword = TokenSyntax.keyword(.enum, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)

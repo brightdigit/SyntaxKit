@@ -4,45 +4,30 @@
 
 SyntaxKit transforms complex Swift code generation from tedious AST manipulation into intuitive, readable declarations. Built for scenarios where you need to create Swift code dynamically—macro development, API client generators, model transformers, and migration utilities—rather than writing code by hand once.
 
-## Overview
-
 **When you're generating repetitive code structures, transforming external schemas into Swift types, or building developer tools that output Swift code, SyntaxKit provides the declarative approach you need.** Unlike manually constructing SwiftSyntax AST nodes, SyntaxKit uses result builders to make complex code generation maintainable and error-resistant.
 
 Perfect for macro authors who need to generate intricate Swift structures, developers building tools that automatically create boilerplate from APIs or databases, and teams creating migration utilities that transform data models. If you're writing application logic or view controllers—code you'd normally type by hand—stick with regular Swift. If you're programmatically generating Swift code structures, SyntaxKit is designed for you.
 
 **Core scenarios where SyntaxKit excels:**
 - **Swift Macro Development**: Replace complex AST manipulation with declarative macro logic
-- **API Client Generation**: Transform OpenAPI specs into type-safe Swift networking code  
 - **Model Generation**: Convert database schemas or JSON into Swift data models with computed properties
 - **Migration Utilities**: Build tools that automatically transform legacy code structures
 - **Developer Tools**: Create code generators for repetitive patterns and boilerplate
 
-## When to Use SyntaxKit vs Raw Swift
+## When to Use SyntaxKit
 
 **Choose SyntaxKit when you're generating Swift code programmatically. Choose raw Swift when you're writing application logic.**
 
 | Scenario | Use SyntaxKit ✅ | Use Raw Swift ❌ | Why |
 |----------|------------------|-------------------|-----|
 | **Swift Macros** | Always | Never | Declarative syntax dramatically simplifies AST manipulation |
-| **API Client Generation** | Yes | No | Transform OpenAPI specs into hundreds of type-safe endpoints |
 | **Model Generation** | Yes | No | Convert schemas into Swift models with computed properties |
 | **Migration Tools** | Yes | No | Build utilities that transform legacy code structures |
 | **Code Templates** | Yes | No | Generate repetitive patterns from configurations |
 | **Application Logic** | No | Always | Business logic, view controllers, standard app features |
-| **One-time Scripts** | No | Maybe | Simple, write-once utilities don't need generation |
+| **One-time Scripts** | No | Yes | Simple, write-once utilities don't need generation |
 | **Performance-Critical** | No | Yes | Raw Swift avoids generation overhead |
 
-### Decision Flow
-
-```
-Need to create Swift code?
-├─ Will you write this code once by hand? → Use Raw Swift
-└─ Will you generate this code programmatically?
-   ├─ Building macros or compiler plugins? → Use SyntaxKit  
-   ├─ Transforming external schemas/APIs? → Use SyntaxKit
-   ├─ Creating developer tools? → Use SyntaxKit
-   └─ Writing app business logic? → Use Raw Swift
-```
 
 **Key Questions:**
 - Am I writing code that transforms data into Swift structures?
@@ -52,6 +37,22 @@ Need to create Swift code?
 **If yes to any:** Use SyntaxKit. **If no to all:** Use raw Swift.
 
 > 🚀 **Ready to start?** Follow our step-by-step <doc:Creating-Macros-with-SyntaxKit> tutorial to build your first macro in 15 minutes.
+
+## Installation
+
+Add SyntaxKit to your project using Swift Package Manager:
+
+<!-- skip-test -->
+```swift
+// Package.swift
+dependencies: [
+    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.3")
+]
+```
+
+## Requirements
+
+- Swift 6.0+
 
 Here's a simple example showing SyntaxKit's declarative approach:
 
@@ -66,7 +67,9 @@ let code = Struct("BlackjackCard") {
         EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment("nested Suit enumeration")
+    .comment{
+      Line("nested Suit enumeration")
+    }
 }
 
 let generatedCode = code.generateCode()
@@ -86,11 +89,13 @@ struct BlackjackCard {
 }
 ```
 
-## Full Example
+## Examples
 
 Here is a more comprehensive example that demonstrates many of SyntaxKit's features to generate a `BlackjackCard` struct.
 
-### DSL Code
+### Blackjack Card
+
+#### DSL Code
 
 ```swift
 import SyntaxKit
@@ -103,7 +108,9 @@ let structExample = Struct("BlackjackCard") {
         EnumCase("clubs").equals("♣")
     }
     .inherits("Character")
-    .comment("nested Suit enumeration")
+    .comment{
+      Line("nested Suit enumeration")
+    }
 
     Enum("Rank") {
         EnumCase("two").equals(2)
@@ -125,29 +132,30 @@ let structExample = Struct("BlackjackCard") {
             Variable(.let, name: "second", type: "Int?")
         }
         
-        ComputedProperty("values") {
+        ComputedProperty("values", type: "Values") {
             Switch("self") {
                 SwitchCase(".ace") {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "1")
-                            Parameter(name: "second", value: "11")
+                          
+                            ParameterExp(name: "first", value: Literal.integer(1))
+                          ParameterExp(name: "second", value: Literal.integer(11))
                         }
                     }
                 }
                 SwitchCase(".jack", ".queen", ".king") {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "10")
-                            Parameter(name: "second", value: "nil")
+                          ParameterExp(name: "first", value: Literal.integer(10))
+                          ParameterExp(name: "second", value: Literal.nil)
                         }
                     }
                 }
                 Default {
                     Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "self.rawValue")
-                            Parameter(name: "second", value: "nil")
+                          ParameterExp(name: "first", value: VariableExp("self.rawValue"))
+                          ParameterExp(name: "second", value: Literal.nil)
                         }
                     }
                 }
@@ -155,17 +163,29 @@ let structExample = Struct("BlackjackCard") {
         }
     }
     .inherits("Int")
-    .comment("nested Rank enumeration")
+    .comment{
+      Line("nested Rank enumeration")
+    }
 
     Variable(.let, name: "rank", type: "Rank")
     Variable(.let, name: "suit", type: "Suit")
-    .comment("BlackjackCard properties and methods")
+    .comment{
+        Line("BlackjackCard properties and methods")
+    }
 
-    ComputedProperty("description") {
-        VariableDecl(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
-        PlusAssign("output", "\" value is \\(rank.values.first)\"")
+    ComputedProperty("description", type: "String") {
+        Variable(.var, name: "output", equals: "\"suit is \\(suit.rawValue),\"")
+        Infix(
+          .plusAssign,
+          lhs: VariableExp("output"),
+          rhs: Literal.string("\" value is \\(rank.values.first)\"")
+        )
         If(Let("second", "rank.values.second"), then: {
-            PlusAssign("output", "\" or \\(second)\"")
+          Infix(
+            .plusAssign,
+            lhs: VariableExp("output"),
+            rhs: Literal.string("\" or \\(second)\"")
+          )
         })
         Return {
             VariableExp("output")
@@ -174,7 +194,7 @@ let structExample = Struct("BlackjackCard") {
 }
 ```
 
-### Generated Code
+#### Generated Code
 
 ```swift
 import Foundation
@@ -234,13 +254,11 @@ struct BlackjackCard {
 }
 ```
 
-## Macro Development Showcase
-
-**SyntaxKit transforms complex macro development from error-prone AST manipulation into maintainable, declarative code.** Here are compelling before/after comparisons showing how SyntaxKit simplifies common macro patterns.
-
-### StringifyMacro Example
+### StringifyMacro 
 
 **Traditional SwiftSyntax Approach (Complex AST manipulation):**
+
+<!-- skip-test -->
 ```swift
 public import SwiftSyntaxMacros
 public import SwiftSyntax
@@ -271,6 +289,8 @@ struct StringifyMacro: ExpressionMacro {
 ```
 
 **SyntaxKit Approach (Clean and declarative):**
+
+<!-- skip-test -->
 ```swift
 import SyntaxKit
 public import SwiftSyntaxMacros
@@ -285,7 +305,7 @@ struct StringifyMacro: ExpressionMacro {
         }
         
         // Declarative string literal generation
-        return Literal(argument.description).expressionSyntax
+        return Literal(argument.description).exprSyntax
     }
 }
 ```
@@ -293,6 +313,8 @@ struct StringifyMacro: ExpressionMacro {
 ### Member Generation Macro
 
 **Traditional Approach (80+ lines of complex node manipulation):**
+
+<!-- skip-test -->
 ```swift
 struct MembersMacro: MemberMacro {
     static func expansion(
@@ -325,7 +347,7 @@ struct MembersMacro: MemberMacro {
 ```
 
 **SyntaxKit Approach (Clean and readable):**
-<!-- example-only -->
+<!-- skip-test -->
 ```swift
 struct MembersMacro: MemberMacro {
     static func expansion(
@@ -342,8 +364,7 @@ struct MembersMacro: MemberMacro {
                 for variable in variables {
                     Parameter(variable.name, type: variable.type)
                 }
-            }
-            .body {
+            } _: {
                 for variable in variables {
                     Assignment("self.\(variable.name)", variable.name)
                 }
@@ -362,117 +383,13 @@ struct MembersMacro: MemberMacro {
 }
 ```
 
-### Accessor Generation Macro
-
-**Traditional Approach:**
-```swift
-// 100+ lines of complex accessor node construction
-// involving TokenSyntax manipulation, CodeBlockSyntax creation,
-// and manual getter/setter AST building...
-```
-
-**SyntaxKit Approach:**
-```swift
-struct AccessorMacro: AccessorMacro {
-    static func expansion(
-        of node: AttributeSyntax,
-        providingAccessorsOf declaration: some DeclSyntaxProtocol,
-        in context: some MacroExpansionContext
-    ) throws -> [AccessorDeclSyntax] {
-        guard let property = declaration.as(VariableDeclSyntax.self) else {
-            throw AccessorError.notAProperty
-        }
-        
-        // Declarative accessor generation
-        let accessors = Group {
-            Accessor(.get) {
-                Return {
-                    Call("_\(property.name).wrappedValue")
-                }
-            }
-            
-            Accessor(.set) {
-                Assignment("_\(property.name).wrappedValue", "newValue")
-            }
-        }
-        
-        return accessors.accessorDeclListSyntax
-    }
-}
-```
-
-**Result:** SyntaxKit reduces macro complexity by 60-80%, improves readability, and eliminates most AST manipulation errors.
-
 > 📖 **Learn macro development:** Our comprehensive <doc:Creating-Macros-with-SyntaxKit> tutorial covers these patterns and more advanced techniques.
-
-## Performance Considerations
-
-**SyntaxKit optimizes for developer productivity and code maintainability, with minimal runtime performance impact on generated code.**
-
-### Compilation Time
-
-| Aspect | Impact | Mitigation |
-|--------|--------|------------|
-| **Build Time** | +5-15% for macro compilation | SyntaxKit compilation is one-time cost |
-| **Code Generation** | Negligible runtime overhead | Generated code is standard Swift |
-| **SwiftSyntax Dependency** | Larger binary size during development | Not included in final app binaries |
-
-### Runtime Performance
-
-**Generated code performance is identical to hand-written Swift.** SyntaxKit operates at compile-time only:
-
-```swift
-// SyntaxKit-generated code
-struct User: Equatable {
-    let id: UUID
-    let name: String
-}
-
-// Hand-written code  
-struct User: Equatable {
-    let id: UUID
-    let name: String
-}
-```
-
-Both compile to identical machine code with zero performance difference.
-
-### Memory Usage
-
-- **Development**: SwiftSyntax increases memory usage during compilation
-- **Production**: No memory overhead—SyntaxKit isn't included in final binaries
-- **Code Generation**: Uses standard Swift memory patterns
-
-### When Performance Matters
-
-**Choose SyntaxKit when:**
-- Developer productivity outweighs small compilation time increases
-- Generating complex, error-prone code structures
-- Building macros or development tools
-- Maintainability is more important than build speed
-
-**Consider raw Swift when:**
-- Extremely performance-sensitive build pipelines
-- Simple, one-time code generation
-- Minimal external dependencies required
-- Team unfamiliar with result builder patterns
-
-### Optimization Strategies
-
-1. **Selective Usage**: Use SyntaxKit for complex generation, raw Swift for simple cases
-2. **Caching**: Cache generated code structures when possible
-3. **Lazy Generation**: Generate code on-demand rather than upfront
-4. **Modular Design**: Break large generators into smaller, focused components
-
-**Bottom Line:** SyntaxKit's compilation overhead is typically 5-15%, but saves hours of development time and prevents entire classes of AST manipulation errors.
-
-> Important: SyntaxKit is designed for code generation scenarios. For standard application development, use regular Swift syntax.
 
 ## Topics
 
 ### Getting Started
+- <doc:Quick-Start-Guide>
 - <doc:Creating-Macros-with-SyntaxKit>
-- <doc:Best-Practices>
 
 ### Declarations
 - ``AccessModifier``
@@ -511,6 +428,7 @@ Both compile to identical machine code with zero performance difference.
 - ``PlusAssign``
 - ``Return``
 - ``VariableExp``
+- ``DictionaryExpr``
 
 ### Control Flow
 - ``Break``

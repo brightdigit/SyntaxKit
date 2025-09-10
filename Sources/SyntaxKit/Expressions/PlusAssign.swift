@@ -37,10 +37,14 @@ public import SwiftSyntax
   message:
     "Use Infix(target, \"+=\", value) instead. This type will be removed in a future version."
 )
+/// A `+=` expression.
+///
+/// **Deprecated**: Use `Infix(target, "+=", value)` instead. This type will be removed in a future version.
 public struct PlusAssign: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
 
+  /// The SwiftSyntax representation of this += expression.
   public var syntax: any SyntaxProtocol {
     let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
     let assign = ExprSyntax(

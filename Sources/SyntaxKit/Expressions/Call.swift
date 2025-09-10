@@ -36,6 +36,7 @@ public struct Call: CodeBlock {
   private var isThrowing: Bool = false
   private var isAsync: Bool = false
 
+  /// The SwiftSyntax representation of this function call.
   public var syntax: any SyntaxProtocol {
     let function = TokenSyntax.identifier(functionName)
     let args = LabeledExprListSyntax(

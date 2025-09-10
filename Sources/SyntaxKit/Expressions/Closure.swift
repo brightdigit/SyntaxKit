@@ -31,9 +31,13 @@ public import SwiftSyntax
 
 /// Represents a closure expression in Swift code.
 public struct Closure: CodeBlock {
+  /// The capture list for the closure.
   public let capture: [ParameterExp]
+  /// The parameters for the closure.
   public let parameters: [ClosureParameter]
+  /// The return type for the closure, if specified.
   public let returnType: String?
+  /// The body of the closure.
   public let body: [any CodeBlock]
   internal var attributes: [AttributeInfo] = []
 
@@ -41,6 +45,7 @@ public struct Closure: CodeBlock {
     !parameters.isEmpty || returnType != nil || !capture.isEmpty || !attributes.isEmpty
   }
 
+  /// The SwiftSyntax representation of this closure.
   public var syntax: any SyntaxProtocol {
     let captureClause = buildCaptureClause()
     let signature = buildSignature(captureClause: captureClause)

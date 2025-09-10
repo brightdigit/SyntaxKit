@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct SwitchLet: PatternConvertible, CodeBlock {
   internal let name: String
 
+  /// The SwiftSyntax pattern representation of this value binding.
   public var patternSyntax: PatternSyntax {
     let identifier = IdentifierPatternSyntax(
       identifier: .identifier(name)
@@ -45,6 +46,7 @@ public struct SwitchLet: PatternConvertible, CodeBlock {
     )
   }
 
+  /// The SwiftSyntax representation of this value binding pattern.
   public var syntax: any SyntaxProtocol {
     // For CodeBlock conformance, return the pattern syntax
     patternSyntax

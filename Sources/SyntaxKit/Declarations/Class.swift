@@ -38,6 +38,7 @@ public struct Class: CodeBlock, Sendable {
   private var isFinal: Bool = false
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this class declaration.
   public var syntax: any SyntaxProtocol {
     let classKeyword = TokenSyntax.keyword(.class, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)

@@ -29,7 +29,7 @@
 
 import Foundation
 
-/// A result builder for creating arrays of ``CodeBlock``s.
+/// A result builder for creating arrays of ``CodeBlock``.
 @resultBuilder
 public enum CodeBlockBuilderResult: Sendable {
   /// Builds an empty block of ``CodeBlock``s.

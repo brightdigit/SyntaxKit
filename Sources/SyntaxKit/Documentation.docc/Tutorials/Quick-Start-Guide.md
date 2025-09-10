@@ -22,6 +22,7 @@ In this quick start, you'll create a simple enum generator that reads configurat
 
 Add SyntaxKit to your `Package.swift` file:
 
+<!-- skip-test -->
 ```swift
 // swift-tools-version: 6.1
 import PackageDescription
@@ -83,10 +84,10 @@ import Foundation
 // Define our configuration structure
 struct EnumConfig: Codable {
     let name: String
-    let cases: [EnumCase]
+    let cases: [EnumCaseConfig]
 }
 
-struct EnumCase: Codable {
+struct EnumCaseConfig: Codable {
     let name: String
     let value: String
 }
@@ -100,14 +101,15 @@ func generateEnum(from json: String) -> String {
     }
     
     // Create enum using SyntaxKit's declarative DSL
-    let enumDecl = Enum(config.name, conformsTo: ["Int", "CaseIterable"]) {
-        for enumCase in config.cases {
-            Case(enumCase.name, rawValue: enumCase.value)
+    let enumDecl = Enum(config.name) {
+        for caseConfig in config.cases {
+            EnumCase(caseConfig.name).equals(caseConfig.value)
         }
     }
+    .inherits("Int", "CaseIterable")
     
     // Generate Swift source code
-    return enumDecl.formatted().description
+    return enumDecl.syntax.description
 }
 ```
 
@@ -131,6 +133,49 @@ let jsonConfig = """
 Run the generator and see the magic happen:
 
 ```swift
+import Foundation
+import SyntaxKit
+
+// Configuration model
+struct EnumConfig: Codable {
+    let name: String
+    let cases: [EnumCaseConfig]
+}
+
+struct EnumCaseConfig: Codable {
+    let name: String
+    let value: String
+}
+
+// Sample JSON configuration
+let jsonConfig = """
+{
+  "name": "HTTPStatus",
+  "cases": [
+    {"name": "ok", "value": "200"},
+    {"name": "notFound", "value": "404"},
+    {"name": "serverError", "value": "500"}
+  ]
+}
+"""
+
+// Generator function
+func generateEnum(from json: String) -> String {
+    guard let data = json.data(using: .utf8),
+          let config = try? JSONDecoder().decode(EnumConfig.self, from: data) else {
+        return "// Invalid JSON configuration"
+    }
+    
+    let enumDecl = Enum(config.name) {
+        for caseConfig in config.cases {
+            EnumCase(caseConfig.name).equals(caseConfig.value)
+        }
+    }
+    .inherits("Int", "CaseIterable")
+    
+    return enumDecl.syntax.description
+}
+
 // Generate the Swift code with visible progress
 let swiftCode = generateEnum(from: jsonConfig)
 
@@ -151,10 +196,10 @@ import Foundation
 // Configuration structures
 struct EnumConfig: Codable {
     let name: String
-    let cases: [EnumCase]
+    let cases: [EnumCaseConfig]
 }
 
-struct EnumCase: Codable {
+struct EnumCaseConfig: Codable {
     let name: String
     let value: String
 }
@@ -269,8 +314,8 @@ Try generating a different enum entirely:
 }
 ```
 
-### Experiment 3: Playground Fun
-Copy all the code above into a Swift Playground and experiment with different configurations. See how quickly you can generate completely different enums!
+### Experiment 3: Try It Yourself
+Copy all the code above into a Swift file and experiment with different configurations. See how quickly you can generate completely different enums!
 
 ## What You've Accomplished
 
@@ -286,29 +331,9 @@ In just 5 minutes, you've:
 
 Congratulations! You've just generated Swift code from external data. Ready to explore what else SyntaxKit can do?
 
-### 🎮 **Start Here: Download the Playground**
-**[📥 Download Quick Start Playground](https://github.com/brightdigit/SyntaxKit/releases/latest/download/SyntaxKit-QuickStart.playground.zip)** - All examples above, ready to run in Xcode
-
-### 🚀 **Choose Your Path**
-
-#### **Path 1: I want to build Swift macros**
-<doc:Creating-Macros-with-SyntaxKit> → Learn SyntaxKit's macro development workflow with real examples
-
-**Why this path?** Swift macros are SyntaxKit's most powerful application. You'll generate code at compile-time to eliminate boilerplate.
-
-#### **Path 2: I want to understand when to use SyntaxKit**  
-<doc:When-to-Use-SyntaxKit> → Decision framework for code generation vs manual coding
-
-**Why this path?** Not every problem needs code generation. Learn when SyntaxKit adds value vs complexity.
-
-#### **Path 3: I want to see real-world examples**
-[API Documentation](https://swiftpackageindex.com/brightdigit/SyntaxKit/documentation) → Explore all SyntaxKit components and patterns
-
-**Why this path?** See the full scope of what SyntaxKit can generate: classes, structs, functions, protocols, and more.
-
 ### 🎯 **Quick Wins to Try Right Now**
 
-1. **Modify the playground**: Change the JSON configs and see instant results
+1. **Create a Swift file**: Copy the examples above and experiment with different JSON configs
 2. **Add SyntaxKit to your project**: Use the installation steps above
 3. **Generate your own enums**: Replace the JSON with your app's actual data
 

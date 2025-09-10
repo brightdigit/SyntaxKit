@@ -35,6 +35,7 @@ public struct If: CodeBlock, Sendable {
   internal let body: [any CodeBlock]
   internal let elseBody: [any CodeBlock]?
 
+  /// The SwiftSyntax representation of this if statement.
   public var syntax: any SyntaxProtocol {
     // Build list of ConditionElements from all provided conditions
     let condList = buildConditions()

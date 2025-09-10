@@ -42,6 +42,7 @@ public struct Variable: CodeBlock {
   private var explicitType: Bool = false
   internal var accessModifier: AccessModifier?
 
+  /// The SwiftSyntax representation of this variable declaration.
   public var syntax: any SyntaxProtocol {
     let bindingKeyword = buildBindingKeyword()
     let identifier = buildIdentifier()
@@ -126,6 +127,8 @@ public struct Variable: CodeBlock {
     return copy
   }
 
+  /// Returns a copy of the variable with explicit type annotation enabled.
+  /// - Returns: A new variable instance with explicit type annotation enabled.
   public func withExplicitType() -> Self {
     var copy = self
     copy.explicitType = true

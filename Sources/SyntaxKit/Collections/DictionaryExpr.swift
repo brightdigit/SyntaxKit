@@ -62,6 +62,7 @@ public struct DictionaryExpr: CodeBlock, LiteralValue, CodeBlockable {
     return "[\(elementStrings.joined(separator: ", "))]"
   }
 
+  /// The SwiftSyntax representation of this dictionary expression.
   public var syntax: any SyntaxProtocol {
     if elements.isEmpty {
       // Empty dictionary should generate [:]

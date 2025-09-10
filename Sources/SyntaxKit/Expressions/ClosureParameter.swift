@@ -31,10 +31,13 @@ public import SwiftSyntax
 
 /// Represents a parameter in a closure signature.
 public struct ClosureParameter: TypeRepresentable {
+  /// The name of the closure parameter.
   public var name: String
+  /// The type of the closure parameter, if specified.
   public var type: String?
   internal var attributes: [AttributeInfo]
 
+  /// The SwiftSyntax representation of this parameter's type.
   public var typeSyntax: TypeSyntax {
     if let type = type {
       return TypeSyntax(IdentifierTypeSyntax(name: .identifier(type)))
@@ -43,12 +46,21 @@ public struct ClosureParameter: TypeRepresentable {
     }
   }
 
+  /// Creates a new closure parameter.
+  /// - Parameters:
+  ///   - name: The parameter name.
+  ///   - type: The parameter type, if specified.
   public init(_ name: String, type: String? = nil) {
     self.name = name
     self.type = type
     self.attributes = []
   }
 
+  /// Adds an attribute to this closure parameter.
+  /// - Parameters:
+  ///   - attribute: The attribute name (without the @ symbol).
+  ///   - arguments: The arguments for the attribute, if any.
+  /// - Returns: A new parameter with the attribute added.
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))

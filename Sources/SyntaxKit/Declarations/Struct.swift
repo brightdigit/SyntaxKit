@@ -27,158 +27,34 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-public import SwiftSyntax
+internal import SwiftSyntax
 
 /// A Swift `struct` declaration.
 public struct Struct: CodeBlock, Sendable {
-  private let name: String
-  private let members: [any CodeBlock]
-  private var genericParameter: String?
-  private var inheritance: [String] = []
-  private var attributes: [AttributeInfo] = []
-  private var accessModifier: AccessModifier?
+  internal let name: String
+  internal let members: [any CodeBlock]
+  internal private(set) var genericParameter: String?
+  internal private(set) var inheritance: [String] = []
+  internal private(set) var attributes: [AttributeInfo] = []
+  internal private(set) var accessModifier: AccessModifier?
 
-  public var syntax: any SyntaxProtocol {
-    let structKeyword = TokenSyntax.keyword(.struct, trailingTrivia: .space)
-    let identifier = TokenSyntax.identifier(name)
-
-    var genericParameterClause: GenericParameterClauseSyntax?
-    if let generic = genericParameter {
-      let genericParameter = GenericParameterSyntax(
-        name: .identifier(generic),
-        trailingComma: nil
-      )
-      genericParameterClause = GenericParameterClauseSyntax(
-        leftAngle: .leftAngleToken(),
-        parameters: GenericParameterListSyntax([genericParameter]),
-        rightAngle: .rightAngleToken()
-      )
-    }
-
-    var inheritanceClause: InheritanceClauseSyntax?
-    if !inheritance.isEmpty {
-      let inheritedTypes = inheritance.map { type in
-        InheritedTypeSyntax(
-          type: IdentifierTypeSyntax(name: .identifier(type))
-        )
-      }
-      inheritanceClause = InheritanceClauseSyntax(
-        colon: .colonToken(),
-        inheritedTypes: InheritedTypeListSyntax(
-          inheritedTypes.enumerated().map { idx, inherited in
-            var inheritedType = inherited
-            if idx < inheritedTypes.count - 1 {
-              inheritedType = inheritedType.with(
-                \.trailingComma,
-                TokenSyntax.commaToken(trailingTrivia: .space)
-              )
-            }
-            return inheritedType
-          }
-        )
-      )
-    }
-
-    let memberBlock = MemberBlockSyntax(
-      leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
-      members: MemberBlockItemListSyntax(
-        members.compactMap { member in
-          guard let syntax = member.syntax.as(DeclSyntax.self) else {
-            return nil
-          }
-          return MemberBlockItemSyntax(decl: syntax, trailingTrivia: .newline)
-        }
-      ),
-      rightBrace: .rightBraceToken(leadingTrivia: .newline)
-    )
-
-    // Build access modifier
-    var modifiers: DeclModifierListSyntax = []
-    if let access = accessModifier {
-      modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
-      ])
-    }
-
-    return StructDeclSyntax(
-      attributes: buildAttributeList(from: attributes),
-      modifiers: modifiers,
-      structKeyword: structKeyword,
-      name: identifier,
-      genericParameterClause: genericParameterClause,
-      inheritanceClause: inheritanceClause,
-      memberBlock: memberBlock
-    )
-  }
-
-  /// Creates a struct declaration.
-  /// - Parameters:
-  ///   - name: The name of the struct.
-  ///   - content: A ``CodeBlockBuilder`` that provides the body of the struct.
-  public init(_ name: String, @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock])
-    rethrows
-  {
-    self.name = name
-    self.members = try content()
-  }
-
-  /// Creates a struct declaration with a CodeBlock array.
-  /// - Parameters:
-  ///   - name: The name of the struct.
-  ///   - members: An array of CodeBlock elements that form the body of the struct.
-  public init(_ name: String, members: [any CodeBlock]) {
+  internal init(
+    name: String,
+    members: [any CodeBlock],
+    genericParameter: String? = nil,
+    inheritance: [String] = [],
+    attributes: [AttributeInfo] = [],
+    accessModifier: AccessModifier? = nil
+  ) {
     self.name = name
     self.members = members
+    self.genericParameter = genericParameter
+    self.inheritance = inheritance
+    self.attributes = attributes
+    self.accessModifier = accessModifier
   }
 
-  /// Sets the generic parameter for the struct.
-  /// - Parameter generic: The generic parameter name.
-  /// - Returns: A copy of the struct with the generic parameter set.
-  public func generic(_ generic: String) -> Self {
-    var copy = self
-    copy.genericParameter = generic
-    return copy
-  }
-
-  /// Sets the inheritance for the struct.
-  /// - Parameter inheritance: The types to inherit from.
-  /// - Returns: A copy of the struct with the inheritance set.
-  public func inherits(_ inheritance: String...) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Sets the inheritance for the struct using an array.
-  /// - Parameter inheritance: The array of types to inherit from.
-  /// - Returns: A copy of the struct with the inheritance set.
-  public func inherits(_ inheritance: [String]) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Sets the access modifier for the struct declaration.
-  /// - Parameter access: The access modifier.
-  /// - Returns: A copy of the struct with the access modifier set.
-  public func access(_ access: AccessModifier) -> Self {
-    var copy = self
-    copy.accessModifier = access
-    return copy
-  }
-
-  /// Adds an attribute to the struct declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the struct with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
-  private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
+  internal func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
     if attributes.isEmpty {
       return AttributeListSyntax([])
     }

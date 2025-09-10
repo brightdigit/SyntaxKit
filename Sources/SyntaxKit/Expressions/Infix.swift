@@ -37,6 +37,8 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     case lessThan = "<"
     case equal = "=="
     case notEqual = "!="
+    case plusAssign = "+="
+    case minusAssign = "-="
 
     /// The string representation of the operator.
     public var symbol: String {
@@ -44,6 +46,7 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     }
   }
 
+  /// Errors for inappropiate ``Infix`` calls.
   public enum InfixError: Error, CustomStringConvertible {
     case wrongOperandCount(expected: Int, got: Int)
     case nonExprCodeBlockOperand
