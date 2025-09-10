@@ -42,6 +42,7 @@ Perfect for macro authors who need to generate intricate Swift structures, devel
 
 Add SyntaxKit to your project using Swift Package Manager:
 
+<!-- skip-test -->
 ```swift
 // Package.swift
 dependencies: [

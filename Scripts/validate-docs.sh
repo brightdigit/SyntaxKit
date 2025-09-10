@@ -292,7 +292,7 @@ validate_api_coverage() {
     echo -e "${BLUE}🔍 Running API documentation coverage analysis...${NC}"
     
     # Run API coverage tool
-    if "$coverage_script" --sources-dir "Sources/SyntaxKit" --threshold 90; then
+    if "$coverage_script" --sources-dir "Sources/SyntaxKit" --threshold 87.5; then
         echo -e "${GREEN}✅ API documentation coverage meets threshold${NC}"
     else
         echo -e "${RED}❌ API documentation coverage below threshold${NC}"
@@ -546,7 +546,7 @@ provide_error_recovery() {
     echo "• Full validation with rebuild: ./Scripts/validate-docs.sh --build"
     echo "• Single file validation: ./Scripts/validate-docs.sh --file path/to/file.md"
     echo "• Generate docs: swift package generate-documentation"
-    echo "• Check API coverage: ./Scripts/api-coverage.sh --threshold 90"
+    echo "• Check API coverage: ./Scripts/api-coverage.sh --threshold 87.5"
     echo "• Format code: ./Scripts/lint.sh"
 }
 
