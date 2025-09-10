@@ -34,6 +34,7 @@ public struct SwitchCase: CodeBlock {
   private let patterns: [any PatternConvertible]
   private let body: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this switch case.
   public var switchCaseSyntax: SwitchCaseSyntax {
     let caseItems = SwitchCaseItemListSyntax(
       patterns.enumerated().compactMap { index, pattern -> SwitchCaseItemSyntax? in
@@ -113,6 +114,7 @@ public struct SwitchCase: CodeBlock {
     )
   }
 
+  /// The SwiftSyntax representation of this switch case.
   public var syntax: any SyntaxProtocol { switchCaseSyntax }
 
   /// Creates a `case` for a `switch` statement.

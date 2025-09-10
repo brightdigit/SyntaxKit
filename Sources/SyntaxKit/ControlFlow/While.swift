@@ -31,6 +31,7 @@ public import SwiftSyntax
 
 /// A Swift `while` loop.
 public struct While: CodeBlock, Sendable {
+  /// The type of while loop.
   public enum Kind: Sendable {
     case `while`
     case repeatWhile
@@ -40,6 +41,7 @@ public struct While: CodeBlock, Sendable {
   private let body: [any CodeBlock]
   private let kind: Kind
 
+  /// The SwiftSyntax representation of this while loop.
   public var syntax: any SyntaxProtocol {
     let conditionExpr = condition.exprSyntax
 

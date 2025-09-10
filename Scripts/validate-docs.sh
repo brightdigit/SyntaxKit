@@ -114,6 +114,12 @@ validate_external_urls() {
             continue
         fi
         
+        # Skip Swift Package Index URLs (known to block automated requests with Cloudflare)
+        if [[ "$url" =~ swiftpackageindex\.com ]]; then
+            echo -e "${YELLOW}⚠️  Skipping: $url (Swift Package Index blocks automated requests)${NC}"
+            continue
+        fi
+        
         echo -n "Checking: $url ... "
         
         # Use curl with timeout and follow redirects

@@ -35,6 +35,7 @@ public struct Do: CodeBlock {
   private let body: [any CodeBlock]
   private let catchClauses: CatchClauseListSyntax
 
+  /// The SwiftSyntax representation of this do statement.
   public var syntax: any SyntaxProtocol {
     // Build the do body
     let doBody = CodeBlockSyntax(

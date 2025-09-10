@@ -29,11 +29,12 @@
 
 public import SwiftSyntax
 
-/// A Swift attribute that can be used as a property wrapper.
+/// A Swift attribute that can be used as a property wrapper, attribute, or macro.
 public struct Attribute: CodeBlock {
   private let name: String
   private let arguments: [String]
 
+  /// The SwiftSyntax representation of this attribute.
   public var syntax: any SyntaxProtocol {
     var leftParen: TokenSyntax?
     var rightParen: TokenSyntax?

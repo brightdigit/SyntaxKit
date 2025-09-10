@@ -38,6 +38,7 @@ public struct Struct: CodeBlock, Sendable {
   private var attributes: [AttributeInfo] = []
   private var accessModifier: AccessModifier?
 
+  /// The SwiftSyntax representation of this struct declaration.
   public var syntax: any SyntaxProtocol {
     let structKeyword = TokenSyntax.keyword(.struct, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)

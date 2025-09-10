@@ -36,6 +36,7 @@ public struct For: CodeBlock, Sendable {
   private let whereClause: (any CodeBlock)?
   private let body: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this for-in loop.
   public var syntax: any SyntaxProtocol {
     // Build the pattern using the PatternConvertible protocol
     let patternSyntax = pattern.patternSyntax

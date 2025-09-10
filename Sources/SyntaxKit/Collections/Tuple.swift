@@ -35,6 +35,7 @@ public struct Tuple: CodeBlock {
   private var isAsync: Bool = false
   private var isThrowing: Bool = false
 
+  /// The SwiftSyntax representation of this tuple expression.
   public var syntax: any SyntaxProtocol {
     let list = TupleExprElementListSyntax(
       elements.enumerated().map { index, block in
