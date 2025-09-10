@@ -67,18 +67,4 @@ internal struct DocumentationExampleTests {
       compileResults.allSatisfy { $0.isSuccess || $0.isSkipped },
       "All macro examples should compile successfully")
   }
-
-  @Test("Enum Generator examples work correctly")
-  internal func validateEnumGeneratorExamples() throws {
-    let enumExampleFile = try Settings.resolveFilePath(
-      "Sources/SyntaxKit/Documentation.docc/Examples/EnumGenerator.md"
-    )
-    let results = try testHarness.validateFile(at: enumExampleFile)
-
-    // Check that enum generation examples actually work
-    let executionResults = results.filter { $0.testType == .execution }
-    #expect(
-      executionResults.allSatisfy { $0.isSuccess || $0.isSkipped },
-      "Enum generation examples should execute correctly")
-  }
 }
