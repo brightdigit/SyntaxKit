@@ -84,7 +84,7 @@ func runQuickStartExample() {
   print(String(repeating: "=", count: 40))
 }
 
-// Additional examples
+// Additional examples for the playground
 func runAdditionalExamples() {
   print("\nAdditional Examples:\n")
 
