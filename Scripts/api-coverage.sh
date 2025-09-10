@@ -73,26 +73,19 @@ analyze_swift_file() {
     local total_apis=0
     local documented_apis=0
     
-    # Read file line by line
-    local line_num=0
-    local prev_line=""
-    local has_doc=false
-    
+    # Read file into array for look-back capability
+    local lines=()
     while IFS= read -r line; do
-        ((line_num++))
+        lines+=("$line")
+    done < "$file"
+    
+    local total_lines=${#lines[@]}
+    
+    for ((line_num=0; line_num<total_lines; line_num++)); do
+        local line="${lines[$line_num]}"
+        local actual_line_num=$((line_num + 1))
         
-        # Check if previous line had documentation
-        if has_documentation "$prev_line"; then
-            has_doc=true
-        elif [[ "$prev_line" =~ ^[[:space:]]*$ ]]; then
-            # Empty line, keep current documentation status
-            :
-        elif [[ ! "$prev_line" =~ ^[[:space:]]*// ]]; then
-            # Non-comment, non-empty line resets documentation status
-            has_doc=false
-        fi
-        
-        # Check for public API declarations
+        # Check if this line is a public API declaration
         if [[ "$line" =~ ^[[:space:]]*public[[:space:]]+(struct|class|enum|protocol|func|var|let|init|typealias) ]]; then
             ((total_apis++))
             
@@ -118,15 +111,48 @@ analyze_swift_file() {
                     ;;
             esac
             
+            # Look backwards for documentation, skipping attributes and empty lines
+            local has_doc=false
+            local check_line_idx=$((line_num - 1))
+            
+            while [[ $check_line_idx -ge 0 ]]; do
+                local check_line="${lines[$check_line_idx]}"
+                
+                # If we find documentation, mark as documented
+                if has_documentation "$check_line"; then
+                    has_doc=true
+                    break
+                fi
+                
+                # If we find an attribute (like @resultBuilder), continue looking backwards
+                if [[ "$check_line" =~ ^[[:space:]]*@[[:alpha:]] ]]; then
+                    ((check_line_idx--))
+                    continue
+                fi
+                
+                # If we find an empty line, continue looking backwards
+                if [[ "$check_line" =~ ^[[:space:]]*$ ]]; then
+                    ((check_line_idx--))
+                    continue
+                fi
+                
+                # If we find a non-documentation comment, continue looking backwards
+                if [[ "$check_line" =~ ^[[:space:]]*//[^/] ]]; then
+                    ((check_line_idx--))
+                    continue
+                fi
+                
+                # If we hit any other non-empty, non-attribute line, stop looking
+                break
+            done
+            
             if [[ "$has_doc" == true ]]; then
                 ((documented_apis++))
             else
-                undocumented_apis+=("$file:$line_num - $api_type $api_name")
+                undocumented_apis+=("$file:$actual_line_num - $api_type $api_name")
             fi
         fi
-        
-        prev_line="$line"
-    done < "$file"
+    done
     
     # Return results via global variables (bash limitations)
     echo "$total_apis,$documented_apis,$(IFS='|'; echo "${undocumented_apis[*]}")"
