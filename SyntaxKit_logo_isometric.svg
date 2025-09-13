@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     x="0px" y="0px" width="128px" height="128px" viewBox="0 0 128 128" xml:space="preserve">
+
+<defs>
+  <!-- Gradients for isometric cube faces -->
+  <linearGradient id="topFace" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" style="stop-color:#FF7A5A;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#F05138;stop-opacity:1" />
+  </linearGradient>
+
+  <linearGradient id="leftFace" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" style="stop-color:#F05138;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#E04020;stop-opacity:1" />
+  </linearGradient>
+
+  <linearGradient id="rightFace" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" style="stop-color:#E04020;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#C03010;stop-opacity:1" />
+  </linearGradient>
+
+  <!-- Gradient for Swift symbol -->
+  <radialGradient id="swiftSymbol" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+    <stop offset="100%" style="stop-color:#F0F0F0;stop-opacity:1" />
+  </radialGradient>
+</defs>
+
+<!-- Isometric cube with rounded corners -->
+<g id="isometric-cube">
+  <!-- Top face -->
+  <path fill="url(#topFace)" stroke="none"
+        d="M64,10 L100,30 Q105,32 105,38 L105,50 Q105,56 100,58 L64,38 Q59,36 59,30 L59,18 Q59,12 64,10 Z"/>
+
+  <!-- Left face -->
+  <path fill="url(#leftFace)" stroke="none"
+        d="M64,10 Q59,12 59,18 L59,30 Q59,36 59,42 L59,82 Q59,88 64,90 L64,50 Q64,44 69,42 L69,30 Q64,28 64,10 Z"/>
+
+  <!-- Right face -->
+  <path fill="url(#rightFace)" stroke="none"
+        d="M64,10 L100,30 L100,70 Q105,72 105,78 L105,90 Q105,96 100,98 L64,78 Q59,76 59,70 L59,82 Q59,88 64,90 L100,70 L100,30 Q105,32 105,38 L105,50 Q105,56 100,58 L64,38 Q69,36 69,30 L69,42 Q64,44 64,50 Z"/>
+</g>
+
+<!-- Isometric cube layers (like CloudKit style) -->
+<g id="cube-layers">
+  <!-- Bottom layer (darkest) -->
+  <path fill="#A02810" stroke="none"
+        d="M22,70 L58,90 Q63,92 69,90 L105,70 Q110,68 110,74 L110,86 Q110,92 105,94 L69,114 Q63,116 58,114 L22,94 Q17,92 17,86 L17,74 Q17,68 22,70 Z" rx="8" ry="8"/>
+
+  <!-- Middle layer -->
+  <path fill="url(#rightFace)" stroke="none"
+        d="M25,60 L61,80 Q66,82 72,80 L108,60 Q113,58 113,64 L113,76 Q113,82 108,84 L72,104 Q66,106 61,104 L25,84 Q20,82 20,76 L20,64 Q20,58 25,60 Z" rx="8" ry="8"/>
+
+  <!-- Top layer with Swift symbol -->
+  <path fill="url(#leftFace)" stroke="none"
+        d="M28,50 L64,70 Q69,72 75,70 L111,50 Q116,48 116,54 L116,66 Q116,72 111,74 L75,94 Q69,96 64,94 L28,74 Q23,72 23,66 L23,54 Q23,48 28,50 Z" rx="8" ry="8"/>
+</g>
+
+<!-- Swift bird symbol on top face -->
+<g id="swift-symbol" transform="translate(69.5,62) scale(0.35)">
+  <!-- Simplified Swift bird -->
+  <path fill="url(#swiftSymbol)" stroke="none" opacity="0.95"
+        d="M-15,-20 C-10,-25 -5,-27 0,-25 C10,-20 20,-10 25,0 C23,-5 20,-10 15,-13
+           C5,-17 -5,-15 -10,-10 C-20,0 -25,10 -20,20 C-15,25 -10,27 -5,25
+           C0,23 5,20 10,15 C20,5 25,-5 23,-15 C20,-20 15,-23 10,-20
+           C5,-17 0,-13 -5,-10 C-15,-5 -20,0 -15,-20 Z"/>
+
+  <!-- Bird eye -->
+  <circle fill="#F05138" opacity="0.8" cx="-2" cy="-8" r="2"/>
+
+  <!-- Wing detail -->
+  <path fill="#FFFFFF" opacity="0.7" stroke="none"
+        d="M15,-5 Q20,-8 25,-5 Q23,0 20,2 Q17,0 15,-5 Z"/>
+</g>
+
+<!-- Subtle shadow -->
+<ellipse fill="#000000" opacity="0.15" cx="69" cy="118" rx="50" ry="8"/>
+
+</svg>
