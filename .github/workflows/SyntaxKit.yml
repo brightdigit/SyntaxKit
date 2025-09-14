@@ -100,7 +100,7 @@ jobs:
           - type: ios
             runs-on: macos-15
             xcode: "/Applications/Xcode_26.0.app"
-            deviceName: "iPhone 16 Pro"
+            deviceName: "iPhone 17 Pro"
             osVersion: "26.0"
             download-platform: true
   
@@ -108,7 +108,7 @@ jobs:
           - type: watchos
             runs-on: macos-15
             xcode: "/Applications/Xcode_26.0.app"
-            deviceName: "Apple Watch Ultra 2 (49mm)"
+            deviceName: "Apple Watch Ultra 3 (49mm)"
             osVersion: "26.0"
             download-platform: true
 
