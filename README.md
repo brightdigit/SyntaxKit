@@ -1,3 +1,5 @@
+![SyntaxKit Logo](Sources/SyntaxKit/Documentation.docc/Resources/SyntaxKit_Logo.svg)
+
 # SyntaxKit
 
 [![SwiftPM](https://img.shields.io/badge/SPM-Linux%20%7C%20iOS%20%7C%20macOS%20%7C%20watchOS%20%7C%20tvOS-success?logo=swift)](https://swift.org)

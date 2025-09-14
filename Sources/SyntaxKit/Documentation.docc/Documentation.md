@@ -2,6 +2,8 @@
 
 **Generate Swift code programmatically with declarative, type-safe syntax.** 
 
+![SyntaxKit Logo](SyntaxKit_Logo)
+
 SyntaxKit transforms complex Swift code generation from tedious AST manipulation into intuitive, readable declarations. Built for scenarios where you need to create Swift code dynamically—macro development, API client generators, model transformers, and migration utilities—rather than writing code by hand once.
 
 **When you're generating repetitive code structures, transforming external schemas into Swift types, or building developer tools that output Swift code, SyntaxKit provides the declarative approach you need.** Unlike manually constructing SwiftSyntax AST nodes, SyntaxKit uses result builders to make complex code generation maintainable and error-resistant.
