@@ -55,12 +55,14 @@ jobs:
           windows-swift-version: ${{ matrix.swift-version }}
           windows-swift-build: ${{ matrix.swift-build }}
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4       
+        uses: codecov/codecov-action@v5    
         with:
           fail_ci_if_error: true
           flags: swift-${{ matrix.swift-version }},windows
           verbose: true        
-          token: ${{ secrets.CODECOV_TOKEN }}  
+          token: ${{ secrets.CODECOV_TOKEN }}
+          os: windows
+          swift_project: SyntaxKit
           # files: ${{ join(fromJSON(steps.coverage-files.outputs.files), ',') }} 
   build-macos:
     name: Build on macOS
