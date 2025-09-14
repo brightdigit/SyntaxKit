@@ -16,6 +16,18 @@
 
 Unlike manually writing SwiftSyntax AST nodes, SyntaxKit uses result builders to make code generation readable and maintainable. Perfect for macro authors who need to generate complex Swift structures, or developers building tools that automatically create boilerplate code from external schemas, APIs, or configurations.
 
+## Table of Contents
+
+- [When to Use SyntaxKit](#when-to-use-syntaxkit)
+- [Installation](#installation)
+- [Quick Start](#quick-start-5-minutes)
+- [Why SyntaxKit Excels](#why-syntaxkit-excels)
+- [Features](#features)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Requirements](#requirements)
+- [License](#license)
+
 ## When to Use SyntaxKit
 
 ```mermaid
