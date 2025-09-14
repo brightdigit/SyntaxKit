@@ -54,10 +54,6 @@ jobs:
         with:
           windows-swift-version: ${{ matrix.swift-version }}
           windows-swift-build: ${{ matrix.swift-build }}
-      - uses: sersoft-gmbh/swift-coverage-action@v4
-        id: coverage-files
-        with:          
-          fail-on-empty-output: true
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4       
         with:
@@ -65,7 +61,7 @@ jobs:
           flags: swift-${{ matrix.swift-version }},windows
           verbose: true        
           token: ${{ secrets.CODECOV_TOKEN }}  
-          files: ${{ join(fromJSON(steps.coverage-files.outputs.files), ',') }} 
+          # files: ${{ join(fromJSON(steps.coverage-files.outputs.files), ',') }} 
   build-macos:
     name: Build on macOS
     env:
