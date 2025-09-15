@@ -39,15 +39,18 @@ import Foundation
 /// The JSON contains a flat array of TreeNode objects representing the
 /// complete Swift syntax tree in a format suitable for external analysis
 /// tools, IDEs, and other applications that need to understand Swift code structure.
+@available(*, deprecated, message: "Use parse(code:) which returns [TreeNode] directly instead of JSON")
 package struct SyntaxResponse: Codable {
   /// JSON string representation of the parsed syntax tree.
   /// Contains a serialized array of TreeNode objects with their relationships,
   /// source locations, and structural information.
+  @available(*, deprecated, message: "Use parse(code:) which returns [TreeNode] directly instead of JSON")
   package let syntaxJSON: String
 
   /// Creates a new SyntaxResponse with the provided JSON data.
   ///
   /// - Parameter syntaxJSON: The JSON string representation of the syntax tree
+  @available(*, deprecated, message: "Use parse(code:) which returns [TreeNode] directly instead of JSON")
   package init(syntaxJSON: String) {
     self.syntaxJSON = syntaxJSON
   }

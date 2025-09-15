@@ -64,7 +64,7 @@ import SwiftSyntax
  - `Token`: Token-specific metadata (kind, trivia)
  - `SourceRange`: Line/column location coordinates
  - `SyntaxType`: Semantic classification of syntax elements
- - `SyntaxResponse`: Container for final JSON output
+ - `SyntaxResponse`: Container for final JSON output (deprecated)
 
  ## Processing Pipeline
 
@@ -115,38 +115,70 @@ import SwiftSyntax
      }
      """
 
- let response = try SyntaxParser.parse(code: code)
- // response.syntaxJSON contains the flattened tree structure
+ let treeNodes = SyntaxParser.parse(code: code)
+ // treeNodes contains the array of TreeNode objects directly
  ```
 
  This module is primarily consumed by the `skit` command-line tool for
  converting Swift source code to JSON for external analysis and tooling.
  */
 
-/// Main entry point for parsing Swift source code into JSON representation.
+/// Main entry point for parsing Swift source code into TreeNode representation.
 ///
-/// SyntaxParser converts Swift source code into a structured JSON format that represents
-/// the Abstract Syntax Tree (AST). This is primarily used by the `skit` command-line tool
-/// to provide Swift code analysis for external tools and applications.
+/// SyntaxParser converts Swift source code into an array of TreeNode objects that represents
+/// the Abstract Syntax Tree (AST). This provides direct access to the parsed syntax structure
+/// for programmatic analysis and manipulation.
 ///
 /// The parser leverages Apple's SwiftSyntax framework to perform the actual parsing,
-/// then transforms the complex SwiftSyntax AST into a simplified, serializable format
-/// suitable for JSON output and console consumption.
+/// then transforms the complex SwiftSyntax AST into a simplified, flat structure
+/// suitable for direct consumption by Swift code.
 package enum SyntaxParser {
   // MARK: - Configuration Constants
 
   /// Option key to enable operator precedence folding during parsing.
   /// When enabled, expressions are reorganized according to Swift's operator precedence rules.
+  @available(*, deprecated, message: "Operator precedence folding is not supported in the new parse(code:) method")
   private static let fold = "fold"
 
   /// Option key to include missing/implicit tokens in the output.
   /// Useful for debugging or when you need to see all syntax elements including placeholders.
+  @available(*, deprecated, message: "Missing token display is not supported in the new parse(code:) method")
   private static let showMissing = "showmissing"
 
   /// Default filename used for source location tracking when no specific file is provided.
   private static let defaultFileName = ""
 
   // MARK: - Public Interface
+
+  /// Parses Swift source code and returns an array of TreeNode objects.
+  ///
+  /// This method performs the complete parsing pipeline:
+  /// 1. Parses Swift source code using SwiftSyntax
+  /// 2. Traverses the AST to extract structure and token information
+  /// 3. Returns the tree nodes directly without JSON serialization
+  ///
+  /// - Parameter code: Swift source code to parse
+  /// - Returns: Array of TreeNode objects representing the syntax tree
+  package static func parse(code: String) -> [TreeNode] {
+    // Parse the Swift source code into a SwiftSyntax AST
+    let sourceFile = Parser.parse(source: code)
+
+    // Use raw syntax tree without precedence folding for simplicity
+    let syntax = Syntax(sourceFile)
+
+    // Create visitor to traverse AST and extract structured information
+    let visitor = TokenVisitor(
+      locationConverter: SourceLocationConverter(
+        fileName: defaultFileName, tree: sourceFile),
+      showMissingTokens: false
+    )
+
+    // Traverse the syntax tree and build our simplified representation
+    _ = visitor.rewrite(syntax)
+
+    // Return the tree nodes directly
+    return visitor.tree
+  }
 
   /// Parses Swift source code and returns a JSON representation of its syntax tree.
   ///
@@ -163,6 +195,7 @@ package enum SyntaxParser {
   ///     - "showmissing": Include missing/implicit tokens in output
   /// - Returns: SyntaxResponse containing the JSON representation
   /// - Throws: JSONEncoder errors if serialization fails
+  @available(*, deprecated, message: "Use parse(code:) instead for direct TreeNode access")
   package static func parse(code: String, options: [String] = []) throws -> SyntaxResponse {
     // Parse the Swift source code into a SwiftSyntax AST
     let sourceFile = Parser.parse(source: code)

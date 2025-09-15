@@ -40,20 +40,20 @@ import Foundation
 /// - Function declaration "name" property → StructureValue with identifier text
 /// - Function declaration "body" property → Reference to "CodeBlockSyntax"
 /// - Missing optional property → nil value with just the property name
-internal struct StructureProperty: Codable, Equatable {
+package struct StructureProperty: Codable, Equatable {
   /// The name of this structural property.
   /// Corresponds to SwiftSyntax property names like "name", "parameters", "body", etc.
-  internal let name: String
+  package let name: String
 
   /// The value of this property, if it contains terminal data.
   /// Present for tokens, literals, and other concrete values.
   /// Nil for missing optional properties.
-  internal let value: StructureValue?
+  package let value: StructureValue?
 
   /// Reference to another syntax node type, if this property contains a nested structure.
   /// Used when this property points to another syntax node rather than containing terminal data.
   /// Example: "body" property might reference "CodeBlockSyntax"
-  internal let ref: String?
+  package let ref: String?
 
   /// Creates a new StructureProperty with the specified components.
   ///
@@ -61,7 +61,7 @@ internal struct StructureProperty: Codable, Equatable {
   ///   - name: The property name
   ///   - value: Terminal value data, if any
   ///   - ref: Reference to another syntax type, if any
-  internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
+  package init(name: String, value: StructureValue? = nil, ref: String? = nil) {
     self.name = name
     self.value = value
     self.ref = ref

@@ -40,18 +40,18 @@ import Foundation
 /// newlines, comments, and other formatting elements that don't directly
 /// participate in the Swift language grammar but are important for
 /// code reconstruction and analysis.
-internal struct Token: Codable, Equatable {
+package struct Token: Codable, Equatable {
   /// The classification of this token (e.g., "keyword", "identifier", "integerLiteral").
   /// Corresponds to SwiftSyntax TokenKind descriptions.
-  internal let kind: String
+  package let kind: String
 
   /// Trivia that appears before this token.
   /// Includes whitespace, comments, and other non-semantic text preceding the token.
-  internal var leadingTrivia: String
+  package var leadingTrivia: String
 
   /// Trivia that appears after this token.
   /// Includes whitespace, comments, and other non-semantic text following the token.
-  internal var trailingTrivia: String
+  package var trailingTrivia: String
 
   /// Creates a new Token with the specified properties.
   ///
@@ -59,7 +59,7 @@ internal struct Token: Codable, Equatable {
   ///   - kind: The token classification
   ///   - leadingTrivia: Text appearing before the token
   ///   - trailingTrivia: Text appearing after the token
-  internal init(kind: String, leadingTrivia: String, trailingTrivia: String) {
+  package init(kind: String, leadingTrivia: String, trailingTrivia: String) {
     self.kind = kind
     self.leadingTrivia = leadingTrivia
     self.trailingTrivia = trailingTrivia
