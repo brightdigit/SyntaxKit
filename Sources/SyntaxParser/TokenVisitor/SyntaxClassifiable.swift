@@ -1,5 +1,5 @@
 //
-//  SyntaxClassifier.swift
+//  SyntaxClassifiable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,12 +30,22 @@
 import Foundation
 @_spi(RawSyntax) import SwiftSyntax
 
+/// Protocol for syntax nodes that can classify themselves by their semantic role.
+///
+/// This protocol allows syntax nodes to self-identify their classification,
+/// making the classification process more type-safe and extensible.
+internal protocol SyntaxClassifiable {
+  /// Returns the semantic classification of this syntax node type.
+  static var syntaxType: SyntaxType { get }
+}
+
 /// Utility for classifying Swift syntax nodes and cleaning type names.
 ///
 /// SyntaxClassifier provides semantic classification of syntax elements and
 /// handles the normalization of SwiftSyntax type names for readability.
 /// This helps categorize nodes by their role in the language (declarations,
 /// expressions, patterns, etc.) rather than their specific SwiftSyntax type.
+@available(*, deprecated)
 internal enum SyntaxClassifier {
   // MARK: - String Constants
 
@@ -46,13 +56,19 @@ internal enum SyntaxClassifier {
 
   /// Classifies a syntax node by its semantic role in the Swift language.
   ///
-  /// This method examines the SwiftSyntax node type hierarchy to determine
-  /// the semantic category of the node, which helps consumers understand
-  /// its purpose without needing detailed SwiftSyntax knowledge.
+  /// This method first checks if the node's type conforms to `SyntaxClassifiable`
+  /// for self-classification. If not, it falls back to examining the SwiftSyntax
+  /// node type hierarchy to determine the semantic category.
   ///
   /// - Parameter node: The SwiftSyntax node to classify
   /// - Returns: The semantic classification of the node
   internal static func classifyNode(_ node: Syntax) -> SyntaxType {
+    // First, check if the node can classify itself
+    if let classifiable = type(of: node) as? any SyntaxClassifiable.Type {
+      return classifiable.syntaxType
+    }
+
+    // Fallback to type-based classification
     switch node {
     case _ where node.is(DeclSyntax.self):
       return .decl  // Declarations (struct, func, var, etc.)
@@ -76,11 +92,6 @@ internal enum SyntaxClassifier {
   /// - Parameter node: The SwiftSyntax node whose type name should be cleaned
   /// - Returns: Cleaned class name without "Syntax" suffix
   internal static func cleanClassName(from node: Syntax) -> String {
-    let fullName = "\(node.syntaxNodeType)"
-    if fullName.hasSuffix(syntax) {
-      return String(fullName.dropLast(syntax.count))
-    } else {
-      return fullName
-    }
+    node.cleanClassName
   }
 }

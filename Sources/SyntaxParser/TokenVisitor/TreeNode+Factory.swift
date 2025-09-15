@@ -7,7 +7,7 @@
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the "Software"), to deal in the Software without
+//  files (the “Software”), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -33,7 +33,7 @@ import Foundation
 extension TreeNode {
   /// Creates a TreeNode from a SwiftSyntax node with proper initialization.
   ///
-  /// This method extracts essential information from the SwiftSyntax node and
+  /// This initializer extracts essential information from the SwiftSyntax node and
   /// creates a corresponding TreeNode with cleaned class name, semantic type
   /// classification, and source location information.
   ///
@@ -43,21 +43,20 @@ extension TreeNode {
   ///   - locationConverter: Converter for source positions to line/column coordinates
   ///   - syntaxType: The semantic classification of the node
   ///   - className: The cleaned class name (without "Syntax" suffix)
-  /// - Returns: A new TreeNode with the specified properties
-  internal static func create(
+  internal convenience init(
     id: Int,
     from node: Syntax,
     locationConverter: SourceLocationConverter,
     syntaxType: SyntaxType,
     className: String
-  ) -> TreeNode {
+  ) {
     // Extract source location information
     let sourceRange = node.sourceRange(converter: locationConverter)
     let start = sourceRange.start
     let end = sourceRange.end
 
-    // Create the simplified tree node representation
-    return TreeNode(
+    // Initialize with extracted information
+    self.init(
       id: id,
       text: className,
       range: SourceRange(

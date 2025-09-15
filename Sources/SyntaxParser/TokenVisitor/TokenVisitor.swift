@@ -96,8 +96,8 @@ internal final class TokenVisitor: SyntaxRewriter {
     let className = SyntaxClassifier.cleanClassName(from: node)
     let syntaxType = SyntaxClassifier.classifyNode(node)
 
-    // Create tree node using factory
-    let treeNode = NodeFactory.createTreeNode(
+    // Create tree node using convenience initializer
+    let treeNode = TreeNode(
       id: index,
       from: node,
       locationConverter: locationConverter,
