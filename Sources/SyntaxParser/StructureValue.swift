@@ -34,7 +34,7 @@ internal struct StructureValue: Codable, Equatable {
   internal let kind: String?
 
   internal init(text: String, kind: String? = nil) {
-    self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
-    self.kind = kind?.escapeHTML()
+    self.text = text
+    self.kind = kind
   }
 }

@@ -35,8 +35,8 @@ internal struct StructureProperty: Codable, Equatable {
   internal let ref: String?
 
   internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
-    self.name = name.escapeHTML()
+    self.name = name
     self.value = value
-    self.ref = ref?.escapeHTML()
+    self.ref = ref
   }
 }

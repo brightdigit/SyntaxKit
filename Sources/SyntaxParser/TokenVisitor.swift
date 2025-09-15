@@ -183,11 +183,7 @@ internal final class TokenVisitor: SyntaxRewriter {
   }
 
   override internal func visit(_ token: TokenSyntax) -> TokenSyntax {
-    current.text = token
-      .text
-      .escapeHTML()
-      .replaceInvisiblesWithHTML()
-      .replaceHTMLWhitespacesWithSymbols()
+    current.text = token.text
 
     current.token = Token(
       kind: "\(token.tokenKind)", leadingTrivia: Self.emptyString,
@@ -195,12 +191,12 @@ internal final class TokenVisitor: SyntaxRewriter {
 
     for piece in token.leadingTrivia {
       let trivia = processTriviaPiece(piece)
-      current.token?.leadingTrivia += trivia.replaceHTMLWhitespacesWithSymbols()
+      current.token?.leadingTrivia += trivia
     }
     processToken(token)
     for piece in token.trailingTrivia {
       let trivia = processTriviaPiece(piece)
-      current.token?.trailingTrivia += trivia.replaceHTMLWhitespacesWithSymbols()
+      current.token?.trailingTrivia += trivia
     }
 
     return token

@@ -61,43 +61,32 @@ extension TokenVisitor {
       kind = Self.keywordNormalized
     }
 
-    let sourceRange = token.sourceRange(converter: locationConverter)
-    let start = sourceRange.start
-    let end = sourceRange.end
-    let text =
-      token.presence == .present || showMissingTokens ? token.text : TokenVisitor.emptyString
+    // No longer needed for plain text output
+    _ = token.sourceRange(converter: locationConverter)
+    _ = token.presence == .present || showMissingTokens ? token.text : TokenVisitor.emptyString
   }
 
   internal func processTriviaPiece(_ piece: TriviaPiece) -> String {
-    func wrapWithSpanTag(class className: String, text: String) -> String {
-      "\(Self.spanClass)\(className.escapeHTML())' "
-        + "\(Self.dataTitle)\("\(piece)".escapeHTML().replaceInvisiblesWithSymbols())' "
-        + "\(Self.dataContent)\(className.escapeHTML().replaceInvisiblesWithHTML())' "
-        + "\(Self.dataType)\(Self.trivia)'>\(text.escapeHTML().replaceInvisiblesWithHTML())\(Self.spanEnd)"
-    }
-
     var trivia = TokenVisitor.emptyString
     switch piece {
     case .spaces(let count):
-      trivia += String(repeating: Self.nonBreakingSpace, count: count)
+      trivia += String(repeating: " ", count: count)
     case .tabs(let count):
-      trivia += String(
-        repeating: Self.nonBreakingSpace,
-        count: count * Self.whitespaceSpacer)
+      trivia += String(repeating: "\t", count: count)
     case .verticalTabs, .formfeeds:
       break
     case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
-      trivia += String(repeating: Self.lineBreak, count: count)
+      trivia += String(repeating: "\n", count: count)
     case .lineComment(let text):
-      trivia += wrapWithSpanTag(class: Self.lineComment, text: text)
+      trivia += text
     case .blockComment(let text):
-      trivia += wrapWithSpanTag(class: Self.blockComment, text: text)
+      trivia += text
     case .docLineComment(let text):
-      trivia += wrapWithSpanTag(class: Self.docLineComment, text: text)
+      trivia += text
     case .docBlockComment(let text):
-      trivia += wrapWithSpanTag(class: Self.docBlockComment, text: text)
+      trivia += text
     case .unexpectedText(let text):
-      trivia += wrapWithSpanTag(class: Self.unexpectedText, text: text)
+      trivia += text
     case .backslashes(let count):
       trivia += String(repeating: Self.backslash, count: count)
     case .pounds(let count):

@@ -57,6 +57,7 @@ extension String {
   private static let whitespace = "whitespace"
   private static let newlineClass = "newline"
 
+  @available(*, unavailable, message: "HTML escaping is not needed for console output")
   internal func escapeHTML() -> String {
     var string = self
     let specialCharacters = [
@@ -77,6 +78,7 @@ extension String {
     return string
   }
 
+  @available(*, unavailable, message: "HTML formatting is not needed for console output")
   internal func replaceInvisiblesWithHTML() -> String {
     self
       .replacingOccurrences(of: Self.space, with: Self.nonBreakingSpace)
@@ -89,6 +91,7 @@ extension String {
       .replacingOccurrences(of: Self.newline, with: Self.newlineSymbol)
   }
 
+  @available(*, unavailable, message: "HTML formatting is not needed for console output")
   internal func replaceHTMLWhitespacesWithSymbols() -> String {
     self
       .replacingOccurrences(
@@ -103,6 +106,7 @@ extension String {
       )
   }
 
+  @available(*, unavailable, message: "HTML formatting is not needed for console output")
   internal func replaceHTMLWhitespacesToSymbols() -> String {
     self
       .replacingOccurrences(

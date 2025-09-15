@@ -46,7 +46,7 @@ internal final class TreeNode: Codable {
 
   internal init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
     self.id = id
-    self.text = text.escapeHTML()
+    self.text = text
     self.range = range
     self.type = type
   }
