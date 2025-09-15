@@ -1,5 +1,5 @@
 //
-//  SyntaxParser.swift
+//  StructureValue.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,32 +28,13 @@
 //
 
 import Foundation
-import SwiftOperators
-import SwiftParser
-import SwiftSyntax
 
-package enum SyntaxParser {
-  package static func parse(code: String, options: [String] = []) throws -> SyntaxResponse {
-    let sourceFile = Parser.parse(source: code)
+internal struct StructureValue: Codable, Equatable {
+  internal let text: String
+  internal let kind: String?
 
-    let syntax: Syntax
-    if options.contains("fold") {
-      syntax = OperatorTable.standardOperators.foldAll(sourceFile, errorHandler: { _ in })
-    } else {
-      syntax = Syntax(sourceFile)
-    }
-
-    let visitor = TokenVisitor(
-      locationConverter: SourceLocationConverter(fileName: "", tree: sourceFile),
-      showMissingTokens: options.contains("showmissing")
-    )
-    _ = visitor.rewrite(syntax)
-
-    let tree = visitor.tree
-    let encoder = JSONEncoder()
-    let data = try encoder.encode(tree)
-    let json = String(decoding: data, as: UTF8.self)
-
-    return SyntaxResponse(syntaxJSON: json)
+  internal init(text: String, kind: String? = nil) {
+    self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
+    self.kind = kind?.escapeHTML()
   }
 }

@@ -28,7 +28,7 @@
 //
 
 import Foundation
-import SyntaxKit
+import SyntaxParser
 
 // Read Swift code from stdin
 internal let code =

@@ -40,15 +40,3 @@ internal struct StructureProperty: Codable, Equatable {
     self.ref = ref?.escapeHTML()
   }
 }
-
-extension StructureProperty: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      name: \(name)
-      value: \(String(describing: value))
-      ref: \(String(describing: ref))
-    }
-    """
-  }
-}

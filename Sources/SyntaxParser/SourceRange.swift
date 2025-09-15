@@ -35,16 +35,3 @@ internal struct SourceRange: Codable, Equatable {
   internal let endRow: Int
   internal let endColumn: Int
 }
-
-extension SourceRange: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      startRow: \(startRow)
-      startColumn: \(startColumn)
-      endRow: \(endRow)
-      endColumn: \(endColumn)
-    }
-    """
-  }
-}

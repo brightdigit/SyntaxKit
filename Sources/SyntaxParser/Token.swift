@@ -1,5 +1,5 @@
 //
-//  StructureValue.swift
+//  Token.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,23 +29,14 @@
 
 import Foundation
 
-internal struct StructureValue: Codable, Equatable {
-  internal let text: String
-  internal let kind: String?
+internal struct Token: Codable, Equatable {
+  internal let kind: String
+  internal var leadingTrivia: String
+  internal var trailingTrivia: String
 
-  internal init(text: String, kind: String? = nil) {
-    self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
-    self.kind = kind?.escapeHTML()
-  }
-}
-
-extension StructureValue: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      text: \(text)
-      kind: \(String(describing: kind))
-    }
-    """
+  internal init(kind: String, leadingTrivia: String, trailingTrivia: String) {
+    self.kind = kind.escapeHTML()
+    self.leadingTrivia = leadingTrivia
+    self.trailingTrivia = trailingTrivia
   }
 }

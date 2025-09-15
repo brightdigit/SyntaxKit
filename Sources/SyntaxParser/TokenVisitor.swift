@@ -40,6 +40,13 @@ internal final class TokenVisitor: SyntaxRewriter {
   internal let locationConverter: SourceLocationConverter
   internal let showMissingTokens: Bool
 
+  // Constants
+  private static let syntax = "Syntax"
+  private static let nilValue = "nil"
+  private static let element = "Element"
+  private static let count = "Count"
+  internal static let emptyString = ""
+
   internal init(locationConverter: SourceLocationConverter, showMissingTokens: Bool) {
     self.locationConverter = locationConverter
     self.showMissingTokens = showMissingTokens
@@ -51,7 +58,7 @@ internal final class TokenVisitor: SyntaxRewriter {
     let syntaxNodeType = node.syntaxNodeType
 
     let className: String
-    if "\(syntaxNodeType)".hasSuffix("Syntax") {
+    if "\(syntaxNodeType)".hasSuffix(Self.syntax) {
       className = String("\(syntaxNodeType)".dropLast(6))
     } else {
       className = "\(syntaxNodeType)"
@@ -60,23 +67,6 @@ internal final class TokenVisitor: SyntaxRewriter {
     let sourceRange = node.sourceRange(converter: locationConverter)
     let start = sourceRange.start
     let end = sourceRange.end
-
-    let graphemeStartColumn: Int
-    if let prefix = String(
-      locationConverter.sourceLines[start.line - 1].utf8.prefix(start.column - 1)
-    ) {
-      graphemeStartColumn = prefix.utf16.count + 1
-    } else {
-      graphemeStartColumn = start.column
-    }
-    let graphemeEndColumn: Int
-    if let prefix = String(
-      locationConverter.sourceLines[end.line - 1].utf8.prefix(end.column - 1)
-    ) {
-      graphemeEndColumn = prefix.utf16.count + 1
-    } else {
-      graphemeEndColumn = end.column
-    }
 
     let syntaxType: SyntaxType
     switch node {
@@ -118,7 +108,8 @@ internal final class TokenVisitor: SyntaxRewriter {
           }
           guard allChildren.contains(where: { child in child.keyPathInParent == keyPath }) else {
             treeNode.structure.append(
-              StructureProperty(name: name, value: StructureValue(text: "nil"))
+              StructureProperty(
+                name: name, value: StructureValue(text: Self.nilValue))
             )
             continue
           }
@@ -171,13 +162,13 @@ internal final class TokenVisitor: SyntaxRewriter {
       treeNode.type = .collection
       treeNode.structure.append(
         StructureProperty(
-          name: "Element",
+          name: Self.element,
           value: StructureValue(text: "\(syntax)")
         )
       )
       treeNode.structure.append(
         StructureProperty(
-          name: "Count",
+          name: Self.count,
           value: StructureValue(text: "\(node.children(viewMode: .all).count)")
         )
       )
@@ -198,7 +189,9 @@ internal final class TokenVisitor: SyntaxRewriter {
       .replaceInvisiblesWithHTML()
       .replaceHTMLWhitespacesWithSymbols()
 
-    current.token = Token(kind: "\(token.tokenKind)", leadingTrivia: "", trailingTrivia: "")
+    current.token = Token(
+      kind: "\(token.tokenKind)", leadingTrivia: Self.emptyString,
+      trailingTrivia: Self.emptyString)
 
     for piece in token.leadingTrivia {
       let trivia = processTriviaPiece(piece)

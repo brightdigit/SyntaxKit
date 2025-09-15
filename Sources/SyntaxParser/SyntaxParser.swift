@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  SyntaxParser.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,49 +28,37 @@
 //
 
 import Foundation
+import SwiftOperators
+import SwiftParser
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
+package enum SyntaxParser {
+  private static let fold = "fold"
+  private static let showMissing = "showmissing"
+  private static let defaultFileName = ""
 
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
+  package static func parse(code: String, options: [String] = []) throws -> SyntaxResponse {
+    let sourceFile = Parser.parse(source: code)
 
-  internal init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
-  }
-}
-
-extension TreeNode: Equatable {
-  internal static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
+    let syntax: Syntax
+    if options.contains(fold) {
+      syntax = OperatorTable.standardOperators.foldAll(sourceFile, errorHandler: { _ in })
+    } else {
+      syntax = Syntax(sourceFile)
     }
-    """
+
+    let visitor = TokenVisitor(
+      locationConverter: SourceLocationConverter(
+        fileName: defaultFileName, tree: sourceFile),
+      showMissingTokens: options.contains(showMissing)
+    )
+    _ = visitor.rewrite(syntax)
+
+    let tree = visitor.tree
+    let encoder = JSONEncoder()
+    let data = try encoder.encode(tree)
+    let json = String(decoding: data, as: UTF8.self)
+
+    return SyntaxResponse(syntaxJSON: json)
   }
 }
