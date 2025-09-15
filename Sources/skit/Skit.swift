@@ -1,5 +1,5 @@
 //
-//  main.swift
+//  Skit.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,14 +30,21 @@
 import Foundation
 import SyntaxParser
 
-// Read Swift code from stdin
-internal let code =
-  String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
+@main
+internal enum Skit {
+  internal static func main() throws {
+    // Read Swift code from stdin
+    let code = String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
 
-// Parse the code using SyntaxKit
-let treeNodes = SyntaxParser.parse(code: code)
+    // Parse the code using SyntaxKit
+    let treeNodes = SyntaxParser.parse(code: code)
 
-// Convert to JSON for output
-let encoder = JSONEncoder()
-let data = try encoder.encode(treeNodes)
-let json = String(decoding: data, as: UTF8.self)
+    // Convert to JSON for output
+    let encoder = JSONEncoder()
+    let data = try encoder.encode(treeNodes)
+    let json = String(decoding: data, as: UTF8.self)
+
+    // Output the JSON
+    print(json)
+  }
+}

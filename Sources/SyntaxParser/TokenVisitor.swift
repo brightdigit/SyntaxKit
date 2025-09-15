@@ -43,28 +43,6 @@ import Foundation
 /// building a parent-child relationship between nodes using ID references rather than
 /// object references (suitable for JSON serialization).
 internal final class TokenVisitor: SyntaxRewriter {
-  // MARK: - State Management
-
-  /// The flattened tree structure built during AST traversal.
-  /// Each TreeNode represents a syntax element with its metadata and relationships.
-  internal var tree = [TreeNode]()
-
-  /// Currently active node during traversal (used to build parent-child relationships).
-  /// This is implicitly unwrapped because it's guaranteed to be set during normal traversal.
-  private var current: TreeNode!
-
-  /// Sequential ID counter for assigning unique identifiers to each tree node.
-  private var index = 0
-
-  // MARK: - Configuration
-
-  /// Converts SwiftSyntax source positions to line/column coordinates.
-  internal let locationConverter: SourceLocationConverter
-
-  /// Whether to include missing/implicit tokens in the output tree.
-  /// When true, placeholder tokens and missing syntax elements are included.
-  internal let showMissingTokens: Bool
-
   // MARK: - String Constants
 
   /// Suffix used by SwiftSyntax type names (e.g., "VariableDeclSyntax" → "VariableDecl").
@@ -82,6 +60,24 @@ internal final class TokenVisitor: SyntaxRewriter {
   /// Empty string constant used throughout the module.
   internal static let emptyString = ""
 
+  // MARK: - State Management
+
+  /// The flattened tree structure built during AST traversal.
+  /// Each TreeNode represents a syntax element with its metadata and relationships.
+  internal var tree = [TreeNode]()
+
+  /// Currently active node during traversal (used to build parent-child relationships).
+  /// This is implicitly unwrapped because it's guaranteed to be set during normal traversal.
+  private var current: TreeNode?
+
+  /// Sequential ID counter for assigning unique identifiers to each tree node.
+  private var index = 0
+
+  // MARK: - Configuration
+
+  /// Converts SwiftSyntax source positions to line/column coordinates.
+  internal let locationConverter: SourceLocationConverter
+
   // MARK: - Initialization
 
   /// Creates a new TokenVisitor with the specified configuration.
@@ -91,14 +87,12 @@ internal final class TokenVisitor: SyntaxRewriter {
   ///   - showMissingTokens: Whether to include missing/implicit tokens in output
   internal init(locationConverter: SourceLocationConverter, showMissingTokens: Bool) {
     self.locationConverter = locationConverter
-    self.showMissingTokens = showMissingTokens
     // Use .all view mode if showing missing tokens, otherwise only source-accurate tokens
     super.init(viewMode: showMissingTokens ? .all : .sourceAccurate)
   }
 
   // MARK: - SyntaxRewriter Overrides
 
-  // swiftlint:disable:next cyclomatic_complexity function_body_length
   /// Called before visiting a syntax node's children.
   ///
   /// This method extracts essential information from each SwiftSyntax node and creates
@@ -174,7 +168,9 @@ internal final class TokenVisitor: SyntaxRewriter {
             // Property exists but has no value - mark as nil
             treeNode.structure.append(
               StructureProperty(
-                name: name, value: StructureValue(text: Self.nilValue))
+                name: name,
+                value: StructureValue(text: Self.nilValue)
+              )
             )
             continue
           }
@@ -251,27 +247,28 @@ internal final class TokenVisitor: SyntaxRewriter {
   /// - Parameter token: The token being visited
   /// - Returns: The unmodified token (this is a read-only transformation)
   override internal func visit(_ token: TokenSyntax) -> TokenSyntax {
+    assert(current != nil)
+
     // Store the actual token text content
-    current.text = token.text
+    current?.text = token.text
 
     // Create token metadata with kind information
-    current.token = Token(
-      kind: "\(token.tokenKind)", leadingTrivia: Self.emptyString,
-      trailingTrivia: Self.emptyString)
+    current?.token = Token(
+      kind: "\(token.tokenKind)",
+      leadingTrivia: Self.emptyString,
+      trailingTrivia: Self.emptyString
+    )
 
     // Process leading trivia (whitespace, comments before the token)
     for piece in token.leadingTrivia {
       let trivia = processTriviaPiece(piece)
-      current.token?.leadingTrivia += trivia
+      current?.token?.leadingTrivia += trivia
     }
-
-    // Perform any additional token processing
-    processToken(token)
 
     // Process trailing trivia (whitespace, comments after the token)
     for piece in token.trailingTrivia {
       let trivia = processTriviaPiece(piece)
-      current.token?.trailingTrivia += trivia
+      current?.token?.trailingTrivia += trivia
     }
 
     return token
@@ -284,11 +281,76 @@ internal final class TokenVisitor: SyntaxRewriter {
   ///
   /// - Parameter node: The syntax node whose children have been visited
   override internal func visitPost(_ node: Syntax) {
+    assert(current != nil)
+
     // Move back to parent node, or nil if we're at the root
-    if let parent = current.parent {
+    if let parent = current?.parent {
       current = tree[parent]
     } else {
       current = nil
     }
+  }
+
+  // MARK: - Helper Methods
+
+  /// Converts a SwiftSyntax trivia piece into its string representation.
+  ///
+  /// Trivia includes all the "invisible" elements around tokens: whitespace,
+  /// comments, and other formatting. This method converts each type of trivia
+  /// into plain text suitable for console output, preserving the original
+  /// formatting and content.
+  ///
+  /// - Parameter piece: The trivia piece to convert
+  /// - Returns: String representation of the trivia
+  internal func processTriviaPiece(_ piece: TriviaPiece) -> String {
+    var trivia = TokenVisitor.emptyString
+
+    switch piece {
+    case .spaces(let count):
+      // Convert spaces to actual space characters
+      trivia += String(repeating: " ", count: count)
+
+    case .tabs(let count):
+      // Convert tabs to actual tab characters
+      trivia += String(repeating: "\t", count: count)
+
+    case .verticalTabs, .formfeeds:
+      // Ignore legacy whitespace characters
+      break
+
+    case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
+      // Convert line endings to newline characters
+      trivia += String(repeating: "\n", count: count)
+
+    case .lineComment(let text):
+      // Preserve line comments as-is
+      trivia += text
+
+    case .blockComment(let text):
+      // Preserve block comments as-is
+      trivia += text
+
+    case .docLineComment(let text):
+      // Preserve documentation line comments as-is
+      trivia += text
+
+    case .docBlockComment(let text):
+      // Preserve documentation block comments as-is
+      trivia += text
+
+    case .unexpectedText(let text):
+      // Preserve unexpected text (usually from parsing errors)
+      trivia += text
+
+    case .backslashes(let count):
+      // Handle backslash characters (used in string literals and escaping)
+      trivia += String(repeating: #"\"#, count: count)
+
+    case .pounds(let count):
+      // Handle pound characters (used in raw string literals and directives)
+      trivia += String(repeating: "#", count: count)
+    }
+
+    return trivia
   }
 }
