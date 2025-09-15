@@ -29,10 +29,32 @@
 
 import Foundation
 
+/// Contains the concrete value data for a structure property.
+///
+/// StructureValue holds the actual content of a syntax element property,
+/// such as the text of an identifier token or the string representation
+/// of a syntax node type. It optionally includes kind information to
+/// distinguish between different types of values.
+///
+/// Examples:
+/// - Token value: text="let", kind="keyword(SwiftSyntax.Keyword.let)"
+/// - Type reference: text="VariableDeclSyntax", kind=nil
+/// - Literal value: text="42", kind="integerLiteral(42)"
 internal struct StructureValue: Codable, Equatable {
+  /// The string representation of this value.
+  /// Contains the actual text content or type name.
   internal let text: String
+
+  /// Optional kind information that provides additional context about the value type.
+  /// Present for tokens to indicate their specific token kind (e.g., "keyword", "identifier").
+  /// Nil for simple text values and type references.
   internal let kind: String?
 
+  /// Creates a new StructureValue with the specified content.
+  ///
+  /// - Parameters:
+  ///   - text: The string representation of the value
+  ///   - kind: Optional kind information for additional context
   internal init(text: String, kind: String? = nil) {
     self.text = text
     self.kind = kind

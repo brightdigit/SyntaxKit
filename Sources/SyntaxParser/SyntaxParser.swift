@@ -32,28 +32,162 @@ import SwiftOperators
 import SwiftParser
 import SwiftSyntax
 
+// MARK: - Module Overview
+
+/*
+ # SyntaxParser Module Architecture
+
+ The SyntaxParser module provides a bridge between Apple's SwiftSyntax framework and
+ JSON-based tools that need to analyze Swift source code. It transforms the complex
+ SwiftSyntax AST into a simplified, flat structure suitable for serialization and
+ external consumption.
+
+ ## Key Components
+
+ ### Core Parser (`SyntaxParser`)
+ - Main entry point for parsing Swift code
+ - Handles operator precedence folding options
+ - Orchestrates the parsing pipeline
+ - Returns JSON-serialized results
+
+ ### AST Visitor (`TokenVisitor`)
+ - Implements SwiftSyntax's SyntaxRewriter protocol
+ - Performs depth-first traversal of the syntax tree
+ - Extracts essential information from each node
+ - Builds flattened tree structure with ID-based relationships
+ - Processes tokens and trivia (whitespace, comments)
+
+ ### Data Structures
+ - `TreeNode`: Core representation of syntax elements with metadata
+ - `StructureProperty`: Named properties within syntax nodes
+ - `StructureValue`: Terminal values and type references
+ - `Token`: Token-specific metadata (kind, trivia)
+ - `SourceRange`: Line/column location coordinates
+ - `SyntaxType`: Semantic classification of syntax elements
+ - `SyntaxResponse`: Container for final JSON output
+
+ ## Processing Pipeline
+
+ 1. **Parse**: SwiftSyntax parses Swift source code into AST
+ 2. **Transform**: Optional operator precedence folding
+ 3. **Visit**: TokenVisitor traverses AST and extracts data
+ 4. **Classify**: Nodes are semantically classified (decl/expr/pattern/type/other)
+ 5. **Flatten**: Tree structure is flattened using ID references
+ 6. **Serialize**: Result is encoded to JSON format
+
+ ## Output Format
+
+ The JSON output contains a flat array of TreeNode objects, each with:
+ - Unique ID and parent reference (creates tree structure)
+ - Semantic type classification for easy filtering
+ - Source location for mapping back to original code
+ - Structural properties describing internal organization
+ - Token metadata for leaf nodes (kind, trivia)
+
+ ## Design Principles
+
+ ### Console-First
+ - Optimized for command-line tools and external analysis
+ - Plain text output without HTML escaping (as of recent refactor)
+ - Clean JSON suitable for piping between tools
+
+ ### Flattened Structure
+ - Uses ID-based references instead of object nesting
+ - Avoids circular references in JSON serialization
+ - Enables efficient access patterns for external tools
+
+ ### Semantic Classification
+ - Groups syntax elements by role (declarations, expressions, etc.)
+ - Simplifies filtering and analysis for consumers
+ - Abstracts away SwiftSyntax implementation details
+
+ ### Preservation of Details
+ - Maintains source location information
+ - Preserves trivia (whitespace, comments) exactly
+ - Includes both present and missing tokens for completeness
+
+ ## Usage Example
+
+ ```swift
+ let code = """
+     struct User {
+         let name: String
+     }
+     """
+
+ let response = try SyntaxParser.parse(code: code)
+ // response.syntaxJSON contains the flattened tree structure
+ ```
+
+ This module is primarily consumed by the `skit` command-line tool for
+ converting Swift source code to JSON for external analysis and tooling.
+ */
+
+/// Main entry point for parsing Swift source code into JSON representation.
+///
+/// SyntaxParser converts Swift source code into a structured JSON format that represents
+/// the Abstract Syntax Tree (AST). This is primarily used by the `skit` command-line tool
+/// to provide Swift code analysis for external tools and applications.
+///
+/// The parser leverages Apple's SwiftSyntax framework to perform the actual parsing,
+/// then transforms the complex SwiftSyntax AST into a simplified, serializable format
+/// suitable for JSON output and console consumption.
 package enum SyntaxParser {
+  // MARK: - Configuration Constants
+
+  /// Option key to enable operator precedence folding during parsing.
+  /// When enabled, expressions are reorganized according to Swift's operator precedence rules.
   private static let fold = "fold"
+
+  /// Option key to include missing/implicit tokens in the output.
+  /// Useful for debugging or when you need to see all syntax elements including placeholders.
   private static let showMissing = "showmissing"
+
+  /// Default filename used for source location tracking when no specific file is provided.
   private static let defaultFileName = ""
 
+  // MARK: - Public Interface
+
+  /// Parses Swift source code and returns a JSON representation of its syntax tree.
+  ///
+  /// This method performs the complete parsing pipeline:
+  /// 1. Parses Swift source code using SwiftSyntax
+  /// 2. Optionally applies operator precedence folding
+  /// 3. Traverses the AST to extract structure and token information
+  /// 4. Converts the tree to JSON format suitable for external consumption
+  ///
+  /// - Parameters:
+  ///   - code: Swift source code to parse
+  ///   - options: Optional parsing configuration. Supported options:
+  ///     - "fold": Apply operator precedence folding
+  ///     - "showmissing": Include missing/implicit tokens in output
+  /// - Returns: SyntaxResponse containing the JSON representation
+  /// - Throws: JSONEncoder errors if serialization fails
   package static func parse(code: String, options: [String] = []) throws -> SyntaxResponse {
+    // Parse the Swift source code into a SwiftSyntax AST
     let sourceFile = Parser.parse(source: code)
 
+    // Optionally apply operator precedence folding for proper expression structure
     let syntax: Syntax
     if options.contains(fold) {
+      // Use standard Swift operator table to reorganize expressions by precedence
       syntax = OperatorTable.standardOperators.foldAll(sourceFile, errorHandler: { _ in })
     } else {
+      // Use raw syntax tree without precedence folding
       syntax = Syntax(sourceFile)
     }
 
+    // Create visitor to traverse AST and extract structured information
     let visitor = TokenVisitor(
       locationConverter: SourceLocationConverter(
         fileName: defaultFileName, tree: sourceFile),
       showMissingTokens: options.contains(showMissing)
     )
+
+    // Traverse the syntax tree and build our simplified representation
     _ = visitor.rewrite(syntax)
 
+    // Convert the extracted tree structure to JSON
     let tree = visitor.tree
     let encoder = JSONEncoder()
     let data = try encoder.encode(tree)

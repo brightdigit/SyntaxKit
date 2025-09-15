@@ -29,11 +29,38 @@
 
 import Foundation
 
+/// Represents a named property within a syntax node's structure.
+///
+/// StructureProperty describes the internal components of a syntax node, such as
+/// the "name" property of a function declaration or the "parameters" of a function call.
+/// Each property has a name and may contain either a value (for terminals) or a
+/// reference to another syntax node type.
+///
+/// Examples:
+/// - Function declaration "name" property → StructureValue with identifier text
+/// - Function declaration "body" property → Reference to "CodeBlockSyntax"
+/// - Missing optional property → nil value with just the property name
 internal struct StructureProperty: Codable, Equatable {
+  /// The name of this structural property.
+  /// Corresponds to SwiftSyntax property names like "name", "parameters", "body", etc.
   internal let name: String
+
+  /// The value of this property, if it contains terminal data.
+  /// Present for tokens, literals, and other concrete values.
+  /// Nil for missing optional properties.
   internal let value: StructureValue?
+
+  /// Reference to another syntax node type, if this property contains a nested structure.
+  /// Used when this property points to another syntax node rather than containing terminal data.
+  /// Example: "body" property might reference "CodeBlockSyntax"
   internal let ref: String?
 
+  /// Creates a new StructureProperty with the specified components.
+  ///
+  /// - Parameters:
+  ///   - name: The property name
+  ///   - value: Terminal value data, if any
+  ///   - ref: Reference to another syntax type, if any
   internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
     self.name = name
     self.value = value

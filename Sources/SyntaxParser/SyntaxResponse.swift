@@ -29,6 +29,26 @@
 
 import Foundation
 
+/// Container for the final JSON representation of parsed Swift syntax.
+///
+/// SyntaxResponse is the top-level result type returned by the SyntaxParser.
+/// It wraps the JSON string representation of the parsed syntax tree,
+/// providing a simple interface for the `skit` command-line tool and
+/// other consumers to access the structured syntax data.
+///
+/// The JSON contains a flat array of TreeNode objects representing the
+/// complete Swift syntax tree in a format suitable for external analysis
+/// tools, IDEs, and other applications that need to understand Swift code structure.
 package struct SyntaxResponse: Codable {
+  /// JSON string representation of the parsed syntax tree.
+  /// Contains a serialized array of TreeNode objects with their relationships,
+  /// source locations, and structural information.
   package let syntaxJSON: String
+
+  /// Creates a new SyntaxResponse with the provided JSON data.
+  ///
+  /// - Parameter syntaxJSON: The JSON string representation of the syntax tree
+  package init(syntaxJSON: String) {
+    self.syntaxJSON = syntaxJSON
+  }
 }

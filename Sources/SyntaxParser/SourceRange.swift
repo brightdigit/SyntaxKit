@@ -29,9 +29,40 @@
 
 import Foundation
 
+/// Represents the source location range of a syntax element in the original Swift code.
+///
+/// SourceRange provides line and column coordinates for both the start and end
+/// positions of a syntax element. This information is crucial for tools that need
+/// to map parsed elements back to their original source locations, such as:
+/// - IDEs showing syntax highlighting and error locations
+/// - Code analysis tools reporting issues
+/// - Refactoring tools modifying specific code regions
+///
+/// Coordinates use 1-based indexing to match common editor conventions.
 internal struct SourceRange: Codable, Equatable {
+  /// The line number where this syntax element begins (1-based).
   internal let startRow: Int
+
+  /// The column number where this syntax element begins (1-based).
   internal let startColumn: Int
+
+  /// The line number where this syntax element ends (1-based).
   internal let endRow: Int
+
+  /// The column number where this syntax element ends (1-based).
   internal let endColumn: Int
+
+  /// Creates a new SourceRange with the specified coordinates.
+  ///
+  /// - Parameters:
+  ///   - startRow: Starting line number (1-based)
+  ///   - startColumn: Starting column number (1-based)
+  ///   - endRow: Ending line number (1-based)
+  ///   - endColumn: Ending column number (1-based)
+  internal init(startRow: Int, startColumn: Int, endRow: Int, endColumn: Int) {
+    self.startRow = startRow
+    self.startColumn = startColumn
+    self.endRow = endRow
+    self.endColumn = endColumn
+  }
 }
