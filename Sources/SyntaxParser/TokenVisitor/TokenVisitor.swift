@@ -45,18 +45,6 @@ import Foundation
 internal final class TokenVisitor: SyntaxRewriter {
   // MARK: - String Constants
 
-  /// Suffix used by SwiftSyntax type names (e.g., "VariableDeclSyntax" → "VariableDecl").
-  private static let syntax = "Syntax"
-
-  /// Placeholder text for missing or nil syntax elements.
-  private static let nilValue = "nil"
-
-  /// Property name for collection element type information.
-  private static let element = "Element"
-
-  /// Property name for collection count information.
-  private static let count = "Count"
-
   /// Empty string constant used throughout the module.
   internal static let emptyString = ""
 
@@ -104,133 +92,26 @@ internal final class TokenVisitor: SyntaxRewriter {
   ///
   /// - Parameter node: The SwiftSyntax node being visited
   override internal func visitPre(_ node: Syntax) {
-    let syntaxNodeType = node.syntaxNodeType
+    // Classify and extract node information using utility types
+    let className = SyntaxClassifier.cleanClassName(from: node)
+    let syntaxType = SyntaxClassifier.classifyNode(node)
 
-    // Clean up class name by removing "Syntax" suffix for readability
-    let className: String
-    if "\(syntaxNodeType)".hasSuffix(Self.syntax) {
-      className = String("\(syntaxNodeType)".dropLast(6))
-    } else {
-      className = "\(syntaxNodeType)"
-    }
-
-    // Extract source location information
-    let sourceRange = node.sourceRange(converter: locationConverter)
-    let start = sourceRange.start
-    let end = sourceRange.end
-
-    // Classify the syntax node by its semantic role
-    let syntaxType: SyntaxType
-    switch node {
-    case _ where node.is(DeclSyntax.self):
-      syntaxType = .decl  // Declarations (struct, func, var, etc.)
-    case _ where node.is(ExprSyntax.self):
-      syntaxType = .expr  // Expressions (literals, function calls, etc.)
-    case _ where node.is(PatternSyntax.self):
-      syntaxType = .pattern  // Patterns (identifier patterns, tuple patterns, etc.)
-    case _ where node.is(TypeSyntax.self):
-      syntaxType = .type  // Type annotations and references
-    default:
-      syntaxType = .other  // Other syntax elements (punctuation, keywords, etc.)
-    }
-
-    // Create our simplified tree node representation
-    let treeNode = TreeNode(
+    // Create tree node using factory
+    let treeNode = NodeFactory.createTreeNode(
       id: index,
-      text: className,
-      range: SourceRange(
-        startRow: start.line,
-        startColumn: start.column,
-        endRow: end.line,
-        endColumn: end.column
-      ),
-      type: syntaxType
+      from: node,
+      locationConverter: locationConverter,
+      syntaxType: syntaxType,
+      className: className
     )
 
     // Add to tree and prepare for next node
     tree.append(treeNode)
     index += 1
 
-    // Extract structural information based on the node's layout
+    // Extract structural information using utility
     let allChildren = node.children(viewMode: .all)
-
-    switch node.syntaxNodeType.structure {
-    case .layout(let keyPaths):
-      // Handle nodes with fixed structure (most syntax nodes)
-      if let syntaxNode = node.as(node.syntaxNodeType) {
-        for keyPath in keyPaths {
-          guard let name = childName(keyPath) else {
-            continue
-          }
-
-          // Check if this property has an actual child node
-          guard allChildren.contains(where: { child in child.keyPathInParent == keyPath }) else {
-            // Property exists but has no value - mark as nil
-            treeNode.structure.append(
-              StructureProperty(
-                name: name,
-                value: StructureValue(text: Self.nilValue)
-              )
-            )
-            continue
-          }
-
-          // Extract the actual property value
-          let keyPath = keyPath as AnyKeyPath
-          switch syntaxNode[keyPath: keyPath] {
-          case let value as TokenSyntax:
-            // Handle token nodes (keywords, identifiers, operators, etc.)
-            treeNode.structure.append(
-              StructureProperty(
-                name: name,
-                value: StructureValue(
-                  text: value.text,
-                  kind: "\(value.tokenKind)"
-                )
-              )
-            )
-          case let value?:
-            if let value = value as? any SyntaxProtocol {
-              // Handle nested syntax nodes - store type reference
-              let type = "\(value.syntaxNodeType)"
-              treeNode.structure.append(
-                StructureProperty(
-                  name: name,
-                  value: StructureValue(text: "\(type)"),
-                  ref: "\(type)"
-                )
-              )
-            } else {
-              // Handle primitive values
-              treeNode.structure.append(
-                StructureProperty(name: name, value: StructureValue(text: "\(value)"))
-              )
-            }
-          case .none:
-            // Property exists but is nil
-            treeNode.structure.append(StructureProperty(name: name))
-          }
-        }
-      }
-    case .collection(let syntax):
-      // Handle collection nodes (lists, arrays, etc.)
-      treeNode.type = .collection
-      treeNode.structure.append(
-        StructureProperty(
-          name: Self.element,
-          value: StructureValue(text: "\(syntax)")
-        )
-      )
-      treeNode.structure.append(
-        StructureProperty(
-          name: Self.count,
-          value: StructureValue(text: "\(node.children(viewMode: .all).count)")
-        )
-      )
-    case .choices:
-      // Handle choice nodes (union types) - no special processing needed
-      break
-    }
+    StructureExtractor.extractStructure(from: node, into: treeNode, allChildren: allChildren)
 
     // Establish parent-child relationship
     if let current {
@@ -303,54 +184,6 @@ internal final class TokenVisitor: SyntaxRewriter {
   /// - Parameter piece: The trivia piece to convert
   /// - Returns: String representation of the trivia
   internal func processTriviaPiece(_ piece: TriviaPiece) -> String {
-    var trivia = TokenVisitor.emptyString
-
-    switch piece {
-    case .spaces(let count):
-      // Convert spaces to actual space characters
-      trivia += String(repeating: " ", count: count)
-
-    case .tabs(let count):
-      // Convert tabs to actual tab characters
-      trivia += String(repeating: "\t", count: count)
-
-    case .verticalTabs, .formfeeds:
-      // Ignore legacy whitespace characters
-      break
-
-    case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
-      // Convert line endings to newline characters
-      trivia += String(repeating: "\n", count: count)
-
-    case .lineComment(let text):
-      // Preserve line comments as-is
-      trivia += text
-
-    case .blockComment(let text):
-      // Preserve block comments as-is
-      trivia += text
-
-    case .docLineComment(let text):
-      // Preserve documentation line comments as-is
-      trivia += text
-
-    case .docBlockComment(let text):
-      // Preserve documentation block comments as-is
-      trivia += text
-
-    case .unexpectedText(let text):
-      // Preserve unexpected text (usually from parsing errors)
-      trivia += text
-
-    case .backslashes(let count):
-      // Handle backslash characters (used in string literals and escaping)
-      trivia += String(repeating: #"\"#, count: count)
-
-    case .pounds(let count):
-      // Handle pound characters (used in raw string literals and directives)
-      trivia += String(repeating: "#", count: count)
-    }
-
-    return trivia
+    TriviaProcessor.processTriviaPiece(piece)
   }
 }
