@@ -34,10 +34,10 @@ import SyntaxParser
 internal let code =
   String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
 
-  // Parse the code using SyntaxKit
-  let treeNodes = SyntaxParser.parse(code: code)
-  
-  // Convert to JSON for output
-  let encoder = JSONEncoder()
-  let data = try encoder.encode(treeNodes)
-  let json = String(decoding: data, as: UTF8.self)
+// Parse the code using SyntaxKit
+let treeNodes = SyntaxParser.parse(code: code)
+
+// Convert to JSON for output
+let encoder = JSONEncoder()
+let data = try encoder.encode(treeNodes)
+let json = String(decoding: data, as: UTF8.self)

@@ -129,15 +129,15 @@ internal final class TokenVisitor: SyntaxRewriter {
     let syntaxType: SyntaxType
     switch node {
     case _ where node.is(DeclSyntax.self):
-      syntaxType = .decl      // Declarations (struct, func, var, etc.)
+      syntaxType = .decl  // Declarations (struct, func, var, etc.)
     case _ where node.is(ExprSyntax.self):
-      syntaxType = .expr      // Expressions (literals, function calls, etc.)
+      syntaxType = .expr  // Expressions (literals, function calls, etc.)
     case _ where node.is(PatternSyntax.self):
-      syntaxType = .pattern   // Patterns (identifier patterns, tuple patterns, etc.)
+      syntaxType = .pattern  // Patterns (identifier patterns, tuple patterns, etc.)
     case _ where node.is(TypeSyntax.self):
-      syntaxType = .type      // Type annotations and references
+      syntaxType = .type  // Type annotations and references
     default:
-      syntaxType = .other     // Other syntax elements (punctuation, keywords, etc.)
+      syntaxType = .other  // Other syntax elements (punctuation, keywords, etc.)
     }
 
     // Create our simplified tree node representation

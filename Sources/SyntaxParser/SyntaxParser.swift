@@ -137,12 +137,17 @@ package enum SyntaxParser {
 
   /// Option key to enable operator precedence folding during parsing.
   /// When enabled, expressions are reorganized according to Swift's operator precedence rules.
-  @available(*, deprecated, message: "Operator precedence folding is not supported in the new parse(code:) method")
+  @available(
+    *, deprecated,
+    message: "Operator precedence folding is not supported in the new parse(code:) method"
+  )
   private static let fold = "fold"
 
   /// Option key to include missing/implicit tokens in the output.
   /// Useful for debugging or when you need to see all syntax elements including placeholders.
-  @available(*, deprecated, message: "Missing token display is not supported in the new parse(code:) method")
+  @available(
+    *, deprecated, message: "Missing token display is not supported in the new parse(code:) method"
+  )
   private static let showMissing = "showmissing"
 
   /// Default filename used for source location tracking when no specific file is provided.
