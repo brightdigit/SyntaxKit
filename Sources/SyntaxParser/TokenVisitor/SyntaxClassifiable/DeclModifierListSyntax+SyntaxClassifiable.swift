@@ -1,5 +1,5 @@
 //
-//  SyntaxClassifiable.swift
+//  DeclModifierListSyntax+SyntaxClassifiable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,11 +30,10 @@
 import Foundation
 @_spi(RawSyntax) import SwiftSyntax
 
-/// Protocol for syntax nodes that can classify themselves by their semantic role.
-///
-/// This protocol allows syntax nodes to self-identify their classification,
-/// making the classification process more type-safe and extensible.
-internal protocol SyntaxClassifiable {
-  /// Returns the semantic classification of this syntax node type.
-  static var syntaxType: SyntaxType { get }
+/// Extension for DeclModifierListSyntax to conform to SyntaxClassifiable.
+extension DeclModifierListSyntax: SyntaxClassifiable {
+  /// Declaration modifier lists are classified as `.collection` type.
+  internal static var syntaxType: SyntaxType {
+    .collection
+  }
 }

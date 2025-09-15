@@ -1,5 +1,5 @@
 //
-//  TriviaProcessor.swift
+//  TriviaPiece.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -38,7 +38,6 @@ import Foundation
 /// participate in the Swift language grammar but are important for code reconstruction.
 @available(*, deprecated)
 internal enum TriviaProcessor {
-
   /// Converts a SwiftSyntax trivia piece into its string representation.
   ///
   /// Trivia includes all the "invisible" elements around tokens: whitespace,
@@ -54,10 +53,10 @@ internal enum TriviaProcessor {
     switch piece {
     // MARK: - Text Cases (preserve text as-is)
     case .lineComment(let text),
-         .blockComment(let text),
-         .docLineComment(let text),
-         .docBlockComment(let text),
-         .unexpectedText(let text):
+      .blockComment(let text),
+      .docLineComment(let text),
+      .docBlockComment(let text),
+      .unexpectedText(let text):
       // Preserve text content as-is
       trivia += text
 
@@ -94,15 +93,13 @@ internal enum TriviaProcessor {
 
 // MARK: - TriviaPiece Extension
 
-
-
 extension TriviaPiece {
   /// Represents the different ways a trivia piece can be processed.
   private enum ProcessedTrivia {
     case repeating(String, count: Int)
     case text(String)
   }
-  
+
   /// Converts this trivia piece into a ProcessedTrivia enum, returning nil for empty cases.
   ///
   /// - Returns: ProcessedTrivia enum if the piece has content, nil for empty cases
@@ -110,10 +107,10 @@ extension TriviaPiece {
     switch self {
     // Text Cases (preserve text as-is)
     case .lineComment(let text),
-         .blockComment(let text),
-         .docLineComment(let text),
-         .docBlockComment(let text),
-         .unexpectedText(let text):
+      .blockComment(let text),
+      .docLineComment(let text),
+      .docBlockComment(let text),
+      .unexpectedText(let text):
       return .text(text)
 
     // Repeating Value Cases (repeat characters based on count)

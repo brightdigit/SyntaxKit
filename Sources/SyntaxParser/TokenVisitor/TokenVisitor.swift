@@ -93,8 +93,8 @@ internal final class TokenVisitor: SyntaxRewriter {
   /// - Parameter node: The SwiftSyntax node being visited
   override internal func visitPre(_ node: Syntax) {
     // Classify and extract node information using utility types
-    let className = SyntaxClassifier.cleanClassName(from: node)
-    let syntaxType = SyntaxClassifier.classifyNode(node)
+    let className = node.cleanClassName
+    let syntaxType = node.syntaxType
 
     // Create tree node using convenience initializer
     let treeNode = TreeNode(
@@ -184,6 +184,6 @@ internal final class TokenVisitor: SyntaxRewriter {
   /// - Parameter piece: The trivia piece to convert
   /// - Returns: String representation of the trivia
   internal func processTriviaPiece(_ piece: TriviaPiece) -> String {
-    TriviaProcessor.processTriviaPiece(piece)
+    piece.processedString
   }
 }
