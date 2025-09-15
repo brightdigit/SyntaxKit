@@ -1,3 +1,5 @@
+![SyntaxKit Logo](Sources/SyntaxKit/Documentation.docc/Resources/SyntaxKit_Logo.svg)
+
 # SyntaxKit
 
 [![SwiftPM](https://img.shields.io/badge/SPM-Linux%20%7C%20iOS%20%7C%20macOS%20%7C%20watchOS%20%7C%20tvOS-success?logo=swift)](https://swift.org)
@@ -13,6 +15,18 @@
 **Generate Swift code programmatically with declarative syntax.** SyntaxKit is a Swift package that provides a type-safe, result builder-based API for generating Swift code structures. It's designed for macro development, model transformers, and migration utilities—scenarios where you need to programmatically create Swift code rather than writing it by hand.
 
 Unlike manually writing SwiftSyntax AST nodes, SyntaxKit uses result builders to make code generation readable and maintainable. Perfect for macro authors who need to generate complex Swift structures, or developers building tools that automatically create boilerplate code from external schemas, APIs, or configurations.
+
+## Table of Contents
+
+- [When to Use SyntaxKit](#when-to-use-syntaxkit)
+- [Installation](#installation)
+- [Quick Start](#quick-start-5-minutes)
+- [Why SyntaxKit Excels](#why-syntaxkit-excels)
+- [Features](#features)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Requirements](#requirements)
+- [License](#license)
 
 ## When to Use SyntaxKit
 
