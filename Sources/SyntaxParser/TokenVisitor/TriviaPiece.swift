@@ -36,7 +36,9 @@ import Foundation
 /// into their plain text equivalents, preserving the original formatting and content.
 /// Trivia includes all the "invisible" elements around tokens that don't directly
 /// participate in the Swift language grammar but are important for code reconstruction.
+@available(*, deprecated)
 internal enum TriviaProcessor {
+
   /// Converts a SwiftSyntax trivia piece into its string representation.
   ///
   /// Trivia includes all the "invisible" elements around tokens: whitespace,
@@ -50,6 +52,16 @@ internal enum TriviaProcessor {
     var trivia = TokenVisitor.emptyString
 
     switch piece {
+    // MARK: - Text Cases (preserve text as-is)
+    case .lineComment(let text),
+         .blockComment(let text),
+         .docLineComment(let text),
+         .docBlockComment(let text),
+         .unexpectedText(let text):
+      // Preserve text content as-is
+      trivia += text
+
+    // MARK: - Repeating Value Cases (repeat characters based on count)
     case .spaces(let count):
       // Convert spaces to actual space characters
       trivia += String(repeating: " ", count: count)
@@ -58,33 +70,9 @@ internal enum TriviaProcessor {
       // Convert tabs to actual tab characters
       trivia += String(repeating: "\t", count: count)
 
-    case .verticalTabs, .formfeeds:
-      // Ignore legacy whitespace characters
-      break
-
     case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
       // Convert line endings to newline characters
       trivia += String(repeating: "\n", count: count)
-
-    case .lineComment(let text):
-      // Preserve line comments as-is
-      trivia += text
-
-    case .blockComment(let text):
-      // Preserve block comments as-is
-      trivia += text
-
-    case .docLineComment(let text):
-      // Preserve documentation line comments as-is
-      trivia += text
-
-    case .docBlockComment(let text):
-      // Preserve documentation block comments as-is
-      trivia += text
-
-    case .unexpectedText(let text):
-      // Preserve unexpected text (usually from parsing errors)
-      trivia += text
 
     case .backslashes(let count):
       // Handle backslash characters (used in string literals and escaping)
@@ -93,8 +81,76 @@ internal enum TriviaProcessor {
     case .pounds(let count):
       // Handle pound characters (used in raw string literals and directives)
       trivia += String(repeating: "#", count: count)
+
+    // MARK: - Empty Cases (ignore/no-op)
+    case .verticalTabs, .formfeeds:
+      // Ignore legacy whitespace characters
+      break
     }
 
     return trivia
+  }
+}
+
+// MARK: - TriviaPiece Extension
+
+
+
+extension TriviaPiece {
+  /// Represents the different ways a trivia piece can be processed.
+  private enum ProcessedTrivia {
+    case repeating(String, count: Int)
+    case text(String)
+  }
+  
+  /// Converts this trivia piece into a ProcessedTrivia enum, returning nil for empty cases.
+  ///
+  /// - Returns: ProcessedTrivia enum if the piece has content, nil for empty cases
+  private var processedTrivia: ProcessedTrivia? {
+    switch self {
+    // Text Cases (preserve text as-is)
+    case .lineComment(let text),
+         .blockComment(let text),
+         .docLineComment(let text),
+         .docBlockComment(let text),
+         .unexpectedText(let text):
+      return .text(text)
+
+    // Repeating Value Cases (repeat characters based on count)
+    case .spaces(let count):
+      return .repeating(" ", count: count)
+
+    case .tabs(let count):
+      return .repeating("\t", count: count)
+
+    case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
+      return .repeating("\n", count: count)
+
+    case .backslashes(let count):
+      return .repeating(#"\"#, count: count)
+
+    case .pounds(let count):
+      return .repeating("#", count: count)
+
+    // Empty Cases (ignore/no-op) - return nil
+    case .verticalTabs, .formfeeds:
+      return nil
+    }
+  }
+
+  /// Converts this trivia piece into its string representation using ProcessedTrivia.
+  ///
+  /// - Returns: String representation of the trivia, empty string for empty cases
+  internal var processedString: String {
+    guard let processed = processedTrivia else {
+      return ""
+    }
+
+    switch processed {
+    case .text(let text):
+      return text
+    case .repeating(let character, let count):
+      return String(repeating: character, count: count)
+    }
   }
 }
