@@ -111,8 +111,18 @@ let package = Package(
       swiftSettings: swiftSettings
     ),
     .target(
+      name: "TokenVisitor",
+      dependencies: [
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftOperators", package: "swift-syntax"),
+        .product(name: "SwiftParser", package: "swift-syntax")
+      ],
+      swiftSettings: swiftSettings
+    ),
+    .target(
       name: "SyntaxParser",
       dependencies: [
+        "TokenVisitor",
         .product(name: "SwiftSyntax", package: "swift-syntax"),
         .product(name: "SwiftOperators", package: "swift-syntax"),
         .product(name: "SwiftParser", package: "swift-syntax")

@@ -31,6 +31,7 @@ import Foundation
 import SwiftOperators
 import SwiftParser
 import SwiftSyntax
+import TokenVisitor
 
 // MARK: - Module Overview
 //
@@ -63,9 +64,6 @@ package enum SyntaxParser {
   )
   private static let showMissing = "showmissing"
 
-  /// Default filename used for source location tracking when no specific file is provided.
-  private static let defaultFileName = ""
-
   // MARK: - Public Interface
 
   /// Parses Swift source code and returns an array of TreeNode objects.
@@ -81,23 +79,7 @@ package enum SyntaxParser {
     // Parse the Swift source code into a SwiftSyntax AST
     let sourceFile = Parser.parse(source: code)
 
-    // Use raw syntax tree without precedence folding for simplicity
-    let syntax = Syntax(sourceFile)
-
-    // Create visitor to traverse AST and extract structured information
-    let visitor = TokenVisitor<TreeNode>(
-      locationConverter: SourceLocationConverter(
-        fileName: defaultFileName,
-        tree: sourceFile
-      ),
-      showMissingTokens: false
-    )
-
-    // Traverse the syntax tree and build our simplified representation
-    _ = visitor.rewrite(syntax)
-
-    // Return the tree nodes directly
-    return visitor.tree
+    return TreeNode.parseTree(from: sourceFile)
   }
 
   /// Parses Swift source code and returns a JSON representation of its syntax tree.
@@ -120,32 +102,11 @@ package enum SyntaxParser {
     // Parse the Swift source code into a SwiftSyntax AST
     let sourceFile = Parser.parse(source: code)
 
-    // Optionally apply operator precedence folding for proper expression structure
-    let syntax: Syntax
-    if options.contains(fold) {
-      // Use standard Swift operator table to reorganize expressions by precedence
-      syntax = OperatorTable.standardOperators.foldAll(sourceFile, errorHandler: { _ in })
-    } else {
-      // Use raw syntax tree without precedence folding
-      syntax = Syntax(sourceFile)
-    }
-
-    let locationConverter = SourceLocationConverter(
-      fileName: defaultFileName,
-      tree: sourceFile
+    let tree = TreeNode.parseTree(
+      from: sourceFile,
+      showingMissingTokens: options.contains(showMissing)
     )
 
-    // Create visitor to traverse AST and extract structured information
-    let visitor = TokenVisitor<TreeNode>(
-      locationConverter: locationConverter,
-      showMissingTokens: options.contains(showMissing)
-    )
-
-    // Traverse the syntax tree and build our simplified representation
-    _ = visitor.rewrite(syntax)
-
-    // Convert the extracted tree structure to JSON
-    let tree = visitor.tree
     let encoder = JSONEncoder()
     let data = try encoder.encode(tree)
     let json = String(decoding: data, as: UTF8.self)

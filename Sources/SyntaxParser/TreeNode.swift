@@ -29,6 +29,7 @@
 
 import Foundation
 package import SwiftSyntax
+package import TokenVisitor
 
 /// Represents a single node in the simplified syntax tree structure.
 ///

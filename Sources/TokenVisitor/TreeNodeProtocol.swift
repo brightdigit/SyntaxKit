@@ -46,3 +46,33 @@ package protocol TreeNodeProtocol: AnyObject {
     className: String
   )
 }
+
+extension TreeNodeProtocol {
+  package static func parseTree(
+    from sourceFile: SourceFileSyntax,
+    withFileName fileName: String = .defaultFileName,
+    showingMissingTokens: Bool = false
+  ) -> [Self] {
+    // Use raw syntax tree without precedence folding for simplicity
+    let syntax = Syntax(sourceFile)
+
+    // Create visitor to traverse AST and extract structured information
+    let visitor = TokenVisitor<Self>(
+      locationConverter: SourceLocationConverter(
+        fileName: fileName,
+        tree: sourceFile
+      ),
+      showMissingTokens: false
+    )
+
+    // Traverse the syntax tree and build our simplified representation
+    _ = visitor.rewrite(syntax)
+
+    // Return the tree nodes directly
+    return visitor.tree
+  }
+}
+
+extension String {
+  fileprivate static let defaultFileName = ""
+}

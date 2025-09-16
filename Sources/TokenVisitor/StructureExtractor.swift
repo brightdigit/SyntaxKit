@@ -36,7 +36,7 @@ import Foundation
 /// extracting properties, and converting them into a simplified structure format
 /// suitable for JSON serialization. It handles different node structure types
 /// (layout, collection, choices) and processes their properties appropriately.
-internal enum StructureExtractor {
+package enum StructureExtractor {
   // MARK: - String Constants
 
   /// Placeholder text for missing or nil syntax elements.

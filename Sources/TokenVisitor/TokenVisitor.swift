@@ -47,7 +47,7 @@ internal final class TokenVisitor<NodeType: TreeNodeProtocol>: SyntaxRewriter {
 
   /// The flattened tree structure built during AST traversal.
   /// Each TreeNode represents a syntax element with its metadata and relationships.
-  internal var tree = [NodeType]()
+  package var tree = [NodeType]()
 
   /// Currently active node during traversal (used to build parent-child relationships).
   /// This is implicitly unwrapped because it's guaranteed to be set during normal traversal.
@@ -59,7 +59,7 @@ internal final class TokenVisitor<NodeType: TreeNodeProtocol>: SyntaxRewriter {
   // MARK: - Configuration
 
   /// Converts SwiftSyntax source positions to line/column coordinates.
-  internal let locationConverter: SourceLocationConverter
+  package let locationConverter: SourceLocationConverter
 
   // MARK: - Initialization
 
@@ -68,7 +68,7 @@ internal final class TokenVisitor<NodeType: TreeNodeProtocol>: SyntaxRewriter {
   /// - Parameters:
   ///   - locationConverter: Converts syntax positions to line/column coordinates
   ///   - showMissingTokens: Whether to include missing/implicit tokens in output
-  internal init(locationConverter: SourceLocationConverter, showMissingTokens: Bool) {
+  package init(locationConverter: SourceLocationConverter, showMissingTokens: Bool) {
     self.locationConverter = locationConverter
     // Use .all view mode if showing missing tokens, otherwise only source-accurate tokens
     super.init(viewMode: showMissingTokens ? .all : .sourceAccurate)
