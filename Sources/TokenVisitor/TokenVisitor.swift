@@ -104,9 +104,9 @@ internal final class TokenVisitor<NodeType: TreeNodeProtocol>: SyntaxRewriter {
     tree.append(treeNode)
     index += 1
 
-    // Extract structural information using utility
+    // Append structural information using TreeNodeProtocol extension
     let allChildren = node.children(viewMode: .all)
-    StructureExtractor.extractStructure(from: node, into: treeNode, allChildren: allChildren)
+    treeNode.appendStructure(from: node, allChildren: allChildren)
 
     // Establish parent-child relationship
     if let current {
