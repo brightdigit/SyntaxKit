@@ -39,7 +39,7 @@ import Foundation
 ///
 /// The classification is based on the SwiftSyntax type hierarchy and groups
 /// related syntax elements into meaningful categories.
-package enum SyntaxType: String, Codable, Equatable {
+package enum SyntaxType: String, Codable, Equatable, Sendable {
   /// Declaration syntax elements.
   /// Includes: struct, class, enum, func, var, let, import, protocol, extension, etc.
   case decl

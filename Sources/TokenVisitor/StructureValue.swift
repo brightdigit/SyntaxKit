@@ -40,22 +40,22 @@ import Foundation
 /// - Token value: text="let", kind="keyword(SwiftSyntax.Keyword.let)"
 /// - Type reference: text="VariableDeclSyntax", kind=nil
 /// - Literal value: text="42", kind="integerLiteral(42)"
-package struct StructureValue: Codable, Equatable {
+package struct StructureValue: Codable, Equatable, Sendable {
   /// The string representation of this value.
   /// Contains the actual text content or type name.
-  package let text: String
+  private let text: String
 
   /// Optional kind information that provides additional context about the value type.
   /// Present for tokens to indicate their specific token kind (e.g., "keyword", "identifier").
   /// Nil for simple text values and type references.
-  package let kind: String?
+  private let kind: String?
 
   /// Creates a new StructureValue with the specified content.
   ///
   /// - Parameters:
   ///   - text: The string representation of the value
   ///   - kind: Optional kind information for additional context
-  package init(text: String, kind: String? = nil) {
+  internal init(text: String, kind: String? = nil) {
     self.text = text
     self.kind = kind
   }
@@ -65,8 +65,7 @@ package struct StructureValue: Codable, Equatable {
   /// - Parameters:
   ///   - value: Any value that will be converted to a string
   ///   - kind: Optional kind information for additional context
-  package init(value: Any, kind: String? = nil) {
-    self.text = "\(value)"
-    self.kind = kind
+  internal init(value: Any, kind: String? = nil) {
+    self.init(text: "\(value)", kind: kind)
   }
 }

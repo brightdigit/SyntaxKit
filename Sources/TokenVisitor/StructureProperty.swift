@@ -41,7 +41,7 @@ import SwiftSyntax
 /// - Function declaration "name" property → StructureValue with identifier text
 /// - Function declaration "body" property → Reference to "CodeBlockSyntax"
 /// - Missing optional property → nil value with just the property name
-package struct StructureProperty: Codable, Equatable {
+package struct StructureProperty: Codable, Equatable, Sendable {
   // MARK: - String Constants
 
   /// Property name for collection element type information.
@@ -107,7 +107,7 @@ package struct StructureProperty: Codable, Equatable {
   ///   - type: The syntax node type (will be converted to string)
   internal init(reference name: String, type: Any) {
     let typeString = "\(type)"
-    self.init(name: name, value: StructureValue(text: typeString), ref: typeString)
+    self.init(name: name, value: StructureValue(value: type), ref: typeString)
   }
 
   /// Creates a StructureProperty for a primitive value.
@@ -116,7 +116,7 @@ package struct StructureProperty: Codable, Equatable {
   ///   - name: The property name
   ///   - value: The primitive value (will be converted to string)
   internal init(primitive name: String, value: Any) {
-    self.init(name: name, value: StructureValue(text: "\(value)"), ref: nil)
+    self.init(name: name, value: StructureValue(value: value), ref: nil)
   }
 
   internal init(token name: String, tokenSyntax: TokenSyntax) {

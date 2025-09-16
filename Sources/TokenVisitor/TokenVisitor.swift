@@ -128,24 +128,18 @@ internal final class TokenVisitor<NodeType: TreeNodeProtocol>: SyntaxRewriter {
     // Store the actual token text content
     current?.text = token.text
 
+    // Process leading trivia (whitespace, comments before the token)
+    let leadingTrivia = token.leadingTrivia.map(processTriviaPiece).joined()
+
+    // Process trailing trivia (whitespace, comments after the token)
+    let trailingTrivia = token.trailingTrivia.map(processTriviaPiece).joined()
+
     // Create token metadata with kind information
     current?.token = Token(
       kind: "\(token.tokenKind)",
-      leadingTrivia: .empty,
-      trailingTrivia: .empty
+      leadingTrivia: leadingTrivia,
+      trailingTrivia: trailingTrivia
     )
-
-    // Process leading trivia (whitespace, comments before the token)
-    for piece in token.leadingTrivia {
-      let trivia = processTriviaPiece(piece)
-      current?.token?.leadingTrivia += trivia
-    }
-
-    // Process trailing trivia (whitespace, comments after the token)
-    for piece in token.trailingTrivia {
-      let trivia = processTriviaPiece(piece)
-      current?.token?.trailingTrivia += trivia
-    }
 
     return token
   }

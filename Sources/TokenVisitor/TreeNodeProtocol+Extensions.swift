@@ -179,9 +179,9 @@ extension TreeNodeProtocol {
 }
 
 extension String {
-  fileprivate static let defaultFileName = ""
+  internal static let defaultFileName = ""
 
-  fileprivate init?(_ keyPath: AnyKeyPath) {
+  internal init?(_ keyPath: AnyKeyPath) {
     let keyPathString = String(describing: keyPath)
 
     // Extract the last component after the last dot

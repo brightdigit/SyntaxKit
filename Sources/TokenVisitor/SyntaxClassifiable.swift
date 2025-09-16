@@ -34,7 +34,7 @@ import Foundation
 ///
 /// This protocol allows syntax nodes to self-identify their classification,
 /// making the classification process more type-safe and extensible.
-package protocol SyntaxClassifiable {
+package protocol SyntaxClassifiable: Sendable {
   /// Returns the semantic classification of this syntax node type.
   static var syntaxType: SyntaxType { get }
 }
