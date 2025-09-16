@@ -1,5 +1,5 @@
 //
-//  StructureValue.swift
+//  AttributeListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,24 +28,12 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal struct StructureValue: Codable, Equatable {
-  internal let text: String
-  internal let kind: String?
-
-  internal init(text: String, kind: String? = nil) {
-    self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
-    self.kind = kind?.escapeHTML()
-  }
-}
-
-extension StructureValue: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      text: \(text)
-      kind: \(String(describing: kind))
-    }
-    """
+/// Extension for AttributeListSyntax to conform to SyntaxClassifiable.
+extension AttributeListSyntax: SyntaxClassifiable {
+  /// Attribute lists are classified as `.collection` type.
+  internal static var syntaxType: SyntaxType {
+    .collection
   }
 }

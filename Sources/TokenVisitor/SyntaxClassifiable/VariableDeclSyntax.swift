@@ -1,5 +1,5 @@
 //
-//  SourceRange.swift
+//  VariableDeclSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,24 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal struct SourceRange: Codable, Equatable {
-  internal let startRow: Int
-  internal let startColumn: Int
-  internal let endRow: Int
-  internal let endColumn: Int
-}
-
-extension SourceRange: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      startRow: \(startRow)
-      startColumn: \(startColumn)
-      endRow: \(endRow)
-      endColumn: \(endColumn)
-    }
-    """
+extension VariableDeclSyntax: SyntaxClassifiable {
+  static var syntaxType: SyntaxType {
+    .decl
   }
 }

@@ -1,5 +1,5 @@
 //
-//  TreeNode.swift
+//  ExprSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,49 +28,11 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal final class TreeNode: Codable {
-  internal let id: Int
-  internal var parent: Int?
-
-  internal var text: String
-  internal var range = SourceRange(
-    startRow: 0,
-    startColumn: 0,
-    endRow: 0,
-    endColumn: 0
-  )
-  internal var structure = [StructureProperty]()
-  internal var type: SyntaxType
-  internal var token: Token?
-
-  internal init(id: Int, text: String, range: SourceRange, type: SyntaxType) {
-    self.id = id
-    self.text = text.escapeHTML()
-    self.range = range
-    self.type = type
-  }
-}
-
-extension TreeNode: Equatable {
-  internal static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
-    lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
-      && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
-  }
-}
-
-extension TreeNode: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      id: \(id)
-      parent: \(String(describing: parent))
-      text: \(text)
-      range: \(range)
-      structure: \(structure)
-      type: \(type)
-      token: \(String(describing: token))
-    }
-    """
+extension ExprSyntax: SyntaxClassifiable {
+  /// Expressions are classified as `.expr` type.
+  internal static var syntaxType: SyntaxType {
+    .expr
   }
 }

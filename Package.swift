@@ -59,21 +59,21 @@ let swiftSettings: [SwiftSetting] = [
   // Warn unsafe reflection
   .enableExperimentalFeature("WarnUnsafeReflection"),
 
-  // // Enhanced compiler checking
-  // .unsafeFlags([
-  //   // Enable concurrency warnings
-  //   "-warn-concurrency",
-  //   // Enable actor data race checks
-  //   "-enable-actor-data-race-checks",
-  //   // Complete strict concurrency checking
-  //   "-strict-concurrency=complete",
-  //   // Enable testing support
-  //   "-enable-testing",
-  //   // Warn about functions with >100 lines
-  //   "-Xfrontend", "-warn-long-function-bodies=100",
-  //   // Warn about slow type checking expressions
-  //   "-Xfrontend", "-warn-long-expression-type-checking=100"
-  // ])
+  // Enhanced compiler checking
+  .unsafeFlags([
+    // Enable concurrency warnings
+    "-warn-concurrency",
+    // Enable actor data race checks
+    "-enable-actor-data-race-checks",
+    // Complete strict concurrency checking
+    "-strict-concurrency=complete",
+    // Enable testing support
+    "-enable-testing",
+    // Warn about functions with >100 lines
+    "-Xfrontend", "-warn-long-function-bodies=100",
+    // Warn about slow type checking expressions
+    "-Xfrontend", "-warn-long-expression-type-checking=100"
+  ])
 ]
 
 // swiftlint:disable:next explicit_top_level_acl explicit_acl
@@ -111,6 +111,25 @@ let package = Package(
       swiftSettings: swiftSettings
     ),
     .target(
+      name: "TokenVisitor",
+      dependencies: [
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftOperators", package: "swift-syntax"),
+        .product(name: "SwiftParser", package: "swift-syntax")
+      ],
+      swiftSettings: swiftSettings
+    ),
+    .target(
+      name: "SyntaxParser",
+      dependencies: [
+        "TokenVisitor",
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftOperators", package: "swift-syntax"),
+        .product(name: "SwiftParser", package: "swift-syntax")
+      ],
+      swiftSettings: swiftSettings
+    ),
+    .target(
       name: "DocumentationHarness",
       dependencies: [
         .product(name: "SwiftSyntax", package: "swift-syntax"),
@@ -121,7 +140,7 @@ let package = Package(
     ),
     .executableTarget(
       name: "skit",
-      dependencies: ["SyntaxKit"],
+      dependencies: ["SyntaxParser"],
       swiftSettings: swiftSettings
     ),
     .testTarget(

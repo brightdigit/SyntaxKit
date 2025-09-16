@@ -1,5 +1,5 @@
 //
-//  SyntaxType.swift
+//  ConditionElementListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,12 +28,12 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal enum SyntaxType: String, Codable, Equatable {
-  case decl
-  case expr
-  case pattern
-  case type
-  case collection
-  case other
+/// Extension for ConditionElementListSyntax to conform to SyntaxClassifiable.
+extension ConditionElementListSyntax: SyntaxClassifiable {
+  /// Condition element lists are classified as `.collection` type.
+  internal static var syntaxType: SyntaxType {
+    .collection
+  }
 }

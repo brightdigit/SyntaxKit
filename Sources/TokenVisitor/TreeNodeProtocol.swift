@@ -1,5 +1,5 @@
 //
-//  SyntaxResponse.swift
+//  TreeNodeProtocol.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,7 +28,21 @@
 //
 
 import Foundation
+package import SwiftSyntax
 
-package struct SyntaxResponse: Codable {
-  package let syntaxJSON: String
+package protocol TreeNodeProtocol: AnyObject {
+  var id: Int { get }
+  var parent: Int? { get set }
+  var text: String { get set }
+  var token: Token? { get set }
+  var structure: [StructureProperty] { get set }
+  var type: SyntaxType { get set }
+
+  init(
+    id: Int,
+    from node: Syntax,
+    locationConverter: SourceLocationConverter,
+    syntaxType: SyntaxType,
+    className: String
+  )
 }

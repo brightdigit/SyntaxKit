@@ -1,5 +1,5 @@
 //
-//  StructureProperty.swift
+//  IdentifierTypeSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,28 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-internal struct StructureProperty: Codable, Equatable {
-  internal let name: String
-  internal let value: StructureValue?
-  internal let ref: String?
-
-  internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
-    self.name = name.escapeHTML()
-    self.value = value
-    self.ref = ref?.escapeHTML()
-  }
-}
-
-extension StructureProperty: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      name: \(name)
-      value: \(String(describing: value))
-      ref: \(String(describing: ref))
-    }
-    """
+extension IdentifierTypeSyntax: SyntaxClassifiable {
+  static var syntaxType: SyntaxType {
+    .type
   }
 }

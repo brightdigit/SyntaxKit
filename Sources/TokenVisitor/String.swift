@@ -1,5 +1,5 @@
 //
-//  Token.swift
+//  String.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,28 +27,6 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-
-internal struct Token: Codable, Equatable {
-  internal let kind: String
-  internal var leadingTrivia: String
-  internal var trailingTrivia: String
-
-  internal init(kind: String, leadingTrivia: String, trailingTrivia: String) {
-    self.kind = kind.escapeHTML()
-    self.leadingTrivia = leadingTrivia
-    self.trailingTrivia = trailingTrivia
-  }
-}
-
-extension Token: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      kind: \(kind)
-      leadingTrivia: \(leadingTrivia)
-      trailingTrivia: \(trailingTrivia)
-    }
-    """
-  }
+extension String {
+  internal static let empty = ""
 }

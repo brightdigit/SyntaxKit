@@ -1,5 +1,5 @@
 //
-//  String.swift
+//  SyntaxClassifiable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,43 +28,13 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-extension String {
-  internal func escapeHTML() -> String {
-    var string = self
-    let specialCharacters = [
-      ("&", "&amp;"),
-      ("<", "&lt;"),
-      (">", "&gt;"),
-      ("\"", "&quot;"),
-      ("'", "&apos;"),
-    ]
-    for (unescaped, escaped) in specialCharacters {
-      string = string.replacingOccurrences(
-        of: unescaped,
-        with: escaped,
-        options: .literal,
-        range: nil
-      )
-    }
-    return string
-  }
-
-  internal func replaceInvisiblesWithHTML() -> String {
-    self
-      .replacingOccurrences(of: " ", with: "&nbsp;")
-      .replacingOccurrences(of: "\n", with: "<br/>")
-  }
-
-  internal func replaceInvisiblesWithSymbols() -> String {
-    self
-      .replacingOccurrences(of: " ", with: "␣")
-      .replacingOccurrences(of: "\n", with: "↲")
-  }
-
-  internal func replaceHTMLWhitespacesWithSymbols() -> String {
-    self
-      .replacingOccurrences(of: "&nbsp;", with: "<span class='whitespace'>␣</span>")
-      .replacingOccurrences(of: "<br/>", with: "<span class='newline'>↲</span><br/>")
-  }
+/// Protocol for syntax nodes that can classify themselves by their semantic role.
+///
+/// This protocol allows syntax nodes to self-identify their classification,
+/// making the classification process more type-safe and extensible.
+package protocol SyntaxClassifiable: Sendable {
+  /// Returns the semantic classification of this syntax node type.
+  static var syntaxType: SyntaxType { get }
 }

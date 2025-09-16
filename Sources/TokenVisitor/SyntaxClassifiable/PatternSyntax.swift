@@ -1,5 +1,5 @@
 //
-//  String+Extensions.swift
+//  PatternSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,11 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-extension String {
-  internal func replaceHTMLWhitespacesToSymbols() -> String {
-    self
-      .replacingOccurrences(of: "&nbsp;", with: "<span class='whitespace'>␣</span>")
-      .replacingOccurrences(of: "<br>", with: "<span class='newline'>↲</span>")
+extension PatternSyntax: SyntaxClassifiable {
+  /// Patterns are classified as `.pattern` type.
+  internal static var syntaxType: SyntaxType {
+    .pattern
   }
 }
