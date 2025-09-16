@@ -59,4 +59,14 @@ package struct StructureValue: Codable, Equatable {
     self.text = text
     self.kind = kind
   }
+
+  /// Creates a new StructureValue from any value by performing string interpolation.
+  ///
+  /// - Parameters:
+  ///   - value: Any value that will be converted to a string
+  ///   - kind: Optional kind information for additional context
+  package init(value: Any, kind: String? = nil) {
+    self.text = "\(value)"
+    self.kind = kind
+  }
 }

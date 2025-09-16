@@ -28,6 +28,7 @@
 //
 
 import Foundation
+import SwiftSyntax
 
 /// Represents a named property within a syntax node's structure.
 ///
@@ -41,19 +42,30 @@ import Foundation
 /// - Function declaration "body" property → Reference to "CodeBlockSyntax"
 /// - Missing optional property → nil value with just the property name
 package struct StructureProperty: Codable, Equatable {
+  // MARK: - String Constants
+
+  /// Property name for collection element type information.
+  private static let element: String = "Element"
+
+  /// Property name for collection count information.
+  private static let count: String = "Count"
+
+  /// Placeholder text for missing or nil syntax elements.
+  private static let nilValue: String = "nil"
+
   /// The name of this structural property.
   /// Corresponds to SwiftSyntax property names like "name", "parameters", "body", etc.
-  package let name: String
+  private let name: String
 
   /// The value of this property, if it contains terminal data.
   /// Present for tokens, literals, and other concrete values.
   /// Nil for missing optional properties.
-  package let value: StructureValue?
+  private let value: StructureValue?
 
   /// Reference to another syntax node type, if this property contains a nested structure.
   /// Used when this property points to another syntax node rather than containing terminal data.
   /// Example: "body" property might reference "CodeBlockSyntax"
-  package let ref: String?
+  private let ref: String?
 
   /// Creates a new StructureProperty with the specified components.
   ///
@@ -61,9 +73,65 @@ package struct StructureProperty: Codable, Equatable {
   ///   - name: The property name
   ///   - value: Terminal value data, if any
   ///   - ref: Reference to another syntax type, if any
-  package init(name: String, value: StructureValue? = nil, ref: String? = nil) {
+  internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
     self.name = name
     self.value = value
     self.ref = ref
+  }
+
+  // MARK: - Convenience Initializers
+
+  /// Creates a StructureProperty for a missing property with a nil value indicator.
+  ///
+  /// - Parameters:
+  ///   - name: The property name
+  ///   - nilValue: The value to display for the nil value (will be converted to string)
+  internal init(nilValueWithName name: String) {
+    self.init(name: name, value: StructureValue(text: Self.nilValue), ref: nil)
+  }
+
+  /// Creates a StructureProperty for a token value.
+  ///
+  /// - Parameters:
+  ///   - name: The property name
+  ///   - text: The token text
+  ///   - kind: The token kind
+  private init(token name: String, text: String, kind: Any) {
+    self.init(name: name, value: StructureValue(text: text, kind: "\(kind)"), ref: nil)
+  }
+
+  /// Creates a StructureProperty for a syntax node reference.
+  ///
+  /// - Parameters:
+  ///   - name: The property name
+  ///   - type: The syntax node type (will be converted to string)
+  internal init(reference name: String, type: Any) {
+    let typeString = "\(type)"
+    self.init(name: name, value: StructureValue(text: typeString), ref: typeString)
+  }
+
+  /// Creates a StructureProperty for a primitive value.
+  ///
+  /// - Parameters:
+  ///   - name: The property name
+  ///   - value: The primitive value (will be converted to string)
+  internal init(primitive name: String, value: Any) {
+    self.init(name: name, value: StructureValue(text: "\(value)"), ref: nil)
+  }
+
+  internal init(token name: String, tokenSyntax: TokenSyntax) {
+    self.init(
+      token: name,
+      text: tokenSyntax.text,
+      kind: tokenSyntax.tokenKind
+    )
+  }
+
+  internal init(collectionWithCount count: Int) {
+    self.init(primitive: Self.count, value: count)
+  }
+
+  internal init(elementWithType type: Any.Type) {
+    self.init(primitive: Self.element, value: type)
   }
 }
