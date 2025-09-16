@@ -1,5 +1,5 @@
 //
-//  CodeBlockItemListSyntax+SyntaxClassifiable.swift
+//  CatchClauseListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for CodeBlockItemListSyntax to conform to SyntaxClassifiable.
-extension CodeBlockItemListSyntax: SyntaxClassifiable {
-  /// Code block item lists are classified as `.collection` type.
+/// Extension for CatchClauseListSyntax to conform to SyntaxClassifiable.
+extension CatchClauseListSyntax: SyntaxClassifiable {
+  /// Catch clause lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
     .collection
   }

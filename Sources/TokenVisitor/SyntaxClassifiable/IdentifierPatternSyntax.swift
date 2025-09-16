@@ -1,5 +1,5 @@
 //
-//  AttributeListSyntax+SyntaxClassifiable.swift
+//  IdentifierPatternSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,13 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for AttributeListSyntax to conform to SyntaxClassifiable.
-extension AttributeListSyntax: SyntaxClassifiable {
-  /// Attribute lists are classified as `.collection` type.
-  internal static var syntaxType: SyntaxType {
-    .collection
+extension IdentifierPatternSyntax: SyntaxClassifiable {
+  static var syntaxType: SyntaxType {
+    .pattern
   }
 }

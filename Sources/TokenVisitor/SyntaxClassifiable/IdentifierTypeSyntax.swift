@@ -1,5 +1,5 @@
 //
-//  SwitchCaseItemListSyntax+SyntaxClassifiable.swift
+//  IdentifierTypeSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,13 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for SwitchCaseItemListSyntax to conform to SyntaxClassifiable.
-extension SwitchCaseItemListSyntax: SyntaxClassifiable {
-  /// Switch case item lists are classified as `.collection` type.
-  internal static var syntaxType: SyntaxType {
-    .collection
+extension IdentifierTypeSyntax: SyntaxClassifiable {
+  static var syntaxType: SyntaxType {
+    .type
   }
 }

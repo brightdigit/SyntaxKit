@@ -1,5 +1,5 @@
 //
-//  PatternBindingListSyntax+SyntaxClassifiable.swift
+//  VariableDeclSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,13 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for PatternBindingListSyntax to conform to SyntaxClassifiable.
-extension PatternBindingListSyntax: SyntaxClassifiable {
-  /// Pattern binding lists are classified as `.collection` type.
-  internal static var syntaxType: SyntaxType {
-    .collection
+extension VariableDeclSyntax: SyntaxClassifiable {
+  static var syntaxType: SyntaxType {
+    .decl
   }
 }

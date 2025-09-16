@@ -1,5 +1,5 @@
 //
-//  DeclSyntax+SyntaxClassifiable.swift
+//  ConditionElementListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,12 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-extension DeclSyntax: SyntaxClassifiable {
-  /// Declarations are classified as `.decl` type.
+/// Extension for ConditionElementListSyntax to conform to SyntaxClassifiable.
+extension ConditionElementListSyntax: SyntaxClassifiable {
+  /// Condition element lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
-    .decl
+    .collection
   }
 }

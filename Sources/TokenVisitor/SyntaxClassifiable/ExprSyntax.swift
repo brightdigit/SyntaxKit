@@ -1,5 +1,5 @@
 //
-//  DeclModifierListSyntax+SyntaxClassifiable.swift
+//  ExprSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,12 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for DeclModifierListSyntax to conform to SyntaxClassifiable.
-extension DeclModifierListSyntax: SyntaxClassifiable {
-  /// Declaration modifier lists are classified as `.collection` type.
+extension ExprSyntax: SyntaxClassifiable {
+  /// Expressions are classified as `.expr` type.
   internal static var syntaxType: SyntaxType {
-    .collection
+    .expr
   }
 }

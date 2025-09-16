@@ -36,7 +36,7 @@ extension Syntax {
   /// If the node's type conforms to `SyntaxClassifiable`, returns its static
   /// `syntaxType`. Otherwise, returns `.other`.
   internal var syntaxType: SyntaxType {
-    if let classifiable = type(of: self) as? any SyntaxClassifiable.Type {
+    if let classifiable = self.syntaxNodeType as? any SyntaxClassifiable.Type {
       return classifiable.syntaxType
     }
     return .other

@@ -1,5 +1,5 @@
 //
-//  SyntaxClassifiable.swift
+//  DeclSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,11 +30,9 @@
 import Foundation
 import SwiftSyntax
 
-/// Protocol for syntax nodes that can classify themselves by their semantic role.
-///
-/// This protocol allows syntax nodes to self-identify their classification,
-/// making the classification process more type-safe and extensible.
-package protocol SyntaxClassifiable: Sendable {
-  /// Returns the semantic classification of this syntax node type.
-  static var syntaxType: SyntaxType { get }
+extension DeclSyntax: SyntaxClassifiable {
+  /// Declarations are classified as `.decl` type.
+  internal static var syntaxType: SyntaxType {
+    .decl
+  }
 }

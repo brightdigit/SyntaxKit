@@ -1,5 +1,5 @@
 //
-//  ConditionElementListSyntax+SyntaxClassifiable.swift
+//  PatternSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,12 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for ConditionElementListSyntax to conform to SyntaxClassifiable.
-extension ConditionElementListSyntax: SyntaxClassifiable {
-  /// Condition element lists are classified as `.collection` type.
+extension PatternSyntax: SyntaxClassifiable {
+  /// Patterns are classified as `.pattern` type.
   internal static var syntaxType: SyntaxType {
-    .collection
+    .pattern
   }
 }

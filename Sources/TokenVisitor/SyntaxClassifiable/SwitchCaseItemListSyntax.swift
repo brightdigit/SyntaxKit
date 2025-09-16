@@ -1,5 +1,5 @@
 //
-//  CatchClauseListSyntax+SyntaxClassifiable.swift
+//  SwitchCaseItemListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for CatchClauseListSyntax to conform to SyntaxClassifiable.
-extension CatchClauseListSyntax: SyntaxClassifiable {
-  /// Catch clause lists are classified as `.collection` type.
+/// Extension for SwitchCaseItemListSyntax to conform to SyntaxClassifiable.
+extension SwitchCaseItemListSyntax: SyntaxClassifiable {
+  /// Switch case item lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
     .collection
   }

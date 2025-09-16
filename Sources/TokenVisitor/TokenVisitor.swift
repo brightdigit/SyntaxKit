@@ -28,7 +28,7 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
 /// AST visitor that transforms SwiftSyntax nodes into a simplified tree structure for JSON serialization.
 ///

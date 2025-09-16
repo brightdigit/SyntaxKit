@@ -1,5 +1,5 @@
 //
-//  LabeledExprListSyntax+SyntaxClassifiable.swift
+//  FunctionParameterListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for LabeledExprListSyntax to conform to SyntaxClassifiable.
-extension LabeledExprListSyntax: SyntaxClassifiable {
-  /// Labeled expression lists are classified as `.collection` type.
+/// Extension for FunctionParameterListSyntax to conform to SyntaxClassifiable.
+extension FunctionParameterListSyntax: SyntaxClassifiable {
+  /// Function parameter lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
     .collection
   }

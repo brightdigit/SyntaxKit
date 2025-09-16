@@ -28,7 +28,7 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
 // MARK: - TriviaPiece Extension
 

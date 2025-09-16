@@ -1,5 +1,5 @@
 //
-//  FunctionParameterListSyntax+SyntaxClassifiable.swift
+//  PatternBindingListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-/// Extension for FunctionParameterListSyntax to conform to SyntaxClassifiable.
-extension FunctionParameterListSyntax: SyntaxClassifiable {
-  /// Function parameter lists are classified as `.collection` type.
+/// Extension for PatternBindingListSyntax to conform to SyntaxClassifiable.
+extension PatternBindingListSyntax: SyntaxClassifiable {
+  /// Pattern binding lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
     .collection
   }

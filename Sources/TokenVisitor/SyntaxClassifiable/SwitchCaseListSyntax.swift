@@ -1,5 +1,5 @@
 //
-//  TypeSyntax+SyntaxClassifiable.swift
+//  SwitchCaseListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,12 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-extension TypeSyntax: SyntaxClassifiable {
-  /// Types are classified as `.type` type.
+/// Extension for SwitchCaseListSyntax to conform to SyntaxClassifiable.
+extension SwitchCaseListSyntax: SyntaxClassifiable {
+  /// Switch case lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
-    .type
+    .collection
   }
 }

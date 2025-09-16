@@ -1,5 +1,5 @@
 //
-//  ExprSyntax+SyntaxClassifiable.swift
+//  TypeSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,11 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-extension ExprSyntax: SyntaxClassifiable {
-  /// Expressions are classified as `.expr` type.
+extension TypeSyntax: SyntaxClassifiable {
+  /// Types are classified as `.type` type.
   internal static var syntaxType: SyntaxType {
-    .expr
+    .type
   }
 }

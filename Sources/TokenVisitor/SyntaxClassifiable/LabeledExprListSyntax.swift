@@ -1,5 +1,5 @@
 //
-//  PatternSyntax+SyntaxClassifiable.swift
+//  LabeledExprListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,11 +28,12 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+import SwiftSyntax
 
-extension PatternSyntax: SyntaxClassifiable {
-  /// Patterns are classified as `.pattern` type.
+/// Extension for LabeledExprListSyntax to conform to SyntaxClassifiable.
+extension LabeledExprListSyntax: SyntaxClassifiable {
+  /// Labeled expression lists are classified as `.collection` type.
   internal static var syntaxType: SyntaxType {
-    .pattern
+    .collection
   }
 }
