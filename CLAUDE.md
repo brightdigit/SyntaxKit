@@ -104,7 +104,8 @@ Sources/SyntaxKit/
 
 ## SwiftSyntax Reference
 
-> **Full Documentation**: [SwiftSyntax 601.0.1 Documentation](https://swiftpackageindex.com/swiftlang/swift-syntax/601.0.1/documentation/swiftsyntax)
+> **Full Documentation**: [SwiftSyntax 601.0.1 Documentation](https://swiftpackageindex.com/swiftlang/swift-syntax/601.0.1/documentation/swiftsyntax)  
+> **Local Reference**: [docs/SwiftSyntax-LLM.md](Docs/SwiftSyntax-LLM.md) - Complete SwiftSyntax API reference (590KB)
 
 ### Core Concepts
 SwiftSyntax is Apple's source-accurate tree representation of Swift source code, enabling parsing, inspection, generation, and transformation of Swift code programmatically.
