@@ -102,6 +102,200 @@ Sources/SyntaxKit/
 - Integration tests in `Tests/SyntaxKitTests/Integration/`
 - Comprehensive CI/CD with GitHub Actions
 
+## SwiftSyntax Reference
+
+> **Full Documentation**: [SwiftSyntax 601.0.1 Documentation](https://swiftpackageindex.com/swiftlang/swift-syntax/601.0.1/documentation/swiftsyntax)
+
+### Core Concepts
+SwiftSyntax is Apple's source-accurate tree representation of Swift source code, enabling parsing, inspection, generation, and transformation of Swift code programmatically.
+
+### Key Types & Protocols
+
+#### Syntax Foundation
+- `Syntax` - Base protocol for all syntax nodes
+- `SyntaxProtocol` - Protocol all syntax nodes conform to
+- `SyntaxCollection` - Collection of syntax nodes
+- `SyntaxChildren` - Collection of child syntax nodes
+
+#### Tokens & Trivia
+- `TokenSyntax` - Single token representation
+- `TokenKind` - Enumerates Swift language token types
+- `Trivia` - Whitespace, comments, and other non-semantic content
+- `TriviaPiece` - Individual trivia element
+- `SourcePresence` - Indicates if node was found in source
+
+#### Major Syntax Categories
+
+**Declarations (`DeclSyntax`)**
+- `ClassDeclSyntax` - Class declarations
+- `StructDeclSyntax` - Struct declarations  
+- `EnumDeclSyntax` - Enum declarations
+- `ProtocolDeclSyntax` - Protocol declarations
+- `FunctionDeclSyntax` - Function declarations
+- `VariableDeclSyntax` - Variable declarations
+- `ImportDeclSyntax` - Import statements
+- `ExtensionDeclSyntax` - Extension declarations
+- `TypeAliasDeclSyntax` - Type alias declarations
+- `AssociatedTypeDeclSyntax` - Associated type declarations
+- `OperatorDeclSyntax` - Operator declarations
+- `PrecedenceGroupDeclSyntax` - Precedence group declarations
+- `MacroDeclSyntax` - Macro declarations
+- `MacroExpansionDeclSyntax` - Macro expansion declarations
+
+**Expressions (`ExprSyntax`)**
+- `FunctionCallExprSyntax` - Function calls
+- `MemberAccessExprSyntax` - Member access (dot notation)
+- `SubscriptCallExprSyntax` - Subscript calls
+- `BinaryOperatorExprSyntax` - Binary operators
+- `PrefixOperatorExprSyntax` - Prefix operators
+- `PostfixOperatorExprSyntax` - Postfix operators
+- `TernaryExprSyntax` - Ternary operator expressions
+- `ArrayExprSyntax` - Array literals
+- `DictionaryExprSyntax` - Dictionary literals
+- `StringLiteralExprSyntax` - String literals
+- `IntegerLiteralExprSyntax` - Integer literals
+- `FloatLiteralExprSyntax` - Float literals
+- `BooleanLiteralExprSyntax` - Boolean literals
+- `NilLiteralExprSyntax` - Nil literals
+- `ClosureExprSyntax` - Closure expressions
+- `IfExprSyntax` - If expressions
+- `SwitchExprSyntax` - Switch expressions
+- `TryExprSyntax` - Try expressions
+- `AwaitExprSyntax` - Await expressions
+- `KeyPathExprSyntax` - Key path expressions
+- `RegexLiteralExprSyntax` - Regex literals
+
+**Statements (`StmtSyntax`)**
+- `ExpressionStmtSyntax` - Expression statements
+- `IfStmtSyntax` - If statements
+- `GuardStmtSyntax` - Guard statements
+- `WhileStmtSyntax` - While loops
+- `ForStmtSyntax` - For loops
+- `RepeatStmtSyntax` - Repeat-while loops
+- `DoStmtSyntax` - Do statements
+- `ReturnStmtSyntax` - Return statements
+- `ThrowStmtSyntax` - Throw statements
+- `BreakStmtSyntax` - Break statements
+- `ContinueStmtSyntax` - Continue statements
+- `DeferStmtSyntax` - Defer statements
+- `DiscardStmtSyntax` - Discard statements
+- `YieldStmtSyntax` - Yield statements
+
+**Types (`TypeSyntax`)**
+- `IdentifierTypeSyntax` - Named types
+- `ArrayTypeSyntax` - Array types
+- `DictionaryTypeSyntax` - Dictionary types
+- `TupleTypeSyntax` - Tuple types
+- `FunctionTypeSyntax` - Function types
+- `AttributedTypeSyntax` - Types with attributes
+- `OptionalTypeSyntax` - Optional types
+- `ImplicitlyUnwrappedOptionalTypeSyntax` - IUO types
+- `CompositionTypeSyntax` - Protocol composition types
+- `PackExpansionTypeSyntax` - Pack expansion types
+- `PackElementTypeSyntax` - Pack element types
+- `MetatypeTypeSyntax` - Metatype types
+
+**Patterns (`PatternSyntax`)**
+- `IdentifierPatternSyntax` - Identifier patterns
+- `ExpressionPatternSyntax` - Expression patterns
+- `ValueBindingPatternSyntax` - Value binding patterns
+- `TuplePatternSyntax` - Tuple patterns
+- `WildcardPatternSyntax` - Wildcard patterns
+- `IsTypePatternSyntax` - Type checking patterns
+
+#### Collections & Lists
+- `AttributeListSyntax` - Attribute lists
+- `CodeBlockItemListSyntax` - Code block items
+- `MemberBlockItemListSyntax` - Member block items
+- `ParameterListSyntax` - Parameter lists
+- `GenericParameterListSyntax` - Generic parameter lists
+- `GenericRequirementListSyntax` - Generic requirement lists
+- `SwitchCaseListSyntax` - Switch case lists
+- `CatchClauseListSyntax` - Catch clause lists
+- `ArrayElementListSyntax` - Array element lists
+- `DictionaryElementListSyntax` - Dictionary element lists
+
+#### Visitors & Transformers
+- `SyntaxVisitor` - Base visitor class for traversing syntax trees
+- `SyntaxAnyVisitor` - Generic visitor for any syntax node
+- `SyntaxRewriter` - Transformer for modifying syntax trees
+- `SyntaxTreeViewMode` - Controls how missing/unexpected nodes are handled
+
+### Common Patterns
+
+#### Creating Syntax Nodes
+```swift
+// Create a simple identifier
+let identifier = TokenSyntax.identifier("myVariable")
+
+// Create a string literal
+let stringLiteral = StringLiteralExprSyntax(
+    openingQuote: .stringQuoteToken(),
+    segments: StringLiteralSegmentListSyntax([
+        StringSegmentSyntax(content: .stringSegment("Hello"))
+    ]),
+    closingQuote: .stringQuoteToken()
+)
+
+// Create a function call
+let functionCall = FunctionCallExprSyntax(
+    calledExpression: DeclReferenceExprSyntax(
+        baseName: .identifier("print")
+    ),
+    leftParen: .leftParenToken(),
+    arguments: LabeledExprListSyntax([
+        LabeledExprSyntax(expression: stringLiteral)
+    ]),
+    rightParen: .rightParenToken()
+)
+```
+
+#### Traversing Syntax Trees
+```swift
+class MyVisitor: SyntaxVisitor {
+    override func visit(_ node: FunctionDeclSyntax) -> SyntaxVisitorContinueKind {
+        print("Found function: \(node.name)")
+        return .visitChildren
+    }
+    
+    override func visit(_ node: VariableDeclSyntax) -> SyntaxVisitorContinueKind {
+        print("Found variable declaration")
+        return .visitChildren
+    }
+}
+
+// Usage
+let visitor = MyVisitor()
+visitor.walk(syntaxTree)
+```
+
+#### Modifying Syntax Trees
+```swift
+class MyRewriter: SyntaxRewriter {
+    override func visit(_ node: StringLiteralExprSyntax) -> ExprSyntax {
+        // Transform string literals
+        let newContent = node.segments.map { segment in
+            // Modify content as needed
+            return segment
+        }
+        return node.with(\.segments, StringLiteralSegmentListSyntax(newContent))
+    }
+}
+
+// Usage
+let rewriter = MyRewriter()
+let modifiedTree = rewriter.visit(syntaxTree)
+```
+
+### Integration with SyntaxKit
+
+When working with SyntaxKit, remember:
+- All `CodeBlock` implementations should generate valid SwiftSyntax nodes
+- Use the appropriate SwiftSyntax types for each language construct
+- Leverage SwiftSyntax's type safety for compile-time validation
+- Consider using `SyntaxRewriter` for complex transformations
+- Use `SyntaxVisitor` for analysis and inspection tasks
+
 ## Task Master AI Instructions
 **Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
 @./.taskmaster/CLAUDE.md
