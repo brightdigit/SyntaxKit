@@ -30,7 +30,7 @@
 import SwiftSyntax
 
 extension VariableDeclSyntax: SyntaxClassifiable {
-  static var syntaxType: SyntaxType {
+  internal static var syntaxType: SyntaxType {
     .decl
   }
 }
