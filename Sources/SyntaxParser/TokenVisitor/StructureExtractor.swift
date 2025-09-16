@@ -63,7 +63,7 @@ internal enum StructureExtractor {
   ///   - allChildren: All child nodes of the syntax node
   internal static func extractStructure(
     from node: Syntax,
-    into treeNode: TreeNode,
+    into treeNode: any TreeNodeProtocol,
     allChildren: SyntaxChildren
   ) {
     switch node.syntaxNodeType.structure {
@@ -104,11 +104,13 @@ internal enum StructureExtractor {
   ///   - allChildren: All child nodes for reference checking
   private static func handleLayoutStructure(
     node: Syntax,
-    treeNode: TreeNode,
+    treeNode: any TreeNodeProtocol,
     keyPaths: [AnyKeyPath],
     allChildren: SyntaxChildren
   ) {
-    guard let syntaxNode = node.as(node.syntaxNodeType) else { return }
+    guard let syntaxNode = node.as(node.syntaxNodeType) else {
+      return
+    }
 
     for keyPath in keyPaths {
       guard let name = childName(keyPath) else { continue }
@@ -178,7 +180,7 @@ internal enum StructureExtractor {
   ///   - allChildren: All child nodes for counting
   private static func handleCollectionStructure(
     node: Syntax,
-    treeNode: TreeNode,
+    treeNode: any TreeNodeProtocol,
     elementType: Any.Type,
     allChildren: SyntaxChildren
   ) {

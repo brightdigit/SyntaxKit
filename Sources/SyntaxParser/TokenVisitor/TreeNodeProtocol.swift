@@ -1,5 +1,5 @@
 //
-//  TreeNode+Factory.swift
+//  TreeNodeProtocol.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,44 +28,21 @@
 //
 
 import Foundation
-@_spi(RawSyntax) import SwiftSyntax
+package import SwiftSyntax
 
-extension TreeNode {
-  /// Creates a TreeNode from a SwiftSyntax node with proper initialization.
-  ///
-  /// This initializer extracts essential information from the SwiftSyntax node and
-  /// creates a corresponding TreeNode with cleaned class name, semantic type
-  /// classification, and source location information.
-  ///
-  /// - Parameters:
-  ///   - id: Unique identifier for the new node
-  ///   - node: The SwiftSyntax node to convert
-  ///   - locationConverter: Converter for source positions to line/column coordinates
-  ///   - syntaxType: The semantic classification of the node
-  ///   - className: The cleaned class name (without "Syntax" suffix)
-  internal convenience init(
+package protocol TreeNodeProtocol: AnyObject {
+  var id: Int { get }
+  var parent: Int? { get set }
+  var text: String { get set }
+  var token: Token? { get set }
+  var structure: [StructureProperty] { get set }
+  var type: SyntaxType { get set }
+
+  init(
     id: Int,
     from node: Syntax,
     locationConverter: SourceLocationConverter,
     syntaxType: SyntaxType,
     className: String
-  ) {
-    // Extract source location information
-    let sourceRange = node.sourceRange(converter: locationConverter)
-    let start = sourceRange.start
-    let end = sourceRange.end
-
-    // Initialize with extracted information
-    self.init(
-      id: id,
-      text: className,
-      range: SourceRange(
-        startRow: start.line,
-        startColumn: start.column,
-        endRow: end.line,
-        endColumn: end.column
-      ),
-      type: syntaxType
-    )
-  }
+  )
 }

@@ -42,21 +42,16 @@ import Foundation
 /// The visitor implements the SyntaxRewriter protocol to perform a depth-first traversal,
 /// building a parent-child relationship between nodes using ID references rather than
 /// object references (suitable for JSON serialization).
-internal final class TokenVisitor: SyntaxRewriter {
-  // MARK: - String Constants
-
-  /// Empty string constant used throughout the module.
-  internal static let emptyString = ""
-
+internal final class TokenVisitor<NodeType: TreeNodeProtocol>: SyntaxRewriter {
   // MARK: - State Management
 
   /// The flattened tree structure built during AST traversal.
   /// Each TreeNode represents a syntax element with its metadata and relationships.
-  internal var tree = [TreeNode]()
+  internal var tree = [NodeType]()
 
   /// Currently active node during traversal (used to build parent-child relationships).
   /// This is implicitly unwrapped because it's guaranteed to be set during normal traversal.
-  private var current: TreeNode?
+  private var current: NodeType?
 
   /// Sequential ID counter for assigning unique identifiers to each tree node.
   private var index = 0
@@ -97,7 +92,7 @@ internal final class TokenVisitor: SyntaxRewriter {
     let syntaxType = node.syntaxType
 
     // Create tree node using convenience initializer
-    let treeNode = TreeNode(
+    let treeNode = NodeType(
       id: index,
       from: node,
       locationConverter: locationConverter,
@@ -136,8 +131,8 @@ internal final class TokenVisitor: SyntaxRewriter {
     // Create token metadata with kind information
     current?.token = Token(
       kind: "\(token.tokenKind)",
-      leadingTrivia: Self.emptyString,
-      trailingTrivia: Self.emptyString
+      leadingTrivia: .empty,
+      trailingTrivia: .empty
     )
 
     // Process leading trivia (whitespace, comments before the token)

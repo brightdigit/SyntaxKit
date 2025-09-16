@@ -28,6 +28,7 @@
 //
 
 import Foundation
+package import SwiftSyntax
 
 /// Represents a single node in the simplified syntax tree structure.
 ///
@@ -38,7 +39,7 @@ import Foundation
 /// The tree structure is flattened using ID-based parent-child relationships rather
 /// than object references, making it suitable for JSON serialization and consumption
 /// by external tools.
-package final class TreeNode: Codable {
+package final class TreeNode: TreeNodeProtocol, Codable {
   // MARK: - Identity and Relationships
 
   /// Unique identifier for this node within the tree.
@@ -100,5 +101,45 @@ extension TreeNode: Equatable {
   package static func == (lhs: TreeNode, rhs: TreeNode) -> Bool {
     lhs.id == rhs.id && lhs.parent == rhs.parent && lhs.text == rhs.text && lhs.range == rhs.range
       && lhs.structure == rhs.structure && lhs.type == rhs.type && lhs.token == rhs.token
+  }
+}
+
+extension TreeNode {
+  /// Creates a TreeNode from a SwiftSyntax node with proper initialization.
+  ///
+  /// This initializer extracts essential information from the SwiftSyntax node and
+  /// creates a corresponding TreeNode with cleaned class name, semantic type
+  /// classification, and source location information.
+  ///
+  /// - Parameters:
+  ///   - id: Unique identifier for the new node
+  ///   - node: The SwiftSyntax node to convert
+  ///   - locationConverter: Converter for source positions to line/column coordinates
+  ///   - syntaxType: The semantic classification of the node
+  ///   - className: The cleaned class name (without "Syntax" suffix)
+  package convenience init(
+    id: Int,
+    from node: Syntax,
+    locationConverter: SourceLocationConverter,
+    syntaxType: SyntaxType,
+    className: String
+  ) {
+    // Extract source location information
+    let sourceRange = node.sourceRange(converter: locationConverter)
+    let start = sourceRange.start
+    let end = sourceRange.end
+
+    // Initialize with extracted information
+    self.init(
+      id: id,
+      text: className,
+      range: SourceRange(
+        startRow: start.line,
+        startColumn: start.column,
+        endRow: end.line,
+        endColumn: end.column
+      ),
+      type: syntaxType
+    )
   }
 }

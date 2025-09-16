@@ -85,7 +85,7 @@ package enum SyntaxParser {
     let syntax = Syntax(sourceFile)
 
     // Create visitor to traverse AST and extract structured information
-    let visitor = TokenVisitor(
+    let visitor = TokenVisitor<TreeNode>(
       locationConverter: SourceLocationConverter(
         fileName: defaultFileName,
         tree: sourceFile
@@ -136,7 +136,7 @@ package enum SyntaxParser {
     )
 
     // Create visitor to traverse AST and extract structured information
-    let visitor = TokenVisitor(
+    let visitor = TokenVisitor<TreeNode>(
       locationConverter: locationConverter,
       showMissingTokens: options.contains(showMissing)
     )

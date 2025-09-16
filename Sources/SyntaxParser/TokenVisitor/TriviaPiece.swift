@@ -30,67 +30,6 @@
 import Foundation
 @_spi(RawSyntax) import SwiftSyntax
 
-/// Utility for converting SwiftSyntax trivia pieces into string representations.
-///
-/// TriviaProcessor handles the conversion of all trivia types (whitespace, comments, etc.)
-/// into their plain text equivalents, preserving the original formatting and content.
-/// Trivia includes all the "invisible" elements around tokens that don't directly
-/// participate in the Swift language grammar but are important for code reconstruction.
-@available(*, deprecated)
-internal enum TriviaProcessor {
-  /// Converts a SwiftSyntax trivia piece into its string representation.
-  ///
-  /// Trivia includes all the "invisible" elements around tokens: whitespace,
-  /// comments, and other formatting. This method converts each type of trivia
-  /// into plain text suitable for console output, preserving the original
-  /// formatting and content.
-  ///
-  /// - Parameter piece: The trivia piece to convert
-  /// - Returns: String representation of the trivia
-  internal static func processTriviaPiece(_ piece: TriviaPiece) -> String {
-    var trivia = TokenVisitor.emptyString
-
-    switch piece {
-    // MARK: - Text Cases (preserve text as-is)
-    case .lineComment(let text),
-      .blockComment(let text),
-      .docLineComment(let text),
-      .docBlockComment(let text),
-      .unexpectedText(let text):
-      // Preserve text content as-is
-      trivia += text
-
-    // MARK: - Repeating Value Cases (repeat characters based on count)
-    case .spaces(let count):
-      // Convert spaces to actual space characters
-      trivia += String(repeating: " ", count: count)
-
-    case .tabs(let count):
-      // Convert tabs to actual tab characters
-      trivia += String(repeating: "\t", count: count)
-
-    case .newlines(let count), .carriageReturns(let count), .carriageReturnLineFeeds(let count):
-      // Convert line endings to newline characters
-      trivia += String(repeating: "\n", count: count)
-
-    case .backslashes(let count):
-      // Handle backslash characters (used in string literals and escaping)
-      trivia += String(repeating: #"\"#, count: count)
-
-    case .pounds(let count):
-      // Handle pound characters (used in raw string literals and directives)
-      trivia += String(repeating: "#", count: count)
-
-    // MARK: - Empty Cases (ignore/no-op)
-    case .verticalTabs, .formfeeds:
-      // Ignore legacy whitespace characters
-      break
-    }
-
-    return trivia
-  }
-}
-
 // MARK: - TriviaPiece Extension
 
 extension TriviaPiece {
