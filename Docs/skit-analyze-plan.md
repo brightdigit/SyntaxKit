@@ -25,7 +25,9 @@ This addresses the problem of implementing missing SyntaxKit features. Instead o
 - `SyntaxParser` (existing) - for parsing Swift code to AST
 - `ConfigKeyKit` (existing in project) - for configuration key management
 - `swift-configuration` - for CLI argument and environment variable handling
-- Foundation (URLSession) - for HTTP requests to Claude API
+- `swift-openapi-generator` - for generating type-safe Claude API client from OpenAPI spec
+- `swift-openapi-runtime` - runtime support for generated OpenAPI client
+- `swift-openapi-urlsession` - URLSession transport for OpenAPI client
 
 ### 2. Core Components
 
@@ -437,12 +439,30 @@ struct ASTGenerator {
 
 #### I. Claude API Client (`ClaudeAPIClient.swift`)
 
-Handles communication with Claude API for code generation:
+Wraps the OpenAPI-generated client for code generation:
 
 ```swift
+import OpenAPIRuntime
+import OpenAPIURLSession
+
 struct ClaudeAPIClient {
     let apiKey: String
     let model: String
+    private let client: Client  // Generated from OpenAPI spec
+
+    init(apiKey: String, model: String) {
+        self.apiKey = apiKey
+        self.model = model
+
+        // Create OpenAPI client with URLSession transport
+        self.client = Client(
+            serverURL: try! Servers.server1(),  // https://api.anthropic.com
+            transport: URLSessionTransport(),
+            middlewares: [
+                AuthenticationMiddleware(apiKey: apiKey)
+            ]
+        )
+    }
 
     /// Sends request to generate updated library code
     func generateUpdatedLibrary(
@@ -450,13 +470,112 @@ struct ClaudeAPIClient {
         expectedSwift: String,
         swiftAST: String,
         swiftDSL: String
-    ) async throws -> LibraryUpdateResult
+    ) async throws -> LibraryUpdateResult {
+        // Create prompt using template
+        let prompt = PromptTemplate.createAnalysisAndCodeGeneration(
+            syntaxKitLibrary: syntaxKitLibrary,
+            expectedSwift: expectedSwift,
+            swiftAST: swiftAST,
+            swiftDSL: swiftDSL
+        )
 
-    /// Formats the API request payload with code generation instructions
-    private func createRequestPayload(...) -> [String: Any]
+        // Call Claude API using generated client
+        let response = try await client.postV1Messages(
+            body: .json(
+                Components.Schemas.MessageRequest(
+                    model: model,
+                    max_tokens: 20000,
+                    temperature: 1.0,
+                    messages: [
+                        Components.Schemas.Message(
+                            role: .user,
+                            content: prompt
+                        )
+                    ]
+                )
+            )
+        )
+
+        // Extract response content
+        let messageResponse = try response.ok.body.json
+        let responseText = messageResponse.content
+            .compactMap { content -> String? in
+                if case .text(let text) = content {
+                    return text.text
+                }
+                return nil
+            }
+            .joined()
+
+        // Parse code generation response
+        return try parseCodeGenerationResponse(responseText)
+    }
 
     /// Parses API response containing generated code
-    private func parseCodeGenerationResponse(_ data: Data) throws -> LibraryUpdateResult
+    private func parseCodeGenerationResponse(_ text: String) throws -> LibraryUpdateResult {
+        // Extract <file> blocks using regex
+        let filePattern = #"<file path="([^"]+)">(.+?)</file>"#
+        let regex = try NSRegularExpression(pattern: filePattern, options: [.dotMatchesLineSeparators])
+        let nsText = text as NSString
+        let matches = regex.matches(in: text, range: NSRange(location: 0, length: nsText.length))
+
+        var updatedFiles: [LibraryUpdateResult.UpdatedFile] = []
+        var newFiles: [LibraryUpdateResult.NewFile] = []
+
+        for match in matches {
+            let pathRange = match.range(at: 1)
+            let contentRange = match.range(at: 2)
+
+            let relativePath = nsText.substring(with: pathRange)
+            let content = nsText.substring(with: contentRange)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+
+            // Determine if new or updated file based on library scan
+            // For now, treat all as new files (can enhance later)
+            newFiles.append(
+                LibraryUpdateResult.NewFile(
+                    relativePath: relativePath,
+                    content: content,
+                    purpose: "Generated implementation"
+                )
+            )
+        }
+
+        // Extract summary (text before first <file> tag)
+        let summaryPattern = #"^(.+?)(?=<file|$)"#
+        let summaryRegex = try NSRegularExpression(pattern: summaryPattern, options: [.dotMatchesLineSeparators])
+        let summaryMatch = summaryRegex.firstMatch(in: text, range: NSRange(location: 0, length: nsText.length))
+        let summary = summaryMatch.map { nsText.substring(with: $0.range(at: 1)) } ?? "No summary provided"
+
+        return LibraryUpdateResult(
+            updatedFiles: updatedFiles,
+            newFiles: newFiles,
+            unchangedFiles: [],
+            includeUnchangedFiles: false,
+            summary: summary.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+    }
+}
+
+/// Custom middleware for adding Anthropic API key header
+struct AuthenticationMiddleware: ClientMiddleware {
+    let apiKey: String
+
+    func intercept(
+        _ request: HTTPRequest,
+        baseURL: URL,
+        operationID: String,
+        next: (HTTPRequest, URL) async throws -> HTTPResponse
+    ) async throws -> HTTPResponse {
+        var modifiedRequest = request
+        modifiedRequest.headerFields.append(
+            .init(name: "x-api-key", value: apiKey)
+        )
+        modifiedRequest.headerFields.append(
+            .init(name: "anthropic-version", value: "2023-06-01")
+        )
+        return try await next(modifiedRequest, baseURL)
+    }
 }
 
 struct LibraryUpdateResult: Codable {
@@ -485,20 +604,31 @@ struct FileReference: Codable {
 }
 ```
 
-API request structure:
-- Endpoint: `https://api.anthropic.com/v1/messages`
-- Headers: `x-api-key`, `anthropic-version: 2023-06-01`, `content-type: application/json`
-- Body: Enhanced prompt asking Claude to generate actual Swift code, not just describe changes
+**OpenAPI Specification Source**:
+- Uses unofficial OpenAPI spec from [laszukdawid/anthropic-openapi-spec](https://github.com/laszukdawid/anthropic-openapi-spec)
+- Specifically the `hosted_spec.json` file (derived from Anthropic's TypeScript SDK)
+- Download to `Sources/skit-analyze/openapi.json` or `openapi.yaml`
+- Swift OpenAPI Generator will create type-safe client code at build time
 
-Modified Prompt Strategy:
-- Still uses the Workbench prompt for analysis
+**Setup Steps**:
+1. Download OpenAPI spec: `curl -o Sources/skit-analyze/openapi.json https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json`
+2. Create `Sources/skit-analyze/openapi-generator-config.yaml`:
+   ```yaml
+   generate:
+     - types
+     - client
+   ```
+3. Swift OpenAPI Generator plugin will generate client code automatically during build
+
+**Modified Prompt Strategy**:
+- Uses the Workbench prompt for analysis
 - **Additionally** asks Claude to generate the actual implementation code
 - Requests output in structured format using XML-style markers
 - Each code file marked with: `<file path="relative/path.swift">...code...</file>`
 
 **Response Parsing**:
-The API client will parse Claude's response by:
-1. Extract all `<file>` blocks using regex or XML parsing
+The API client parses Claude's response by:
+1. Extract all `<file>` blocks using regex
 2. For each file block:
    - Extract `path` attribute (relative path like "Declarations/Subscript.swift")
    - Extract content between tags (complete Swift code)
@@ -598,14 +728,26 @@ User runs: skit-analyze examples/subscript-feature Sources/SyntaxKit output/Synt
 
 ### 4. Package.swift Changes
 
-Add ConfigKeyKit as a local target and integrate swift-configuration:
+Add ConfigKeyKit as a local target, integrate swift-configuration, and add OpenAPI Generator:
 
 ```swift
-// In dependencies (add swift-configuration):
+// In dependencies:
 .package(
     url: "https://github.com/apple/swift-configuration",
     from: "1.0.0",
     traits: ["CommandLineArguments"]  // Enable CLI args trait
+),
+.package(
+    url: "https://github.com/apple/swift-openapi-generator",
+    from: "1.0.0"
+),
+.package(
+    url: "https://github.com/apple/swift-openapi-runtime",
+    from: "1.0.0"
+),
+.package(
+    url: "https://github.com/apple/swift-openapi-urlsession",
+    from: "1.0.0"
 ),
 
 // Add ConfigKeyKit as a target:
@@ -617,13 +759,18 @@ Add ConfigKeyKit as a local target and integrate swift-configuration:
     swiftSettings: swiftSettings
 ),
 
-// Add new executable target:
+// Add new executable target with OpenAPI Generator plugin:
 .executableTarget(
     name: "skit-analyze",
     dependencies: [
         "SyntaxParser",
         "ConfigKeyKit",
-        .product(name: "Configuration", package: "swift-configuration")
+        .product(name: "Configuration", package: "swift-configuration"),
+        .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+        .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession")
+    ],
+    plugins: [
+        .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")
     ],
     swiftSettings: swiftSettings
 ),
@@ -635,7 +782,27 @@ Add ConfigKeyKit as a local target and integrate swift-configuration:
 ),
 ```
 
-**Note**: ConfigKeyKit already exists in the project directory, so we just need to add it as a target in Package.swift.
+**Setup Requirements**:
+1. Download OpenAPI spec to `Sources/skit-analyze/`:
+   ```bash
+   curl -o Sources/skit-analyze/openapi.json \
+     https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json
+   ```
+
+2. Create `Sources/skit-analyze/openapi-generator-config.yaml`:
+   ```yaml
+   generate:
+     - types
+     - client
+   accessModifier: internal
+   ```
+
+3. The OpenAPI Generator plugin will automatically generate type-safe client code during build
+
+**Notes**:
+- ConfigKeyKit already exists in the project directory, so we just need to add it as a target in Package.swift
+- OpenAPI Generator runs as a build plugin and generates Swift code from the OpenAPI spec at build time
+- Generated code includes type-safe request/response models and client methods
 
 ### 5. Configuration & Environment
 
@@ -729,6 +896,7 @@ Include full API request/response, intermediate parsing steps, file collection d
 
 ## Critical Files to Create
 
+### Source Files
 1. **Sources/skit-analyze/main.swift** - Main entry point
 2. **Sources/skit-analyze/AnalyzeCommand.swift** - Command implementation using ConfigKeyKit
 3. **Sources/skit-analyze/AnalyzerConfiguration.swift** - Configuration structure using ConfigKeyKit
@@ -737,10 +905,20 @@ Include full API request/response, intermediate parsing steps, file collection d
 6. **Sources/skit-analyze/LibraryCollector.swift** - Collects SyntaxKit source files
 7. **Sources/skit-analyze/LibraryWriter.swift** - Writes updated library to output folder
 8. **Sources/skit-analyze/ASTGenerator.swift** - Wraps SyntaxParser for AST generation
-9. **Sources/skit-analyze/ClaudeAPIClient.swift** - Claude API communication for code generation
+9. **Sources/skit-analyze/ClaudeAPIClient.swift** - Wraps OpenAPI-generated client for code generation
 10. **Sources/skit-analyze/PromptTemplate.swift** - Enhanced Workbench prompt with code generation
 11. **Sources/skit-analyze/Models.swift** - Data models (LibraryUpdateResult, UpdatedFile, NewFile, AnalyzerError)
-12. **Package.swift** (modify) - Add ConfigKeyKit target, swift-configuration dependency, and executable target
+
+### Configuration Files
+12. **Sources/skit-analyze/openapi.json** - Anthropic OpenAPI specification (downloaded)
+13. **Sources/skit-analyze/openapi-generator-config.yaml** - OpenAPI Generator configuration
+14. **Package.swift** (modify) - Add ConfigKeyKit target, dependencies, and OpenAPI plugin
+
+### Test Mode Files (Section 8)
+15. **Sources/skit-analyze/Testing/TestRunner.swift** - Orchestrates test execution
+16. **Sources/skit-analyze/Testing/TestCaseDiscoverer.swift** - Discovers and loads test cases
+17. **Sources/skit-analyze/Testing/TestValidator.swift** - Validates results against expectations
+18. **Sources/skit-analyze/Testing/TestModels.swift** - Test data structures
 
 ## Verification Steps
 
@@ -949,6 +1127,9 @@ skit-analyze --test --test-cases=custom-tests/
 
 **New Dependencies**:
 - `swift-configuration` (1.0.0+) with `CommandLineArguments` trait - Configuration management
+- `swift-openapi-generator` (1.0.0+) - Generates type-safe API client from OpenAPI spec
+- `swift-openapi-runtime` (1.0.0+) - Runtime support for generated OpenAPI client
+- `swift-openapi-urlsession` (1.0.0+) - URLSession transport for OpenAPI client
 
 **Existing Dependencies** (reused):
 - `ConfigKeyKit` (in project) - Configuration key abstraction
@@ -956,12 +1137,22 @@ skit-analyze --test --test-cases=custom-tests/
 - `SyntaxParser` (existing module) - AST generation
 - Foundation - HTTP requests, file I/O
 
-**Advantages of swift-configuration + ConfigKeyKit**:
-- Unified handling of CLI args and environment variables
-- Type-safe configuration keys with automatic naming transformations
-- Composable provider hierarchy (CLI overrides ENV)
-- Consistent with project's existing ConfigKeyKit architecture
-- More flexible than ArgumentParser for complex configuration scenarios
+**External Resources**:
+- [Unofficial Anthropic OpenAPI Spec](https://github.com/laszukdawid/anthropic-openapi-spec) - `hosted_spec.json` derived from Anthropic's TypeScript SDK
+
+**Advantages of This Approach**:
+- **swift-configuration + ConfigKeyKit**:
+  - Unified handling of CLI args and environment variables
+  - Type-safe configuration keys with automatic naming transformations
+  - Composable provider hierarchy (CLI overrides ENV)
+  - Consistent with project's existing ConfigKeyKit architecture
+
+- **Swift OpenAPI Generator**:
+  - Type-safe API client generated at build time from OpenAPI spec
+  - Automatic request/response serialization
+  - Built-in error handling and validation
+  - No manual JSON parsing or HTTP request construction
+  - Easy to update when Anthropic publishes official OpenAPI spec (just replace the spec file)
 
 ## Build & Install
 
