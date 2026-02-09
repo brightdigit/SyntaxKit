@@ -17,6 +17,24 @@ This addresses the problem of implementing missing SyntaxKit features. Instead o
 
 ## Implementation Approach
 
+### Code Organization Principle
+
+**IMPORTANT: Each type and extension must be in its own file.**
+
+All structs, enums, classes, protocols, and extensions should be defined in separate files named after the type. This ensures:
+- Better code navigation and discoverability
+- Clearer module boundaries and dependencies
+- Easier maintenance and refactoring
+- Simpler code reviews and version control
+
+**Examples:**
+- `AnalyzerConfiguration` → `AnalyzerConfiguration.swift`
+- `AnalyzerError` → `AnalyzerError.swift`
+- `ClaudeKit` → `ClaudeKit.swift`
+- `AuthenticationMiddleware` → `AuthenticationMiddleware.swift`
+
+**Exception:** Nested types that are tightly coupled to their parent (like `LibraryUpdateResult.UpdatedFile`) may remain in the same file as their parent type.
+
 ### 1. Create Three Targets with Clear Separation
 
 This implementation uses three separate targets for better modularity and testability:
@@ -156,7 +174,11 @@ struct AnalyzerConfiguration: ConfigurationParseable {
         }
     }
 }
+```
 
+#### A2. Error Types (`AnalyzerError.swift`)
+
+```swift
 enum AnalyzerError: Error {
     case missingRequiredArguments(String)
     case missingAPIKey(String)
@@ -600,8 +622,15 @@ struct ClaudeKit {
         )
     }
 }
+```
 
-/// Custom middleware for adding Anthropic API key header
+#### I2. Authentication Middleware (`AuthenticationMiddleware.swift`)
+
+Custom middleware for adding Anthropic API key header:
+
+```swift
+import OpenAPIRuntime
+
 struct AuthenticationMiddleware: ClientMiddleware {
     let apiKey: String
 
@@ -621,7 +650,13 @@ struct AuthenticationMiddleware: ClientMiddleware {
         return try await next(modifiedRequest, baseURL)
     }
 }
+```
 
+#### I3. Library Update Result (`LibraryUpdateResult.swift`)
+
+Data structures for library update results:
+
+```swift
 struct LibraryUpdateResult: Codable {
     struct UpdatedFile: Codable {
         let relativePath: String  // e.g., "Declarations/Subscript.swift"
@@ -641,7 +676,11 @@ struct LibraryUpdateResult: Codable {
     let includeUnchangedFiles: Bool
     let summary: String  // Claude's explanation of changes
 }
+```
 
+#### I4. File Reference (`FileReference.swift`)
+
+```swift
 struct FileReference: Codable {
     let relativePath: String
     let sourcePath: String
@@ -944,25 +983,28 @@ Include full API request/response, intermediate parsing steps, file collection d
 1. **Sources/skit-aist/main.swift** - Main entry point
 2. **Sources/skit-aist/AnalyzeCommand.swift** - Command implementation using ConfigKeyKit
 3. **Sources/skit-aist/AnalyzerConfiguration.swift** - Configuration structure using ConfigKeyKit
-4. **Sources/skit-aist/SyntaxKitAnalyzer.swift** - Core analyzer orchestration
-5. **Sources/skit-aist/InputFolderReader.swift** - Reads dsl.swift, expected.swift, ast files
-6. **Sources/skit-aist/LibraryCollector.swift** - Collects SyntaxKit source files
-7. **Sources/skit-aist/LibraryWriter.swift** - Writes updated library to output folder
-8. **Sources/skit-aist/ASTGenerator.swift** - Wraps SyntaxParser for AST generation
-9. **Sources/skit-aist/ClaudeKit.swift** - Wraps OpenAPI-generated client for code generation
-10. **Sources/skit-aist/PromptTemplate.swift** - Enhanced Workbench prompt with code generation
-11. **Sources/skit-aist/Models.swift** - Data models (LibraryUpdateResult, UpdatedFile, NewFile, AnalyzerError)
+4. **Sources/skit-aist/AnalyzerError.swift** - Error types for analyzer operations
+5. **Sources/skit-aist/SyntaxKitAnalyzer.swift** - Core analyzer orchestration
+6. **Sources/skit-aist/InputFolderReader.swift** - Reads dsl.swift, expected.swift, ast files
+7. **Sources/skit-aist/LibraryCollector.swift** - Collects SyntaxKit source files
+8. **Sources/skit-aist/LibraryWriter.swift** - Writes updated library to output folder
+9. **Sources/skit-aist/ASTGenerator.swift** - Wraps SyntaxParser for AST generation
+10. **Sources/skit-aist/ClaudeKit.swift** - Wraps OpenAPI-generated client for code generation
+11. **Sources/skit-aist/AuthenticationMiddleware.swift** - OpenAPI middleware for API authentication
+12. **Sources/skit-aist/LibraryUpdateResult.swift** - Data structures for library update results
+13. **Sources/skit-aist/FileReference.swift** - File reference data structure
+14. **Sources/skit-aist/PromptTemplate.swift** - Enhanced Workbench prompt with code generation
 
 ### Configuration Files
-12. **Sources/skit-aist/openapi.json** - Anthropic OpenAPI specification (downloaded)
-13. **Sources/skit-aist/openapi-generator-config.yaml** - OpenAPI Generator configuration
-14. **Package.swift** (modify) - Add ConfigKeyKit target, dependencies, and OpenAPI plugin
+15. **Sources/skit-aist/openapi.json** - Anthropic OpenAPI specification (downloaded)
+16. **Sources/skit-aist/openapi-generator-config.yaml** - OpenAPI Generator configuration
+17. **Package.swift** (modify) - Add ConfigKeyKit target, dependencies, and OpenAPI plugin
 
 ### Test Mode Files (Section 8)
-15. **Sources/skit-aist/Testing/TestRunner.swift** - Orchestrates test execution
-16. **Sources/skit-aist/Testing/TestCaseDiscoverer.swift** - Discovers and loads test cases
-17. **Sources/skit-aist/Testing/TestValidator.swift** - Validates results against expectations
-18. **Sources/skit-aist/Testing/TestModels.swift** - Test data structures
+18. **Sources/skit-aist/Testing/TestRunner.swift** - Orchestrates test execution
+19. **Sources/skit-aist/Testing/TestCaseDiscoverer.swift** - Discovers and loads test cases
+20. **Sources/skit-aist/Testing/TestValidator.swift** - Validates results against expectations
+21. **Sources/skit-aist/Testing/TestModels.swift** - Test data structures
 
 ## Verification Steps
 
