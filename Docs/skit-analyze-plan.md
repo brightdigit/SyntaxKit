@@ -815,6 +815,124 @@ Include full API request/response, intermediate parsing steps, file collection d
    - Generated code compiles
    - Feature actually works as expected
 
+## 8. Test/Validation Mode
+
+To ensure the prompt generates correct code changes reliably, we need a test mode that validates Claude's responses against known-good outputs.
+
+### Overview
+
+Test mode (`--test` flag) runs the tool against a suite of test cases with predefined inputs and expected outputs, then validates that Claude's generated code matches expectations.
+
+### Test Case Structure
+
+```
+test-cases/
+├── subscript-basic/
+│   ├── input/
+│   │   ├── dsl.swift           # Input DSL code
+│   │   └── expected.swift      # Expected Swift output
+│   ├── expected-changes/
+│   │   ├── manifest.json       # List of expected file changes
+│   │   └── Declarations/
+│   │       └── Subscript.swift # Expected new/updated file content
+│   └── test-config.json        # Test metadata (optional)
+├── defer-statement/
+│   └── ...
+└── generic-function/
+    └── ...
+```
+
+### Test Configuration Format
+
+**manifest.json** - Describes expected changes:
+```json
+{
+  "description": "Add subscript support to SyntaxKit",
+  "expectedNewFiles": [
+    "Declarations/Subscript.swift",
+    "Declarations/SubscriptParameter.swift"
+  ],
+  "expectedUpdatedFiles": [
+    "Core/CodeBlock.swift"
+  ],
+  "minimumNewFiles": 1,
+  "minimumUpdatedFiles": 0,
+  "validationStrategy": "structural",
+  "buildRequired": true
+}
+```
+
+**test-config.json** - Test metadata (optional):
+```json
+{
+  "name": "Subscript Basic Support",
+  "description": "Tests basic subscript declaration generation",
+  "tags": ["declaration", "subscript", "basic"],
+  "priority": "high",
+  "model": "claude-opus-4-6",
+  "timeout": 120
+}
+```
+
+### Validation Strategies
+
+1. **Structural Validation** (`structural`):
+   - Verifies expected files were created/modified
+   - Checks file paths match expectations
+   - Does not validate exact content
+
+2. **Content Validation** (`content`):
+   - Compares generated file content against expected content
+   - Allows for minor whitespace/formatting differences
+   - Validates key code structures are present
+
+3. **Build Validation** (`build`):
+   - Runs `swift build` on generated library
+   - Verifies no compilation errors
+   - Does not compare against expected content
+
+4. **Functional Validation** (`functional`):
+   - Runs test suite against generated library
+   - Verifies generated code produces correct output
+   - Requires test files in test case
+
+### Implementation Components
+
+See the full implementation plan in the main plan file for detailed component specifications including:
+- Updated AnalyzerConfiguration with test mode flags
+- TestRunner for orchestrating test execution
+- TestCaseDiscoverer for finding and loading test cases
+- TestValidator for validating results against expectations
+- TestModels for test data structures
+
+### Usage
+
+```bash
+# Run all test cases
+skit-analyze --test
+
+# Run with verbose output
+skit-analyze --test --verbose
+
+# Stop on first failure
+skit-analyze --test --test-stop-on-fail
+
+# Run only tests matching "subscript"
+skit-analyze --test --test-filter=subscript
+
+# Run tests from custom path
+skit-analyze --test --test-cases=custom-tests/
+```
+
+### Benefits
+
+1. **Prompt Validation**: Ensures the Claude prompt generates correct code
+2. **Regression Prevention**: Catches when prompt changes break existing features
+3. **Quality Assurance**: Validates generated code quality before deployment
+4. **Documentation**: Test cases serve as examples of expected behavior
+5. **Confidence**: Developers can iterate on prompts with confidence
+6. **Debugging**: Failed tests pinpoint exactly what's wrong with generated code
+
 ## Future Enhancements (Not in Scope)
 
 - **Validation Mode**: Run `swift build` on generated code and retry if compilation fails
