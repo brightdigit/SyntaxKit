@@ -1,4 +1,4 @@
-# Plan: SyntaxKit Analyzer CLI Tool
+# Plan: AiSTKit - AI-Powered AST Generation for SyntaxKit
 
 ## Context
 
@@ -17,17 +17,61 @@ This addresses the problem of implementing missing SyntaxKit features. Instead o
 
 ## Implementation Approach
 
-### 1. Create New Executable Target: `skit-analyze`
+### 1. Create Three Targets with Clear Separation
 
-**Location**: `Sources/skit-analyze/`
+This implementation uses three separate targets for better modularity and testability:
+
+#### Target 1: `ClaudeKit` (OpenAPI Generated Code)
+**Location**: `Sources/ClaudeKit/`
+
+**Purpose**: Contains the raw OpenAPI-generated client code for the Anthropic Claude API
 
 **Dependencies**:
-- `SyntaxParser` (existing) - for parsing Swift code to AST
-- `ConfigKeyKit` (existing in project) - for configuration key management
-- `swift-configuration` - for CLI argument and environment variable handling
-- `swift-openapi-generator` - for generating type-safe Claude API client from OpenAPI spec
 - `swift-openapi-runtime` - runtime support for generated OpenAPI client
 - `swift-openapi-urlsession` - URLSession transport for OpenAPI client
+
+**Build Plugin**: `OpenAPIGenerator` (generates client from `openapi.json`)
+
+**Contents**:
+- `openapi.json` - Anthropic OpenAPI specification
+- `openapi-generator-config.yaml` - Generator configuration
+- Generated code (types, client) created automatically at build time
+
+#### Target 2: `AiSTKit` (SDK/Bridge Layer)
+**Location**: `Sources/AiSTKit/`
+
+**Purpose**: Provides a clean, domain-specific interface between the command executable and the raw OpenAPI client. Handles prompt formatting, response parsing, and code generation logic.
+
+**Dependencies**:
+- `ClaudeKit` - the OpenAPI-generated client
+- `SyntaxParser` - for AST generation
+- Foundation
+
+**Key Responsibilities**:
+- Wraps `ClaudeKit` with domain-specific methods
+- Implements `SyntaxKitAnalyzer` orchestration logic
+- Handles prompt template creation
+- Parses Claude responses into `LibraryUpdateResult`
+- Manages AST generation
+- Collects and writes library files
+
+#### Target 3: `skit-aist` (Command Executable)
+**Location**: `Sources/skit-aist/`
+
+**Purpose**: CLI executable that handles argument parsing, configuration, and user interaction
+
+**Dependencies**:
+- `AiSTKit` - the SDK/bridge layer
+- `ConfigKeyKit` (existing in project) - for configuration key management
+- `swift-configuration` - for CLI argument and environment variable handling
+
+**Key Responsibilities**:
+- Parse command-line arguments
+- Load configuration from environment variables
+- Display help text and usage information
+- Handle test mode execution
+- Provide verbose output and error messages
+- Entry point (`main.swift`)
 
 ### 2. Core Components
 
@@ -76,7 +120,7 @@ struct AnalyzerConfiguration: ConfigurationParseable {
 
         guard positionalArgs.count >= 3 else {
             throw AnalyzerError.missingRequiredArguments(
-                "Usage: skit-analyze <input-folder> <syntaxkit-path> <output-folder> [options]"
+                "Usage: skit-aist <input-folder> <syntaxkit-path> <output-folder> [options]"
             )
         }
 
@@ -136,11 +180,11 @@ struct AnalyzeCommand: Command {
     typealias Config = AnalyzerConfiguration
 
     static let commandName = "analyze"
-    static let abstract = "Generate updated SyntaxKit library with missing features"
+    static let abstract = "AI-powered AST generation for SyntaxKit"
     static let helpText = """
         OVERVIEW: Automatically implement missing SyntaxKit features using Claude API
 
-        USAGE: skit-analyze <input-folder> <syntaxkit-path> <output-folder> [options]
+        USAGE: skit-aist <input-folder> <syntaxkit-path> <output-folder> [options]
 
         ARGUMENTS:
           <input-folder>      Folder containing:
@@ -164,7 +208,7 @@ struct AnalyzeCommand: Command {
           echo 'subscript(index: Int) -> Item { ... }' > examples/subscript-feature/expected.swift
 
           export ANTHROPIC_API_KEY="sk-ant-..."
-          skit-analyze examples/subscript-feature Sources/SyntaxKit output/SyntaxKit
+          skit-aist examples/subscript-feature Sources/SyntaxKit output/SyntaxKit
         """
 
     let config: Config
@@ -254,7 +298,7 @@ struct SyntaxKitAnalyzer {
 
         // 4. Call Claude API for analysis AND code generation
         if config.verbose { print("Calling Claude API (\(config.model))...") }
-        let client = ClaudeAPIClient(apiKey: config.apiKey, model: config.model)
+        let client = ClaudeKit(apiKey: config.apiKey, model: config.model)
         let result = try await client.generateUpdatedLibrary(
             syntaxKitLibrary: libraryCode,
             expectedSwift: inputs.expectedSwift,
@@ -437,7 +481,7 @@ struct ASTGenerator {
 - This is the same code path used by the `skit` executable
 - No need for external AST generation - it's built-in!
 
-#### I. Claude API Client (`ClaudeAPIClient.swift`)
+#### I. Claude API Client (`ClaudeKit.swift`)
 
 Wraps the OpenAPI-generated client for code generation:
 
@@ -445,7 +489,7 @@ Wraps the OpenAPI-generated client for code generation:
 import OpenAPIRuntime
 import OpenAPIURLSession
 
-struct ClaudeAPIClient {
+struct ClaudeKit {
     let apiKey: String
     let model: String
     private let client: Client  // Generated from OpenAPI spec
@@ -607,12 +651,12 @@ struct FileReference: Codable {
 **OpenAPI Specification Source**:
 - Uses unofficial OpenAPI spec from [laszukdawid/anthropic-openapi-spec](https://github.com/laszukdawid/anthropic-openapi-spec)
 - Specifically the `hosted_spec.json` file (derived from Anthropic's TypeScript SDK)
-- Download to `Sources/skit-analyze/openapi.json` or `openapi.yaml`
+- Download to `Sources/skit-aist/openapi.json` or `openapi.yaml`
 - Swift OpenAPI Generator will create type-safe client code at build time
 
 **Setup Steps**:
-1. Download OpenAPI spec: `curl -o Sources/skit-analyze/openapi.json https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json`
-2. Create `Sources/skit-analyze/openapi-generator-config.yaml`:
+1. Download OpenAPI spec: `curl -o Sources/skit-aist/openapi.json https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json`
+2. Create `Sources/skit-aist/openapi-generator-config.yaml`:
    ```yaml
    generate:
      - types
@@ -694,7 +738,7 @@ Include:
 ### 3. Workflow
 
 ```
-User runs: skit-analyze examples/subscript-feature Sources/SyntaxKit output/SyntaxKit
+User runs: skit-aist examples/subscript-feature Sources/SyntaxKit output/SyntaxKit
 
 1. main.swift: Entry point
 2. AnalyzeCommand.createInstance():
@@ -761,7 +805,7 @@ Add ConfigKeyKit as a local target, integrate swift-configuration, and add OpenA
 
 // Add new executable target with OpenAPI Generator plugin:
 .executableTarget(
-    name: "skit-analyze",
+    name: "skit-aist",
     dependencies: [
         "SyntaxParser",
         "ConfigKeyKit",
@@ -777,19 +821,19 @@ Add ConfigKeyKit as a local target, integrate swift-configuration, and add OpenA
 
 // In products:
 .executable(
-    name: "skit-analyze",
-    targets: ["skit-analyze"]
+    name: "skit-aist",
+    targets: ["skit-aist"]
 ),
 ```
 
 **Setup Requirements**:
-1. Download OpenAPI spec to `Sources/skit-analyze/`:
+1. Download OpenAPI spec to `Sources/skit-aist/`:
    ```bash
-   curl -o Sources/skit-analyze/openapi.json \
+   curl -o Sources/skit-aist/openapi.json \
      https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json
    ```
 
-2. Create `Sources/skit-analyze/openapi-generator-config.yaml`:
+2. Create `Sources/skit-aist/openapi-generator-config.yaml`:
    ```yaml
    generate:
      - types
@@ -844,7 +888,7 @@ Add ConfigKeyKit as a local target, integrate swift-configuration, and add OpenA
   3. Output folder path (where to write updated library)
 - Parsed manually from `CommandLine.arguments` in configuration initializer
 - More intuitive than using flags for required paths
-- Example: `skit-analyze examples/feature Sources/SyntaxKit output/updated`
+- Example: `skit-aist examples/feature Sources/SyntaxKit output/updated`
 
 **Default Values**:
 - SyntaxKit library path: `Sources/SyntaxKit` (via `ConfigKey` default)
@@ -897,28 +941,28 @@ Include full API request/response, intermediate parsing steps, file collection d
 ## Critical Files to Create
 
 ### Source Files
-1. **Sources/skit-analyze/main.swift** - Main entry point
-2. **Sources/skit-analyze/AnalyzeCommand.swift** - Command implementation using ConfigKeyKit
-3. **Sources/skit-analyze/AnalyzerConfiguration.swift** - Configuration structure using ConfigKeyKit
-4. **Sources/skit-analyze/SyntaxKitAnalyzer.swift** - Core analyzer orchestration
-5. **Sources/skit-analyze/InputFolderReader.swift** - Reads dsl.swift, expected.swift, ast files
-6. **Sources/skit-analyze/LibraryCollector.swift** - Collects SyntaxKit source files
-7. **Sources/skit-analyze/LibraryWriter.swift** - Writes updated library to output folder
-8. **Sources/skit-analyze/ASTGenerator.swift** - Wraps SyntaxParser for AST generation
-9. **Sources/skit-analyze/ClaudeAPIClient.swift** - Wraps OpenAPI-generated client for code generation
-10. **Sources/skit-analyze/PromptTemplate.swift** - Enhanced Workbench prompt with code generation
-11. **Sources/skit-analyze/Models.swift** - Data models (LibraryUpdateResult, UpdatedFile, NewFile, AnalyzerError)
+1. **Sources/skit-aist/main.swift** - Main entry point
+2. **Sources/skit-aist/AnalyzeCommand.swift** - Command implementation using ConfigKeyKit
+3. **Sources/skit-aist/AnalyzerConfiguration.swift** - Configuration structure using ConfigKeyKit
+4. **Sources/skit-aist/SyntaxKitAnalyzer.swift** - Core analyzer orchestration
+5. **Sources/skit-aist/InputFolderReader.swift** - Reads dsl.swift, expected.swift, ast files
+6. **Sources/skit-aist/LibraryCollector.swift** - Collects SyntaxKit source files
+7. **Sources/skit-aist/LibraryWriter.swift** - Writes updated library to output folder
+8. **Sources/skit-aist/ASTGenerator.swift** - Wraps SyntaxParser for AST generation
+9. **Sources/skit-aist/ClaudeKit.swift** - Wraps OpenAPI-generated client for code generation
+10. **Sources/skit-aist/PromptTemplate.swift** - Enhanced Workbench prompt with code generation
+11. **Sources/skit-aist/Models.swift** - Data models (LibraryUpdateResult, UpdatedFile, NewFile, AnalyzerError)
 
 ### Configuration Files
-12. **Sources/skit-analyze/openapi.json** - Anthropic OpenAPI specification (downloaded)
-13. **Sources/skit-analyze/openapi-generator-config.yaml** - OpenAPI Generator configuration
+12. **Sources/skit-aist/openapi.json** - Anthropic OpenAPI specification (downloaded)
+13. **Sources/skit-aist/openapi-generator-config.yaml** - OpenAPI Generator configuration
 14. **Package.swift** (modify) - Add ConfigKeyKit target, dependencies, and OpenAPI plugin
 
 ### Test Mode Files (Section 8)
-15. **Sources/skit-analyze/Testing/TestRunner.swift** - Orchestrates test execution
-16. **Sources/skit-analyze/Testing/TestCaseDiscoverer.swift** - Discovers and loads test cases
-17. **Sources/skit-analyze/Testing/TestValidator.swift** - Validates results against expectations
-18. **Sources/skit-analyze/Testing/TestModels.swift** - Test data structures
+15. **Sources/skit-aist/Testing/TestRunner.swift** - Orchestrates test execution
+16. **Sources/skit-aist/Testing/TestCaseDiscoverer.swift** - Discovers and loads test cases
+17. **Sources/skit-aist/Testing/TestValidator.swift** - Validates results against expectations
+18. **Sources/skit-aist/Testing/TestModels.swift** - Test data structures
 
 ## Verification Steps
 
@@ -948,7 +992,7 @@ Include full API request/response, intermediate parsing steps, file collection d
 3. **Run Tool**:
    ```bash
    export ANTHROPIC_API_KEY="sk-ant-..."
-   .build/release/skit-analyze \
+   .build/release/skit-aist \
        examples/simple-property \
        Sources/SyntaxKit \
        output/SyntaxKit-updated
@@ -975,16 +1019,16 @@ Include full API request/response, intermediate parsing steps, file collection d
 6. **Error Handling Tests**:
    ```bash
    # Test missing API key
-   skit-analyze examples/test Sources/SyntaxKit output  # Should error
+   skit-aist examples/test Sources/SyntaxKit output  # Should error
 
    # Test invalid input folder
-   skit-analyze nonexistent Sources/SyntaxKit output  # Should error
+   skit-aist nonexistent Sources/SyntaxKit output  # Should error
 
    # Test missing required files
    mkdir -p examples/incomplete
    echo "test" > examples/incomplete/dsl.swift
    # Missing expected.swift - should error
-   skit-analyze examples/incomplete Sources/SyntaxKit output
+   skit-aist examples/incomplete Sources/SyntaxKit output
    ```
 
 7. **Integration Test**: Use a real missing feature (e.g., subscript syntax) and verify:
@@ -1087,19 +1131,19 @@ See the full implementation plan in the main plan file for detailed component sp
 
 ```bash
 # Run all test cases
-skit-analyze --test
+skit-aist --test
 
 # Run with verbose output
-skit-analyze --test --verbose
+skit-aist --test --verbose
 
 # Stop on first failure
-skit-analyze --test --test-stop-on-fail
+skit-aist --test --test-stop-on-fail
 
 # Run only tests matching "subscript"
-skit-analyze --test --test-filter=subscript
+skit-aist --test --test-filter=subscript
 
 # Run tests from custom path
-skit-analyze --test --test-cases=custom-tests/
+skit-aist --test --test-cases=custom-tests/
 ```
 
 ### Benefits
@@ -1161,10 +1205,10 @@ skit-analyze --test --test-cases=custom-tests/
 swift build -c release
 
 # Install to system (optional)
-cp .build/release/skit-analyze /usr/local/bin/
+cp .build/release/skit-aist /usr/local/bin/
 
 # Or run from build directory
-.build/release/skit-analyze <args>
+.build/release/skit-aist <args>
 ```
 
 ## Example Usage
@@ -1196,7 +1240,7 @@ EOF
 # 4. Run the tool
 # Note: AST is automatically generated from expected.swift using SyntaxParser
 export ANTHROPIC_API_KEY="sk-ant-..."
-skit-analyze \
+skit-aist \
     examples/subscript-feature \
     Sources/SyntaxKit \
     output/SyntaxKit-with-subscripts
@@ -1206,19 +1250,19 @@ skit-analyze \
 
 ```bash
 # With custom model
-skit-analyze examples/my-feature Sources/SyntaxKit output/updated \
+skit-aist examples/my-feature Sources/SyntaxKit output/updated \
     --model claude-sonnet-4-5
 
 # With verbose output to see what's happening
-skit-analyze examples/my-feature Sources/SyntaxKit output/updated \
+skit-aist examples/my-feature Sources/SyntaxKit output/updated \
     --verbose
 
 # Using CLI flag for API key instead of environment
-skit-analyze examples/my-feature Sources/SyntaxKit output/updated \
+skit-aist examples/my-feature Sources/SyntaxKit output/updated \
     --api-key sk-ant-...
 
 # Show help
-skit-analyze --help
+skit-aist --help
 ```
 
 ### Full Workflow Example
@@ -1247,7 +1291,7 @@ EOF
 
 # Step 4: Generate updated SyntaxKit with defer support
 export ANTHROPIC_API_KEY="sk-ant-..."
-skit-analyze \
+skit-aist \
     examples/defer-statement \
     Sources/SyntaxKit \
     output/SyntaxKit-with-defer \
