@@ -59,6 +59,15 @@ jobs:
         os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
         swift: ${{ fromJSON(needs.configure.outputs.ubuntu-swift) }}
         type: ${{ fromJSON(needs.configure.outputs.ubuntu-type) }}
+        exclude:
+          - swift: {version: "6.0"}
+            type: wasm
+          - swift: {version: "6.0"}
+            type: wasm-embedded
+          - swift: {version: "6.1"}
+            type: wasm
+          - swift: {version: "6.1"}
+            type: wasm-embedded
     steps:
       - uses: actions/checkout@v6
       - uses: brightdigit/swift-build@v1.5.2
