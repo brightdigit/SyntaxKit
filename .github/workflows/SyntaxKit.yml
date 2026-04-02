@@ -113,6 +113,8 @@ jobs:
             build: 6.3-RELEASE
           - version: swift-6.2-release
             build: 6.2-RELEASE
+          - version: swift-6.1-release
+            build: 6.1-RELEASE
     steps:
       - uses: actions/checkout@v6
       - name: Enable git symlinks
