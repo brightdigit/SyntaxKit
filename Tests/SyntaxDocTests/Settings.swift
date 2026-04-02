@@ -81,7 +81,12 @@ internal enum Settings {
         return .init(fileURLWithPath: filePath)
       }
     } else {
-      return Self.projectRoot.appendingPathComponent(filePath)
+      #if os(Android)
+      let resolvedPath = filePath
+      #else
+      let resolvedPath = "Sources/SyntaxKit/" + filePath
+      #endif
+      return Self.projectRoot.appendingPathComponent(resolvedPath)
     }
   }
 }
