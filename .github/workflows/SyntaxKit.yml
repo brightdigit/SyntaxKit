@@ -67,7 +67,7 @@ jobs:
           type: ${{ matrix.type }}
           wasmtime-version: 41.0.3
       - name: Install curl
-        if: matrix.swift.version == '6.3'
+        if: steps.build.outputs.contains-code-coverage == 'true'
         run: |
           apt-get update -q
           apt-get install -y curl
