@@ -14,6 +14,11 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            if (context.payload.ref_type !== 'branch') {
+              console.log('Not a branch deletion, skipping.');
+              return;
+            }
+
             const ref = `refs/heads/${context.payload.ref}`;
             console.log(`Cleaning up caches for branch: ${ref}`);
 

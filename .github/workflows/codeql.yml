@@ -15,9 +15,19 @@ on:
   push:
     branches-ignore:
       - '*WIP'
+    paths-ignore:
+      - '**.md'
+      - 'Docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'Docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
   schedule:
     - cron: '20 11 * * 3'
 

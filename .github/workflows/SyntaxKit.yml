@@ -53,7 +53,7 @@ jobs:
     name: Build on Ubuntu
     needs: [configure]
     runs-on: ubuntu-latest
-    container: ${{ (matrix.type == 'wasm' || matrix.type == 'wasm-embedded') && 'swift:6.3-noble' || matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
+    container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
     strategy:
       matrix:
         os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
@@ -95,26 +95,26 @@ jobs:
       fail-fast: false
       matrix:
         runs-on: [windows-2022, windows-2025]
-        include:
-          - swift-version: swift-6.3-release
-            swift-build: 6.3-RELEASE
-          - swift-version: swift-6.2-release
-            swift-build: 6.2-RELEASE
-          - swift-version: swift-6.1-release
-            swift-build: 6.1-RELEASE
+        swift:
+          - version: swift-6.3-release
+            build: 6.3-RELEASE
+          - version: swift-6.2-release
+            build: 6.2-RELEASE
+          - version: swift-6.1-release
+            build: 6.1-RELEASE
     steps:
       - uses: actions/checkout@v6
       - uses: brightdigit/swift-build@v1.5.2
         id: build
         with:
-          windows-swift-version: ${{ matrix.swift-version }}
-          windows-swift-build: ${{ matrix.swift-build }}
+          windows-swift-version: ${{ matrix.swift.version }}
+          windows-swift-build: ${{ matrix.swift.build }}
       - name: Upload coverage to Codecov
         if: steps.build.outputs.contains-code-coverage == 'true'
         uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
-          flags: swift-${{ matrix.swift-version }},windows
+          flags: swift-${{ matrix.swift.version }},windows
           verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
           os: windows
@@ -164,7 +164,7 @@ jobs:
   build-macos-full:
     name: Build on macOS (Full)
     needs: [configure]
-    if: needs.configure.outputs.full-matrix == 'true'
+    if: ${{ !cancelled() && needs.configure.result == 'success' && needs.configure.outputs.full-matrix == 'true' }}
     env:
       PACKAGE_NAME: SyntaxKit
     runs-on: ${{ matrix.runs-on }}
@@ -287,7 +287,7 @@ jobs:
 
   lint:
     name: Linting
-    if: ${{ !cancelled() && !failure() && !contains(github.event.head_commit.message, 'ci skip') }}
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
     runs-on: ubuntu-latest
     needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     env:
@@ -318,7 +318,7 @@ jobs:
 
   docs:
     name: Documentation Validation
-    if: ${{ !cancelled() && !failure() && !contains(github.event.head_commit.message, 'ci skip') }}
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
     needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     runs-on: ubuntu-latest
     steps:
