@@ -63,6 +63,11 @@ jobs:
         with:
           type: ${{ matrix.type }}
           wasmtime-version: 41.0.3
+      - name: Install curl
+        if: matrix.swift.version == '6.3'
+        run: |
+          apt-get update -q
+          apt-get install -y curl
       - uses: sersoft-gmbh/swift-coverage-action@v5
         id: coverage-files
         with:
