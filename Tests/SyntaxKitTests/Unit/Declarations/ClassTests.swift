@@ -162,6 +162,51 @@ internal struct ClassTests {
     #expect(normalizedGenerated == normalizedExpected)
   }
 
+  @Test internal func testPublicClass() {
+    let publicClass = Class("AppModel") {}.access(.public)
+
+    let expected = """
+      public class AppModel {
+      }
+      """
+
+    let normalizedGenerated = publicClass.generateCode().normalize()
+    let normalizedExpected = expected.normalize()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
+  @Test internal func testPublicFinalClass() {
+    let publicFinalClass = Class("AppModel") {}
+      .attribute("Observable")
+      .access(.public)
+      .final()
+      .inherits("Sendable")
+
+    let generated = publicFinalClass.generateCode()
+    // Fix 2 regression: Class must support .access()
+    #expect(generated.contains("public"))
+    #expect(generated.contains("final"))
+    #expect(generated.contains("class AppModel"))
+    #expect(generated.contains("Sendable"))
+    // Access modifier must precede final
+    let publicRange = generated.range(of: "public")!
+    let finalRange = generated.range(of: "final")!
+    #expect(publicRange.lowerBound < finalRange.lowerBound)
+  }
+
+  @Test internal func testInternalClass() {
+    let internalClass = Class("MyClass") {}.access(.internal)
+
+    let expected = """
+      internal class MyClass {
+      }
+      """
+
+    let normalizedGenerated = internalClass.generateCode().normalize()
+    let normalizedExpected = expected.normalize()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
   @Test internal func testClassWithFunctions() {
     let classWithFunctions = Class("Calculator") {
       Function("add", returns: "Int") {

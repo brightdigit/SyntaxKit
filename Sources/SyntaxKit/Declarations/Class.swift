@@ -37,6 +37,7 @@ public struct Class: CodeBlock, Sendable {
   private var genericParameters: [String] = []
   private var isFinal: Bool = false
   private var attributes: [AttributeInfo] = []
+  private var accessModifier: AccessModifier?
 
   /// The SwiftSyntax representation of this class declaration.
   public var syntax: any SyntaxProtocol {
@@ -107,10 +108,15 @@ public struct Class: CodeBlock, Sendable {
 
     // Modifiers
     var modifiers: DeclModifierListSyntax = []
-    if isFinal {
+    if let access = accessModifier {
       modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(.final, trailingTrivia: .space))
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
       ])
+    }
+    if isFinal {
+      modifiers = DeclModifierListSyntax(
+        modifiers + [DeclModifierSyntax(name: .keyword(.final, trailingTrivia: .space))]
+      )
     }
 
     return ClassDeclSyntax(
@@ -161,6 +167,15 @@ public struct Class: CodeBlock, Sendable {
     return copy
   }
 
+  /// Sets the access modifier for the class declaration.
+  /// - Parameter access: The access modifier.
+  /// - Returns: A copy of the class with the access modifier set.
+  public func access(_ access: AccessModifier) -> Self {
+    var copy = self
+    copy.accessModifier = access
+    return copy
+  }
+
   /// Adds an attribute to the class declaration.
   /// - Parameters:
   ///   - attribute: The attribute name (without the @ symbol).
@@ -189,13 +204,13 @@ public struct Class: CodeBlock, Sendable {
         rightParen = .rightParenToken()
 
         let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
+          buildAttributeArgumentExpr(from: argument)
         }
 
         argumentsSyntax = .argumentList(
           LabeledExprListSyntax(
             argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
+              var element = LabeledExprSyntax(expression: expr)
               if index < argumentList.count - 1 {
                 element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
               }
@@ -213,6 +228,7 @@ public struct Class: CodeBlock, Sendable {
           arguments: argumentsSyntax,
           rightParen: rightParen
         )
+        .with(\.trailingTrivia, .newline)
       )
     }
 

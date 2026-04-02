@@ -181,6 +181,39 @@ import Testing
     #expect(generated.contains("func process"))
   }
 
+  @Test("Struct with quoted string attribute argument generates string literal, not identifier")
+  internal func testStructWithStringLiteralAttributeArgument() throws {
+    // Fix 3 regression: "\"App Model\"" must produce @Suite("App Model"), not @Suite(App Model)
+    let structDecl = Struct("AppModelTests") {}
+      .attribute("Suite", arguments: ["\"App Model\""])
+
+    let generated = structDecl.syntax.description
+    #expect(generated.contains("@Suite(\"App Model\")") || generated.contains("@Suite( \"App Model\")"))
+    #expect(!generated.contains("@Suite(App Model)"))
+  }
+
+  @Test("Function with quoted string attribute argument generates string literal")
+  internal func testFunctionWithStringLiteralAttributeArgument() throws {
+    // Fix 3 regression: quoted argument must produce string literal token
+    let function = Function("initialCount") {}
+      .attribute("Test", arguments: ["\"Initial count is zero\""])
+
+    let generated = function.syntax.description
+    // The argument should be a string literal: @Test("Initial count is zero")
+    #expect(generated.contains("@Test(\"Initial count is zero\")") || generated.contains("@Test( \"Initial count is zero\")"))
+  }
+
+  @Test("Struct with unquoted attribute argument generates identifier, not string literal")
+  internal func testStructWithIdentifierAttributeArgument() throws {
+    // Unquoted args should remain as identifier references
+    let structDecl = Struct("Serve") {}
+      .attribute("main")
+
+    let generated = structDecl.syntax.description
+    #expect(generated.contains("@main"))
+    #expect(generated.contains("struct Serve"))
+  }
+
   @Test("Parameter with attribute arguments generates correct syntax")
   internal func testParameterWithAttributeArguments() throws {
     let function = Function("validate") {

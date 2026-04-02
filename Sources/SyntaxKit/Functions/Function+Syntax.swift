@@ -83,9 +83,14 @@ extension Function {
 
     // Build modifiers
     var modifiers: DeclModifierListSyntax = []
+    if let access = accessModifier {
+      modifiers = DeclModifierListSyntax([
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
+      ])
+    }
     if isStatic {
       modifiers = DeclModifierListSyntax(
-        [
+        modifiers + [
           DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
         ]
       )
@@ -133,13 +138,13 @@ extension Function {
         rightParen = .rightParenToken()
 
         let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
+          buildAttributeArgumentExpr(from: argument)
         }
 
         argumentsSyntax = .argumentList(
           LabeledExprListSyntax(
             argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
+              var element = LabeledExprSyntax(expression: expr)
               if index < argumentList.count - 1 {
                 element = element.with(
                   \.trailingComma,
@@ -160,6 +165,7 @@ extension Function {
           arguments: argumentsSyntax,
           rightParen: rightParen
         )
+        .with(\.trailingTrivia, .newline)
       )
     }
 

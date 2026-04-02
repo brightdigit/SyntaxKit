@@ -87,6 +87,51 @@ internal struct FunctionTests {
     #expect(normalizedGenerated == normalizedExpected)
   }
 
+  @Test internal func testFunctionWithAccessModifier() throws {
+    let function = Function("run") {
+      Call("print") {
+        ParameterExp(unlabeled: Literal.string("hello"))
+      }
+    }
+    .access(.internal)
+
+    let expected = """
+      internal func run() {
+        print("hello")
+      }
+      """
+
+    let normalizedGenerated = function.syntax.description.normalize()
+    let normalizedExpected = expected.normalize()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
+  @Test internal func testFunctionThrowingAlias() throws {
+    // .throwing() is an alias for .throws() that avoids keyword escaping at call sites
+    let function = Function("load") {}
+      .throwing()
+
+    let generated = function.syntax.description
+    #expect(generated.contains("throws"))
+    #expect(generated.contains("func load"))
+  }
+
+  @Test internal func testAsyncThrowingFunctionWithAccess() throws {
+    let function = Function("run") {}
+      .access(.internal)
+      .async()
+      .throwing()
+
+    let expected = """
+      internal func run() async throws {
+      }
+      """
+
+    let normalizedGenerated = function.syntax.description.normalize()
+    let normalizedExpected = expected.normalize()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
   @Test internal func testMutatingFunction() throws {
     let function = Function(
       "updateValue",

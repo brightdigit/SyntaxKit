@@ -54,6 +54,7 @@ extension Variable {
         arguments: attributeArgs.arguments,
         rightParen: attributeArgs.rightParen
       )
+      .with(\.trailingTrivia, .space)
     )
   }
 
@@ -67,13 +68,13 @@ extension Variable {
     let rightParen: TokenSyntax = .rightParenToken()
 
     let argumentList = arguments.map { argument in
-      DeclReferenceExprSyntax(baseName: .identifier(argument))
+      buildAttributeArgumentExpr(from: argument)
     }
 
     let argumentsSyntax = AttributeSyntax.Arguments.argumentList(
       LabeledExprListSyntax(
         argumentList.enumerated().map { index, expr in
-          var element = LabeledExprSyntax(expression: ExprSyntax(expr))
+          var element = LabeledExprSyntax(expression: expr)
           if index < argumentList.count - 1 {
             element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
           }
