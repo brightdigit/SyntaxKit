@@ -10,9 +10,17 @@ import Foundation
 internal enum Settings {
   /// Project root directory calculated with a 3-strategy fallback for cross-platform support
   internal static let projectRoot: URL = {
-    // Strategy 1: Working directory (most reliable for SPM/WASM/Android)
     let workingDir = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+
+    // Strategy 1a: Sources/ in working directory (SPM/WASM/Linux)
     if FileManager.default.fileExists(atPath: workingDir.appendingPathComponent("Sources").path) {
+      return workingDir
+    }
+
+    // Strategy 1b: Documentation.docc copied as last component (Android flat copy via android-copy-files)
+    if FileManager.default.fileExists(
+      atPath: workingDir.appendingPathComponent("Documentation.docc").path)
+    {
       return workingDir
     }
 
@@ -44,7 +52,13 @@ internal enum Settings {
   /// On WASM, limited to lightweight tutorial files only (no images, no Examples)
   /// due to WASM memory constraints (~144KB practical limit)
   internal static let docPaths: [String] = {
-    #if os(WASI)
+    #if os(Android)
+      // android-copy-files copies Documentation.docc/ as last component to working dir
+      return [
+        "Documentation.docc/Tutorials/Quick-Start-Guide.md",
+        "Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md",
+      ]
+    #elseif os(WASI)
       return [
         "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md",
         "Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md",

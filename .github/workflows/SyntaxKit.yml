@@ -62,6 +62,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: brightdigit/swift-build@v1.5.2
+        id: build
         with:
           type: ${{ matrix.type }}
           wasmtime-version: 41.0.3
@@ -72,9 +73,11 @@ jobs:
           apt-get install -y curl
       - uses: sersoft-gmbh/swift-coverage-action@v5
         id: coverage-files
+        if: steps.build.outputs.contains-code-coverage == 'true'
         with:
           fail-on-empty-output: true
       - name: Upload coverage to Codecov
+        if: steps.build.outputs.contains-code-coverage == 'true'
         uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
@@ -102,10 +105,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - uses: brightdigit/swift-build@v1.5.2
+        id: build
         with:
           windows-swift-version: ${{ matrix.swift-version }}
           windows-swift-build: ${{ matrix.swift-build }}
       - name: Upload coverage to Codecov
+        if: steps.build.outputs.contains-code-coverage == 'true'
         uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
@@ -134,6 +139,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build and Test
+        id: build
         uses: brightdigit/swift-build@v1.5.2
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
@@ -145,9 +151,11 @@ jobs:
 
       # Common Coverage Steps
       - name: Process Coverage
+        if: steps.build.outputs.contains-code-coverage == 'true'
         uses: sersoft-gmbh/swift-coverage-action@v5
 
       - name: Upload Coverage
+        if: steps.build.outputs.contains-code-coverage == 'true'
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -214,6 +222,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Build and Test
+        id: build
         uses: brightdigit/swift-build@v1.5.2
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
@@ -225,9 +234,11 @@ jobs:
 
       # Common Coverage Steps
       - name: Process Coverage
+        if: steps.build.outputs.contains-code-coverage == 'true'
         uses: sersoft-gmbh/swift-coverage-action@v5
 
       - name: Upload Coverage
+        if: steps.build.outputs.contains-code-coverage == 'true'
         uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
