@@ -25,7 +25,7 @@ jobs:
   configure:
     name: Configure Build Matrix
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip') }}
     outputs:
       full-matrix: ${{ steps.set-matrix.outputs.full-matrix }}
       ubuntu-os: ${{ steps.set-matrix.outputs.ubuntu-os }}
@@ -110,10 +110,11 @@ jobs:
 
   build-macos:
     name: Build on macOS
+    needs: [configure]
     env:
       PACKAGE_NAME: SyntaxKit
     runs-on: ${{ matrix.runs-on }}
-    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
+    if: ${{ !cancelled() && needs.configure.result == 'success' }}
     strategy:
       fail-fast: false
       matrix:
