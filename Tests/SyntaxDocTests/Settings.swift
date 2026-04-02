@@ -41,11 +41,22 @@ internal enum Settings {
   }()
 
   /// Document paths to search for documentation files
-  internal static let docPaths = [
-    "Sources/SyntaxKit/Documentation.docc",
-    "README.md",
-    "Examples",
-  ]
+  /// On WASM, limited to lightweight tutorial files only (no images, no Examples)
+  /// due to WASM memory constraints (~144KB practical limit)
+  internal static let docPaths: [String] = {
+    #if os(WASI)
+      return [
+        "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md",
+        "Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md",
+      ]
+    #else
+      return [
+        "Sources/SyntaxKit/Documentation.docc",
+        "README.md",
+        "Examples",
+      ]
+    #endif
+  }()
 
   /// Resolves a relative file path to absolute path
   internal static func resolveFilePath(_ filePath: String) throws -> URL {
