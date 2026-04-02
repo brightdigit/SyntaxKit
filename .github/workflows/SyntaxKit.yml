@@ -28,29 +28,41 @@ jobs:
     if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     outputs:
       full-matrix: ${{ steps.set-matrix.outputs.full-matrix }}
-      ubuntu-matrix: ${{ steps.set-matrix.outputs.ubuntu-matrix }}
+      ubuntu-os: ${{ steps.set-matrix.outputs.ubuntu-os }}
+      ubuntu-swift: ${{ steps.set-matrix.outputs.ubuntu-swift }}
+      ubuntu-type: ${{ steps.set-matrix.outputs.ubuntu-type }}
     steps:
       - name: Determine build matrix
         id: set-matrix
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event_name }}" == "pull_request" ]]; then
             echo "full-matrix=true" >> "$GITHUB_OUTPUT"
-            echo 'ubuntu-matrix={"os":["noble","jammy"],"swift":[{"version":"6.0"},{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]}' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-os=["noble","jammy"]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-swift=[{"version":"6.0"},{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-type=["","wasm","wasm-embedded"]' >> "$GITHUB_OUTPUT"
           else
             echo "full-matrix=false" >> "$GITHUB_OUTPUT"
-            echo 'ubuntu-matrix={"os":["noble"],"swift":[{"version":"6.3"}]}' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-os=["noble"]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-swift=[{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-type=[""]' >> "$GITHUB_OUTPUT"
           fi
 
   build-ubuntu:
     name: Build on Ubuntu
     needs: [configure]
     runs-on: ubuntu-latest
-    container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
+    container: ${{ (matrix.type == 'wasm' || matrix.type == 'wasm-embedded') && 'swift:6.3-noble' || matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
     strategy:
-      matrix: ${{ fromJSON(needs.configure.outputs.ubuntu-matrix) }}
+      matrix:
+        os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
+        swift: ${{ fromJSON(needs.configure.outputs.ubuntu-swift) }}
+        type: ${{ fromJSON(needs.configure.outputs.ubuntu-type) }}
     steps:
       - uses: actions/checkout@v6
       - uses: brightdigit/swift-build@v1.5.2
+        with:
+          type: ${{ matrix.type }}
+          wasmtime-version: 41.0.3
       - uses: sersoft-gmbh/swift-coverage-action@v5
         id: coverage-files
         with:
@@ -74,8 +86,10 @@ jobs:
       matrix:
         runs-on: [windows-2022, windows-2025]
         include:
-          - swift-version: swift-6.2-branch
-            swift-build: 6.2-DEVELOPMENT-SNAPSHOT-2025-09-06-a
+          - swift-version: swift-6.3-release
+            swift-build: 6.3-RELEASE
+          - swift-version: swift-6.2-release
+            swift-build: 6.2-RELEASE
           - swift-version: swift-6.1-release
             swift-build: 6.1-RELEASE
     steps:
@@ -105,8 +119,8 @@ jobs:
       matrix:
         include:
           # SPM Build
-          - runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
+          - runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
 
     steps:
       - uses: actions/checkout@v6
@@ -153,12 +167,12 @@ jobs:
 
           # macOS Build
           - type: macos
-            runs-on: macos-15
+            runs-on: macos-26
             xcode: "/Applications/Xcode_26.4.app"
 
           # iOS Build Matrix
           - type: ios
-            runs-on: macos-15
+            runs-on: macos-26
             xcode: "/Applications/Xcode_26.4.app"
             deviceName: "iPhone 17 Pro"
             osVersion: "26.4"
@@ -166,7 +180,7 @@ jobs:
 
           # watchOS Build Matrix
           - type: watchos
-            runs-on: macos-15
+            runs-on: macos-26
             xcode: "/Applications/Xcode_26.4.app"
             deviceName: "Apple Watch Ultra 3 (49mm)"
             osVersion: "26.4"
@@ -174,7 +188,7 @@ jobs:
 
           # tvOS Build Matrix
           - type: tvos
-            runs-on: macos-15
+            runs-on: macos-26
             xcode: "/Applications/Xcode_26.4.app"
             deviceName: "Apple TV"
             osVersion: "26.4"
@@ -182,7 +196,7 @@ jobs:
 
           # visionOS Build Matrix
           - type: visionos
-            runs-on: macos-15
+            runs-on: macos-26
             xcode: "/Applications/Xcode_26.4.app"
             deviceName: "Apple Vision Pro"
             osVersion: "26.4"
@@ -216,28 +230,46 @@ jobs:
     needs: [configure]
     if: needs.configure.outputs.full-matrix == 'true'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        swift:
+          - version: "6.2"
+          - version: "6.3"
+        android-api-level: [33, 34]
     steps:
       - uses: actions/checkout@v6
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
       - uses: brightdigit/swift-build@v1.5.2
+        id: build
         with:
           type: android
-
-  build-wasm:
-    name: Build for WASM
-    needs: [configure]
-    if: needs.configure.outputs.full-matrix == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: brightdigit/swift-build@v1.5.2
+          android-swift-version: ${{ matrix.swift.version }}
+          android-api-level: ${{ matrix.android-api-level }}
+          android-run-tests: true
+      - name: Upload coverage to Codecov
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: codecov/codecov-action@v6
         with:
-          type: wasm
+          fail_ci_if_error: true
+          flags: android-api${{ matrix.android-api-level }}-swift${{ matrix.swift.version }}
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   lint:
     name: Linting
     if: ${{ !cancelled() && !failure() && !contains(github.event.head_commit.message, 'ci skip') }}
     runs-on: ubuntu-latest
-    needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android, build-wasm]
+    needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     env:
       MINT_PATH: .mint/lib
       MINT_LINK_PATH: .mint/bin
@@ -267,7 +299,7 @@ jobs:
   docs:
     name: Documentation Validation
     if: ${{ !cancelled() && !failure() && !contains(github.event.head_commit.message, 'ci skip') }}
-    needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android, build-wasm]
+    needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
