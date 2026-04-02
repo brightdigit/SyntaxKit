@@ -111,6 +111,9 @@ jobs:
             build: 6.2-RELEASE
     steps:
       - uses: actions/checkout@v6
+      - name: Enable git symlinks
+        shell: pwsh
+        run: git config --global core.symlinks true
       - uses: brightdigit/swift-build@v1.5.2
         id: build
         with:
