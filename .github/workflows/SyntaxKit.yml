@@ -264,6 +264,7 @@ jobs:
           android-swift-version: ${{ matrix.swift.version }}
           android-api-level: ${{ matrix.android-api-level }}
           android-run-tests: true
+          android-copy-files: Sources/SyntaxKit/Documentation.docc
       - name: Upload coverage to Codecov
         if: steps.build.outputs.contains-code-coverage == 'true'
         uses: codecov/codecov-action@v6
