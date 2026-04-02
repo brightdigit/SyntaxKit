@@ -9,14 +9,16 @@ on:
       - 'LICENSE'
       - '.github/ISSUE_TEMPLATE/**'
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - 'v[0-9]*.[0-9]*.[0-9]*'
     paths-ignore:
       - '**.md'
       - 'Docs/**'
       - 'LICENSE'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 env:
