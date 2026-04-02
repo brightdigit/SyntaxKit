@@ -68,6 +68,10 @@ jobs:
             type: wasm
           - swift: {version: "6.1"}
             type: wasm-embedded
+          - swift: {version: "6.2"}
+            type: wasm
+          - swift: {version: "6.2"}
+            type: wasm-embedded
     steps:
       - uses: actions/checkout@v6
       - uses: brightdigit/swift-build@v1.5.2
