@@ -53,7 +53,7 @@ jobs:
     name: Build on Ubuntu
     needs: [configure]
     runs-on: ubuntu-latest
-    container: ${{ (matrix.type == 'wasm' || matrix.type == 'wasm-embedded') && 'swift:6.3-noble' || matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
+    container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
     strategy:
       matrix:
         os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
