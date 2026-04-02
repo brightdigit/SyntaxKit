@@ -1,0 +1,39 @@
+name: Cleanup PR Caches
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  cleanup:
+    name: Cleanup Caches for PR
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - uses: actions/checkout@v6
+      - name: Delete PR branch caches
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const ref = `refs/pull/${context.payload.pull_request.number}/merge`;
+            console.log(`Cleaning up caches for PR: ${ref}`);
+
+            const caches = await github.paginate(
+              github.rest.actions.getActionsCacheList,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: ref,
+              }
+            );
+
+            for (const cache of caches) {
+              console.log(`Deleting cache: ${cache.key} (${cache.id})`);
+              await github.rest.actions.deleteActionsCacheById({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                cache_id: cache.id,
+              });
+            }
+
+            console.log(`Deleted ${caches.length} cache(s) for ${ref}`);
