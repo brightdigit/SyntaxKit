@@ -306,7 +306,7 @@ jobs:
     # build-windows, build-macos-full, and build-android are skipped on feature branches;
     # !failure() allows this job to proceed past skipped (not failed) dependencies.
     if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     steps:
       - uses: actions/checkout@v6
