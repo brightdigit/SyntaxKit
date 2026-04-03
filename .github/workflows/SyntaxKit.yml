@@ -74,7 +74,7 @@ jobs:
             type: wasm-embedded
     steps:
       - uses: actions/checkout@v6
-      - uses: brightdigit/swift-build@v1.5.2
+      - uses: brightdigit/swift-build@90-windows-cache-symlinks
         id: build
         with:
           type: ${{ matrix.type }}
@@ -120,7 +120,7 @@ jobs:
       - name: Enable git symlinks
         shell: pwsh
         run: git config --global core.symlinks true
-      - uses: brightdigit/swift-build@v1.5.2
+      - uses: brightdigit/swift-build@90-windows-cache-symlinks
         id: build
         with:
           windows-swift-version: ${{ matrix.swift.version }}
@@ -156,7 +156,7 @@ jobs:
 
       - name: Build and Test
         id: build
-        uses: brightdigit/swift-build@v1.5.2
+        uses: brightdigit/swift-build@90-windows-cache-symlinks
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
           type: ${{ matrix.type }}
@@ -239,7 +239,7 @@ jobs:
 
       - name: Build and Test
         id: build
-        uses: brightdigit/swift-build@v1.5.2
+        uses: brightdigit/swift-build@90-windows-cache-symlinks
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
           type: ${{ matrix.type }}
@@ -284,7 +284,7 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
-      - uses: brightdigit/swift-build@v1.5.2
+      - uses: brightdigit/swift-build@90-windows-cache-symlinks
         id: build
         with:
           type: android
