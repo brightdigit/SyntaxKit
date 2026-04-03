@@ -3,134 +3,160 @@ on:
   push:
     branches-ignore:
       - '*WIP'
+    paths-ignore:
+      - '**.md'
+      - 'Docs/**'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
+  pull_request:
+    branches:
+      - main
+      - 'v[0-9]*.[0-9]*.[0-9]*'
+    paths-ignore:
+      - '**.md'
+      - 'Docs/**'
+      - 'LICENSE'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 env:
-  PACKAGE_NAME: SyntaxKit      
+  PACKAGE_NAME: SyntaxKit
 jobs:
+  configure:
+    name: Configure Build Matrix
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip') }}
+    outputs:
+      full-matrix: ${{ steps.set-matrix.outputs.full-matrix }}
+      ubuntu-os: ${{ steps.set-matrix.outputs.ubuntu-os }}
+      ubuntu-swift: ${{ steps.set-matrix.outputs.ubuntu-swift }}
+      ubuntu-type: ${{ steps.set-matrix.outputs.ubuntu-type }}
+    steps:
+      - name: Determine build matrix
+        id: set-matrix
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "full-matrix=true" >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-os=["noble","jammy"]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-swift=[{"version":"6.0"},{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-type=["","wasm","wasm-embedded"]' >> "$GITHUB_OUTPUT"
+          else
+            echo "full-matrix=false" >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-os=["noble"]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-swift=[{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-type=[""]' >> "$GITHUB_OUTPUT"
+          fi
+
   build-ubuntu:
     name: Build on Ubuntu
+    needs: [configure]
     runs-on: ubuntu-latest
     container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
-    if: ${{ !contains(github.event.head_commit.message, 'ci skip') }}
     strategy:
       matrix:
-        os: [noble, jammy]
-        swift:
-          - version: "6.0"
-          - version: "6.1"
-          - version: "6.1"
-            nightly: true
-          - version: "6.2"
-            nightly: true
+        os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
+        swift: ${{ fromJSON(needs.configure.outputs.ubuntu-swift) }}
+        type: ${{ fromJSON(needs.configure.outputs.ubuntu-type) }}
+        exclude:
+          - swift: {version: "6.0"}
+            type: wasm
+          - swift: {version: "6.0"}
+            type: wasm-embedded
+          - swift: {version: "6.1"}
+            type: wasm
+          - swift: {version: "6.1"}
+            type: wasm-embedded
+          - swift: {version: "6.2"}
+            type: wasm
+          - swift: {version: "6.2"}
+            type: wasm-embedded
     steps:
-      - uses: actions/checkout@v4
-      - uses: brightdigit/swift-build@v1.3.1
-      - uses: sersoft-gmbh/swift-coverage-action@v4
+      - uses: actions/checkout@v6
+      - uses: brightdigit/swift-build@v1.5.3
+        id: build
+        with:
+          type: ${{ matrix.type }}
+          wasmtime-version: 41.0.3
+      - name: Install curl
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        run: |
+          apt-get update -q
+          apt-get install -y curl
+      - uses: sersoft-gmbh/swift-coverage-action@v5
         id: coverage-files
-        with:          
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        with:
           fail-on-empty-output: true
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4       
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
-          flags: swift-${{ matrix.swift-version }},ubuntu
-          verbose: true        
-          token: ${{ secrets.CODECOV_TOKEN }}  
-          files: ${{ join(fromJSON(steps.coverage-files.outputs.files), ',') }} 
+          flags: swift-${{ matrix.swift.version }},ubuntu
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ join(fromJSON(steps.coverage-files.outputs.files), ',') }}
+
   build-windows:
     name: Build on Windows
+    needs: [configure]
+    if: needs.configure.outputs.full-matrix == 'true'
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:
         runs-on: [windows-2022, windows-2025]
-        include:
-          - swift-version: swift-6.2-branch
-            swift-build: 6.2-DEVELOPMENT-SNAPSHOT-2025-09-06-a
-          - swift-version: swift-6.1-release
-            swift-build: 6.1-RELEASE
+        swift:
+          - version: swift-6.3-release
+            build: 6.3-RELEASE
+          - version: swift-6.2-release
+            build: 6.2-RELEASE
+          - version: swift-6.1-release
+            build: 6.1-RELEASE
     steps:
-      - uses: actions/checkout@v4
-      - uses: brightdigit/swift-build@v1.3.1
+      - uses: actions/checkout@v6
+      - name: Enable git symlinks
+        shell: pwsh
+        run: git config --global core.symlinks true
+      - uses: brightdigit/swift-build@v1.5.3
+        id: build
         with:
-          windows-swift-version: ${{ matrix.swift-version }}
-          windows-swift-build: ${{ matrix.swift-build }}
+          windows-swift-version: ${{ matrix.swift.version }}
+          windows-swift-build: ${{ matrix.swift.build }}
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5    
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: codecov/codecov-action@v6
         with:
           fail_ci_if_error: true
-          flags: swift-${{ matrix.swift-version }},windows
-          verbose: true        
+          flags: swift-${{ matrix.swift.version }},windows
+          verbose: true
           token: ${{ secrets.CODECOV_TOKEN }}
           os: windows
           swift_project: SyntaxKit
-          # files: ${{ join(fromJSON(steps.coverage-files.outputs.files), ',') }} 
+
   build-macos:
     name: Build on macOS
+    needs: [configure]
     env:
       PACKAGE_NAME: SyntaxKit
     runs-on: ${{ matrix.runs-on }}
-    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    if: ${{ !cancelled() && needs.configure.result == 'success' }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          # SPM Build Matrix
-          - runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
+          # SPM Build — no platform type; matrix.type evaluates to '' by design
+          - runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
 
-          - runs-on: macos-15
-            xcode: "/Applications/Xcode_16.4.app"
-
-          # macOS Build Matrix
-          - type: macos
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
-
-          - type: macos
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_16.4.app"
-
-          - type: macos
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
-                      
-          # iOS Build Matrix
-          - type: ios
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
-            deviceName: "iPhone 17 Pro"
-            osVersion: "26.0"
-            download-platform: true
-  
-          # watchOS Build Matrix
-          - type: watchos
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
-            deviceName: "Apple Watch Ultra 3 (49mm)"
-            osVersion: "26.0"
-            download-platform: true
-
-          # tvOS Build Matrix
-          - type: tvos
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
-            deviceName: "Apple TV"
-            osVersion: "26.0"
-            download-platform: true
-
-          # visionOS Build Matrix              
-          - type: visionos
-            runs-on: macos-15
-            xcode: "/Applications/Xcode_26.0.app"
-            deviceName: "Apple Vision Pro"
-            osVersion: "26.0"
-            download-platform: true
-  
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Build and Test
-        uses: brightdigit/swift-build@v1.3.1
+        id: build
+        uses: brightdigit/swift-build@v1.5.3
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
           type: ${{ matrix.type }}
@@ -138,39 +164,167 @@ jobs:
           deviceName: ${{ matrix.deviceName }}
           osVersion: ${{ matrix.osVersion }}
           download-platform: ${{ matrix.download-platform }}
-          
+
       # Common Coverage Steps
       - name: Process Coverage
-        uses: sersoft-gmbh/swift-coverage-action@v4
-  
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: sersoft-gmbh/swift-coverage-action@v5
+
       - name: Upload Coverage
-        uses: codecov/codecov-action@v4
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           flags: ${{ matrix.type && format('{0}{1}', matrix.type, matrix.osVersion) || 'spm' }}
 
+  build-macos-full:
+    name: Build on macOS (Full)
+    needs: [configure]
+    if: ${{ !cancelled() && needs.configure.result == 'success' && needs.configure.outputs.full-matrix == 'true' }}
+    env:
+      PACKAGE_NAME: SyntaxKit
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # SPM Build (older Xcode)
+          - runs-on: macos-15
+            xcode: "/Applications/Xcode_16.4.app"
+
+          # macOS Build (older Xcode)
+          - type: macos
+            runs-on: macos-15
+            xcode: "/Applications/Xcode_16.4.app"
+
+          # macOS Build
+          - type: macos
+            runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
+
+          # iOS Build Matrix
+          - type: ios
+            runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
+            deviceName: "iPhone 17 Pro"
+            osVersion: "26.4"
+            download-platform: true
+
+          # watchOS Build Matrix
+          - type: watchos
+            runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
+            deviceName: "Apple Watch Ultra 3 (49mm)"
+            osVersion: "26.4"
+            download-platform: true
+
+          # tvOS Build Matrix
+          - type: tvos
+            runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
+            deviceName: "Apple TV"
+            osVersion: "26.4"
+            download-platform: true
+
+          # visionOS Build Matrix
+          - type: visionos
+            runs-on: macos-26
+            xcode: "/Applications/Xcode_26.4.app"
+            deviceName: "Apple Vision Pro"
+            osVersion: "26.4"
+            download-platform: true
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build and Test
+        id: build
+        uses: brightdigit/swift-build@v1.5.3
+        with:
+          scheme: ${{ env.PACKAGE_NAME }}-Package
+          type: ${{ matrix.type }}
+          xcode: ${{ matrix.xcode }}
+          deviceName: ${{ matrix.deviceName }}
+          osVersion: ${{ matrix.osVersion }}
+          download-platform: ${{ matrix.download-platform }}
+
+      # Common Coverage Steps
+      - name: Process Coverage
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: sersoft-gmbh/swift-coverage-action@v5
+
+      - name: Upload Coverage
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: codecov/codecov-action@v6
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: ${{ matrix.type && format('{0}{1}', matrix.type, matrix.osVersion) || 'spm' }}
+
+  build-android:
+    name: Build for Android
+    needs: [configure]
+    if: needs.configure.outputs.full-matrix == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        swift:
+          - version: "6.2"
+          - version: "6.3"
+        android-api-level: [33, 34, 35, 36]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+      - uses: brightdigit/swift-build@v1.5.3
+        id: build
+        with:
+          type: android
+          android-swift-version: ${{ matrix.swift.version }}
+          android-api-level: ${{ matrix.android-api-level }}
+          android-run-tests: true
+          android-copy-files: Sources/SyntaxKit/Documentation.docc
+      - name: Upload coverage to Codecov
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        uses: codecov/codecov-action@v6
+        with:
+          fail_ci_if_error: true
+          flags: android-api${{ matrix.android-api-level }}-swift${{ matrix.swift.version }}
+          verbose: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   lint:
     name: Linting
-    if: "!contains(github.event.head_commit.message, 'ci skip')"  
+    # build-windows, build-macos-full, and build-android are skipped on feature branches;
+    # !failure() allows this job to proceed past skipped (not failed) dependencies.
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
     runs-on: ubuntu-latest
-    needs: [build-ubuntu, build-macos, build-windows]
+    needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     env:
       MINT_PATH: .mint/lib
       MINT_LINK_PATH: .mint/bin
     steps:
-      - uses: actions/checkout@v4    
+      - uses: actions/checkout@v6
       - name: Cache mint
         id: cache-mint
-        uses: actions/cache@v4  
+        uses: actions/cache@v5
         env:
           cache-name: cache
         with:
           path: |
             .mint
-            Mint         
+            Mint
           key: ${{ runner.os }}-mint-${{ hashFiles('**/Mintfile') }}
           restore-keys: |
-            ${{ runner.os }}-mint-  
+            ${{ runner.os }}-mint-
       - name: Install mint
         if: steps.cache-mint.outputs.cache-hit == ''
         run: |
@@ -182,10 +336,11 @@ jobs:
 
   docs:
     name: Documentation Validation
-    if: "!contains(github.event.head_commit.message, 'ci skip')"  
-    needs: [build-ubuntu, build-macos, build-windows]
+    # Same rationale as lint: !failure() lets this proceed when platform-specific jobs are skipped.
+    if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
+    needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4    
+      - uses: actions/checkout@v6
       - name: Validate Documentation
         run: ./Scripts/validate-docs.sh
