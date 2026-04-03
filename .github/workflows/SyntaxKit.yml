@@ -326,3 +326,17 @@ jobs:
       - uses: actions/checkout@v6
       - name: Validate Documentation
         run: ./Scripts/validate-docs.sh
+
+  all-done:
+    name: All Done
+    if: always()
+    needs: [lint, docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for failures
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "One or more required jobs failed."
+            exit 1
+          fi
+          echo "All required checks passed, were skipped, or were cancelled."
