@@ -10,7 +10,6 @@ jobs:
     permissions:
       actions: write
     steps:
-      - uses: actions/checkout@v6
       - name: Delete PR branch caches
         uses: actions/github-script@v8
         with:

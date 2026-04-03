@@ -17,7 +17,10 @@ internal enum Settings {
       return workingDir
     }
 
-    // Strategy 1b: Documentation.docc copied as last component (Android flat copy via android-copy-files)
+    // Strategy 1b: Documentation.docc present in working directory.
+    // The swift-build action's android-copy-files parameter copies Documentation.docc/ as
+    // a flat sibling of the test binary. Strategy 1a always runs first, so a macOS project
+    // root containing Sources/ will never reach this check.
     if FileManager.default.fileExists(
       atPath: workingDir.appendingPathComponent("Documentation.docc").path)
     {
@@ -81,7 +84,7 @@ internal enum Settings {
         return .init(fileURLWithPath: filePath)
       }
     } else {
-      #if os(Android)
+      #if os(Android)  // os(Android) is a valid Swift platform condition since Swift 5.9
       let resolvedPath = filePath
       #else
       let resolvedPath = "Sources/SyntaxKit/" + filePath

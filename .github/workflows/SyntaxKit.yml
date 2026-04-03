@@ -74,7 +74,7 @@ jobs:
             type: wasm-embedded
     steps:
       - uses: actions/checkout@v6
-      - uses: brightdigit/swift-build@90-windows-cache-symlinks
+      - uses: brightdigit/swift-build@v1.5.3
         id: build
         with:
           type: ${{ matrix.type }}
@@ -120,7 +120,7 @@ jobs:
       - name: Enable git symlinks
         shell: pwsh
         run: git config --global core.symlinks true
-      - uses: brightdigit/swift-build@90-windows-cache-symlinks
+      - uses: brightdigit/swift-build@v1.5.3
         id: build
         with:
           windows-swift-version: ${{ matrix.swift.version }}
@@ -147,7 +147,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # SPM Build
+          # SPM Build — no platform type; matrix.type evaluates to '' by design
           - runs-on: macos-26
             xcode: "/Applications/Xcode_26.4.app"
 
@@ -156,7 +156,7 @@ jobs:
 
       - name: Build and Test
         id: build
-        uses: brightdigit/swift-build@90-windows-cache-symlinks
+        uses: brightdigit/swift-build@v1.5.3
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
           type: ${{ matrix.type }}
@@ -239,7 +239,7 @@ jobs:
 
       - name: Build and Test
         id: build
-        uses: brightdigit/swift-build@90-windows-cache-symlinks
+        uses: brightdigit/swift-build@v1.5.3
         with:
           scheme: ${{ env.PACKAGE_NAME }}-Package
           type: ${{ matrix.type }}
@@ -284,7 +284,7 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
-      - uses: brightdigit/swift-build@90-windows-cache-symlinks
+      - uses: brightdigit/swift-build@v1.5.3
         id: build
         with:
           type: android
@@ -303,6 +303,8 @@ jobs:
 
   lint:
     name: Linting
+    # build-windows, build-macos-full, and build-android are skipped on feature branches;
+    # !failure() allows this job to proceed past skipped (not failed) dependencies.
     if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
     runs-on: ubuntu-latest
     needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
@@ -334,6 +336,7 @@ jobs:
 
   docs:
     name: Documentation Validation
+    # Same rationale as lint: !failure() lets this proceed when platform-specific jobs are skipped.
     if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
     needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
     runs-on: ubuntu-latest
