@@ -39,11 +39,13 @@ else
 	STRINGSLINT_OPTIONS="--config .stringslint.yml"
 fi
 
-pushd $PACKAGE_DIR
+pushd "$PACKAGE_DIR"
 if [ -z "$CI" ]; then
     mise install
 fi
-eval "$(mise env)"
+if command -v mise &> /dev/null; then
+    eval "$(mise env)"
+fi
 
 if [ -z "$CI" ]; then
 	run_command swift-format format $SWIFTFORMAT_OPTIONS  --recursive --parallel --in-place Sources Tests
