@@ -1,0 +1,4 @@
+[tools]
+swiftlint = "latest"
+periphery = "latest"
+swift-format = "latest"
