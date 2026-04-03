@@ -40,7 +40,9 @@ else
 fi
 
 pushd $PACKAGE_DIR
-mise install
+if [ -z "$CI" ]; then
+    mise install
+fi
 eval "$(mise env)"
 
 if [ -z "$CI" ]; then

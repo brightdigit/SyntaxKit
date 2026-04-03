@@ -3,7 +3,7 @@
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -31,5 +31,6 @@
 /// - Parameter content: The markdown content to parse
 /// - Returns: Array of extracted code blocks
 /// - Throws: CodeBlockExtractorError if extraction fails
-package typealias CodeBlockExtractor = @Sendable (String) throws(CodeBlockExtractorError) ->
+package typealias CodeBlockExtractor =
+  @Sendable (String) throws(CodeBlockExtractorError) ->
   [CodeBlock]
