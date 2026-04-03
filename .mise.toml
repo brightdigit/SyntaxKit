@@ -1,4 +1,4 @@
 [tools]
-swiftlint = "latest"
-periphery = "latest"
-swift-format = "latest"
+swiftlint = "0.63.2"
+periphery = "3.7.2"
+"asdf:eelcokoelewijn/asdf-swift-format" = "602.0.0"
