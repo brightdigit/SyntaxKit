@@ -41,6 +41,7 @@ fi
 
 pushd $PACKAGE_DIR
 mise install
+eval "$(mise env)"
 
 if [ -z "$CI" ]; then
 	run_command swift-format format $SWIFTFORMAT_OPTIONS  --recursive --parallel --in-place Sources Tests
