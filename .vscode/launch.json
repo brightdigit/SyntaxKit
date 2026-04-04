@@ -6,8 +6,9 @@
             "args": [],
             "cwd": "${workspaceFolder:SyntaxKit}",
             "name": "Debug skit",
-            "program": "${workspaceFolder:SyntaxKit}/.build/debug/skit",
-            "preLaunchTask": "swift: Build Debug skit"
+            "preLaunchTask": "swift: Build Debug skit",
+            "target": "skit",
+            "configuration": "debug"
         },
         {
             "type": "swift",
@@ -15,8 +16,9 @@
             "args": [],
             "cwd": "${workspaceFolder:SyntaxKit}",
             "name": "Release skit",
-            "program": "${workspaceFolder:SyntaxKit}/.build/release/skit",
-            "preLaunchTask": "swift: Build Release skit"
+            "preLaunchTask": "swift: Build Release skit",
+            "target": "skit",
+            "configuration": "release"
         }
     ]
 }
