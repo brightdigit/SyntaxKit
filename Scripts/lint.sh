@@ -57,7 +57,7 @@ if [ -z "$FORMAT_ONLY" ]; then
     run_command swiftlint lint $SWIFTLINT_OPTIONS
 fi
 
-$PACKAGE_DIR/Scripts/header.sh -d  $PACKAGE_DIR/Sources -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit" -y 2025
+$PACKAGE_DIR/Scripts/header.sh -d  $PACKAGE_DIR/Sources -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit"
 
 run_command swiftlint lint $SWIFTLINT_OPTIONS
 run_command swift-format lint --recursive --parallel $SWIFTFORMAT_OPTIONS Sources Tests
