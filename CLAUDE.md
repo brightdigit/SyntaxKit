@@ -82,9 +82,9 @@ Sources/SyntaxKit/
 - **SwiftDocC Plugin** (1.4.0+) - Documentation generation
 
 ### Quality Tools
-- **SwiftFormat** (600.0.0) - Code formatting
-- **SwiftLint** (0.58.2) - Static analysis (90+ opt-in rules)
-- **Periphery** (3.0.1) - Unused code detection
+- **SwiftFormat** (602.0.0) - Code formatting
+- **SwiftLint** (0.63.2) - Static analysis (90+ opt-in rules)
+- **Periphery** (3.7.2) - Unused code detection
 
 ## Project Structure
 

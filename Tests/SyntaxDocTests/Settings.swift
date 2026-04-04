@@ -85,9 +85,9 @@ internal enum Settings {
       }
     } else {
       #if os(Android)  // os(Android) is a valid Swift platform condition since Swift 5.9
-      let resolvedPath = filePath
+        let resolvedPath = filePath
       #else
-      let resolvedPath = "Sources/SyntaxKit/" + filePath
+        let resolvedPath = "Sources/SyntaxKit/" + filePath
       #endif
       return Self.projectRoot.appendingPathComponent(resolvedPath)
     }

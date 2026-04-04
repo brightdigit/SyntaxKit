@@ -31,5 +31,6 @@
 /// - Parameter content: The markdown content to parse
 /// - Returns: Array of extracted code blocks
 /// - Throws: CodeBlockExtractorError if extraction fails
-package typealias CodeBlockExtractor = @Sendable (String) throws(CodeBlockExtractorError) ->
+package typealias CodeBlockExtractor =
+  @Sendable (String) throws(CodeBlockExtractorError) ->
   [CodeBlock]
