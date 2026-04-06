@@ -73,7 +73,7 @@ Add SyntaxKit to your project using Swift Package Manager:
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.3")
+    .package(url: "https://github.com/brightdigit/SyntaxKit.git", from: "0.0.4")
 ]
 ```
 

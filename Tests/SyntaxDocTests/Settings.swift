@@ -22,8 +22,8 @@ internal enum Settings {
     // a flat sibling of the test binary. Strategy 1a always runs first, so a macOS project
     // root containing Sources/ will never reach this check.
     if FileManager.default.fileExists(
-      atPath: workingDir.appendingPathComponent("Documentation.docc").path)
-    {
+      atPath: workingDir.appendingPathComponent("Documentation.docc").path
+    ) {
       return workingDir
     }
 
@@ -33,8 +33,8 @@ internal enum Settings {
       .deletingLastPathComponent()  // Tests
       .deletingLastPathComponent()  // Project root
     if FileManager.default.fileExists(
-      atPath: sourceRelative.appendingPathComponent("Sources").path)
-    {
+      atPath: sourceRelative.appendingPathComponent("Sources").path
+    ) {
       return sourceRelative
     }
 
