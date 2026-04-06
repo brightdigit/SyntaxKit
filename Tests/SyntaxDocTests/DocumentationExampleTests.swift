@@ -42,7 +42,7 @@ internal struct DocumentationExampleTests {
   @Test("Quick Start Guide examples work correctly")
   internal func validateQuickStartGuideExamples() throws {
     let quickStartFile = try Settings.resolveFilePath(
-      "Sources/SyntaxKit/Documentation.docc/Tutorials/Quick-Start-Guide.md"
+      "Documentation.docc/Tutorials/Quick-Start-Guide.md"
     )
     let results = try testHarness.validateFile(at: quickStartFile)
 
@@ -57,7 +57,7 @@ internal struct DocumentationExampleTests {
   @Test("Creating Macros tutorial examples work correctly")
   internal func validateMacroTutorialExamples() throws {
     let macroTutorialFile = try Settings.resolveFilePath(
-      "Sources/SyntaxKit/Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md"
+      "Documentation.docc/Tutorials/Creating-Macros-with-SyntaxKit.md"
     )
     let results = try testHarness.validateFile(at: macroTutorialFile)
 

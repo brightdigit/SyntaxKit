@@ -1,9 +1,9 @@
 //
-//  SyntaxType.swift
+//  PatternBindingListSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,12 +28,12 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal enum SyntaxType: String, Codable, Equatable {
-  case decl
-  case expr
-  case pattern
-  case type
-  case collection
-  case other
+/// Extension for PatternBindingListSyntax to conform to SyntaxClassifiable.
+extension PatternBindingListSyntax: SyntaxClassifiable {
+  /// Pattern binding lists are classified as `.collection` type.
+  internal static var syntaxType: SyntaxType {
+    .collection
+  }
 }

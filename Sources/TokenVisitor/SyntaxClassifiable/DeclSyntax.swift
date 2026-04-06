@@ -1,9 +1,9 @@
 //
-//  StructureValue.swift
+//  DeclSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,24 +28,11 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal struct StructureValue: Codable, Equatable {
-  internal let text: String
-  internal let kind: String?
-
-  internal init(text: String, kind: String? = nil) {
-    self.text = text.escapeHTML().replaceHTMLWhitespacesToSymbols()
-    self.kind = kind?.escapeHTML()
-  }
-}
-
-extension StructureValue: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      text: \(text)
-      kind: \(String(describing: kind))
-    }
-    """
+extension DeclSyntax: SyntaxClassifiable {
+  /// Declarations are classified as `.decl` type.
+  internal static var syntaxType: SyntaxType {
+    .decl
   }
 }

@@ -1,9 +1,9 @@
 //
-//  main.swift
+//  ExprSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,25 +28,11 @@
 //
 
 import Foundation
-import SyntaxKit
+import SwiftSyntax
 
-// Read Swift code from stdin
-internal let code =
-  String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
-
-do {
-  // Parse the code using SyntaxKit
-  let response = try SyntaxParser.parse(code: code, options: ["fold"])
-
-  // Output the JSON to stdout
-  print(response.syntaxJSON)
-} catch {
-  // If there's an error, output it as JSON
-  let errorResponse = ["error": error.localizedDescription]
-  if let jsonData = try? JSONSerialization.data(withJSONObject: errorResponse),
-    let jsonString = String(data: jsonData, encoding: .utf8)
-  {
-    print(jsonString)
+extension ExprSyntax: SyntaxClassifiable {
+  /// Expressions are classified as `.expr` type.
+  internal static var syntaxType: SyntaxType {
+    .expr
   }
-  exit(1)
 }

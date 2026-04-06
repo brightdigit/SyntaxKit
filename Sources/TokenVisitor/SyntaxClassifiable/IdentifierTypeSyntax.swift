@@ -1,9 +1,9 @@
 //
-//  SyntaxResponse.swift
+//  IdentifierTypeSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -27,8 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+import SwiftSyntax
 
-package struct SyntaxResponse: Codable {
-  package let syntaxJSON: String
+extension IdentifierTypeSyntax: SyntaxClassifiable {
+  internal static var syntaxType: SyntaxType {
+    .type
+  }
 }

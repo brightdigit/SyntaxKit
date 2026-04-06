@@ -1,9 +1,9 @@
 //
-//  SourceRange.swift
+//  SyntaxClassifiable.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,23 +28,13 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-internal struct SourceRange: Codable, Equatable {
-  internal let startRow: Int
-  internal let startColumn: Int
-  internal let endRow: Int
-  internal let endColumn: Int
-}
-
-extension SourceRange: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      startRow: \(startRow)
-      startColumn: \(startColumn)
-      endRow: \(endRow)
-      endColumn: \(endColumn)
-    }
-    """
-  }
+/// Protocol for syntax nodes that can classify themselves by their semantic role.
+///
+/// This protocol allows syntax nodes to self-identify their classification,
+/// making the classification process more type-safe and extensible.
+package protocol SyntaxClassifiable: Sendable {
+  /// Returns the semantic classification of this syntax node type.
+  static var syntaxType: SyntaxType { get }
 }

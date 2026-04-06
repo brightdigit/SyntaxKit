@@ -1,9 +1,9 @@
 //
-//  Token.swift
+//  TreeNodeProtocol.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,27 +28,21 @@
 //
 
 import Foundation
+package import SwiftSyntax
 
-internal struct Token: Codable, Equatable {
-  internal let kind: String
-  internal var leadingTrivia: String
-  internal var trailingTrivia: String
+package protocol TreeNodeProtocol: AnyObject {
+  var id: Int { get }
+  var parent: Int? { get set }
+  var text: String { get set }
+  var token: Token? { get set }
+  var structure: [StructureProperty] { get set }
+  var type: SyntaxType { get set }
 
-  internal init(kind: String, leadingTrivia: String, trailingTrivia: String) {
-    self.kind = kind.escapeHTML()
-    self.leadingTrivia = leadingTrivia
-    self.trailingTrivia = trailingTrivia
-  }
-}
-
-extension Token: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      kind: \(kind)
-      leadingTrivia: \(leadingTrivia)
-      trailingTrivia: \(trailingTrivia)
-    }
-    """
-  }
+  init(
+    id: Int,
+    from node: Syntax,
+    locationConverter: SourceLocationConverter,
+    syntaxType: SyntaxType,
+    className: String
+  )
 }

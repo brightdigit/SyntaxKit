@@ -1,9 +1,9 @@
 //
-//  StructureProperty.swift
+//  String.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -27,28 +27,6 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-
-internal struct StructureProperty: Codable, Equatable {
-  internal let name: String
-  internal let value: StructureValue?
-  internal let ref: String?
-
-  internal init(name: String, value: StructureValue? = nil, ref: String? = nil) {
-    self.name = name.escapeHTML()
-    self.value = value
-    self.ref = ref?.escapeHTML()
-  }
-}
-
-extension StructureProperty: CustomStringConvertible {
-  internal var description: String {
-    """
-    {
-      name: \(name)
-      value: \(String(describing: value))
-      ref: \(String(describing: ref))
-    }
-    """
-  }
+extension String {
+  internal static let empty = ""
 }

@@ -1,9 +1,9 @@
 //
-//  String.swift
+//  TypeSyntax.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,43 +28,11 @@
 //
 
 import Foundation
+import SwiftSyntax
 
-extension String {
-  internal func escapeHTML() -> String {
-    var string = self
-    let specialCharacters = [
-      ("&", "&amp;"),
-      ("<", "&lt;"),
-      (">", "&gt;"),
-      ("\"", "&quot;"),
-      ("'", "&apos;"),
-    ]
-    for (unescaped, escaped) in specialCharacters {
-      string = string.replacingOccurrences(
-        of: unescaped,
-        with: escaped,
-        options: .literal,
-        range: nil
-      )
-    }
-    return string
-  }
-
-  internal func replaceInvisiblesWithHTML() -> String {
-    self
-      .replacingOccurrences(of: " ", with: "&nbsp;")
-      .replacingOccurrences(of: "\n", with: "<br/>")
-  }
-
-  internal func replaceInvisiblesWithSymbols() -> String {
-    self
-      .replacingOccurrences(of: " ", with: "␣")
-      .replacingOccurrences(of: "\n", with: "↲")
-  }
-
-  internal func replaceHTMLWhitespacesWithSymbols() -> String {
-    self
-      .replacingOccurrences(of: "&nbsp;", with: "<span class='whitespace'>␣</span>")
-      .replacingOccurrences(of: "<br/>", with: "<span class='newline'>↲</span><br/>")
+extension TypeSyntax: SyntaxClassifiable {
+  /// Types are classified as `.type` type.
+  internal static var syntaxType: SyntaxType {
+    .type
   }
 }

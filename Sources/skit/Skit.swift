@@ -1,9 +1,9 @@
 //
-//  SyntaxParser.swift
+//  Skit.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
@@ -28,32 +28,23 @@
 //
 
 import Foundation
-import SwiftOperators
-import SwiftParser
-import SwiftSyntax
+import SyntaxParser
 
-package enum SyntaxParser {
-  package static func parse(code: String, options: [String] = []) throws -> SyntaxResponse {
-    let sourceFile = Parser.parse(source: code)
+@main
+internal enum Skit {
+  internal static func main() throws {
+    // Read Swift code from stdin
+    let code = String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
 
-    let syntax: Syntax
-    if options.contains("fold") {
-      syntax = OperatorTable.standardOperators.foldAll(sourceFile, errorHandler: { _ in })
-    } else {
-      syntax = Syntax(sourceFile)
-    }
+    // Parse the code using SyntaxKit
+    let treeNodes = SyntaxParser.parse(code: code)
 
-    let visitor = TokenVisitor(
-      locationConverter: SourceLocationConverter(fileName: "", tree: sourceFile),
-      showMissingTokens: options.contains("showmissing")
-    )
-    _ = visitor.rewrite(syntax)
-
-    let tree = visitor.tree
+    // Convert to JSON for output
     let encoder = JSONEncoder()
-    let data = try encoder.encode(tree)
+    let data = try encoder.encode(treeNodes)
     let json = String(decoding: data, as: UTF8.self)
 
-    return SyntaxResponse(syntaxJSON: json)
+    // Output the JSON
+    print(json)
   }
 }
