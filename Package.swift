@@ -95,6 +95,10 @@ let package = Package(
       name: "skit",
       targets: ["skit"]
     ),
+    .executable(
+      name: "skitrun",
+      targets: ["skitrun"]
+    ),
   ],
   dependencies: [
     .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
@@ -142,6 +146,14 @@ let package = Package(
     .executableTarget(
       name: "skit",
       dependencies: ["SyntaxParser"],
+      swiftSettings: swiftSettings
+    ),
+    .executableTarget(
+      name: "skitrun",
+      dependencies: [
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftParser", package: "swift-syntax")
+      ],
       swiftSettings: swiftSettings
     ),
     .testTarget(
