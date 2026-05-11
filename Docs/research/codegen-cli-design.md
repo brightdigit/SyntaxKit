@@ -72,9 +72,13 @@ print(__syntaxkit_root.generateCode())
   -L  <SyntaxKitSearchPaths.library> \
   -F  <SyntaxKitSearchPaths.framework> \
   -lSyntaxKit -framework SyntaxKit \
+  -Xcc -I -Xcc <SyntaxKitSearchPaths.cShimsInclude> \
+  -Xlinker -rpath -Xlinker <SyntaxKitSearchPaths.library> \
   -I … -L … -F … -l<CodegenHelpers>          # optional, when helpers exist
   <tmp>/Input.wrapped.swift
 ```
+
+The `-Xcc -I -Xcc <…>` flag is non-obvious but required (POC step 1 finding): SyntaxKit transitively depends on `_SwiftSyntaxCShims` whose module map lives in `swift-syntax/Sources/_SwiftSyntaxCShims/include/`. The bundled-binary release must ship this header directory alongside the dylib and the SwiftSyntax `.swiftmodule` files. Without the flag, the script compile fails with `missing required module '_SwiftSyntaxCShims'`. The `-Xlinker -rpath -Xlinker <…>` flag tells the just-built script's dylib loader where to find `libSyntaxKit.dylib` at runtime.
 
 No `--syntaxkit-dump` flag, no start/end tokens. The child's stdout is the rendered Swift source verbatim. The CLI's job is wrap → `Process` → capture stdout → atomic write to destination → clean up temp wrapper.
 
@@ -137,14 +141,15 @@ Each step is independently shippable and de-risks the next.
 1. **Hand-driven wrap + spawn.** Hand-write a pure-DSL `Input.swift` and a hand-rolled `Input.wrapped.swift` that imports SyntaxKit, splices the body into `Group { … }`, and prints `generateCode()`. Invoke it manually with `swift Input.wrapped.swift -I … -L … -F … -lSyntaxKit -framework SyntaxKit` against a local `swift build` of SyntaxKit. **Goal: prove the `swift`-script + framework-search-path mechanism works for SyntaxKit at all, that a result-builder closure spliced from user text compiles cleanly, and measure cold-start cost.** Cold-start is the single biggest risk to retire — if it's 20+ seconds, the design needs rethinking.
 2. **CLI subcommand for single-file mode.** Add `syntaxkit run <input.swift>`: parse out top-level imports with SwiftSyntax, write `Input.wrapped.swift` to a temp dir, spawn `swift` via `Foundation.Process`, capture stdout, write to `-o <output.swift>` (or stdout if no `-o`). Stderr is forwarded; rewrite `Input.wrapped.swift:LINE` references back to `Input.swift:LINE` before forwarding.
 3. **Folder mode.** Walk `InputDir/**/*.swift`, mirror paths into `OutputDir/`. Add `_`-prefix skip rule. Parallelize cautiously (`swift` spawns aren't free — gate on a small concurrency limit, maybe `ProcessInfo.activeProcessorCount`).
-4. **Ship a bundled-binary release.** Build SyntaxKit + SwiftSyntax dylibs, drop them in `lib/` next to the CLI binary, write a `ResourceLocator` analog (mirrors `cli/Sources/TuistLoader/Utils/ResourceLocator.swift:52-83`). Now the CLI is self-contained — no `swift build` required at the call site.
+4. **Ship a bundled-binary release.** Build SyntaxKit as a `type: .dynamic` library, then bundle the `libSyntaxKit.dylib` + every `.swiftmodule` SyntaxKit publicly re-exports (SwiftSyntax + version-suffixed variants, SwiftOperators, SwiftParser) + the `_SwiftSyntaxCShims/include/` header dir in a `lib/` directory next to the CLI binary. Write a `ResourceLocator` analog (mirrors `cli/Sources/TuistLoader/Utils/ResourceLocator.swift:52-83`). POC step 1 confirmed cold-start with this layout is ~720ms. Debug dylib size is ~25 MB — re-measure under release config.
 5. **Helpers directory.** Discovery + compile + flag-splicing.
 6. **Output cache.** Add the cache, keyed as in §5. Add `--no-cache` for debugging.
 7. **Linux smoke test.** Confirm `/usr/bin/env swift` works on Linux with the bundled dylib layout (no framework search path, but `-I + -L + -lSyntaxKit` should be sufficient, matching Tuist's `ProjectDescriptionSearchPaths.Style.commandLine` branch).
 
 ## 7. What we still need to verify
 
-- **Cold-start cost.** Single biggest unknown. Step 1 of §6 answers this.
+- **Cold-start cost.** ~~Single biggest unknown.~~ Answered by POC step 1: ~720ms cold, ~110ms warm. See [`poc-step1-results.md`](./poc-step1-results.md).
+- **SyntaxKit `if`-in-`Group` compiler crash.** POC step 1 surfaced this: `CodeBlockBuilderResult` claims `buildEither`/`buildOptional` support but conditionals trigger a type-checker failure-to-diagnose. Independent of the CLI design but blocks users writing conditional codegen. File as a separate SyntaxKit bug.
 - **Splice fidelity.** When the input body lives inside a `Group { … }` closure, is everything users naturally write in the DSL still legal? Result-builder closures don't allow `import`, top-level type decls, or top-level `let`/`var` outside the builder DSL. The wrapper hoists `import`s; we need to confirm there's no other top-level construct users would reasonably write that the wrap step would break. Verify in step 1 with a few realistic inputs (large struct, nested types, conditionals via `if`-in-builder).
 - **`Process` stdout/stderr separation.** Tuist captures stdout-only and merges stderr via `CommandError`. Foundation's `Process` has the same split — confirm it doesn't interleave under load, and confirm the CLI doesn't accidentally swallow stderr.
 - **`swift` script-mode quirks.** `swift <file.swift>` runs in interpret/`-frontend -interpret` mode. Some features (`@main`, certain attributes) behave differently than in compile mode. Top-level `print` statements are fine. Verify in step 1.
