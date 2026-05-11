@@ -8,7 +8,7 @@
 - **Warm: ~110ms** for subsequent runs.
 - **Pure-DSL `Input.swift` spliced into `Group { … }`** in a generated wrapper compiles and runs end-to-end, producing the expected Swift source.
 - **Bundled-dylib distribution is real and viable.** The only flags the CLI has to assemble are `-I`, `-L`, `-lSyntaxKit`, `-Xlinker -rpath -Xlinker <lib>` and one new requirement: `-Xcc -I -Xcc <C-shim-include-dir>` (see §3 finding).
-- **SyntaxKit dylib weight: 25.3 MB** in debug. Release build will be smaller. The CLI release artifact is dominated by this and the SwiftSyntax `.swiftmodule` files.
+- **SyntaxKit dylib weight:** 25 MB debug → 18 MB release → **9.3 MB stripped release**. The 9.3 MB number is the one that matters for distribution and is well within range of a normal CLI binary.
 
 ## 1. What was run
 
@@ -134,5 +134,5 @@ A wrapped input with both `import SyntaxKit` and `import Foundation` at the top 
 
 - §5 distribution layout: add `Sources/_SwiftSyntaxCShims/include/` to the bundled `lib/` contents.
 - §3 spawn command: include the `-Xcc -I -Xcc <…>` flag.
-- §7 open questions: SwiftSyntax dylib size confirmed at ~25 MB (debug). Re-measure release.
+- §7 open questions: SyntaxKit dylib size measured at 25 MB debug, 18 MB release, 9.3 MB release+stripped (`strip -x`). Warm performance identical between debug and release builds.
 - §7 open questions: add tracking note for the `if`-in-`Group` Swift compiler bug.
