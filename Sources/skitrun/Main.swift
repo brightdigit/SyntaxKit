@@ -1,6 +1,6 @@
 //
 //  Main.swift
-//  SyntaxKit — skitrun (POC for issue #154)
+//  SyntaxKit
 //
 //  Created by Leo Dion.
 //  Copyright © 2026 BrightDigit.
@@ -46,16 +46,68 @@ internal enum SkitRun {
 
     switch args.mode {
     case .singleFile(let input, let output):
-      try runSingleFile(inputPath: input, outputPath: output, libPath: libPath)
+      let helpers = try resolveHelpers(
+        nearInputPath: input,
+        libPath: libPath,
+        options: args.helpers
+      )
+      try runSingleFile(
+        inputPath: input,
+        outputPath: output,
+        libPath: libPath,
+        helpers: helpers
+      )
     case .directory(let inputDir, let outputDir):
+      let helpers = try resolveHelpers(
+        nearInputPath: inputDir,
+        libPath: libPath,
+        options: args.helpers
+      )
       let exitCode = await runDirectory(
         inputDir: inputDir,
         outputDir: outputDir,
-        libPath: libPath
+        libPath: libPath,
+        helpers: helpers
       )
       exit(exitCode)
     }
   }
+}
+
+// MARK: - Helpers resolution
+
+private func resolveHelpers(
+  nearInputPath path: String,
+  libPath: String,
+  options: HelpersOptions
+) throws -> CompiledHelpers? {
+  let helpersDir: URL?
+  switch options {
+  case .disabled:
+    return nil
+  case .auto:
+    helpersDir = discoverHelpersDir(near: URL(fileURLWithPath: path).standardizedFileURL)
+  case .explicit(let dir):
+    let url = URL(fileURLWithPath: dir).standardizedFileURL
+    var isDir: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir),
+      isDir.boolValue
+    else {
+      throw CLIError(message: "--helpers path is not a directory: \(dir)")
+    }
+    helpersDir = url
+  }
+  guard let helpersDir else { return nil }
+
+  guard let compiled = try buildHelpers(helpersDir: helpersDir, libPath: libPath) else {
+    return nil
+  }
+  let suffix = compiled.cacheHit ? "cached" : "compiled"
+  FileHandle.standardError.write(
+    Data(
+      "skitrun: helpers \(suffix) at \(helpersDir.path)\n".utf8
+    ))
+  return compiled
 }
 
 // MARK: - Resource location
@@ -89,15 +141,16 @@ internal func resolveLibPath(override: String?) throws -> String {
     if isLibDir(brewLayout) { return brewLayout }
   }
 
-  throw CLIError(message: """
-    Could not locate SyntaxKit lib directory. Looked for:
-      1. --lib <dir>           (not provided)
-      2. $SKITRUN_LIB_DIR       (not set)
-      3. <binary-dir>/lib/      (not found)
-      4. <binary-dir>/../lib/skitrun/  (not found)
-    Run Docs/research/poc-step4-release.sh to produce a self-contained
-    release bundle under .build/skitrun-release/.
-    """)
+  throw CLIError(
+    message: """
+      Could not locate SyntaxKit lib directory. Looked for:
+        1. --lib <dir>           (not provided)
+        2. $SKITRUN_LIB_DIR       (not set)
+        3. <binary-dir>/lib/      (not found)
+        4. <binary-dir>/../lib/skitrun/  (not found)
+      Run Docs/research/poc-step4-release.sh to produce a self-contained
+      release bundle under .build/skitrun-release/.
+      """)
 }
 
 private func isLibDir(_ path: String) -> Bool {
@@ -109,8 +162,13 @@ private func isLibDir(_ path: String) -> Bool {
 
 // MARK: - Single-file mode
 
-private func runSingleFile(inputPath: String, outputPath: String?, libPath: String) throws {
-  let result = try processFile(inputPath: inputPath, libPath: libPath)
+private func runSingleFile(
+  inputPath: String,
+  outputPath: String?,
+  libPath: String,
+  helpers: CompiledHelpers?
+) throws {
+  let result = try processFile(inputPath: inputPath, libPath: libPath, helpers: helpers)
   if !result.stderr.isEmpty {
     FileHandle.standardError.write(Data(result.stderr.utf8))
   }
@@ -126,13 +184,18 @@ private func runSingleFile(inputPath: String, outputPath: String?, libPath: Stri
 
 // MARK: - Folder mode
 
-private func runDirectory(inputDir: String, outputDir: String, libPath: String) async -> Int32 {
+private func runDirectory(
+  inputDir: String,
+  outputDir: String,
+  libPath: String,
+  helpers: CompiledHelpers?
+) async -> Int32 {
   let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
   let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
 
   let inputs: [URL]
   do {
-    inputs = try collectInputs(at: inputURL)
+    inputs = try collectInputs(at: inputURL, excluding: helpersExcludePath(inputDir: inputURL))
   } catch {
     FileHandle.standardError.write(Data("skitrun: failed to walk \(inputDir): \(error)\n".utf8))
     return 1
@@ -151,12 +214,12 @@ private func runDirectory(inputDir: String, outputDir: String, libPath: String) 
   await withTaskGroup(of: FileOutcome.self) { group in
     for _ in 0..<maxConcurrent {
       guard let next = iterator.next() else { break }
-      group.addTask { runOne(next, libPath: libPath) }
+      group.addTask { runOne(next, libPath: libPath, helpers: helpers) }
     }
     for await outcome in group {
       outcomes.append(outcome)
       if let next = iterator.next() {
-        group.addTask { runOne(next, libPath: libPath) }
+        group.addTask { runOne(next, libPath: libPath, helpers: helpers) }
       }
     }
   }
@@ -194,9 +257,10 @@ private func runDirectory(inputDir: String, outputDir: String, libPath: String) 
     }
   }
 
-  FileHandle.standardError.write(Data(
-    "skitrun: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
-  ))
+  FileHandle.standardError.write(
+    Data(
+      "skitrun: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
+    ))
 
   return failed == 0 ? 0 : 1
 }
@@ -206,27 +270,49 @@ private struct FileOutcome: Sendable {
   let result: Result<ProcessResult, any Error>
 }
 
-private func runOne(_ input: URL, libPath: String) -> FileOutcome {
+private func runOne(_ input: URL, libPath: String, helpers: CompiledHelpers?) -> FileOutcome {
   do {
-    let result = try processFile(inputPath: input.path, libPath: libPath)
+    let result = try processFile(inputPath: input.path, libPath: libPath, helpers: helpers)
     return FileOutcome(input: input, result: .success(result))
   } catch {
     return FileOutcome(input: input, result: .failure(error))
   }
 }
 
-private func collectInputs(at inputDir: URL) throws -> [URL] {
-  guard let enumerator = FileManager.default.enumerator(
-    at: inputDir,
-    includingPropertiesForKeys: [.isRegularFileKey],
-    options: [.skipsHiddenFiles]
-  ) else {
+/// Returns the path of a `Helpers/` directory living directly under `inputDir`,
+/// so the folder-mode enumerator can skip its descendants. Helpers that live
+/// outside the input tree don't need to be excluded (they aren't enumerated).
+private func helpersExcludePath(inputDir: URL) -> String? {
+  let candidate = inputDir.appendingPathComponent("Helpers").standardizedFileURL
+  var isDir: ObjCBool = false
+  guard FileManager.default.fileExists(atPath: candidate.path, isDirectory: &isDir),
+    isDir.boolValue
+  else {
+    return nil
+  }
+  return candidate.path
+}
+
+private func collectInputs(at inputDir: URL, excluding excludedDir: String?) throws -> [URL] {
+  guard
+    let enumerator = FileManager.default.enumerator(
+      at: inputDir,
+      includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
+      options: [.skipsHiddenFiles]
+    )
+  else {
     throw CLIError(message: "could not enumerate \(inputDir.path)")
   }
 
   var result: [URL] = []
   for case let url as URL in enumerator {
-    let values = try url.resourceValues(forKeys: [.isRegularFileKey])
+    let values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
+    if values.isDirectory == true {
+      if let excludedDir, url.standardizedFileURL.path == excludedDir {
+        enumerator.skipDescendants()
+      }
+      continue
+    }
     guard values.isRegularFile == true else { continue }
     guard url.pathExtension == "swift" else { continue }
     guard !url.lastPathComponent.hasPrefix("_") else { continue }
@@ -243,7 +329,11 @@ private struct ProcessResult {
   let stderr: String
 }
 
-private func processFile(inputPath: String, libPath: String) throws -> ProcessResult {
+private func processFile(
+  inputPath: String,
+  libPath: String,
+  helpers: CompiledHelpers?
+) throws -> ProcessResult {
   let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
   let absoluteInputPath = inputURL.path
   let source = try String(contentsOf: inputURL, encoding: .utf8)
@@ -257,7 +347,7 @@ private func processFile(inputPath: String, libPath: String) throws -> ProcessRe
   let wrappedURL = tmpDir.appendingPathComponent("Input.wrapped.swift")
   try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
 
-  let raw = try runSwift(wrappedPath: wrappedURL.path, libPath: libPath)
+  let raw = try runSwift(wrappedPath: wrappedURL.path, libPath: libPath, helpers: helpers)
   // #sourceLocation maps body diagnostics back to the input file. Errors in
   // the preamble (lines outside the body) still reference the wrapper —
   // rewrite literal occurrences of its path so users see something coherent.
@@ -270,6 +360,12 @@ private func processFile(inputPath: String, libPath: String) throws -> ProcessRe
 
 // MARK: - Arg parsing
 
+internal enum HelpersOptions {
+  case auto
+  case disabled
+  case explicit(String)
+}
+
 private struct CLIArgs {
   enum Mode {
     case singleFile(input: String, output: String?)
@@ -278,11 +374,13 @@ private struct CLIArgs {
 
   let mode: Mode
   let libPath: String?
+  let helpers: HelpersOptions
 
   static func parse(_ argv: [String]) throws -> CLIArgs {
     var inputPath: String?
     var outputPath: String?
     var libPath: String?
+    var helpers: HelpersOptions = .auto
 
     var i = 1
     while i < argv.count {
@@ -296,6 +394,13 @@ private struct CLIArgs {
         guard i + 1 < argv.count else { throw usage("--lib requires a value") }
         libPath = argv[i + 1]
         i += 2
+      case "--helpers":
+        guard i + 1 < argv.count else { throw usage("--helpers requires a value") }
+        helpers = .explicit(argv[i + 1])
+        i += 2
+      case "--no-helpers":
+        helpers = .disabled
+        i += 1
       case "-h", "--help":
         FileHandle.standardError.write(Data(helpText.utf8))
         exit(0)
@@ -325,7 +430,7 @@ private struct CLIArgs {
       mode = .singleFile(input: inputPath, output: outputPath)
     }
 
-    return CLIArgs(mode: mode, libPath: libPath)
+    return CLIArgs(mode: mode, libPath: libPath, helpers: helpers)
   }
 }
 
@@ -349,13 +454,18 @@ private let helpText = """
                           then <binary-dir>/lib/, then <binary-dir>/../lib/skitrun/.
                           Build a self-contained bundle with
                           Docs/research/poc-step4-release.sh.
+    --helpers <dir>       Override Helpers/ directory location. By default,
+                          skitrun walks up from the input looking for one.
+                          Compiled into libSyntaxKitHelpers.dylib and made
+                          importable via `import SyntaxKitHelpers`.
+    --no-helpers          Skip helpers discovery entirely.
   """
 
 private func usage(_ message: String) -> CLIError {
   CLIError(message: "\(message)\n\n\(helpText)\n")
 }
 
-private struct CLIError: Error, CustomStringConvertible {
+internal struct CLIError: Error, CustomStringConvertible {
   let message: String
   var description: String { message }
 }
@@ -379,7 +489,8 @@ internal func wrap(source: String, originalPath: String) -> String {
 
   for item in tree.statements {
     if let importDecl = item.item.as(ImportDeclSyntax.self),
-       firstBodyByte == nil {
+      firstBodyByte == nil
+    {
       hoisted.append(importDecl.description.trimmingCharacters(in: .whitespacesAndNewlines))
       continue
     }
@@ -402,7 +513,8 @@ internal func wrap(source: String, originalPath: String) -> String {
 
   // #sourceLocation must use a forward-slash path; escape backslashes/quotes
   // defensively even though macOS paths shouldn't contain them.
-  let escapedPath = originalPath
+  let escapedPath =
+    originalPath
     .replacingOccurrences(of: "\\", with: "\\\\")
     .replacingOccurrences(of: "\"", with: "\\\"")
 
@@ -421,12 +533,14 @@ internal func wrap(source: String, originalPath: String) -> String {
 
 // MARK: - Spawning swift
 
-private func runSwift(wrappedPath: String, libPath: String) throws -> ProcessResult {
+private func runSwift(
+  wrappedPath: String,
+  libPath: String,
+  helpers: CompiledHelpers?
+) throws -> ProcessResult {
   let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
 
-  let process = Process()
-  process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-  process.arguments = [
+  var arguments: [String] = [
     "swift",
     "-suppress-warnings",
     "-I", libPath,
@@ -434,8 +548,23 @@ private func runSwift(wrappedPath: String, libPath: String) throws -> ProcessRes
     "-lSyntaxKit",
     "-Xcc", "-I", "-Xcc", cShimsInclude,
     "-Xlinker", "-rpath", "-Xlinker", libPath,
-    wrappedPath
   ]
+
+  if let helpers {
+    let helpersPath = helpers.outputDir.path
+    arguments.append(contentsOf: [
+      "-I", helpersPath,
+      "-L", helpersPath,
+      "-l\(helpersModuleName)",
+      "-Xlinker", "-rpath", "-Xlinker", helpersPath,
+    ])
+  }
+
+  arguments.append(wrappedPath)
+
+  let process = Process()
+  process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+  process.arguments = arguments
 
   let stdoutPipe = Pipe()
   let stderrPipe = Pipe()
