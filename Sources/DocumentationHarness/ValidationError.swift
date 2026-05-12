@@ -29,16 +29,6 @@
 
 import Foundation
 
-/// Errors that can occur during process execution
-package enum ProcessError: Error, Sendable {
-  /// Package.swift validation failed
-  case packageValidationFailed
-  /// Package validation setup failed
-  case setupError(any Error)
-}
-
-// swiftlint:disable one_declaration_per_file
-
 /// Errors that can occur during Swift code validation
 package enum ValidationError: Error, Sendable {
   /// Syntax parsing detected errors in the code
@@ -104,5 +94,3 @@ package enum ValidationError: Error, Sendable {
     }
   }
 }
-
-// swiftlint:enable one_declaration_per_file

@@ -176,7 +176,7 @@ jobs:
         include:
           # SPM Build — no platform type; matrix.type evaluates to '' by design
           - runs-on: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.5.app"
 
     steps:
       - uses: actions/checkout@v6
@@ -227,38 +227,38 @@ jobs:
           # macOS Build
           - type: macos
             runs-on: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.5.app"
 
           # iOS Build Matrix
           - type: ios
             runs-on: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.5.app"
             deviceName: "iPhone 17 Pro"
-            osVersion: "26.4"
+            osVersion: "26.5"
             download-platform: true
 
           # watchOS Build Matrix
           - type: watchos
             runs-on: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Watch Ultra 3 (49mm)"
-            osVersion: "26.4"
+            osVersion: "26.5"
             download-platform: true
 
           # tvOS Build Matrix
           - type: tvos
             runs-on: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple TV"
-            osVersion: "26.4"
+            osVersion: "26.5"
             download-platform: true
 
           # visionOS Build Matrix
           - type: visionos
             runs-on: macos-26
-            xcode: "/Applications/Xcode_26.4.app"
+            xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Vision Pro"
-            osVersion: "26.4"
+            osVersion: "26.5"
             download-platform: true
 
     steps:

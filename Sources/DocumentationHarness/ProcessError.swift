@@ -1,5 +1,5 @@
 //
-//  LetBindingPattern.swift
+//  ProcessError.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,23 +27,12 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
+import Foundation
 
-/// A `let` binding pattern for switch cases.
-internal struct LetBindingPattern: PatternConvertible {
-  private let identifier: String
-
-  /// SwiftSyntax representation of the let binding pattern.
-  internal var patternSyntax: PatternSyntax {
-    PatternSyntax(
-      ValueBindingPatternSyntax(
-        bindingSpecifier: .keyword(.let, trailingTrivia: .space),
-        pattern: PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(identifier)))
-      )
-    )
-  }
-
-  internal init(identifier: String) {
-    self.identifier = identifier
-  }
+/// Errors that can occur during process execution
+package enum ProcessError: Error, Sendable {
+  /// Package.swift validation failed
+  case packageValidationFailed
+  /// Package validation setup failed
+  case setupError(any Error)
 }
