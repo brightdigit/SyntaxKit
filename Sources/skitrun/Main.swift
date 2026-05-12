@@ -159,7 +159,7 @@ private func isLibDir(_ path: String) -> Bool {
   let fm = FileManager.default
   var isDir: ObjCBool = false
   guard fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { return false }
-  return fm.fileExists(atPath: "\(path)/libSyntaxKit.dylib")
+  return fm.fileExists(atPath: "\(path)/\(dylibFilename(forLibrary: "SyntaxKit"))")
 }
 
 // MARK: - Single-file mode
@@ -614,15 +614,41 @@ private func runSwift(
   process.standardOutput = stdoutPipe
   process.standardError = stderrPipe
 
-  try process.run()
-  process.waitUntilExit()
+  // Linux Foundation's `Process.waitUntilExit()` blocks indefinitely on
+  // already-exited children in some configurations; terminationHandler +
+  // semaphore is the workaround.
+  let exitSemaphore = DispatchSemaphore(value: 0)
+  process.terminationHandler = { _ in exitSemaphore.signal() }
 
-  let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-  let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+  try process.run()
+
+  // Drain both pipes concurrently — reading sequentially deadlocks on Linux
+  // when either pipe (~64 KB buffer) fills before the child exits. Box the
+  // buffers in classes so Swift 6 strict-concurrency is satisfied without
+  // `@unchecked Sendable` on local vars.
+  let outBox = PipeDataBox()
+  let errBox = PipeDataBox()
+  let group = DispatchGroup()
+  group.enter()
+  DispatchQueue.global().async {
+    outBox.value = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+    group.leave()
+  }
+  group.enter()
+  DispatchQueue.global().async {
+    errBox.value = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+    group.leave()
+  }
+  group.wait()
+  exitSemaphore.wait()
 
   return ProcessResult(
     exitCode: process.terminationStatus,
-    stdout: stdoutData,
-    stderr: String(decoding: stderrData, as: UTF8.self)
+    stdout: outBox.value,
+    stderr: String(decoding: errBox.value, as: UTF8.self)
   )
+}
+
+private final class PipeDataBox: @unchecked Sendable {
+  var value = Data()
 }

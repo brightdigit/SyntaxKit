@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import CryptoKit
+import Crypto
 import Foundation
 
 /// Bumped when the output cache layout changes in a way that requires invalidation.

@@ -27,12 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import CryptoKit
+import Crypto
 import Foundation
 
 /// Hardcoded module name for the user's `Helpers/` compilation output. Inputs
 /// reach the compiled helpers via `import SyntaxKitHelpers`.
 internal let helpersModuleName = "SyntaxKitHelpers"
+
+/// Platform-specific shared-library filename for a Swift library product.
+internal func dylibFilename(forLibrary name: String) -> String {
+  #if os(Linux)
+    return "lib\(name).so"
+  #else
+    return "lib\(name).dylib"
+  #endif
+}
 
 /// Bumped when the cache layout changes in a way that requires invalidation.
 private let helpersCacheSchemaVersion = "v1"
@@ -109,7 +118,8 @@ internal func buildHelpers(
   let cacheRoot = try syntaxKitCacheRoot()
     .appendingPathComponent("helpers")
     .appendingPathComponent(key)
-  let dylibPath = cacheRoot.appendingPathComponent("lib\(helpersModuleName).dylib").path
+  let dylibPath = cacheRoot
+    .appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
 
   let fm = FileManager.default
   if fm.fileExists(atPath: dylibPath) {
@@ -148,7 +158,7 @@ internal func buildHelpers(
 
 private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) throws {
   let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
-  let dylib = outDir.appendingPathComponent("lib\(helpersModuleName).dylib").path
+  let dylib = outDir.appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
   let modulePath = outDir.appendingPathComponent("\(helpersModuleName).swiftmodule").path
 
   let process = Process()
@@ -166,20 +176,37 @@ private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) t
     "-L", libPath,
     "-lSyntaxKit",
     "-Xcc", "-I", "-Xcc", cShimsInclude,
-    "-Xlinker", "-install_name",
-    "-Xlinker", "@rpath/lib\(helpersModuleName).dylib",
     "-Xlinker", "-rpath", "-Xlinker", libPath,
   ]
+  #if !os(Linux)
+    // @rpath install_name is macOS-only; on Linux SONAME isn't needed because
+    // we use rpath-based loading and the dylib lives in a cache path that's
+    // known at link time.
+    args.append(contentsOf: [
+      "-Xlinker", "-install_name",
+      "-Xlinker", "@rpath/\(dylibFilename(forLibrary: helpersModuleName))",
+    ])
+  #endif
   args.append(contentsOf: sources.map(\.path))
   process.arguments = args
 
   let stderrPipe = Pipe()
   process.standardOutput = FileHandle.nullDevice
   process.standardError = stderrPipe
-  try process.run()
-  process.waitUntilExit()
 
+  // Linux Foundation's `Process.waitUntilExit()` blocks indefinitely on
+  // already-exited children in some configurations; terminationHandler +
+  // semaphore is the workaround used elsewhere in this file.
+  let semaphore = DispatchSemaphore(value: 0)
+  process.terminationHandler = { _ in semaphore.signal() }
+
+  try process.run()
+
+  // Drain stderr BEFORE waiting on the semaphore — Linux pipe buffers are
+  // ~64 KB; if the child fills them we deadlock waiting for an exit that
+  // can't happen until we read.
   let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+  semaphore.wait()
   guard process.terminationStatus == 0 else {
     let stderr = String(decoding: stderrData, as: UTF8.self)
     throw CLIError(
@@ -219,14 +246,16 @@ internal func captureSwiftVersion() -> String? {
   let pipe = Pipe()
   process.standardOutput = pipe
   process.standardError = FileHandle.nullDevice
+  let semaphore = DispatchSemaphore(value: 0)
+  process.terminationHandler = { _ in semaphore.signal() }
   do { try process.run() } catch { return nil }
-  process.waitUntilExit()
   let data = pipe.fileHandleForReading.readDataToEndOfFile()
+  semaphore.wait()
   return String(decoding: data, as: UTF8.self)
 }
 
 internal func libStamp(libPath: String) -> String? {
-  let dylib = "\(libPath)/libSyntaxKit.dylib"
+  let dylib = "\(libPath)/\(dylibFilename(forLibrary: "SyntaxKit"))"
   guard let attrs = try? FileManager.default.attributesOfItem(atPath: dylib) else { return nil }
   let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
   let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
