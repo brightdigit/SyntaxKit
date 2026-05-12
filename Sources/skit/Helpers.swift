@@ -27,7 +27,6 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Crypto
 import Foundation
 
 /// Hardcoded module name for the user's `Helpers/` compilation output. Inputs
@@ -118,7 +117,8 @@ internal func buildHelpers(
   let cacheRoot = try syntaxKitCacheRoot()
     .appendingPathComponent("helpers")
     .appendingPathComponent(key)
-  let dylibPath = cacheRoot
+  let dylibPath =
+    cacheRoot
     .appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
 
   let fm = FileManager.default
@@ -220,7 +220,7 @@ private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) t
 // MARK: - Cache key
 
 private func helpersCacheKey(sources: [URL], libPath: String) throws -> String {
-  var hasher = SHA256()
+  var hasher = ContentHasher()
   hasher.update(data: Data(helpersCacheSchemaVersion.utf8))
 
   for source in sources {
@@ -236,7 +236,7 @@ private func helpersCacheKey(sources: [URL], libPath: String) throws -> String {
     hasher.update(data: Data(stamp.utf8))
   }
 
-  return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+  return hasher.finalize()
 }
 
 internal func captureSwiftVersion() -> String? {

@@ -27,21 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Crypto
 import Foundation
 
 /// Bumped when the output cache layout changes in a way that requires invalidation.
 private let outputCacheSchemaVersion = "v1"
 
-/// SHA-256 over (cache schema, input source bytes, helpers key, swift version,
-/// libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars). Any change in
-/// these inputs produces a fresh key and forces a recompile.
+/// 64-bit content hash over (cache schema, input source bytes, helpers key,
+/// swift version, libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars).
+/// Any change in these inputs produces a fresh key and forces a recompile.
+/// See `ContentHasher` for the choice of FNV-1a over a cryptographic hash.
 internal func outputCacheKey(
   inputSource: String,
   helpers: CompiledHelpers?,
   libPath: String
 ) -> String {
-  var hasher = SHA256()
+  var hasher = ContentHasher()
   hasher.update(data: Data(outputCacheSchemaVersion.utf8))
   hasher.update(data: Data(inputSource.utf8))
 
@@ -66,7 +66,7 @@ internal func outputCacheKey(
     hasher.update(data: Data("\(key)=\(value)\0".utf8))
   }
 
-  return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+  return hasher.finalize()
 }
 
 /// Returns the cached rendered output for `key`, or nil on miss.

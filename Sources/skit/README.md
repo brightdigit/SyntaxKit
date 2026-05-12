@@ -89,7 +89,7 @@ Output cache hit is roughly ~0.14s on macOS (no spawn at all); cold miss matches
 ## Platform notes
 
 - **macOS** — primary target. All build/release/test flows in `Scripts/`.
-- **Linux** — verified on `swift:6.0-jammy/aarch64`. Requires `swift-crypto` instead of CryptoKit (we depend on it). The Mach-O `install_name` step in `Scripts/build-skit-release.sh` is macOS-specific and skipped on Linux.
+- **Linux** — verified on `swift:6.0-jammy/aarch64`. The Mach-O `install_name` step in `Scripts/build-skit-release.sh` is macOS-specific and skipped on Linux.
 - **Windows** — not supported.
 
 Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited children on `swift:6.0-jammy/aarch64`. `Runner.swift` and `Helpers.swift` work around it with `terminationHandler` + `DispatchSemaphore`.

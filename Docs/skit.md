@@ -182,10 +182,7 @@ A `#if os(macOS) … #endif` block in the input is evaluated when the wrapped fi
 
 **macOS** is the primary target. The build and release flows live in `Scripts/`; the bundle is portable across machines with the same Swift version.
 
-**Linux** is verified on `swift:6.0-jammy/aarch64`. Two adjustments compared to macOS:
-
-- `swift-crypto` replaces CryptoKit (we depend on Crypto for cache-key hashing). `swift-crypto` statically links boringssl on Linux, so the binary is noticeably larger than the macOS one.
-- The Mach-O `install_name` rewrite in `Scripts/build-skit-release.sh` is skipped on Linux. GNU `ld` doesn't accept the flag; the `-rpath` injection (which is what actually locates the dylib at runtime) works on both platforms.
+**Linux** is verified on `swift:6.0-jammy/aarch64`. One adjustment compared to macOS: the Mach-O `install_name` rewrite in `Scripts/build-skit-release.sh` is skipped — GNU `ld` doesn't accept the flag. The `-rpath` injection (which is what actually locates the dylib at runtime) works on both platforms.
 
 The Foundation.Process workarounds described earlier are Linux-driven. `Process.waitUntilExit()` blocks indefinitely on already-exited children on `swift:6.0-jammy/aarch64` — `skit` uses `DispatchSemaphore` everywhere a child wait is needed, and drains stdout/stderr pipes concurrently to avoid deadlocks when either pipe buffer fills.
 
