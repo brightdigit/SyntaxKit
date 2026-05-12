@@ -32,10 +32,12 @@ if [ "$LINT_MODE" = "NONE" ]; then
 	exit
 elif [ "$LINT_MODE" = "STRICT" ]; then
 	SWIFTFORMAT_OPTIONS="--configuration .swift-format"
+	SWIFTFORMAT_LINT_STRICT="--strict"
 	SWIFTLINT_OPTIONS="--strict"
 	STRINGSLINT_OPTIONS="--config .strict.stringslint.yml"
 else
 	SWIFTFORMAT_OPTIONS="--configuration .swift-format"
+	SWIFTFORMAT_LINT_STRICT=""
 	SWIFTLINT_OPTIONS=""
 	STRINGSLINT_OPTIONS="--config .stringslint.yml"
 fi
@@ -48,7 +50,7 @@ if [ -z "$CI" ]; then
 fi
 
 if [ -z "$FORMAT_ONLY" ]; then
-	run_command swift-format lint --configuration .swift-format --recursive --parallel $SWIFTFORMAT_OPTIONS Sources Tests
+	run_command swift-format lint $SWIFTFORMAT_LINT_STRICT $SWIFTFORMAT_OPTIONS --recursive --parallel Sources Tests
 	run_command swiftlint lint $SWIFTLINT_OPTIONS
 	# Check for compilation errors
 	run_command swift build --build-tests
