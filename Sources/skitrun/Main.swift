@@ -36,18 +36,75 @@ internal enum SkitRun {
   internal static func main() async throws {
     let args = try CLIArgs.parse(CommandLine.arguments)
 
+    let libPath: String
+    do {
+      libPath = try resolveLibPath(override: args.libPath)
+    } catch {
+      FileHandle.standardError.write(Data("\(error)\n".utf8))
+      exit(2)
+    }
+
     switch args.mode {
     case .singleFile(let input, let output):
-      try runSingleFile(inputPath: input, outputPath: output, libPath: args.libPath)
+      try runSingleFile(inputPath: input, outputPath: output, libPath: libPath)
     case .directory(let inputDir, let outputDir):
       let exitCode = await runDirectory(
         inputDir: inputDir,
         outputDir: outputDir,
-        libPath: args.libPath
+        libPath: libPath
       )
       exit(exitCode)
     }
   }
+}
+
+// MARK: - Resource location
+
+/// Resolves the directory containing `libSyntaxKit.dylib` + module files,
+/// in priority order: explicit flag → env var → adjacent-to-binary
+/// (`<bin-dir>/lib/`) → Homebrew layout (`<bin-dir>/../lib/skitrun/`).
+internal func resolveLibPath(override: String?) throws -> String {
+  if let override {
+    guard isLibDir(override) else {
+      throw CLIError(message: "--lib path does not look like a SyntaxKit lib dir: \(override)")
+    }
+    return override
+  }
+
+  if let env = ProcessInfo.processInfo.environment["SKITRUN_LIB_DIR"], !env.isEmpty {
+    guard isLibDir(env) else {
+      throw CLIError(message: "SKITRUN_LIB_DIR is set but path is not a lib dir: \(env)")
+    }
+    return env
+  }
+
+  if let execURL = Bundle.main.executableURL?.resolvingSymlinksInPath() {
+    let execDir = execURL.deletingLastPathComponent()
+
+    let adjacent = execDir.appendingPathComponent("lib").path
+    if isLibDir(adjacent) { return adjacent }
+
+    let brewLayout = execDir.deletingLastPathComponent()
+      .appendingPathComponent("lib/skitrun").path
+    if isLibDir(brewLayout) { return brewLayout }
+  }
+
+  throw CLIError(message: """
+    Could not locate SyntaxKit lib directory. Looked for:
+      1. --lib <dir>           (not provided)
+      2. $SKITRUN_LIB_DIR       (not set)
+      3. <binary-dir>/lib/      (not found)
+      4. <binary-dir>/../lib/skitrun/  (not found)
+    Run Docs/research/poc-step4-release.sh to produce a self-contained
+    release bundle under .build/skitrun-release/.
+    """)
+}
+
+private func isLibDir(_ path: String) -> Bool {
+  let fm = FileManager.default
+  var isDir: ObjCBool = false
+  guard fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { return false }
+  return fm.fileExists(atPath: "\(path)/libSyntaxKit.dylib")
 }
 
 // MARK: - Single-file mode
@@ -220,12 +277,12 @@ private struct CLIArgs {
   }
 
   let mode: Mode
-  let libPath: String
+  let libPath: String?
 
   static func parse(_ argv: [String]) throws -> CLIArgs {
     var inputPath: String?
     var outputPath: String?
-    var libPath = "/tmp/syntaxkit-poc/lib"
+    var libPath: String?
 
     var i = 1
     while i < argv.count {
@@ -288,8 +345,10 @@ private let helpText = """
   Options:
     -o, --output <path>   Output file (single-file mode) or directory (folder mode).
     --lib <dir>           Directory containing libSyntaxKit.dylib + module files.
-                          (default: /tmp/syntaxkit-poc/lib, produced by
-                           Docs/research/poc-step1.sh)
+                          When omitted, skitrun searches: $SKITRUN_LIB_DIR,
+                          then <binary-dir>/lib/, then <binary-dir>/../lib/skitrun/.
+                          Build a self-contained bundle with
+                          Docs/research/poc-step4-release.sh.
   """
 
 private func usage(_ message: String) -> CLIError {
