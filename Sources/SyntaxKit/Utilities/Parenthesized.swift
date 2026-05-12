@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct Parenthesized: CodeBlock, ExprCodeBlock {
   private let content: any CodeBlock
 
+  /// The SwiftSyntax expression representation of this code block.
   public var exprSyntax: ExprSyntax {
     ExprSyntax(
       TupleExprSyntax(
@@ -45,6 +46,7 @@ public struct Parenthesized: CodeBlock, ExprCodeBlock {
     )
   }
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     exprSyntax
   }

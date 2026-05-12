@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct Group: CodeBlock {
   internal let members: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let statements = members.flatMap { block -> [CodeBlockItemSyntax] in
       if let list = block.syntax.as(CodeBlockItemListSyntax.self) {
@@ -47,11 +48,9 @@ public struct Group: CodeBlock {
       } else if let expr = block.syntax.as(ExprSyntax.self) {
         item = .expr(expr)
       } else {
-        // Skip unsupported syntax types instead of crashing
-        // This allows the group to continue processing other valid blocks
-        #warning(
-          "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
-        )
+        // TODO: Review fallback for unsupported syntax types - consider if this should be an error instead.
+        // Skip unsupported syntax types instead of crashing so the group can continue
+        // processing other valid blocks.
         return []
       }
       return [CodeBlockItemSyntax(item: item, trailingTrivia: .newline)]

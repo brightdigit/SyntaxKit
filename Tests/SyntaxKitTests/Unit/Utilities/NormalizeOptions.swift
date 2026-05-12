@@ -20,8 +20,10 @@ public struct NormalizeOptions: OptionSet, Sendable {
   /// Options for structural comparison (ignores all formatting)
   public static let structural: NormalizeOptions = []
 
+  /// The raw value backing this option set.
   public let rawValue: Int
 
+  /// Creates a new instance.
   public init(rawValue: Int) {
     self.rawValue = rawValue
   }

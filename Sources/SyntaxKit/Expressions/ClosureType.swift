@@ -35,6 +35,7 @@ public struct ClosureType: CodeBlock, TypeRepresentable {
   private let returnType: String?
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     // Build parameters
     let paramList = parameters.map { param in

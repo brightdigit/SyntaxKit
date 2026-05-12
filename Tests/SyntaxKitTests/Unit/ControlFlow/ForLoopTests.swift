@@ -12,30 +12,26 @@ internal final class ForLoopTests {
       in: VariableExp("items"),
       then: {
         Call("print") {
-          ParameterExp(name: "", value: "item")
+          ParameterExp(name: "", value: VariableExp("item"))
         }
       }
     )
     let generated = forLoop.syntax.description
-    let expected = "for item in items {\n    print(item)\n}"
     #expect(generated.contains("for item in items"))
     #expect(generated.contains("print(item)"))
   }
 
   @Test
   internal func testForInWithWhereClause() throws {
-    let forLoop = try For(
+    let forLoop = For(
       VariableExp("number"),
       in: VariableExp("numbers"),
       where: {
-        try Infix("%") {
-          VariableExp("number")
-          Literal.integer(2)
-        }
+        Infix("%", lhs: VariableExp("number"), rhs: Literal.integer(2))
       },
       then: {
         Call("print") {
-          ParameterExp(name: "", value: "number")
+          ParameterExp(name: "", value: VariableExp("number"))
         }
       }
     )

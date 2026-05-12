@@ -7,6 +7,7 @@ internal struct EdgeCaseTests {
   // MARK: - Error Handling Tests
 
   @Test("Infix with wrong number of operands throws error")
+  @available(*, deprecated, message: "Exercises the deprecated Infix(_:_:) builder init")
   internal func testInfixWrongOperandCount() throws {
     // Test that Infix throws an error when given wrong number of operands
     do {
@@ -15,18 +16,18 @@ internal struct EdgeCaseTests {
         VariableExp("x")
       }
       // If we reach here, no error was thrown, which is unexpected
-      #expect(false, "Expected error to be thrown for wrong operand count")
+      Issue.record("Expected error to be thrown for wrong operand count")
     } catch let error as Infix.InfixError {
       // Verify it's the correct error type
       switch error {
-      case let .wrongOperandCount(expected, got):
+      case .wrongOperandCount(let expected, let got):
         #expect(expected == 2)
         #expect(got == 1)
       case .nonExprCodeBlockOperand:
-        #expect(false, "Expected wrongOperandCount error, got nonExprCodeBlockOperand")
+        Issue.record("Expected wrongOperandCount error, got nonExprCodeBlockOperand")
       }
     } catch {
-      #expect(false, "Expected InfixError, got \(type(of: error))")
+      Issue.record("Expected InfixError, got \(type(of: error))")
     }
   }
 

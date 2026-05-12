@@ -101,13 +101,13 @@ import Testing
     if let weakRefExp = weakRef as? ReferenceExp {
       #expect(weakRefExp.captureReferenceType == .weak)
     } else {
-      #expect(false, "Expected ReferenceExp type")
+      Issue.record("Expected ReferenceExp type")
     }
 
     if let unownedRefExp = unownedRef as? ReferenceExp {
       #expect(unownedRefExp.captureReferenceType == .unowned)
     } else {
-      #expect(false, "Expected ReferenceExp type")
+      Issue.record("Expected ReferenceExp type")
     }
   }
 

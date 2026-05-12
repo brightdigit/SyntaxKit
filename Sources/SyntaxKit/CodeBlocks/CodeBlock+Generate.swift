@@ -28,7 +28,7 @@
 //
 
 import Foundation
-public import SwiftSyntax
+import SwiftSyntax
 
 extension CodeBlock {
   /// Generates the Swift code for the ``CodeBlock``.
@@ -45,11 +45,9 @@ extension CodeBlock {
       if let convertedItem = CodeBlockItemSyntax.Item.create(from: self.syntax) {
         item = convertedItem
       } else {
-        // Fallback for unsupported syntax types - create an empty code block
-        // This prevents crashes while still allowing code generation to continue
-        #warning(
-          "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
-        )
+        // TODO: Review fallback for unsupported syntax types - consider if this should be an error instead.
+        // Fallback for unsupported syntax types - create an empty code block so code
+        // generation can continue rather than crashing.
         let emptyExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
         item = .expr(emptyExpr)
       }

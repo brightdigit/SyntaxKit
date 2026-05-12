@@ -127,6 +127,7 @@ let package = Package(
         .product(name: "SwiftOperators", package: "swift-syntax"),
         .product(name: "SwiftParser", package: "swift-syntax")
       ],
+      exclude: ["README.md"],
       swiftSettings: swiftSettings
     ),
     .target(

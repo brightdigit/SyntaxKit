@@ -76,7 +76,7 @@ internal final class ClosureCoverageTests {
   @Test("Build parameter expression item")
   internal func testBuildParameterExpressionItem() {
     // Test the buildParameterExpressionItem method
-    let paramExp = ParameterExp(name: "test", value: "value")
+    let paramExp = ParameterExp(name: "test", value: VariableExp("value"))
     let closure = Closure(body: {
       paramExp
     })
@@ -126,7 +126,7 @@ internal final class ClosureCoverageTests {
   @Test("Build parameter expression item with param expr syntax")
   internal func testBuildParameterExpressionItemWithParamExprSyntax() {
     // Test ParameterExp with parameter expression syntax
-    let paramExp = ParameterExp(name: "test", value: "value")
+    let paramExp = ParameterExp(name: "test", value: VariableExp("value"))
     let closure = Closure(body: {
       paramExp
     })

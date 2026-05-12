@@ -34,6 +34,7 @@ public struct ParameterExp: CodeBlock {
   internal let name: String
   internal let value: any CodeBlock
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     if name.isEmpty {
       if let exprBlock = value as? any ExprCodeBlock {

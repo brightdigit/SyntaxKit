@@ -55,7 +55,7 @@ internal struct PatternConvertibleTests {
   @Test internal func testLetBindingPatternInSwitchCase() {
     let switchCase = SwitchCase(Tuple.pattern([Pattern.let("x"), Pattern.let("y")])) {
       Call("print") {
-        ParameterExp(name: "", value: "\"somewhere else at (\\(x), \\(y))\"")
+        ParameterExp(name: "", value: VariableExp("\"somewhere else at (\\(x), \\(y))\""))
       }
     }
 

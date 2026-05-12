@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct Break: CodeBlock {
   private let label: String?
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let breakStmt = BreakStmtSyntax(
       breakKeyword: .keyword(.break, trailingTrivia: .newline)

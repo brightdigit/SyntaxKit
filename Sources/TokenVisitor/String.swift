@@ -28,5 +28,6 @@
 //
 
 extension String {
+  // periphery:ignore - utility constant for downstream consumers
   internal static let empty = ""
 }

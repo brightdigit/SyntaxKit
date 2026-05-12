@@ -7,7 +7,7 @@ import Testing
   internal func testCompletedForLoopsExample() throws {
     // Build DSL equivalent of Examples/Completed/for_loops/dsl.swift
 
-    let program = try Group {
+    let program = Group {
       // MARK: - Basic For-in Loop
       Variable(
         .let,
@@ -28,14 +28,14 @@ import Testing
         in: VariableExp("names"),
         then: {
           Call("print") {
-            ParameterExp(unlabeled: "\"Hello, \\(name)!\"")
+            ParameterExp(unlabeled: VariableExp("\"Hello, \\(name)!\""))
           }
         }
       )
 
       // MARK: - For-in with Enumerated
       Call("print") {
-        ParameterExp(unlabeled: "\"\\n=== For-in with Enumerated ===\"")
+        ParameterExp(unlabeled: VariableExp("\"\\n=== For-in with Enumerated ===\""))
       }
       .comment {
         Line("MARK: - For-in with Enumerated")
@@ -49,14 +49,14 @@ import Testing
         in: VariableExp("names").call("enumerated"),
         then: {
           Call("print") {
-            ParameterExp(unlabeled: "\"Index: \\(index), Name: \\(name)\"")
+            ParameterExp(unlabeled: VariableExp("\"Index: \\(index), Name: \\(name)\""))
           }
         }
       )
 
       // MARK: - For-in with Where Clause
       Call("print") {
-        ParameterExp(unlabeled: "\"\\n=== For-in with Where Clause ===\"")
+        ParameterExp(unlabeled: VariableExp("\"\\n=== For-in with Where Clause ===\""))
       }
       .comment {
         Line("MARK: - For-in with Where Clause")
@@ -79,28 +79,26 @@ import Testing
         ])
       )
 
-      try For(
+      For(
         VariableExp("number"),
         in: VariableExp("numbers"),
         where: {
-          try Infix("==") {
-            try Infix("%") {
-              VariableExp("number")
-              Literal.integer(2)
-            }
-            Literal.integer(0)
-          }
+          Infix(
+            "==",
+            lhs: Infix("%", lhs: VariableExp("number"), rhs: Literal.integer(2)),
+            rhs: Literal.integer(0)
+          )
         },
         then: {
           Call("print") {
-            ParameterExp(unlabeled: "\"Even number: \\(number)\"")
+            ParameterExp(unlabeled: VariableExp("\"Even number: \\(number)\""))
           }
         }
       )
 
       // MARK: - For-in with Dictionary
       Call("print") {
-        ParameterExp(unlabeled: "\"\\n=== For-in with Dictionary ===\"")
+        ParameterExp(unlabeled: VariableExp("\"\\n=== For-in with Dictionary ===\""))
       }
       .comment {
         Line("MARK: - For-in with Dictionary")
@@ -124,7 +122,7 @@ import Testing
         in: VariableExp("scores"),
         then: {
           Call("print") {
-            ParameterExp(unlabeled: "\"\\(name): \\(score)\"")
+            ParameterExp(unlabeled: VariableExp("\"\\(name): \\(score)\""))
           }
         }
       )

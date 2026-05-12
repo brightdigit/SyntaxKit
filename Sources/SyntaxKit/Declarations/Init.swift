@@ -39,6 +39,7 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
     self
   }
 
+  /// The SwiftSyntax expression representation of this code block.
   public var exprSyntax: ExprSyntax {
     var args = parameters
     var trailingClosure: ClosureExprSyntax?
@@ -99,16 +100,19 @@ public struct Init: CodeBlock, ExprCodeBlock, LiteralValue, CodeBlockable, Senda
     )
   }
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     exprSyntax
   }
 
   // MARK: - LiteralValue Conformance
 
+  /// The type name for this initializer.
   public var typeName: String {
     type
   }
 
+  /// The literal string representation.
   public var literalString: String {
     "\(type)()"
   }

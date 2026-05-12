@@ -41,6 +41,7 @@ public struct PropertyRequirement: CodeBlock {
   private let type: String
   private let access: Access
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let varKeyword = TokenSyntax.keyword(.var, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name, trailingTrivia: .space)

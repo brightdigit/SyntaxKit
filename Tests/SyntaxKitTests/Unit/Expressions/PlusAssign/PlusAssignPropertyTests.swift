@@ -40,6 +40,7 @@ import Testing
 internal final class PlusAssignPropertyTests {
   /// Tests plus assignment with property access variable.
   @Test("Plus assignment with property access variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithPropertyAccessVariable() {
     let plusAssign = PlusAssign("user.score", 10)
 
@@ -51,6 +52,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with complex variable expression.
   @Test("Plus assignment with complex variable expression generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithComplexVariableExpression() {
     let plusAssign = PlusAssign("getCurrentUser().score", 5)
 
@@ -62,6 +64,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with nested property access variable.
   @Test("Plus assignment with nested property access variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithNestedPropertyAccessVariable() {
     let plusAssign = PlusAssign("user.profile.score", 15)
 
@@ -73,6 +76,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with array element variable.
   @Test("Plus assignment with array element variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithArrayElementVariable() {
     let plusAssign = PlusAssign("scores[0]", 20)
 
@@ -84,6 +88,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with dictionary element variable.
   @Test("Plus assignment with dictionary element variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithDictionaryElementVariable() {
     let plusAssign = PlusAssign("scores[\"player1\"]", 25)
 
@@ -95,6 +100,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with tuple element variable.
   @Test("Plus assignment with tuple element variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithTupleElementVariable() {
     let plusAssign = PlusAssign("stats.0", 30)
 
@@ -106,6 +112,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with computed property variable.
   @Test("Plus assignment with computed property variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithComputedPropertyVariable() {
     let plusAssign = PlusAssign("self.totalScore", 35)
 
@@ -117,6 +124,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with static property variable.
   @Test("Plus assignment with static property variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithStaticPropertyVariable() {
     let plusAssign = PlusAssign("GameManager.totalScore", 40)
 
@@ -128,6 +136,7 @@ internal final class PlusAssignPropertyTests {
 
   /// Tests plus assignment with enum case variable.
   @Test("Plus assignment with enum case variable generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithEnumCaseVariable() {
     let plusAssign = PlusAssign("ScoreType.bonus", 45)
 

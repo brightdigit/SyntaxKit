@@ -30,6 +30,7 @@
 package import SwiftSyntax
 
 extension TreeNodeProtocol {
+  // periphery:ignore:parameters showingMissingTokens - parameter currently ignored (see #152)
   package static func parseTree(
     from sourceFile: SourceFileSyntax,
     withFileName fileName: String = .defaultFileName,

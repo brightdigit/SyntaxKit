@@ -34,6 +34,7 @@ public struct Switch: CodeBlock, Sendable {
   private let expression: any CodeBlock
   private let cases: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let expr = ExprSyntax(
       fromProtocol: expression.syntax.as(ExprSyntax.self)

@@ -9,10 +9,10 @@ internal struct StructTests {
       Variable(.var, name: "items", type: "[Element]", equals: Literal.array([])).withExplicitType()
 
       Function("push") {
-        Parameter(name: "item", type: "Element", isUnnamed: true)
+        Parameter(unlabeled: "item", type: "Element")
       } _: {
         VariableExp("items").call("append") {
-          ParameterExp(name: "", value: "item")
+          ParameterExp(name: "", value: VariableExp("item"))
         }
       }.mutating()
 

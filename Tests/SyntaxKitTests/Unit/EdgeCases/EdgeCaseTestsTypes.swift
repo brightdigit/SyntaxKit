@@ -31,7 +31,7 @@ internal struct EdgeCaseTestsTypes {
   @Test("Function with unnamed parameter generates correct syntax")
   internal func testFunctionWithUnnamedParameter() throws {
     let function = Function("process") {
-      Parameter(name: "data", type: "Data", isUnnamed: true)
+      Parameter(unlabeled: "data", type: "Data")
     } _: {
       Variable(.let, name: "result", type: "String", equals: "processed")
     }
@@ -85,7 +85,7 @@ internal struct EdgeCaseTestsTypes {
     let computedProperty = ComputedProperty("description", type: "String") {
       Return {
         VariableExp("name").call("appending") {
-          ParameterExp(name: "", value: "\" - \" + String(count)")
+          ParameterExp(name: "", value: VariableExp("\" - \" + String(count)"))
         }
       }
     }

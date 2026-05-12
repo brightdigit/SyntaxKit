@@ -1,6 +1,0 @@
-[tools]
-swiftlint = "0.63.2"
-periphery = {version = "3.7.2", os = ["macos"]}
-# Community asdf plugin — builds swift-format from source (no official binary releases)
-# Plugin repo: https://github.com/eelcokoelewijn/asdf-swift-format
-"asdf:eelcokoelewijn/asdf-swift-format" = "602.0.0"

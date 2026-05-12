@@ -40,6 +40,7 @@ import Testing
 internal final class PlusAssignLiteralTests {
   /// Tests plus assignment with string literal value.
   @Test("Plus assignment with string literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithStringLiteralValue() {
     let plusAssign = PlusAssign("message", "Hello")
 
@@ -51,6 +52,7 @@ internal final class PlusAssignLiteralTests {
 
   /// Tests plus assignment with numeric literal value.
   @Test("Plus assignment with numeric literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithNumericLiteralValue() {
     let plusAssign = PlusAssign("count", 42)
 
@@ -62,6 +64,7 @@ internal final class PlusAssignLiteralTests {
 
   /// Tests plus assignment with boolean literal value.
   @Test("Plus assignment with boolean literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithBooleanLiteralValue() {
     let plusAssign = PlusAssign("flags", true)
 
@@ -73,6 +76,7 @@ internal final class PlusAssignLiteralTests {
 
   /// Tests plus assignment with float literal value.
   @Test("Plus assignment with float literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithFloatLiteralValue() {
     let plusAssign = PlusAssign("value", 3.14)
 

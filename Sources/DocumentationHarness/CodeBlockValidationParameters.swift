@@ -33,6 +33,7 @@ import Foundation
 internal struct CodeBlockValidationParameters: ValidationParameters, Sendable {
   internal let codeBlock: CodeBlock
   internal let fileURL: URL
+  // periphery:ignore - carried for downstream diagnostic context; intentionally unread here
   internal let blockIndex: Int
 
   // MARK: - ValidationParameters conformance

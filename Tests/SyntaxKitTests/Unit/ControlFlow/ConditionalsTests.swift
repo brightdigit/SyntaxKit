@@ -7,33 +7,27 @@ import Testing
   @Test("If / else-if / else chain generates correct syntax")
   internal func testIfElseChain() throws {
     // Arrange: build the DSL example using the updated APIs
-    let conditional = try Group {
+    let conditional = Group {
       Variable(.let, name: "score", type: "Int", equals: "85")
 
-      try If {
-        try Infix(">=") {
-          VariableExp("score")
-          Literal.integer(90)
-        }
+      If {
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"Excellent!\"")
+          ParameterExp(name: "", value: VariableExp("\"Excellent!\""))
         }
       } else: {
-        try If {
-          try Infix(">=") {
-            VariableExp("score")
-            Literal.integer(80)
-          }
+        If {
+          Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
         } then: {
           Call("print") {
-            ParameterExp(name: "", value: "\"Good job!\"")
+            ParameterExp(name: "", value: VariableExp("\"Good job!\""))
           }
         }
 
         Then {
           Call("print") {
-            ParameterExp(name: "", value: "\"Needs improvement\"")
+            ParameterExp(name: "", value: VariableExp("\"Needs improvement\""))
           }
         }
       }
@@ -51,24 +45,18 @@ import Testing
 
   @Test("If with multiple conditions generates correct syntax")
   internal func testIfWithMultipleConditions() throws {
-    let ifStatement = try If {
-      try Infix(">=") {
-        VariableExp("score")
-        Literal.integer(90)
-      }
+    let ifStatement = If {
+      Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
     } then: {
       Call("print") {
-        ParameterExp(unlabeled: "Excellent!")
+        ParameterExp(unlabeled: VariableExp("Excellent!"))
       }
     } else: {
-      try If {
-        try Infix(">=") {
-          VariableExp("score")
-          Literal.integer(80)
-        }
+      If {
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "Good!")
+          ParameterExp(unlabeled: VariableExp("Good!"))
         }
       }
     }

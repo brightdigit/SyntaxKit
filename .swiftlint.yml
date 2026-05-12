@@ -11,6 +11,7 @@ opt_in_rules:
   - contains_over_range_nil_comparison
   - convenience_type
   - discouraged_object_literal
+  - discouraged_optional_boolean
   - empty_collection_literal
   - empty_count
   - empty_string
@@ -52,11 +53,11 @@ opt_in_rules:
   - nslocalizedstring_require_bundle
   - number_separator
   - object_literal
+  - one_declaration_per_file
   - operator_usage_whitespace
   - optional_enum_case_matching
   - overridden_super_call
   - override_in_extension
-  - pattern_matching_keywords
   - prefer_self_type_over_type_of_self
   - prefer_zero_over_explicit_init
   - private_action
@@ -114,6 +115,10 @@ type_name:
   excluded:
     - If
     - Do
+  min_length: 3
+  max_length:
+    warning: 50
+    error: 60
 excluded:
   - DerivedData
   - .build
@@ -138,3 +143,9 @@ disabled_rules:
     - opening_brace
     - optional_data_string_conversion
     - todo
+custom_rules:
+  no_unchecked_sendable:
+    name: "No Unchecked Sendable"
+    regex: '@unchecked\s+Sendable'
+    message: "Use proper Sendable conformance instead of @unchecked Sendable to maintain strict concurrency safety"
+    severity: error

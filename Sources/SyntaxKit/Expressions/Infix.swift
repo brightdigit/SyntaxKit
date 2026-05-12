@@ -51,9 +51,10 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     case wrongOperandCount(expected: Int, got: Int)
     case nonExprCodeBlockOperand
 
+    /// A human-readable description of this error.
     public var description: String {
       switch self {
-      case let .wrongOperandCount(expected, got):
+      case .wrongOperandCount(let expected, let got):
         return "Infix expects exactly \(expected) operands, got \(got)."
       case .nonExprCodeBlockOperand:
         return "Infix operands must conform to ExprCodeBlock protocol"
@@ -65,6 +66,7 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   private let leftOperand: any ExprCodeBlock
   private let rightOperand: any ExprCodeBlock
 
+  /// The SwiftSyntax expression representation of this code block.
   public var exprSyntax: ExprSyntax {
     let left = leftOperand.exprSyntax
     let right = rightOperand.exprSyntax
@@ -86,6 +88,7 @@ public struct Infix: CodeBlock, ExprCodeBlock {
     )
   }
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     exprSyntax
   }
@@ -116,6 +119,9 @@ public struct Infix: CodeBlock, ExprCodeBlock {
   /// - Parameters:
   ///   - operation: The operator symbol as it should appear in source (e.g. "+", "-", "&&").
   ///   - content: A ``CodeBlockBuilder`` that supplies exactly two operand expressions.
+  /// - Throws: ``InfixError/wrongOperandCount`` if `content` returns a number of operands
+  ///   other than two, or ``InfixError/nonExprCodeBlockOperand`` if any operand does not
+  ///   conform to ``ExprCodeBlock``.
   ///
   /// Exactly two operands must be supplied – a left-hand side and a right-hand side.
   /// Each operand must conform to ExprCodeBlock.

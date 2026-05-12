@@ -35,6 +35,7 @@ public struct Import: CodeBlock, Sendable {
   private var accessModifier: AccessModifier?
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     // Build access modifier
     var modifiers: DeclModifierListSyntax = []

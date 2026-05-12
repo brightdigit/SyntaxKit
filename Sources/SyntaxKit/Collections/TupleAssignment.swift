@@ -83,11 +83,9 @@ internal struct TupleAssignment: CodeBlock {
   private func generateAsyncSetSyntax() -> any SyntaxProtocol {
     // Generate a single async let tuple destructuring assignment
     guard let tuple = value as? Tuple, elements.count == tuple.elements.count else {
-      // Fallback to regular syntax if conditions aren't met for asyncSet
-      // This provides a more robust API instead of crashing
-      #warning(
-        "TODO: Review fallback for asyncSet conditions - consider if this should be an error instead"
-      )
+      // TODO: Review fallback for asyncSet conditions - consider if this should be an error instead.
+      // Fallback to regular syntax if conditions aren't met for asyncSet so callers get
+      // a usable result instead of crashing.
       return generateRegularSyntax()
     }
 

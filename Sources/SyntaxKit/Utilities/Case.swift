@@ -37,6 +37,7 @@ public struct Case: CodeBlock {
   private let enumCaseName: String?
   private var associatedValue: (name: String, type: String)?
 
+  /// The SwiftSyntax representation of this switch case.
   public var switchCaseSyntax: SwitchCaseSyntax {
     let caseItems = SwitchCaseItemListSyntax(
       patterns.enumerated().map { index, pat in
@@ -72,6 +73,7 @@ public struct Case: CodeBlock {
     )
   }
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     if isEnumCase {
       // Handle enum case declaration

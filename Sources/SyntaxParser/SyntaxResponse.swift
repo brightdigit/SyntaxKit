@@ -29,6 +29,7 @@
 
 import Foundation
 
+// periphery:ignore - scheduled for removal (see #149); preserved for source compatibility
 /// Container for the final JSON representation of parsed Swift syntax.
 ///
 /// SyntaxResponse is the top-level result type returned by the SyntaxParser.

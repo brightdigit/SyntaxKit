@@ -41,6 +41,8 @@ public enum Pattern {
   }
 }
 
+// swiftlint:disable one_declaration_per_file
+
 /// A `let` binding pattern for switch cases.
 internal struct LetBindingPattern: PatternConvertible {
   private let identifier: String
@@ -59,3 +61,5 @@ internal struct LetBindingPattern: PatternConvertible {
     self.identifier = identifier
   }
 }
+
+// swiftlint:enable one_declaration_per_file

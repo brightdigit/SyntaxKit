@@ -40,6 +40,7 @@ import Testing
 internal final class PlusAssignSpecialValueTests {
   /// Tests plus assignment with nil literal value.
   @Test("Plus assignment with nil literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithNilLiteralValue() {
     let plusAssign = PlusAssign("optional", Literal.nil)
 
@@ -51,6 +52,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with negative integer value.
   @Test("Plus assignment with negative integer value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithNegativeIntegerValue() {
     let plusAssign = PlusAssign("count", -5)
 
@@ -62,6 +64,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with zero value.
   @Test("Plus assignment with zero value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithZeroValue() {
     let plusAssign = PlusAssign("total", 0)
 
@@ -73,6 +76,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with large integer value.
   @Test("Plus assignment with large integer value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithLargeIntegerValue() {
     let plusAssign = PlusAssign("score", 1_000_000)
 
@@ -84,6 +88,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with empty string value.
   @Test("Plus assignment with empty string value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithEmptyStringValue() {
     let plusAssign = PlusAssign("text", "")
 
@@ -95,6 +100,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with special characters in string value.
   @Test("Plus assignment with special characters in string value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithSpecialCharactersInStringValue() {
     let plusAssign = PlusAssign("message", "Hello\nWorld\t!")
 
@@ -106,6 +112,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with unicode characters in string value.
   @Test("Plus assignment with unicode characters in string value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithUnicodeCharactersInStringValue() {
     let plusAssign = PlusAssign("text", "café")
 
@@ -117,6 +124,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with emoji in string value.
   @Test("Plus assignment with emoji in string value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithEmojiInStringValue() {
     let plusAssign = PlusAssign("message", "Hello 👋")
 
@@ -128,6 +136,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with scientific notation float value.
   @Test("Plus assignment with scientific notation float value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithScientificNotationFloatValue() {
     let plusAssign = PlusAssign("value", 1.23e-4)
 
@@ -139,6 +148,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with infinity float value.
   @Test("Plus assignment with infinity float value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithInfinityFloatValue() {
     let plusAssign = PlusAssign("value", Double.infinity)
 
@@ -150,6 +160,7 @@ internal final class PlusAssignSpecialValueTests {
 
   /// Tests plus assignment with NaN float value.
   @Test("Plus assignment with NaN float value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithNaNFloatValue() {
     let plusAssign = PlusAssign("value", Double.nan)
 

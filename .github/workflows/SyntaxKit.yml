@@ -31,21 +31,43 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip') }}
     outputs:
-      full-matrix: ${{ steps.set-matrix.outputs.full-matrix }}
-      ubuntu-os: ${{ steps.set-matrix.outputs.ubuntu-os }}
-      ubuntu-swift: ${{ steps.set-matrix.outputs.ubuntu-swift }}
-      ubuntu-type: ${{ steps.set-matrix.outputs.ubuntu-type }}
+      full-matrix: ${{ steps.check.outputs.full }}
+      ubuntu-os: ${{ steps.matrix.outputs.ubuntu-os }}
+      ubuntu-swift: ${{ steps.matrix.outputs.ubuntu-swift }}
+      ubuntu-type: ${{ steps.matrix.outputs.ubuntu-type }}
     steps:
-      - name: Determine build matrix
-        id: set-matrix
+      - id: check
+        name: Determine matrix scope
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "full-matrix=true" >> "$GITHUB_OUTPUT"
+          FULL=false
+          REF="${{ github.ref }}"
+          EVENT="${{ github.event_name }}"
+          BASE_REF="${{ github.base_ref }}"
+
+          # Full matrix on main
+          if [[ "$REF" == "refs/heads/main" ]]; then
+            FULL=true
+          # Full matrix on semver branches (v1.0.0, 1.2.3-alpha.1, etc.)
+          elif [[ "$REF" =~ ^refs/heads/v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            FULL=true
+          # Full matrix on PRs targeting main or semver branches
+          elif [[ "$EVENT" == "pull_request" ]]; then
+            if [[ "$BASE_REF" == "main" || "$BASE_REF" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+              FULL=true
+            fi
+          fi
+
+          echo "full=$FULL" >> "$GITHUB_OUTPUT"
+          echo "Full matrix: $FULL (ref=$REF, event=$EVENT, base_ref=$BASE_REF)"
+
+      - id: matrix
+        name: Build matrix values
+        run: |
+          if [[ "${{ steps.check.outputs.full }}" == "true" ]]; then
             echo 'ubuntu-os=["noble","jammy"]' >> "$GITHUB_OUTPUT"
             echo 'ubuntu-swift=[{"version":"6.0"},{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
             echo 'ubuntu-type=["","wasm","wasm-embedded"]' >> "$GITHUB_OUTPUT"
           else
-            echo "full-matrix=false" >> "$GITHUB_OUTPUT"
             echo 'ubuntu-os=["noble"]' >> "$GITHUB_OUTPUT"
             echo 'ubuntu-swift=[{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
             echo 'ubuntu-type=[""]' >> "$GITHUB_OUTPUT"
@@ -86,6 +108,9 @@ jobs:
         run: |
           apt-get update -q
           apt-get install -y curl
+      - name: Install coverage.py (silences codecov-cli probe warning)
+        if: steps.build.outputs.contains-code-coverage == 'true'
+        run: pip3 install --quiet --user coverage 2>/dev/null || true
       - uses: sersoft-gmbh/swift-coverage-action@v5
         id: coverage-files
         if: steps.build.outputs.contains-code-coverage == 'true'
@@ -310,11 +335,14 @@ jobs:
     if: ${{ !cancelled() && !failure() && (github.event_name == 'pull_request' || !contains(github.event.head_commit.message, 'ci skip')) }}
     runs-on: ubuntu-latest
     needs: [build-ubuntu, build-macos, build-windows, build-macos-full, build-android]
+    # Serialize lint runs across workflows so a cold cache on a mise.toml
+    # bump only triggers one rebuild, not a race.
+    concurrency:
+      group: lint-tools-${{ github.head_ref || github.ref }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v4
-        with:
-          cache: true
+      - uses: ./.github/actions/setup-tools
       - name: Lint
         run: ./Scripts/lint.sh
 

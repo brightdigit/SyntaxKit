@@ -4,6 +4,7 @@ import Testing
 
 @Suite internal struct ConcurrencyExampleTests {
   @Test("Concurrency vending machine DSL generates expected Swift code")
+  @available(*, deprecated, message: "Exercises deprecated Infix builder closure init")
   internal func testConcurrencyVendingMachineExample() throws {
     // Build DSL equivalent of Examples/Remaining/concurrency/dsl.swift
     // Note: This test includes the Item struct that's referenced but not defined in the original DSL

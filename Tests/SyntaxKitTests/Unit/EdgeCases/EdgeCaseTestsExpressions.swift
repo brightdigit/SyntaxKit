@@ -38,20 +38,15 @@ internal struct EdgeCaseTestsExpressions {
 
   @Test("Infix with complex expressions generates correct syntax")
   internal func testInfixWithComplexExpressions() throws {
-    let infix = try Infix("*") {
-      try Parenthesized {
-        try Infix("+") {
-          VariableExp("a")
-          VariableExp("b")
-        }
+    let infix = Infix(
+      "*",
+      lhs: Parenthesized {
+        Infix("+", lhs: VariableExp("a"), rhs: VariableExp("b"))
+      },
+      rhs: Parenthesized {
+        Infix("-", lhs: VariableExp("c"), rhs: VariableExp("d"))
       }
-      try Parenthesized {
-        try Infix("-") {
-          VariableExp("c")
-          VariableExp("d")
-        }
-      }
-    }
+    )
 
     let generated = infix.generateCode()
     #expect(generated.contains("(a + b) * (c - d)"))
@@ -69,11 +64,8 @@ internal struct EdgeCaseTestsExpressions {
 
   @Test("Return with complex expression generates correct syntax")
   internal func testReturnWithComplexExpression() throws {
-    let returnStmt = try Return {
-      try Infix("+") {
-        VariableExp("a")
-        VariableExp("b")
-      }
+    let returnStmt = Return {
+      Infix("+", lhs: VariableExp("a"), rhs: VariableExp("b"))
     }
 
     let generated = returnStmt.generateCode()

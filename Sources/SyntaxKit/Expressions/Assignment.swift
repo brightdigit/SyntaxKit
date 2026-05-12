@@ -34,6 +34,7 @@ public struct Assignment: CodeBlock {
   private let target: String
   private let valueExpr: ExprSyntax
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let left = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(target)))
     let right = valueExpr

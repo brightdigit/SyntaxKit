@@ -30,6 +30,7 @@
 import Foundation
 
 #if canImport(Foundation) && (os(macOS) || os(Linux))
+  // periphery:ignore - intentionally unavailable; preserved for future enablement
   @available(*, unavailable)
   private enum PackageValidator {
     /// Validates a Package.swift manifest

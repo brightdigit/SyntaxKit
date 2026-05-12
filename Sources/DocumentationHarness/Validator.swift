@@ -45,6 +45,7 @@ extension Validator {
   ///   - relativePaths: Array of relative paths to search for documentation
   ///   - projectRoot: Root URL of the project
   ///   - pathExtensions: File extensions to search for (defaults to ["md"])
+  ///   - fileSearcher: File system searcher (defaults to ``FileManager``.``default``)
   /// - Returns: Array of validation results for all code blocks found
   /// - Throws: FileSearchError if file operations fail
   package func validate(

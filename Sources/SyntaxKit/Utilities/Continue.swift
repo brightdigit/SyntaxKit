@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct Continue: CodeBlock {
   private let label: String?
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let continueStmt = ContinueStmtSyntax(
       continueKeyword: .keyword(.continue, trailingTrivia: .newline)
