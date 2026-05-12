@@ -1,7 +1,7 @@
-Import("SwiftUI").access("public")
+Import("SwiftUI").access(.public)
 
 Struct("TodoItemRow") {
-  Variable(.let, name: "item", type: "TodoItem").access("private")
+  Variable(.let, name: "item", type: "TodoItem").access(.private)
   
   Variable(.let, name: "onToggle", type:
             ClosureType(returns: "Void"){
@@ -10,7 +10,7 @@ Struct("TodoItemRow") {
     .attribute("@MainActor")
     .attribute("@Sendable")
   )
-  .access("private")
+  .access(.private)
   
   ComputedProperty("body", type: "some View") {
     Init("HStack") {
@@ -21,13 +21,13 @@ Struct("TodoItemRow") {
             ParameterExp(unlabeled: Closure{
               Init("Image") {
                 ParameterExp(name: "systemName", value: ConditionalOp(
-                  if: VariableExp("item").property(name: "isCompleted"),
+                  if: VariableExp("item").property("isCompleted"),
                   then: Literal.string("checkmark.circle.fill"),
                   else: Literal.string("circle")
                 ))
               }.call("foregroundColor"){
                 ParameterExp(unlabeled: ConditionalOp(
-                  if: VariableExp("item").property(name: "isCompleted"),
+                  if: VariableExp("item").property("isCompleted"),
                   then: EnumCase("green"),
                   else: EnumCase("gray")
                 ))
@@ -39,7 +39,7 @@ Struct("TodoItemRow") {
               Init("Task") {
                 ParameterExp(unlabeled: Closure(
                   capture: {
-                    ParameterExp(unlabeled: VariableExp("self").reference("weak"))
+                    ParameterExp(unlabeled: VariableExp("self").reference(.weak))
                   },
                   body: {
                     VariableExp("self").optional().call("onToggle") {
@@ -62,4 +62,4 @@ Struct("TodoItemRow") {
   }
 }
 .inherits("View")
-.access("public")
+.access(.public)

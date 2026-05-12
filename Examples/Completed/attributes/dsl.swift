@@ -1,7 +1,10 @@
 Class("Foo") {
-    Variable(.var, name: "bar", type: "String", defaultValue: "bar").attribute("Published")
+    Variable(.var, name: "bar", type: "String", equals: "bar").attribute("Published")
     Function("bar") {
-        print("bar")
+        Call("print") {
+            ParameterExp(unlabeled: Literal.string("bar"))
+        }
     }.attribute("available", arguments: ["iOS 17.0", "*"])
     Function("baz") {
-}.attribute("objc")}.attribute("objc")
+    }.attribute("objc")
+}

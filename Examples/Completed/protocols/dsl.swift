@@ -1,7 +1,7 @@
 import SyntaxKit
 
 // Generate and print the code
-let generatedCode = Group {
+Group {
     // MARK: - Protocol Definition
     Protocol("Vehicle") {
         PropertyRequirement("numberOfWheels", type: "Int", access: .get)
@@ -57,8 +57,13 @@ let generatedCode = Group {
     }.inherits("Vehicle")
     
     // MARK: - Usage Example
-    VariableDecl(.let, name: "tesla", equals: "ElectricCar(brand: \"Tesla\", batteryLevel: 75.0)")
-    VariableDecl(.let, name: "toyota", equals: "Car(brand: \"Toyota\")")
+    Variable(.let, name: "tesla", equals: Init("ElectricCar") {
+        ParameterExp(name: "brand", value: Literal.string("Tesla"))
+        ParameterExp(name: "batteryLevel", value: Literal.float(75.0))
+    })
+    Variable(.let, name: "toyota", equals: Init("Car") {
+        ParameterExp(name: "brand", value: Literal.string("Toyota"))
+    })
     
     // Demonstrate protocol usage
     Function("demonstrateVehicle") {
@@ -103,4 +108,3 @@ let generatedCode = Group {
     }
 }
 
-print(generatedCode.generateCode()) 

@@ -39,18 +39,12 @@ Group {
       }
     Variable(.let, name: "numbers", equals: Literal.array([Literal.integer(1), Literal.integer(2), Literal.integer(3), Literal.integer(4), Literal.integer(5), Literal.integer(6), Literal.integer(7), Literal.integer(8), Literal.integer(9), Literal.integer(10)]))
     
-    For(VariableExp("number"), in: VariableExp("numbers"), where: {
-        try Infix("==") {
-            try Infix("%") {
-                VariableExp("number")
-                Literal.integer(2)
+    For(VariableExp("number"), in: VariableExp("numbers"), then: {
+        If(VariableExp("number % 2 == 0"), then: {
+            Call("print") {
+                ParameterExp(unlabeled: "\"Even number: \\(number)\"")
             }
-            Literal.integer(0)
-        }
-    }, then: {
-        Call("print") {
-            ParameterExp(unlabeled: "\"Even number: \\(number)\"")
-        }
+        })
     })
 
     // MARK: - For-in with Dictionary

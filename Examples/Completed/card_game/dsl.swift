@@ -1,7 +1,7 @@
 import SyntaxKit
 
 // Example of generating a BlackjackCard struct with a nested Suit enum
-let structExample = Group {
+Group {
     Struct("Card") {
         Variable(.let, name: "rank", type: "Rank")
         .comment{
@@ -39,31 +39,31 @@ let structExample = Group {
             Variable(.let, name: "first", type: "Int")
             Variable(.let, name: "second", type: "Int?")
         }
-        ComputedProperty("description") {
+        ComputedProperty("description", type: "String") {
             Switch("self") {
                 SwitchCase(".jack") {
-                    Return{
-                        Literal("\"J\"")
+                    Return {
+                        Literal.string("J")
                     }
                 }
                 SwitchCase(".queen") {
-                    Return{
-                        Literal("\"Q\"")
+                    Return {
+                        Literal.string("Q")
                     }
                 }
                 SwitchCase(".king") {
-                    Return{
-                        Literal("\"K\"")
+                    Return {
+                        Literal.string("K")
                     }
                 }
                 SwitchCase(".ace") {
-                    Return{
-                        Literal("\"A\"")
+                    Return {
+                        Literal.string("A")
                     }
                 }
                 Default {
-                    Return{
-                        Literal("\\(rawValue)")
+                    Return {
+                        Literal.string("\\(rawValue)")
                     }
                 }
             }
@@ -92,5 +92,3 @@ let structExample = Group {
     }
 }
 
-// Generate and print the code
-print(structExample.generateCode())

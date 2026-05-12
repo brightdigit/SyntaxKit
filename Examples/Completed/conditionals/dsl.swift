@@ -4,31 +4,31 @@ Group {
         Line("Simple if statement")
       }
     If {
-        Infix("temperature", ">", 30)
+        Infix(">", lhs: VariableExp("temperature"), rhs: Literal.integer(30))
     } then: {
-        Call("print", "It's hot outside!")
+        Call("print") { ParameterExp(unlabeled: Literal.string("It's hot outside!")) }
     }
     Variable(.let, name: "score", equals: Literal.integer(85))
       .comment {
         Line("If-else statement")
       }
     If {
-        Infix("score", ">=", 90)
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
     } then: {
-        Call("print", "Excellent!")
+        Call("print") { ParameterExp(unlabeled: Literal.string("Excellent!")) }
     } else: {
         If {
-            Infix("score", ">=", 80)
+            Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
         } then: {
-            Call("print", "Good job!")
+            Call("print") { ParameterExp(unlabeled: Literal.string("Good job!")) }
         }
         If {
-            try Infix("score", ">=", 70)
+            Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(70))
         } then: {
-            Call("print", "Passing")
+            Call("print") { ParameterExp(unlabeled: Literal.string("Passing")) }
         }
         Then {
-            Call("print", "Needs improvement")
+            Call("print") { ParameterExp(unlabeled: Literal.string("Needs improvement")) }
         }
     }
 
@@ -40,9 +40,9 @@ Group {
     If(Let("actualNumber", Init("Int") {
         ParameterExp(name: "", value: "possibleNumber")
     }), then: {
-        Call("print", "The string \"\\(possibleNumber)\" has an integer value of \\(actualNumber)")
+        Call("print") { ParameterExp(unlabeled: Literal.string("The string \"\\(possibleNumber)\" has an integer value of \\(actualNumber)")) }
     }, else: {
-        Call("print", "The string \"\\(possibleNumber)\" could not be converted to an integer")
+        Call("print") { ParameterExp(unlabeled: Literal.string("The string \"\\(possibleNumber)\" could not be converted to an integer")) }
     })
 
     Variable(.let, name: "possibleName", type: "String?", equals: Literal.string("John")).withExplicitType()
@@ -54,14 +54,16 @@ Group {
         Let("name", "possibleName")
         Let("age", "possibleAge")
     } then: {
-        Call("print", "\\(name) is \\(age) years old") 
+        Call("print") { ParameterExp(unlabeled: Literal.string("\\(name) is \\(age) years old")) } 
     }
 
-    Function("greet", parameters: [Parameter("person", type: "[String: String]")]) {
+    Function("greet") {
+        Parameter(name: "person", type: "[String: String]")
+    } _: {
         Guard {
             Let("name", "person[\"name\"]")
         } else: {
-            Call("print", "No name provided")
+            Call("print") { ParameterExp(unlabeled: Literal.string("No name provided")) }
         }
         Guard {
             Let("age", "person[\"age\"]")
@@ -69,9 +71,9 @@ Group {
                 ParameterExp(name: "", value: "age")
             })
         } else: {
-            Call("print", "Invalid age provided")
+            Call("print") { ParameterExp(unlabeled: Literal.string("Invalid age provided")) }
         }
-        Call("print", "Hello \\(name), you are \\(ageInt) years old")
+        Call("print") { ParameterExp(unlabeled: Literal.string("Hello \\(name), you are \\(ageInt) years old")) }
     }
 }.comment {
     Line("MARK: - Guard Statements")
@@ -104,26 +106,26 @@ Switch("approximateCount") {
         Assignment("naturalCount", Literal.string("many"))
     }
 }
-Call("print", "There are \\(naturalCount) \\(countedThings).")
+Call("print") { ParameterExp(unlabeled: Literal.string("There are \\(naturalCount) \\(countedThings).")) }
 Variable(.let, name: "somePoint", type: "(Int, Int)", equals: VariableExp("(1, 1)"), explicitType: true)
 .comment {
     Line("Switch with tuple matching")
 }
 Switch("somePoint") {
     SwitchCase(Tuple.pattern([0, 0])) {
-        Call("print", "(0, 0) is at the origin")
+        Call("print") { ParameterExp(unlabeled: Literal.string("(0, 0) is at the origin")) }
     }
     SwitchCase(Tuple.pattern([nil, 0])) {
-        Call("print", "(\(somePoint.0), 0) is on the x-axis")
+        Call("print") { ParameterExp(unlabeled: Literal.string("(\\(somePoint.0), 0) is on the x-axis")) }
     }
     SwitchCase(Tuple.pattern([0, nil])) {
-        Call("print", "(0, \(somePoint.1)) is on the y-axis")
+        Call("print") { ParameterExp(unlabeled: Literal.string("(0, \\(somePoint.1)) is on the y-axis")) }
     }
     SwitchCase(Tuple.pattern([(-2...2), (-2...2)])) {
-        Call("print", "(\(somePoint.0), \(somePoint.1)) is inside the box")
+        Call("print") { ParameterExp(unlabeled: Literal.string("(\\(somePoint.0), \\(somePoint.1)) is inside the box")) }
     }
     Default {
-        Call("print", "(\(somePoint.0), \(somePoint.1)) is outside of the box")
+        Call("print") { ParameterExp(unlabeled: Literal.string("(\\(somePoint.0), \\(somePoint.1)) is outside of the box")) }
     }
 }
 Variable(.let, name: "anotherPoint", type: "(Int, Int)", equals: VariableExp("(2, 0)"), explicitType: true)
@@ -131,21 +133,21 @@ Variable(.let, name: "anotherPoint", type: "(Int, Int)", equals: VariableExp("(2
     Line("Switch with value binding")
 }
 Switch("anotherPoint") {
-    SwitchCase(Tuple.pattern([.let("x"), 0])) {
-        Call("print", "on the x-axis with an x value of \(x)")
+    SwitchCase(Tuple.pattern([Pattern.let("x"), 0])) {
+        Call("print") { ParameterExp(unlabeled: Literal.string("on the x-axis with an x value of \\(x)")) }
         
     }
-    SwitchCase(Tuple.pattern([0, .let("y")])) {
-        Call("print", "on the y-axis with a y value of \(y)")
+    SwitchCase(Tuple.pattern([0, Pattern.let("y")])) {
+        Call("print") { ParameterExp(unlabeled: Literal.string("on the y-axis with a y value of \\(y)")) }
      
     }
-    SwitchCase(Tuple.pattern([.let("x"), .let("y")])) {
-        Call("print", "somewhere else at (\(x), \(y))")
+    SwitchCase(Tuple.pattern([Pattern.let("x"), Pattern.let("y")])) {
+        Call("print") { ParameterExp(unlabeled: Literal.string("somewhere else at (\\(x), \\(y))")) }
         
     }
 }
 Variable(.let, name: "integerToDescribe", equals: 5)
-Variable(.var, name: "description", equals: "The number \(integerToDescribe) is")
+Variable(.var, name: "description", equals: "The number \\(integerToDescribe) is")
 Switch("integerToDescribe") {
     SwitchCase(2, 3, 5, 7, 11, 13, 17, 19) {
         PlusAssign("description", "a prime number, and also")
@@ -155,68 +157,62 @@ Switch("integerToDescribe") {
         PlusAssign("description", "an integer.")
     }
 }
-Call("print", "description")
+Call("print") { ParameterExp(unlabeled: Literal.string("description")) }
 
 Variable(.let, name: "finalSquare", equals: 25)
 Variable(.var, name: "board", equals: Literal.array(Array(repeating: Literal.integer(0), count: 26)))
 
-Infix("board[03]", "+=", 8)
-Infix("board[06]", "+=", 11)
-Infix("board[09]", "+=", 9)
-Infix("board[10]", "+=", 2)
-Infix("board[14]", "-=", 10)
-Infix("board[19]", "-=", 11)
-Infix("board[22]", "-=", 2)
-Infix("board[24]", "-=", 8)
+Infix("+=", lhs: VariableExp("board[03]"), rhs: Literal.integer(8))
+Infix("+=", lhs: VariableExp("board[06]"), rhs: Literal.integer(11))
+Infix("+=", lhs: VariableExp("board[09]"), rhs: Literal.integer(9))
+Infix("+=", lhs: VariableExp("board[10]"), rhs: Literal.integer(2))
+Infix("-=", lhs: VariableExp("board[14]"), rhs: Literal.integer(10))
+Infix("-=", lhs: VariableExp("board[19]"), rhs: Literal.integer(11))
+Infix("-=", lhs: VariableExp("board[22]"), rhs: Literal.integer(2))
+Infix("-=", lhs: VariableExp("board[24]"), rhs: Literal.integer(8))
 
 Variable(.var, name: "square", equals: 0)
 Variable(.var, name: "diceRoll", equals: 0)
-While {
-    try Infix("square", "!=", "finalSquare")
-} then: {
-    Assignment("diceRoll", "+", 1)
+While(Infix("!=", lhs: VariableExp("square"), rhs: VariableExp("finalSquare"))) {
+    Infix("+=", lhs: VariableExp("diceRoll"), rhs: Literal.integer(1))
     If {
-        try Infix("diceRoll", "==", 7)
+        Infix("==", lhs: VariableExp("diceRoll"), rhs: Literal.integer(7))
     } then: {
         Assignment("diceRoll", 1)
     }
-    Switch(try Infix("square", "+", "diceRoll")) {
+    Switch(Infix("+", lhs: VariableExp("square"), rhs: VariableExp("diceRoll"))) {
         SwitchCase("finalSquare") {
             Break()
         }
-        SwitchCase(try Infix("newSquare", ">", "finalSquare")) {
+        SwitchCase(Infix(">", lhs: VariableExp("newSquare"), rhs: VariableExp("finalSquare"))) {
             Continue()
         }
         Default {
-            try Infix("square", "+=", "diceRoll")
-            try Infix("square", "+=", "board[square]")
+            Infix("+=", lhs: VariableExp("square"), rhs: VariableExp("diceRoll"))
+            Infix("+=", lhs: VariableExp("square"), rhs: VariableExp("board[square]"))
         }
     }
 }
 
-Call("print", "\n=== For-in with Enumerated ===")
+Call("print") { ParameterExp(unlabeled: Literal.string("\n=== For-in with Enumerated ===")) }
 .comment {
     Line("MARK: - For Loops")
     Line("For-in loop with enumerated() to get index and value")
 }
-For {
-    Tuple.pattern([VariableExp("index"), VariableExp("name")])
-} in: {
-    VariableExp("names").call("enumerated")
-} then: {
-    Call("print", "Index: \\(index), Name: \\(name)")
-}
+For(Tuple.patternCodeBlock([VariableExp("index"), VariableExp("name")]),
+    in: VariableExp("names").call("enumerated"),
+    then: {
+        Call("print") { ParameterExp(unlabeled: Literal.string("Index: \\(index), Name: \\(name)")) }
+    })
 
-Call("print", "\n=== For-in with Where Clause ===")
+Call("print") { ParameterExp(unlabeled: Literal.string("\n=== For-in with Where Clause ===")) }
 .comment {
     Line("For-in loop with where clause")
 }
-For {
-    VariableExp("numbers")
-} in: {
-    Literal.array([Literal.integer(1), Literal.integer(2), Literal.integer(3), Literal.integer(4), Literal.integer(5), Literal.integer(6), Literal.integer(7), Literal.integer(8), Literal.integer(9), Literal.integer(10)])
-} where: {
-    try Infix("number", "%", 2)
-} then: {
-    Call("print", "Even number: \\(number)")
-}
+For(VariableExp("number"),
+    in: VariableExp("numbers"),
+    then: {
+        If(VariableExp("number % 2 == 0"), then: {
+            Call("print") { ParameterExp(unlabeled: Literal.string("Even number: \\(number)")) }
+        })
+    })
