@@ -212,7 +212,7 @@ private func helpersCacheKey(sources: [URL], libPath: String) throws -> String {
   return hasher.finalize().map { String(format: "%02x", $0) }.joined()
 }
 
-private func captureSwiftVersion() -> String? {
+internal func captureSwiftVersion() -> String? {
   let process = Process()
   process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
   process.arguments = ["swift", "--version"]
@@ -225,7 +225,7 @@ private func captureSwiftVersion() -> String? {
   return String(decoding: data, as: UTF8.self)
 }
 
-private func libStamp(libPath: String) -> String? {
+internal func libStamp(libPath: String) -> String? {
   let dylib = "\(libPath)/libSyntaxKit.dylib"
   guard let attrs = try? FileManager.default.attributesOfItem(atPath: dylib) else { return nil }
   let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
@@ -233,7 +233,7 @@ private func libStamp(libPath: String) -> String? {
   return "\(size)/\(Int(mtime))"
 }
 
-private func syntaxKitCacheRoot() throws -> URL {
+internal func syntaxKitCacheRoot() throws -> URL {
   if let xdg = ProcessInfo.processInfo.environment["XDG_CACHE_HOME"], !xdg.isEmpty {
     return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
   }

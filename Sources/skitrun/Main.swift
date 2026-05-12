@@ -55,7 +55,8 @@ internal enum SkitRun {
         inputPath: input,
         outputPath: output,
         libPath: libPath,
-        helpers: helpers
+        helpers: helpers,
+        useCache: args.useCache
       )
     case .directory(let inputDir, let outputDir):
       let helpers = try resolveHelpers(
@@ -67,7 +68,8 @@ internal enum SkitRun {
         inputDir: inputDir,
         outputDir: outputDir,
         libPath: libPath,
-        helpers: helpers
+        helpers: helpers,
+        useCache: args.useCache
       )
       exit(exitCode)
     }
@@ -166,9 +168,15 @@ private func runSingleFile(
   inputPath: String,
   outputPath: String?,
   libPath: String,
-  helpers: CompiledHelpers?
+  helpers: CompiledHelpers?,
+  useCache: Bool
 ) throws {
-  let result = try processFile(inputPath: inputPath, libPath: libPath, helpers: helpers)
+  let result = try processFile(
+    inputPath: inputPath,
+    libPath: libPath,
+    helpers: helpers,
+    useCache: useCache
+  )
   if !result.stderr.isEmpty {
     FileHandle.standardError.write(Data(result.stderr.utf8))
   }
@@ -188,7 +196,8 @@ private func runDirectory(
   inputDir: String,
   outputDir: String,
   libPath: String,
-  helpers: CompiledHelpers?
+  helpers: CompiledHelpers?,
+  useCache: Bool
 ) async -> Int32 {
   let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
   let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
@@ -214,12 +223,12 @@ private func runDirectory(
   await withTaskGroup(of: FileOutcome.self) { group in
     for _ in 0..<maxConcurrent {
       guard let next = iterator.next() else { break }
-      group.addTask { runOne(next, libPath: libPath, helpers: helpers) }
+      group.addTask { runOne(next, libPath: libPath, helpers: helpers, useCache: useCache) }
     }
     for await outcome in group {
       outcomes.append(outcome)
       if let next = iterator.next() {
-        group.addTask { runOne(next, libPath: libPath, helpers: helpers) }
+        group.addTask { runOne(next, libPath: libPath, helpers: helpers, useCache: useCache) }
       }
     }
   }
@@ -270,9 +279,19 @@ private struct FileOutcome: Sendable {
   let result: Result<ProcessResult, any Error>
 }
 
-private func runOne(_ input: URL, libPath: String, helpers: CompiledHelpers?) -> FileOutcome {
+private func runOne(
+  _ input: URL,
+  libPath: String,
+  helpers: CompiledHelpers?,
+  useCache: Bool
+) -> FileOutcome {
   do {
-    let result = try processFile(inputPath: input.path, libPath: libPath, helpers: helpers)
+    let result = try processFile(
+      inputPath: input.path,
+      libPath: libPath,
+      helpers: helpers,
+      useCache: useCache
+    )
     return FileOutcome(input: input, result: .success(result))
   } catch {
     return FileOutcome(input: input, result: .failure(error))
@@ -332,11 +351,21 @@ private struct ProcessResult {
 private func processFile(
   inputPath: String,
   libPath: String,
-  helpers: CompiledHelpers?
+  helpers: CompiledHelpers?,
+  useCache: Bool
 ) throws -> ProcessResult {
   let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
   let absoluteInputPath = inputURL.path
   let source = try String(contentsOf: inputURL, encoding: .utf8)
+
+  let cacheKey: String? =
+    useCache
+    ? outputCacheKey(inputSource: source, helpers: helpers, libPath: libPath)
+    : nil
+  if let cacheKey, let cached = lookupCachedOutput(key: cacheKey) {
+    return ProcessResult(exitCode: 0, stdout: cached, stderr: "")
+  }
+
   let wrapped = wrap(source: source, originalPath: absoluteInputPath)
 
   let tmpDir = FileManager.default.temporaryDirectory
@@ -355,6 +384,11 @@ private func processFile(
     of: wrappedURL.path,
     with: absoluteInputPath
   )
+
+  if let cacheKey, raw.exitCode == 0 {
+    try? storeCachedOutput(key: cacheKey, data: raw.stdout)
+  }
+
   return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
 }
 
@@ -375,12 +409,14 @@ private struct CLIArgs {
   let mode: Mode
   let libPath: String?
   let helpers: HelpersOptions
+  let useCache: Bool
 
   static func parse(_ argv: [String]) throws -> CLIArgs {
     var inputPath: String?
     var outputPath: String?
     var libPath: String?
     var helpers: HelpersOptions = .auto
+    var useCache = true
 
     var i = 1
     while i < argv.count {
@@ -400,6 +436,9 @@ private struct CLIArgs {
         i += 2
       case "--no-helpers":
         helpers = .disabled
+        i += 1
+      case "--no-cache":
+        useCache = false
         i += 1
       case "-h", "--help":
         FileHandle.standardError.write(Data(helpText.utf8))
@@ -430,7 +469,7 @@ private struct CLIArgs {
       mode = .singleFile(input: inputPath, output: outputPath)
     }
 
-    return CLIArgs(mode: mode, libPath: libPath, helpers: helpers)
+    return CLIArgs(mode: mode, libPath: libPath, helpers: helpers, useCache: useCache)
   }
 }
 
@@ -459,6 +498,10 @@ private let helpText = """
                           Compiled into libSyntaxKitHelpers.dylib and made
                           importable via `import SyntaxKitHelpers`.
     --no-helpers          Skip helpers discovery entirely.
+    --no-cache            Skip the rendered-output cache (always run swift).
+                          The cache lives at <syntaxkit cache>/outputs/<hash>/
+                          and is keyed on input bytes, helpers, swift version,
+                          libSyntaxKit stamp, and SKITRUN_*/SYNTAXKIT_* env.
   """
 
 private func usage(_ message: String) -> CLIError {
