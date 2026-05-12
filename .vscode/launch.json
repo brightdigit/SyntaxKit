@@ -19,6 +19,26 @@
             "preLaunchTask": "swift: Build Release skit",
             "target": "skit",
             "configuration": "release"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SyntaxKit}",
+            "name": "Debug skitrun",
+            "target": "skitrun",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug skitrun"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:SyntaxKit}",
+            "name": "Release skitrun",
+            "target": "skitrun",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release skitrun"
         }
     ]
 }

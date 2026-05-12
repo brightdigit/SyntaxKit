@@ -53,6 +53,12 @@ cd "$REPO_ROOT"
 echo "==> swift build -c release --product skitrun"
 swift build -c release --product skitrun
 
+# skitrun doesn't depend on SyntaxKit (it spawns swift on user input that
+# imports SyntaxKit at runtime). Build the library product explicitly so the
+# .dynamic flip above produces libSyntaxKit.dylib + swiftmodule.
+echo "==> swift build -c release --product SyntaxKit"
+swift build -c release --product SyntaxKit
+
 BUILD_DIR="$(ls -d .build/*-apple-macosx*/release 2>/dev/null | head -1)"
 if [[ -z "$BUILD_DIR" ]]; then
   echo "Could not locate release build dir under .build/<triple>/release" >&2
