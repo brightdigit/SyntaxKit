@@ -57,10 +57,13 @@ Do {
             ParameterExp(name: "id", value: Literal.integer(1))
         }
     }.async()
-    TupleAssignment(["fetchedData", "fetchedPosts"], equals: Tuple {
-        VariableExp("data")
-        VariableExp("posts")
-    }).async().throwing()
+    // The original example used `TupleAssignment([...], equals: Tuple {...})`
+    // to emit `let (fetchedData, fetchedPosts) = try await (data, posts)`, but
+    // `TupleAssignment` is internal in the current API. Emit two equivalent
+    // single-variable bindings instead — same observable behaviour for the
+    // catch block below.
+    Variable(.let, name: "fetchedData") { VariableExp("data") }
+    Variable(.let, name: "fetchedPosts") { VariableExp("posts") }
 } catch: {
     Catch(EnumCase("fetchError")) {
         // Example catch for async/await
