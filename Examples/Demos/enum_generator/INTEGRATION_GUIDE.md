@@ -6,7 +6,7 @@ This guide demonstrates the real-world impact of using SyntaxKit for dynamic enu
 
 ```bash
 # See the value proposition in action
-cd Examples/Completed/enum_generator
+cd Examples/Demos/enum_generator
 swift demo.swift
 ```
 
