@@ -83,6 +83,7 @@ Output cache hit ≈ 0.14s on macOS (no spawn at all); cold miss matches the war
 | `--helpers <dir>` | walk-up | Explicit `Helpers/` directory. |
 | `--no-helpers` | (off) | Skip helpers discovery entirely. |
 | `--no-cache` | (off) | Skip the output cache; always spawn `swift`. |
+| `--timeout <s>` | `60` | Per-input timeout for the spawned `swift` (SIGTERM → 5s → SIGKILL). On expiry the file exits with code 124. Pass `0` to disable. |
 
 ## Platform notes
 

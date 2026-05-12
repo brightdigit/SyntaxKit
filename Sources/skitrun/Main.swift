@@ -34,7 +34,13 @@ import SwiftSyntax
 @main
 internal enum SkitRun {
   internal static func main() async throws {
-    let args = try CLIArgs.parse(CommandLine.arguments)
+    let args: CLIArgs
+    do {
+      args = try CLIArgs.parse(CommandLine.arguments)
+    } catch {
+      FileHandle.standardError.write(Data("\(error)\n".utf8))
+      exit(2)
+    }
 
     let libPath: String
     do {
@@ -56,7 +62,8 @@ internal enum SkitRun {
         outputPath: output,
         libPath: libPath,
         helpers: helpers,
-        useCache: args.useCache
+        useCache: args.useCache,
+        timeoutSeconds: args.timeoutSeconds
       )
     case .directory(let inputDir, let outputDir):
       let helpers = try resolveHelpers(
@@ -69,7 +76,8 @@ internal enum SkitRun {
         outputDir: outputDir,
         libPath: libPath,
         helpers: helpers,
-        useCache: args.useCache
+        useCache: args.useCache,
+        timeoutSeconds: args.timeoutSeconds
       )
       exit(exitCode)
     }
@@ -169,13 +177,15 @@ private func runSingleFile(
   outputPath: String?,
   libPath: String,
   helpers: CompiledHelpers?,
-  useCache: Bool
+  useCache: Bool,
+  timeoutSeconds: Int
 ) throws {
   let result = try processFile(
     inputPath: inputPath,
     libPath: libPath,
     helpers: helpers,
-    useCache: useCache
+    useCache: useCache,
+    timeoutSeconds: timeoutSeconds
   )
   if !result.stderr.isEmpty {
     FileHandle.standardError.write(Data(result.stderr.utf8))
@@ -197,7 +207,8 @@ private func runDirectory(
   outputDir: String,
   libPath: String,
   helpers: CompiledHelpers?,
-  useCache: Bool
+  useCache: Bool,
+  timeoutSeconds: Int
 ) async -> Int32 {
   let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
   let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
@@ -223,12 +234,22 @@ private func runDirectory(
   await withTaskGroup(of: FileOutcome.self) { group in
     for _ in 0..<maxConcurrent {
       guard let next = iterator.next() else { break }
-      group.addTask { runOne(next, libPath: libPath, helpers: helpers, useCache: useCache) }
+      group.addTask {
+        runOne(
+          next, libPath: libPath, helpers: helpers,
+          useCache: useCache, timeoutSeconds: timeoutSeconds
+        )
+      }
     }
     for await outcome in group {
       outcomes.append(outcome)
       if let next = iterator.next() {
-        group.addTask { runOne(next, libPath: libPath, helpers: helpers, useCache: useCache) }
+        group.addTask {
+        runOne(
+          next, libPath: libPath, helpers: helpers,
+          useCache: useCache, timeoutSeconds: timeoutSeconds
+        )
+      }
       }
     }
   }
@@ -283,14 +304,16 @@ private func runOne(
   _ input: URL,
   libPath: String,
   helpers: CompiledHelpers?,
-  useCache: Bool
+  useCache: Bool,
+  timeoutSeconds: Int
 ) -> FileOutcome {
   do {
     let result = try processFile(
       inputPath: input.path,
       libPath: libPath,
       helpers: helpers,
-      useCache: useCache
+      useCache: useCache,
+      timeoutSeconds: timeoutSeconds
     )
     return FileOutcome(input: input, result: .success(result))
   } catch {
@@ -352,7 +375,8 @@ private func processFile(
   inputPath: String,
   libPath: String,
   helpers: CompiledHelpers?,
-  useCache: Bool
+  useCache: Bool,
+  timeoutSeconds: Int
 ) throws -> ProcessResult {
   let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
   let absoluteInputPath = inputURL.path
@@ -376,7 +400,12 @@ private func processFile(
   let wrappedURL = tmpDir.appendingPathComponent("Input.wrapped.swift")
   try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
 
-  let raw = try runSwift(wrappedPath: wrappedURL.path, libPath: libPath, helpers: helpers)
+  let raw = try runSwift(
+    wrappedPath: wrappedURL.path,
+    libPath: libPath,
+    helpers: helpers,
+    timeoutSeconds: timeoutSeconds
+  )
   // #sourceLocation maps body diagnostics back to the input file. Errors in
   // the preamble (lines outside the body) still reference the wrapper —
   // rewrite literal occurrences of its path so users see something coherent.
@@ -410,6 +439,9 @@ private struct CLIArgs {
   let libPath: String?
   let helpers: HelpersOptions
   let useCache: Bool
+  let timeoutSeconds: Int
+
+  static let defaultTimeoutSeconds = 60
 
   static func parse(_ argv: [String]) throws -> CLIArgs {
     var inputPath: String?
@@ -417,6 +449,7 @@ private struct CLIArgs {
     var libPath: String?
     var helpers: HelpersOptions = .auto
     var useCache = true
+    var timeoutSeconds = defaultTimeoutSeconds
 
     var i = 1
     while i < argv.count {
@@ -440,6 +473,13 @@ private struct CLIArgs {
       case "--no-cache":
         useCache = false
         i += 1
+      case "--timeout":
+        guard i + 1 < argv.count else { throw usage("--timeout requires a value") }
+        guard let parsed = Int(argv[i + 1]), parsed >= 0 else {
+          throw usage("--timeout expects a non-negative integer (seconds), got: \(argv[i + 1])")
+        }
+        timeoutSeconds = parsed
+        i += 2
       case "-h", "--help":
         FileHandle.standardError.write(Data(helpText.utf8))
         exit(0)
@@ -469,7 +509,13 @@ private struct CLIArgs {
       mode = .singleFile(input: inputPath, output: outputPath)
     }
 
-    return CLIArgs(mode: mode, libPath: libPath, helpers: helpers, useCache: useCache)
+    return CLIArgs(
+      mode: mode,
+      libPath: libPath,
+      helpers: helpers,
+      useCache: useCache,
+      timeoutSeconds: timeoutSeconds
+    )
   }
 }
 
@@ -502,6 +548,10 @@ private let helpText = """
                           The cache lives at <syntaxkit cache>/outputs/<hash>/
                           and is keyed on input bytes, helpers, swift version,
                           libSyntaxKit stamp, and SKITRUN_*/SYNTAXKIT_* env.
+    --timeout <seconds>   Per-input timeout for the spawned `swift` process
+                          (default 60). On expiry: SIGTERM, then SIGKILL after
+                          a 5s grace; the file exits with code 124. Pass 0 to
+                          disable the watchdog.
   """
 
 private func usage(_ message: String) -> CLIError {
@@ -576,10 +626,18 @@ internal func wrap(source: String, originalPath: String) -> String {
 
 // MARK: - Spawning swift
 
+/// Exit code returned when the spawned `swift` is killed by skitrun's timeout
+/// watchdog. Matches POSIX `timeout(1)`.
+private let timeoutExitCode: Int32 = 124
+
+/// Grace period between SIGTERM and SIGKILL when the child won't exit on its own.
+private let killGraceSeconds: Int = 5
+
 private func runSwift(
   wrappedPath: String,
   libPath: String,
-  helpers: CompiledHelpers?
+  helpers: CompiledHelpers?,
+  timeoutSeconds: Int
 ) throws -> ProcessResult {
   let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
 
@@ -639,8 +697,34 @@ private func runSwift(
     errBox.value = stderrPipe.fileHandleForReading.readDataToEndOfFile()
     group.leave()
   }
+
+  // Timeout watchdog: wait for the child with a deadline. On expiry, send
+  // SIGTERM, give a fixed grace, then SIGKILL. timeoutSeconds == 0 disables.
+  let timedOut: Bool
+  if timeoutSeconds > 0 {
+    let deadline: DispatchTime = .now() + .seconds(timeoutSeconds)
+    if exitSemaphore.wait(timeout: deadline) == .timedOut {
+      process.terminate()  // SIGTERM
+      if exitSemaphore.wait(timeout: .now() + .seconds(killGraceSeconds)) == .timedOut {
+        kill(process.processIdentifier, SIGKILL)
+        exitSemaphore.wait()
+      }
+      timedOut = true
+    } else {
+      timedOut = false
+    }
+  } else {
+    exitSemaphore.wait()
+    timedOut = false
+  }
+  // Child is dead now — pipes get EOF, drain completes shortly.
   group.wait()
-  exitSemaphore.wait()
+
+  if timedOut {
+    let prefix = Data("skitrun: timed out after \(timeoutSeconds)s\n".utf8)
+    let stderr = String(decoding: prefix + errBox.value, as: UTF8.self)
+    return ProcessResult(exitCode: timeoutExitCode, stdout: outBox.value, stderr: stderr)
+  }
 
   return ProcessResult(
     exitCode: process.terminationStatus,
