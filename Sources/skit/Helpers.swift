@@ -211,7 +211,7 @@ private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) t
     let stderr = String(decoding: stderrData, as: UTF8.self)
     throw CLIError(
       message: """
-        skitrun: failed to compile Helpers/ (exit \(process.terminationStatus))
+        skit: failed to compile Helpers/ (exit \(process.terminationStatus))
         \(stderr)
         """)
   }

@@ -1,6 +1,6 @@
 //
 //  OutputCache.swift
-//  SyntaxKit — skitrun (POC step 6 for issue #154)
+//  SyntaxKit
 //
 //  Created by Leo Dion.
 //  Copyright © 2026 BrightDigit.
@@ -34,7 +34,7 @@ import Foundation
 private let outputCacheSchemaVersion = "v1"
 
 /// SHA-256 over (cache schema, input source bytes, helpers key, swift version,
-/// libSyntaxKit stamp, sorted SKITRUN_*/SYNTAXKIT_* env vars). Any change in
+/// libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars). Any change in
 /// these inputs produces a fresh key and forces a recompile.
 internal func outputCacheKey(
   inputSource: String,
@@ -60,7 +60,7 @@ internal func outputCacheKey(
   }
 
   let env = ProcessInfo.processInfo.environment
-    .filter { $0.key.hasPrefix("SKITRUN_") || $0.key.hasPrefix("SYNTAXKIT_") }
+    .filter { $0.key.hasPrefix("SKIT_") || $0.key.hasPrefix("SYNTAXKIT_") }
     .sorted { $0.key < $1.key }
   for (key, value) in env {
     hasher.update(data: Data("\(key)=\(value)\0".utf8))

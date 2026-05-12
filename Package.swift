@@ -95,15 +95,12 @@ let package = Package(
       name: "skit",
       targets: ["skit"]
     ),
-    .executable(
-      name: "skitrun",
-      targets: ["skitrun"]
-    ),
   ],
   dependencies: [
     .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
     .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
-    .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0")
+    .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
+    .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0")
   ],
   targets: [
     .target(
@@ -146,15 +143,12 @@ let package = Package(
     ),
     .executableTarget(
       name: "skit",
-      dependencies: ["SyntaxParser"],
-      swiftSettings: swiftSettings
-    ),
-    .executableTarget(
-      name: "skitrun",
       dependencies: [
+        "SyntaxParser",
         .product(name: "SwiftSyntax", package: "swift-syntax"),
         .product(name: "SwiftParser", package: "swift-syntax"),
-        .product(name: "Crypto", package: "swift-crypto")
+        .product(name: "Crypto", package: "swift-crypto"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser")
       ],
       swiftSettings: swiftSettings
     ),

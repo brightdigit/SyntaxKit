@@ -1,5 +1,5 @@
 //
-//  Main.swift
+//  Runner.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -31,74 +31,15 @@ import Foundation
 import SwiftParser
 import SwiftSyntax
 
-@main
-internal enum SkitRun {
-  internal static func main() async throws {
-    let args: CLIArgs
-    do {
-      args = try CLIArgs.parse(CommandLine.arguments)
-    } catch {
-      FileHandle.standardError.write(Data("\(error)\n".utf8))
-      exit(2)
-    }
-
-    let libPath: String
-    do {
-      libPath = try resolveLibPath(override: args.libPath)
-    } catch {
-      FileHandle.standardError.write(Data("\(error)\n".utf8))
-      exit(2)
-    }
-
-    if args.checkToolchain {
-      switch toolchainCheck(libPath: libPath) {
-      case .match, .stampMissing:
-        break
-      case .mismatch(let bundle, let local):
-        FileHandle.standardError.write(Data(toolchainMismatchMessage(
-          bundle: bundle, local: local
-        ).utf8))
-        exit(2)
-      }
-    }
-
-    switch args.mode {
-    case .singleFile(let input, let output):
-      let helpers = try resolveHelpers(
-        nearInputPath: input,
-        libPath: libPath,
-        options: args.helpers
-      )
-      try runSingleFile(
-        inputPath: input,
-        outputPath: output,
-        libPath: libPath,
-        helpers: helpers,
-        useCache: args.useCache,
-        timeoutSeconds: args.timeoutSeconds
-      )
-    case .directory(let inputDir, let outputDir):
-      let helpers = try resolveHelpers(
-        nearInputPath: inputDir,
-        libPath: libPath,
-        options: args.helpers
-      )
-      let exitCode = await runDirectory(
-        inputDir: inputDir,
-        outputDir: outputDir,
-        libPath: libPath,
-        helpers: helpers,
-        useCache: args.useCache,
-        timeoutSeconds: args.timeoutSeconds
-      )
-      exit(exitCode)
-    }
-  }
-}
-
 // MARK: - Helpers resolution
 
-private func resolveHelpers(
+internal enum HelpersOptions {
+  case auto
+  case disabled
+  case explicit(String)
+}
+
+internal func resolveHelpers(
   nearInputPath path: String,
   libPath: String,
   options: HelpersOptions
@@ -127,7 +68,7 @@ private func resolveHelpers(
   let suffix = compiled.cacheHit ? "cached" : "compiled"
   FileHandle.standardError.write(
     Data(
-      "skitrun: helpers \(suffix) at \(helpersDir.path)\n".utf8
+      "skit: helpers \(suffix) at \(helpersDir.path)\n".utf8
     ))
   return compiled
 }
@@ -136,7 +77,7 @@ private func resolveHelpers(
 
 /// Resolves the directory containing `libSyntaxKit.dylib` + module files,
 /// in priority order: explicit flag → env var → adjacent-to-binary
-/// (`<bin-dir>/lib/`) → Homebrew layout (`<bin-dir>/../lib/skitrun/`).
+/// (`<bin-dir>/lib/`) → Homebrew layout (`<bin-dir>/../lib/skit/`).
 internal func resolveLibPath(override: String?) throws -> String {
   if let override {
     guard isLibDir(override) else {
@@ -145,9 +86,9 @@ internal func resolveLibPath(override: String?) throws -> String {
     return override
   }
 
-  if let env = ProcessInfo.processInfo.environment["SKITRUN_LIB_DIR"], !env.isEmpty {
+  if let env = ProcessInfo.processInfo.environment["SKIT_LIB_DIR"], !env.isEmpty {
     guard isLibDir(env) else {
-      throw CLIError(message: "SKITRUN_LIB_DIR is set but path is not a lib dir: \(env)")
+      throw CLIError(message: "SKIT_LIB_DIR is set but path is not a lib dir: \(env)")
     }
     return env
   }
@@ -159,7 +100,7 @@ internal func resolveLibPath(override: String?) throws -> String {
     if isLibDir(adjacent) { return adjacent }
 
     let brewLayout = execDir.deletingLastPathComponent()
-      .appendingPathComponent("lib/skitrun").path
+      .appendingPathComponent("lib/skit").path
     if isLibDir(brewLayout) { return brewLayout }
   }
 
@@ -167,11 +108,11 @@ internal func resolveLibPath(override: String?) throws -> String {
     message: """
       Could not locate SyntaxKit lib directory. Looked for:
         1. --lib <dir>           (not provided)
-        2. $SKITRUN_LIB_DIR       (not set)
-        3. <binary-dir>/lib/      (not found)
-        4. <binary-dir>/../lib/skitrun/  (not found)
-      Run Docs/research/poc-step4-release.sh to produce a self-contained
-      release bundle under .build/skitrun-release/.
+        2. $SKIT_LIB_DIR         (not set)
+        3. <binary-dir>/lib/     (not found)
+        4. <binary-dir>/../lib/skit/  (not found)
+      Run Scripts/build-skit-release.sh to produce a self-contained
+      release bundle under .build/skit-release/.
       """)
 }
 
@@ -191,15 +132,15 @@ internal enum ToolchainCheckResult {
   /// Bundle stamp matches the local `swift --version` exactly.
   case match
   /// `<libPath>/swift-version.txt` is missing (older bundle that predates
-  /// the stamp). skitrun prints a one-line note and proceeds.
+  /// the stamp). skit prints a one-line note and proceeds.
   case stampMissing
   case mismatch(bundle: String, local: String)
 }
 
 /// Compares `<libPath>/swift-version.txt` to `captureSwiftVersion()`.
 /// The swiftmodule format isn't reliably forward-compatible across even
-/// patch-level Swift releases (the originating bug: 6.3.0 → 6.3.2 rejected
-/// the swiftmodule), so the comparison is exact-string after normalising
+/// patch-level Swift releases (originating bug: 6.3.0 → 6.3.2 rejected the
+/// swiftmodule), so the comparison is exact-string after normalising
 /// trailing whitespace.
 internal func toolchainCheck(libPath: String) -> ToolchainCheckResult {
   let stampURL = URL(fileURLWithPath: libPath).appendingPathComponent(toolchainStampFilename)
@@ -207,13 +148,13 @@ internal func toolchainCheck(libPath: String) -> ToolchainCheckResult {
     let stampRaw = String(data: stampData, encoding: .utf8)
   else {
     FileHandle.standardError.write(
-      Data("skitrun: bundle has no toolchain stamp; skipping check\n".utf8)
+      Data("skit: bundle has no toolchain stamp; skipping check\n".utf8)
     )
     return .stampMissing
   }
   guard let localRaw = captureSwiftVersion() else {
     FileHandle.standardError.write(
-      Data("skitrun: could not capture local `swift --version`; skipping toolchain check\n".utf8)
+      Data("skit: could not capture local `swift --version`; skipping toolchain check\n".utf8)
     )
     return .stampMissing
   }
@@ -224,7 +165,7 @@ internal func toolchainCheck(libPath: String) -> ToolchainCheckResult {
 
 internal func toolchainMismatchMessage(bundle: String, local: String) -> String {
   """
-  skitrun: toolchain mismatch
+  skit: toolchain mismatch
     bundle: \(bundle)
     local:  \(local)
   The bundle's libSyntaxKit was built against a different `swift` than the
@@ -233,7 +174,7 @@ internal func toolchainMismatchMessage(bundle: String, local: String) -> String 
   diagnostic.
 
   Rebuild the bundle with:
-    Docs/research/poc-step4-release.sh
+    Scripts/build-skit-release.sh
   Or pass --no-toolchain-check to try anyway.
 
   """
@@ -241,7 +182,7 @@ internal func toolchainMismatchMessage(bundle: String, local: String) -> String 
 
 // MARK: - Single-file mode
 
-private func runSingleFile(
+internal func runSingleFile(
   inputPath: String,
   outputPath: String?,
   libPath: String,
@@ -271,7 +212,7 @@ private func runSingleFile(
 
 // MARK: - Folder mode
 
-private func runDirectory(
+internal func runDirectory(
   inputDir: String,
   outputDir: String,
   libPath: String,
@@ -286,12 +227,12 @@ private func runDirectory(
   do {
     inputs = try collectInputs(at: inputURL, excluding: helpersExcludePath(inputDir: inputURL))
   } catch {
-    FileHandle.standardError.write(Data("skitrun: failed to walk \(inputDir): \(error)\n".utf8))
+    FileHandle.standardError.write(Data("skit: failed to walk \(inputDir): \(error)\n".utf8))
     return 1
   }
 
   if inputs.isEmpty {
-    FileHandle.standardError.write(Data("skitrun: no .swift inputs under \(inputDir)\n".utf8))
+    FileHandle.standardError.write(Data("skit: no .swift inputs under \(inputDir)\n".utf8))
     return 0
   }
 
@@ -314,11 +255,11 @@ private func runDirectory(
       outcomes.append(outcome)
       if let next = iterator.next() {
         group.addTask {
-        runOne(
-          next, libPath: libPath, helpers: helpers,
-          useCache: useCache, timeoutSeconds: timeoutSeconds
-        )
-      }
+          runOne(
+            next, libPath: libPath, helpers: helpers,
+            useCache: useCache, timeoutSeconds: timeoutSeconds
+          )
+        }
       }
     }
   }
@@ -358,7 +299,7 @@ private func runDirectory(
 
   FileHandle.standardError.write(
     Data(
-      "skitrun: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
+      "skit: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
     ))
 
   return failed == 0 ? 0 : 1
@@ -462,7 +403,7 @@ private func processFile(
   let wrapped = wrap(source: source, originalPath: absoluteInputPath)
 
   let tmpDir = FileManager.default.temporaryDirectory
-    .appendingPathComponent("skitrun-\(UUID().uuidString)")
+    .appendingPathComponent("skit-\(UUID().uuidString)")
   try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
   defer { try? FileManager.default.removeItem(at: tmpDir) }
 
@@ -488,155 +429,6 @@ private func processFile(
   }
 
   return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
-}
-
-// MARK: - Arg parsing
-
-internal enum HelpersOptions {
-  case auto
-  case disabled
-  case explicit(String)
-}
-
-private struct CLIArgs {
-  enum Mode {
-    case singleFile(input: String, output: String?)
-    case directory(input: String, output: String)
-  }
-
-  let mode: Mode
-  let libPath: String?
-  let helpers: HelpersOptions
-  let useCache: Bool
-  let timeoutSeconds: Int
-  let checkToolchain: Bool
-
-  static let defaultTimeoutSeconds = 60
-
-  static func parse(_ argv: [String]) throws -> CLIArgs {
-    var inputPath: String?
-    var outputPath: String?
-    var libPath: String?
-    var helpers: HelpersOptions = .auto
-    var useCache = true
-    var timeoutSeconds = defaultTimeoutSeconds
-    var checkToolchain = true
-
-    var i = 1
-    while i < argv.count {
-      let arg = argv[i]
-      switch arg {
-      case "-o", "--output":
-        guard i + 1 < argv.count else { throw usage("-o requires a value") }
-        outputPath = argv[i + 1]
-        i += 2
-      case "--lib":
-        guard i + 1 < argv.count else { throw usage("--lib requires a value") }
-        libPath = argv[i + 1]
-        i += 2
-      case "--helpers":
-        guard i + 1 < argv.count else { throw usage("--helpers requires a value") }
-        helpers = .explicit(argv[i + 1])
-        i += 2
-      case "--no-helpers":
-        helpers = .disabled
-        i += 1
-      case "--no-cache":
-        useCache = false
-        i += 1
-      case "--no-toolchain-check":
-        checkToolchain = false
-        i += 1
-      case "--timeout":
-        guard i + 1 < argv.count else { throw usage("--timeout requires a value") }
-        guard let parsed = Int(argv[i + 1]), parsed >= 0 else {
-          throw usage("--timeout expects a non-negative integer (seconds), got: \(argv[i + 1])")
-        }
-        timeoutSeconds = parsed
-        i += 2
-      case "-h", "--help":
-        FileHandle.standardError.write(Data(helpText.utf8))
-        exit(0)
-      case _ where arg.hasPrefix("-"):
-        throw usage("unknown flag: \(arg)")
-      default:
-        guard inputPath == nil else { throw usage("only one input path is supported") }
-        inputPath = arg
-        i += 1
-      }
-    }
-
-    guard let inputPath else { throw usage("missing input path") }
-
-    var isDirectory: ObjCBool = false
-    guard FileManager.default.fileExists(atPath: inputPath, isDirectory: &isDirectory) else {
-      throw usage("input does not exist: \(inputPath)")
-    }
-
-    let mode: Mode
-    if isDirectory.boolValue {
-      guard let outputPath else {
-        throw usage("directory inputs require -o <output-dir>")
-      }
-      mode = .directory(input: inputPath, output: outputPath)
-    } else {
-      mode = .singleFile(input: inputPath, output: outputPath)
-    }
-
-    return CLIArgs(
-      mode: mode,
-      libPath: libPath,
-      helpers: helpers,
-      useCache: useCache,
-      timeoutSeconds: timeoutSeconds,
-      checkToolchain: checkToolchain
-    )
-  }
-}
-
-private let helpText = """
-  skitrun <input> [-o <output>] [--lib <lib-dir>]
-
-  POC for issue #154 — runs SyntaxKit DSL input(s) by wrapping each in a
-  Group { … } closure and spawning `swift`.
-
-  Forms:
-    skitrun Input.swift                 — render to stdout
-    skitrun Input.swift -o Out.swift    — render to a file
-    skitrun InputDir/ -o OutDir/        — walk **/*.swift (skipping files
-                                          prefixed with '_') and mirror
-                                          rendered output into OutDir/
-
-  Options:
-    -o, --output <path>   Output file (single-file mode) or directory (folder mode).
-    --lib <dir>           Directory containing libSyntaxKit.dylib + module files.
-                          When omitted, skitrun searches: $SKITRUN_LIB_DIR,
-                          then <binary-dir>/lib/, then <binary-dir>/../lib/skitrun/.
-                          Build a self-contained bundle with
-                          Docs/research/poc-step4-release.sh.
-    --helpers <dir>       Override Helpers/ directory location. By default,
-                          skitrun walks up from the input looking for one.
-                          Compiled into libSyntaxKitHelpers.dylib and made
-                          importable via `import SyntaxKitHelpers`.
-    --no-helpers          Skip helpers discovery entirely.
-    --no-cache            Skip the rendered-output cache (always run swift).
-                          The cache lives at <syntaxkit cache>/outputs/<hash>/
-                          and is keyed on input bytes, helpers, swift version,
-                          libSyntaxKit stamp, and SKITRUN_*/SYNTAXKIT_* env.
-    --timeout <seconds>   Per-input timeout for the spawned `swift` process
-                          (default 60). On expiry: SIGTERM, then SIGKILL after
-                          a 5s grace; the file exits with code 124. Pass 0 to
-                          disable the watchdog.
-    --no-toolchain-check  Skip the startup check that compares the bundle's
-                          recorded build toolchain (<lib>/swift-version.txt)
-                          against `swift --version`. Swift swiftmodules aren't
-                          reliably compatible across compiler versions, so by
-                          default skitrun refuses to spawn `swift` on
-                          mismatch. See issue #157 for the auto-rebuild plan.
-  """
-
-private func usage(_ message: String) -> CLIError {
-  CLIError(message: "\(message)\n\n\(helpText)\n")
 }
 
 internal struct CLIError: Error, CustomStringConvertible {
@@ -695,19 +487,19 @@ internal func wrap(source: String, originalPath: String) -> String {
   return """
     import SyntaxKit
     \(hoistedBlock)
-    let __skitrun_root = Group {
+    let __skit_root = Group {
     #sourceLocation(file: "\(escapedPath)", line: \(firstBodyLine))
     \(body)
     #sourceLocation()
     }
 
-    print(__skitrun_root.generateCode())
+    print(__skit_root.generateCode())
     """
 }
 
 // MARK: - Spawning swift
 
-/// Exit code returned when the spawned `swift` is killed by skitrun's timeout
+/// Exit code returned when the spawned `swift` is killed by skit's timeout
 /// watchdog. Matches POSIX `timeout(1)`.
 private let timeoutExitCode: Int32 = 124
 
@@ -802,7 +594,7 @@ private func runSwift(
   group.wait()
 
   if timedOut {
-    let prefix = Data("skitrun: timed out after \(timeoutSeconds)s\n".utf8)
+    let prefix = Data("skit: timed out after \(timeoutSeconds)s\n".utf8)
     let stderr = String(decoding: prefix + errBox.value, as: UTF8.self)
     return ProcessResult(exitCode: timeoutExitCode, stdout: outBox.value, stderr: stderr)
   }
