@@ -1,22 +1,22 @@
-# skitrun
+# skit
 
-> **Status:** research POC for [issue #154](https://github.com/brightdigit/SyntaxKit/issues/154). Shape may change; do not pin tooling to it yet. Design lives at [`Docs/research/codegen-cli-design.md`](../../Docs/research/codegen-cli-design.md); the 7-step build-up is documented step-by-step under [`Docs/research/poc-step{1..7}-results.md`](../../Docs/research/).
-
-A CLI that takes a *pure SyntaxKit DSL* input file, wraps it in a `Group { … }` closure, spawns `swift` to evaluate it, and writes the rendered Swift source to stdout (or a file). No `print`, no `@main`, no boilerplate in your input — just DSL expressions.
+A CLI for SyntaxKit. Two verbs:
 
 ```
-skitrun Input.swift                 # render to stdout
-skitrun Input.swift -o Out.swift    # render to a file
-skitrun InputDir/ -o OutDir/        # walk **/*.swift, mirror to OutDir/
+skit run Input.swift          # render a SyntaxKit DSL file into Swift source
+skit run Input.swift -o Out.swift
+skit run InputDir/ -o OutDir/ # walk **/*.swift and mirror rendered output
+skit parse < Input.swift      # parse Swift source into a JSON syntax tree
 ```
+
+`run` is the default subcommand, so `skit Input.swift` is shorthand for `skit run Input.swift`.
 
 ## Quick start
 
 ```bash
-# Build a portable bundle (the script flips the SyntaxKit library to
-# .dynamic, then bundles dylib + modules + C-shims headers next to skitrun).
-Docs/research/poc-step4-release.sh
-# → .build/skitrun-release/{skitrun, lib/}
+# Build a self-contained release bundle (binary + dylib + swiftmodules).
+Scripts/build-skit-release.sh
+# → .build/skit-release/{skit, lib/}
 
 cat > /tmp/Person.swift <<'SWIFT'
 Struct("Person") {
@@ -25,14 +25,14 @@ Struct("Person") {
 }
 SWIFT
 
-.build/skitrun-release/skitrun /tmp/Person.swift
+.build/skit-release/skit /tmp/Person.swift
 ```
 
-The bundle is self-contained: `cp -r .build/skitrun-release ~/anywhere/` and `~/anywhere/skitrun-release/skitrun <input>` works zero-config.
+The bundle is portable: `cp -r .build/skit-release ~/anywhere/` and `~/anywhere/skit-release/skit <input>` works zero-config.
 
 ## Input file shape
 
-Top-level expressions form an implicit `@CodeBlockBuilder` body. `import` declarations at the top are hoisted into the wrapper. Anything else (`Struct(…)`, `Enum(…)`, helper calls, …) becomes the builder's content.
+`skit run` wraps each input in an implicit `Group { … }` builder. Top-level expressions become the builder's content; `import` declarations at the top are hoisted into the wrapper.
 
 ```swift
 // Models.swift
@@ -48,7 +48,7 @@ What *won't* work inside the input: top-level `let`/`var` outside the builder DS
 
 ## Helpers
 
-Shared codegen utilities live in a `Helpers/` directory anywhere up-tree from the input. `skitrun` walks up from the input file (or directory) looking for one. Sources are pre-compiled into `libSyntaxKitHelpers.{dylib,so}` once and cached by content hash:
+Shared codegen utilities live in a `Helpers/` directory anywhere up-tree from the input. `skit` walks up from the input file (or directory) looking for one. Sources are pre-compiled into `libSyntaxKitHelpers.{dylib,so}` once and cached by content hash:
 
 ```
 project/
@@ -65,41 +65,35 @@ Force-disable: `--no-helpers`. Override location: `--helpers <dir>`.
 
 ## Caches
 
-Two layers, both keyed on content + toolchain + dylib stamp + `SKITRUN_*`/`SYNTAXKIT_*` env vars. Live under `~/Library/Caches/com.brightdigit.SyntaxKit/` on macOS, `$XDG_CACHE_HOME/syntaxkit` (or `~/.cache/syntaxkit`) on Linux.
+Two layers, both keyed on content + toolchain + dylib stamp + `SKIT_*`/`SYNTAXKIT_*` env vars. Live under `~/Library/Caches/com.brightdigit.SyntaxKit/` on macOS, `$XDG_CACHE_HOME/syntaxkit` (or `~/.cache/syntaxkit`) on Linux.
 
-| Layer | Path | What it skips on hit |
-| --- | --- | --- |
-| Helpers | `helpers/<sha>/` | the `swiftc` compile of `Helpers/*.swift` |
-| Output | `outputs/<sha>/output.swift` | the `swift` spawn for an input |
+| Layer   | Path                          | What it skips on hit                          |
+| ------- | ----------------------------- | --------------------------------------------- |
+| Helpers | `helpers/<sha>/`              | the `swiftc` compile of `Helpers/*.swift`     |
+| Output  | `outputs/<sha>/output.swift`  | the `swift` spawn for an input                |
 
-Output cache hit ≈ 0.14s on macOS (no spawn at all); cold miss matches the warm `swift` script-mode baseline (~0.5s). Force a miss with `--no-cache`.
+Output cache hit is roughly ~0.14s on macOS (no spawn at all); cold miss matches the warm `swift` script-mode baseline (~0.5s). Force a miss with `--no-cache`.
 
-## Flag reference
+## Flag reference (`skit run`)
 
-| Flag | Default | Meaning |
-| --- | --- | --- |
-| `-o, --output <path>` | stdout | Output file (single-file mode) or directory (folder mode). |
-| `--lib <dir>` | auto | Directory containing `libSyntaxKit.{dylib,so}` + module files. Search order when omitted: `$SKITRUN_LIB_DIR` → `<bin-dir>/lib/` → `<bin-dir>/../lib/skitrun/`. |
-| `--helpers <dir>` | walk-up | Explicit `Helpers/` directory. |
-| `--no-helpers` | (off) | Skip helpers discovery entirely. |
-| `--no-cache` | (off) | Skip the output cache; always spawn `swift`. |
-| `--timeout <s>` | `60` | Per-input timeout for the spawned `swift` (SIGTERM → 5s → SIGKILL). On expiry the file exits with code 124. Pass `0` to disable. |
-| `--no-toolchain-check` | (off) | Skip the startup check that compares the bundle's recorded build toolchain (`lib/swift-version.txt`) to `swift --version`. swiftmodules aren't reliably compatible across compiler versions; on mismatch skitrun refuses to spawn `swift` and points at the rebuild script. Auto-rebuild fallback tracked in [#157](https://github.com/brightdigit/SyntaxKit/issues/157). |
+| Flag                    | Default | Meaning                                                                                                                                                  |
+| ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `-o, --output <path>`   | stdout  | Output file (single-file mode) or directory (folder mode).                                                                                               |
+| `--lib <dir>`           | auto    | Directory containing `libSyntaxKit.{dylib,so}` + module files. Search order when omitted: `$SKIT_LIB_DIR` → `<bin-dir>/lib/` → `<bin-dir>/../lib/skit/`. |
+| `--helpers <dir>`       | walk-up | Explicit `Helpers/` directory.                                                                                                                           |
+| `--no-helpers`          | (off)   | Skip helpers discovery entirely.                                                                                                                         |
+| `--no-cache`            | (off)   | Skip the output cache; always spawn `swift`.                                                                                                             |
+| `--timeout <s>`         | `60`    | Per-input timeout for the spawned `swift` (SIGTERM → 5s → SIGKILL). On expiry the file exits with code 124. Pass `0` to disable.                         |
+| `--no-toolchain-check`  | (off)   | Skip the startup check that compares `lib/swift-version.txt` to `swift --version`. swiftmodules aren't reliably compatible across compiler versions; on mismatch skit refuses to spawn `swift` and points at the rebuild script. Auto-rebuild fallback tracked in [#157](https://github.com/brightdigit/SyntaxKit/issues/157). |
 
 ## Platform notes
 
-- **macOS:** primary target. All seven POC steps run via the scripts in `Docs/research/`.
-- **Linux:** verified in `swift:6.0-jammy/aarch64` via [`Docs/research/poc-step7.sh`](../../Docs/research/poc-step7.sh) (self-reruns inside Docker). Requires `swift-crypto` instead of CryptoKit; install-name flag is Mach-O specific and skipped on Linux.
-- **Windows:** not attempted.
+- **macOS** — primary target. All build/release/test flows in `Scripts/`.
+- **Linux** — verified on `swift:6.0-jammy/aarch64`. Requires `swift-crypto` instead of CryptoKit (we depend on it). The Mach-O `install_name` step in `Scripts/build-skit-release.sh` is macOS-specific and skipped on Linux.
+- **Windows** — not supported.
 
-A known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited children on `swift:6.0-jammy/aarch64`. Workaround in `Helpers.swift` / `Main.swift`: `terminationHandler` + `DispatchSemaphore`. See [`poc-step7-results.md`](../../Docs/research/poc-step7-results.md) for the full reproducer.
+Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited children on `swift:6.0-jammy/aarch64`. `Runner.swift` and `Helpers.swift` work around it with `terminationHandler` + `DispatchSemaphore`.
 
-## Open scope decisions
+## Deeper dive
 
-Not blocking but on the table — see [`codegen-cli-design.md` §7](../../Docs/research/codegen-cli-design.md#7-what-we-still-need-to-verify):
-
-- Timeouts on the child `swift` process (60s default + SIGTERM/SIGKILL grace).
-- `@main` / attribute behavior in `swift` script-mode beyond the simple cases tested.
-- Multi-file outputs from a single input (out of scope for v1).
-- Sandboxing (out of scope; threat model = "you ran your own code").
-- HTTP/server form for warm-interpreter reuse (post-CLI follow-up).
+For the architecture, design decisions, and trade-offs see [`Docs/skit.md`](../../Docs/skit.md).
