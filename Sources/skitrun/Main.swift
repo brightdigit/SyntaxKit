@@ -33,56 +33,193 @@ import SwiftSyntax
 
 @main
 internal enum SkitRun {
-  internal static func main() throws {
+  internal static func main() async throws {
     let args = try CLIArgs.parse(CommandLine.arguments)
 
-    let inputURL = URL(fileURLWithPath: args.inputPath)
-    let absoluteInputPath = inputURL.standardizedFileURL.path
-    let source = try String(contentsOf: inputURL, encoding: .utf8)
-    let wrapped = wrap(source: source, originalPath: absoluteInputPath)
-
-    let tmpDir = FileManager.default.temporaryDirectory
-      .appendingPathComponent("skitrun-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: tmpDir) }
-
-    let wrappedURL = tmpDir.appendingPathComponent("Input.wrapped.swift")
-    try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
-
-    let result = try runSwift(
-      wrappedPath: wrappedURL.path,
-      libPath: args.libPath
-    )
-
-    if !result.stderr.isEmpty {
-      // #sourceLocation already maps body diagnostics to the input file.
-      // For diagnostics in the preamble (lines outside the body) the path
-      // still references the wrapper — rewrite verbatim path occurrences so
-      // users see something coherent.
-      let rewritten = result.stderr.replacingOccurrences(
-        of: wrappedURL.path,
-        with: absoluteInputPath
+    switch args.mode {
+    case .singleFile(let input, let output):
+      try runSingleFile(inputPath: input, outputPath: output, libPath: args.libPath)
+    case .directory(let inputDir, let outputDir):
+      let exitCode = await runDirectory(
+        inputDir: inputDir,
+        outputDir: outputDir,
+        libPath: args.libPath
       )
-      FileHandle.standardError.write(Data(rewritten.utf8))
-    }
-
-    guard result.exitCode == 0 else {
-      exit(result.exitCode)
-    }
-
-    if let outputPath = args.outputPath {
-      try result.stdout.write(to: URL(fileURLWithPath: outputPath))
-    } else {
-      FileHandle.standardOutput.write(result.stdout)
+      exit(exitCode)
     }
   }
+}
+
+// MARK: - Single-file mode
+
+private func runSingleFile(inputPath: String, outputPath: String?, libPath: String) throws {
+  let result = try processFile(inputPath: inputPath, libPath: libPath)
+  if !result.stderr.isEmpty {
+    FileHandle.standardError.write(Data(result.stderr.utf8))
+  }
+  guard result.exitCode == 0 else {
+    exit(result.exitCode)
+  }
+  if let outputPath {
+    try result.stdout.write(to: URL(fileURLWithPath: outputPath))
+  } else {
+    FileHandle.standardOutput.write(result.stdout)
+  }
+}
+
+// MARK: - Folder mode
+
+private func runDirectory(inputDir: String, outputDir: String, libPath: String) async -> Int32 {
+  let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
+  let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
+
+  let inputs: [URL]
+  do {
+    inputs = try collectInputs(at: inputURL)
+  } catch {
+    FileHandle.standardError.write(Data("skitrun: failed to walk \(inputDir): \(error)\n".utf8))
+    return 1
+  }
+
+  if inputs.isEmpty {
+    FileHandle.standardError.write(Data("skitrun: no .swift inputs under \(inputDir)\n".utf8))
+    return 0
+  }
+
+  let maxConcurrent = max(1, ProcessInfo.processInfo.activeProcessorCount)
+
+  var outcomes: [FileOutcome] = []
+  var iterator = inputs.makeIterator()
+
+  await withTaskGroup(of: FileOutcome.self) { group in
+    for _ in 0..<maxConcurrent {
+      guard let next = iterator.next() else { break }
+      group.addTask { runOne(next, libPath: libPath) }
+    }
+    for await outcome in group {
+      outcomes.append(outcome)
+      if let next = iterator.next() {
+        group.addTask { runOne(next, libPath: libPath) }
+      }
+    }
+  }
+
+  // Write outputs and surface diagnostics. Successes are always written, even
+  // when other files in the batch failed (Tuist-analog batch semantics).
+  var failed = 0
+  for outcome in outcomes {
+    let relative = outcome.input.path.dropFirst(inputURL.path.count + 1)
+    let destination = outputURL.appendingPathComponent(String(relative))
+
+    switch outcome.result {
+    case .failure(let error):
+      failed += 1
+      FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
+    case .success(let processResult):
+      if !processResult.stderr.isEmpty {
+        FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
+        FileHandle.standardError.write(Data(processResult.stderr.utf8))
+      }
+      if processResult.exitCode != 0 {
+        failed += 1
+        continue
+      }
+      do {
+        try FileManager.default.createDirectory(
+          at: destination.deletingLastPathComponent(),
+          withIntermediateDirectories: true
+        )
+        try processResult.stdout.write(to: destination)
+      } catch {
+        failed += 1
+        FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
+      }
+    }
+  }
+
+  FileHandle.standardError.write(Data(
+    "skitrun: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
+  ))
+
+  return failed == 0 ? 0 : 1
+}
+
+private struct FileOutcome: Sendable {
+  let input: URL
+  let result: Result<ProcessResult, any Error>
+}
+
+private func runOne(_ input: URL, libPath: String) -> FileOutcome {
+  do {
+    let result = try processFile(inputPath: input.path, libPath: libPath)
+    return FileOutcome(input: input, result: .success(result))
+  } catch {
+    return FileOutcome(input: input, result: .failure(error))
+  }
+}
+
+private func collectInputs(at inputDir: URL) throws -> [URL] {
+  guard let enumerator = FileManager.default.enumerator(
+    at: inputDir,
+    includingPropertiesForKeys: [.isRegularFileKey],
+    options: [.skipsHiddenFiles]
+  ) else {
+    throw CLIError(message: "could not enumerate \(inputDir.path)")
+  }
+
+  var result: [URL] = []
+  for case let url as URL in enumerator {
+    let values = try url.resourceValues(forKeys: [.isRegularFileKey])
+    guard values.isRegularFile == true else { continue }
+    guard url.pathExtension == "swift" else { continue }
+    guard !url.lastPathComponent.hasPrefix("_") else { continue }
+    result.append(url.standardizedFileURL)
+  }
+  return result.sorted { $0.path < $1.path }
+}
+
+// MARK: - Per-file work
+
+private struct ProcessResult {
+  let exitCode: Int32
+  let stdout: Data
+  let stderr: String
+}
+
+private func processFile(inputPath: String, libPath: String) throws -> ProcessResult {
+  let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
+  let absoluteInputPath = inputURL.path
+  let source = try String(contentsOf: inputURL, encoding: .utf8)
+  let wrapped = wrap(source: source, originalPath: absoluteInputPath)
+
+  let tmpDir = FileManager.default.temporaryDirectory
+    .appendingPathComponent("skitrun-\(UUID().uuidString)")
+  try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
+  defer { try? FileManager.default.removeItem(at: tmpDir) }
+
+  let wrappedURL = tmpDir.appendingPathComponent("Input.wrapped.swift")
+  try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
+
+  let raw = try runSwift(wrappedPath: wrappedURL.path, libPath: libPath)
+  // #sourceLocation maps body diagnostics back to the input file. Errors in
+  // the preamble (lines outside the body) still reference the wrapper —
+  // rewrite literal occurrences of its path so users see something coherent.
+  let stderr = raw.stderr.replacingOccurrences(
+    of: wrappedURL.path,
+    with: absoluteInputPath
+  )
+  return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
 }
 
 // MARK: - Arg parsing
 
 private struct CLIArgs {
-  let inputPath: String
-  let outputPath: String?
+  enum Mode {
+    case singleFile(input: String, output: String?)
+    case directory(input: String, output: String)
+  }
+
+  let mode: Mode
   let libPath: String
 
   static func parse(_ argv: [String]) throws -> CLIArgs {
@@ -108,25 +245,48 @@ private struct CLIArgs {
       case _ where arg.hasPrefix("-"):
         throw usage("unknown flag: \(arg)")
       default:
-        guard inputPath == nil else { throw usage("only one input file is supported") }
+        guard inputPath == nil else { throw usage("only one input path is supported") }
         inputPath = arg
         i += 1
       }
     }
 
-    guard let inputPath else { throw usage("missing input file") }
-    return CLIArgs(inputPath: inputPath, outputPath: outputPath, libPath: libPath)
+    guard let inputPath else { throw usage("missing input path") }
+
+    var isDirectory: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: inputPath, isDirectory: &isDirectory) else {
+      throw usage("input does not exist: \(inputPath)")
+    }
+
+    let mode: Mode
+    if isDirectory.boolValue {
+      guard let outputPath else {
+        throw usage("directory inputs require -o <output-dir>")
+      }
+      mode = .directory(input: inputPath, output: outputPath)
+    } else {
+      mode = .singleFile(input: inputPath, output: outputPath)
+    }
+
+    return CLIArgs(mode: mode, libPath: libPath)
   }
 }
 
 private let helpText = """
-  skitrun <input.swift> [-o <output.swift>] [--lib <lib-dir>]
+  skitrun <input> [-o <output>] [--lib <lib-dir>]
 
-  POC for issue #154 — runs a SyntaxKit DSL input file by wrapping it in a
+  POC for issue #154 — runs SyntaxKit DSL input(s) by wrapping each in a
   Group { … } closure and spawning `swift`.
 
+  Forms:
+    skitrun Input.swift                 — render to stdout
+    skitrun Input.swift -o Out.swift    — render to a file
+    skitrun InputDir/ -o OutDir/        — walk **/*.swift (skipping files
+                                          prefixed with '_') and mirror
+                                          rendered output into OutDir/
+
   Options:
-    -o, --output <file>   Write rendered Swift to <file> (default: stdout).
+    -o, --output <path>   Output file (single-file mode) or directory (folder mode).
     --lib <dir>           Directory containing libSyntaxKit.dylib + module files.
                           (default: /tmp/syntaxkit-poc/lib, produced by
                            Docs/research/poc-step1.sh)
@@ -202,13 +362,7 @@ internal func wrap(source: String, originalPath: String) -> String {
 
 // MARK: - Spawning swift
 
-private struct RunResult {
-  let exitCode: Int32
-  let stdout: Data
-  let stderr: String
-}
-
-private func runSwift(wrappedPath: String, libPath: String) throws -> RunResult {
+private func runSwift(wrappedPath: String, libPath: String) throws -> ProcessResult {
   let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
 
   let process = Process()
@@ -235,7 +389,7 @@ private func runSwift(wrappedPath: String, libPath: String) throws -> RunResult 
   let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
   let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
 
-  return RunResult(
+  return ProcessResult(
     exitCode: process.terminationStatus,
     stdout: stdoutData,
     stderr: String(decoding: stderrData, as: UTF8.self)
