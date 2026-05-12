@@ -50,6 +50,18 @@ internal enum SkitRun {
       exit(2)
     }
 
+    if args.checkToolchain {
+      switch toolchainCheck(libPath: libPath) {
+      case .match, .stampMissing:
+        break
+      case .mismatch(let bundle, let local):
+        FileHandle.standardError.write(Data(toolchainMismatchMessage(
+          bundle: bundle, local: local
+        ).utf8))
+        exit(2)
+      }
+    }
+
     switch args.mode {
     case .singleFile(let input, let output):
       let helpers = try resolveHelpers(
@@ -168,6 +180,63 @@ private func isLibDir(_ path: String) -> Bool {
   var isDir: ObjCBool = false
   guard fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { return false }
   return fm.fileExists(atPath: "\(path)/\(dylibFilename(forLibrary: "SyntaxKit"))")
+}
+
+// MARK: - Toolchain check
+
+/// Filename for the bundle's recorded build-toolchain version.
+internal let toolchainStampFilename = "swift-version.txt"
+
+internal enum ToolchainCheckResult {
+  /// Bundle stamp matches the local `swift --version` exactly.
+  case match
+  /// `<libPath>/swift-version.txt` is missing (older bundle that predates
+  /// the stamp). skitrun prints a one-line note and proceeds.
+  case stampMissing
+  case mismatch(bundle: String, local: String)
+}
+
+/// Compares `<libPath>/swift-version.txt` to `captureSwiftVersion()`.
+/// The swiftmodule format isn't reliably forward-compatible across even
+/// patch-level Swift releases (the originating bug: 6.3.0 → 6.3.2 rejected
+/// the swiftmodule), so the comparison is exact-string after normalising
+/// trailing whitespace.
+internal func toolchainCheck(libPath: String) -> ToolchainCheckResult {
+  let stampURL = URL(fileURLWithPath: libPath).appendingPathComponent(toolchainStampFilename)
+  guard let stampData = try? Data(contentsOf: stampURL),
+    let stampRaw = String(data: stampData, encoding: .utf8)
+  else {
+    FileHandle.standardError.write(
+      Data("skitrun: bundle has no toolchain stamp; skipping check\n".utf8)
+    )
+    return .stampMissing
+  }
+  guard let localRaw = captureSwiftVersion() else {
+    FileHandle.standardError.write(
+      Data("skitrun: could not capture local `swift --version`; skipping toolchain check\n".utf8)
+    )
+    return .stampMissing
+  }
+  let bundle = stampRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+  let local = localRaw.trimmingCharacters(in: .whitespacesAndNewlines)
+  return bundle == local ? .match : .mismatch(bundle: bundle, local: local)
+}
+
+internal func toolchainMismatchMessage(bundle: String, local: String) -> String {
+  """
+  skitrun: toolchain mismatch
+    bundle: \(bundle)
+    local:  \(local)
+  The bundle's libSyntaxKit was built against a different `swift` than the
+  one on your PATH. Swift swiftmodules aren't reliably compatible across
+  versions, so spawning `swift` would fail with a cryptic module-version
+  diagnostic.
+
+  Rebuild the bundle with:
+    Docs/research/poc-step4-release.sh
+  Or pass --no-toolchain-check to try anyway.
+
+  """
 }
 
 // MARK: - Single-file mode
@@ -440,6 +509,7 @@ private struct CLIArgs {
   let helpers: HelpersOptions
   let useCache: Bool
   let timeoutSeconds: Int
+  let checkToolchain: Bool
 
   static let defaultTimeoutSeconds = 60
 
@@ -450,6 +520,7 @@ private struct CLIArgs {
     var helpers: HelpersOptions = .auto
     var useCache = true
     var timeoutSeconds = defaultTimeoutSeconds
+    var checkToolchain = true
 
     var i = 1
     while i < argv.count {
@@ -472,6 +543,9 @@ private struct CLIArgs {
         i += 1
       case "--no-cache":
         useCache = false
+        i += 1
+      case "--no-toolchain-check":
+        checkToolchain = false
         i += 1
       case "--timeout":
         guard i + 1 < argv.count else { throw usage("--timeout requires a value") }
@@ -514,7 +588,8 @@ private struct CLIArgs {
       libPath: libPath,
       helpers: helpers,
       useCache: useCache,
-      timeoutSeconds: timeoutSeconds
+      timeoutSeconds: timeoutSeconds,
+      checkToolchain: checkToolchain
     )
   }
 }
@@ -552,6 +627,12 @@ private let helpText = """
                           (default 60). On expiry: SIGTERM, then SIGKILL after
                           a 5s grace; the file exits with code 124. Pass 0 to
                           disable the watchdog.
+    --no-toolchain-check  Skip the startup check that compares the bundle's
+                          recorded build toolchain (<lib>/swift-version.txt)
+                          against `swift --version`. Swift swiftmodules aren't
+                          reliably compatible across compiler versions, so by
+                          default skitrun refuses to spawn `swift` on
+                          mismatch. See issue #157 for the auto-rebuild plan.
   """
 
 private func usage(_ message: String) -> CLIError {

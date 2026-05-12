@@ -84,6 +84,7 @@ Output cache hit ≈ 0.14s on macOS (no spawn at all); cold miss matches the war
 | `--no-helpers` | (off) | Skip helpers discovery entirely. |
 | `--no-cache` | (off) | Skip the output cache; always spawn `swift`. |
 | `--timeout <s>` | `60` | Per-input timeout for the spawned `swift` (SIGTERM → 5s → SIGKILL). On expiry the file exits with code 124. Pass `0` to disable. |
+| `--no-toolchain-check` | (off) | Skip the startup check that compares the bundle's recorded build toolchain (`lib/swift-version.txt`) to `swift --version`. swiftmodules aren't reliably compatible across compiler versions; on mismatch skitrun refuses to spawn `swift` and points at the rebuild script. Auto-rebuild fallback tracked in [#157](https://github.com/brightdigit/SyntaxKit/issues/157). |
 
 ## Platform notes
 

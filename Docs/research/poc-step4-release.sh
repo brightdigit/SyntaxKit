@@ -79,6 +79,12 @@ cp -r "$REPO_ROOT/.build/checkouts/swift-syntax/Sources/_SwiftSyntaxCShims/inclu
 # Ensure the dylib's install_name uses @rpath so it's portable.
 install_name_tool -id "@rpath/libSyntaxKit.dylib" "$OUTPUT_DIR/lib/libSyntaxKit.dylib" 2>/dev/null || true
 
+# Stamp the bundle with the build toolchain. skitrun compares this against
+# the user's `swift --version` at startup and refuses to spawn `swift` if the
+# swiftmodule wouldn't load (see Sources/skitrun/Main.swift). Issue #157 will
+# replace the refusal with an auto-rebuild fallback.
+swift --version > "$OUTPUT_DIR/lib/swift-version.txt"
+
 BINARY_SIZE=$(ls -lh "$OUTPUT_DIR/skitrun" | awk '{print $5}')
 DYLIB_SIZE=$(ls -lh "$OUTPUT_DIR/lib/libSyntaxKit.dylib" | awk '{print $5}')
 TOTAL_SIZE=$(du -sh "$OUTPUT_DIR" | awk '{print $1}')
