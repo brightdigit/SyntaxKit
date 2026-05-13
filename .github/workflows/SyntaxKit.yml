@@ -65,7 +65,7 @@ jobs:
         run: |
           if [[ "${{ steps.check.outputs.full }}" == "true" ]]; then
             echo 'ubuntu-os=["noble","jammy"]' >> "$GITHUB_OUTPUT"
-            echo 'ubuntu-swift=[{"version":"6.0"},{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-swift=[{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
             echo 'ubuntu-type=["","wasm","wasm-embedded"]' >> "$GITHUB_OUTPUT"
           else
             echo 'ubuntu-os=["noble"]' >> "$GITHUB_OUTPUT"
@@ -79,15 +79,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
     strategy:
+      fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
         swift: ${{ fromJSON(needs.configure.outputs.ubuntu-swift) }}
         type: ${{ fromJSON(needs.configure.outputs.ubuntu-type) }}
         exclude:
-          - swift: {version: "6.0"}
-            type: wasm
-          - swift: {version: "6.0"}
-            type: wasm-embedded
           - swift: {version: "6.1"}
             type: wasm
           - swift: {version: "6.1"}
@@ -237,7 +234,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "iPhone 17 Pro"
-            osVersion: "26.4"
+            osVersion: "26.4.1"
             download-platform: true
 
           # watchOS Build Matrix
@@ -245,7 +242,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Watch Ultra 3 (49mm)"
-            osVersion: "26.4"
+            osVersion: "26.4.1"
             download-platform: true
 
           # tvOS Build Matrix
@@ -253,7 +250,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple TV"
-            osVersion: "26.4"
+            osVersion: "26.4.1"
             download-platform: true
 
           # visionOS Build Matrix
@@ -261,7 +258,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Vision Pro"
-            osVersion: "26.4"
+            osVersion: "26.4.1"
             download-platform: true
 
     steps:
