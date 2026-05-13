@@ -46,17 +46,18 @@ pushd $PACKAGE_DIR
 
 if [ -z "$CI" ]; then
 	run_command swift-format format $SWIFTFORMAT_OPTIONS  --recursive --parallel --in-place Sources Tests
-	run_command swiftlint --fix
+	run_command swiftlint --fix Sources Tests
 fi
 
 if [ -z "$FORMAT_ONLY" ]; then
 	run_command swift-format lint $SWIFTFORMAT_LINT_STRICT $SWIFTFORMAT_OPTIONS --recursive --parallel Sources Tests
-	run_command swiftlint lint $SWIFTLINT_OPTIONS
+	run_command swiftlint lint $SWIFTLINT_OPTIONS Sources Tests
 	# Check for compilation errors
 	run_command swift build --build-tests
 fi
 
-$PACKAGE_DIR/Scripts/header.sh -d  $PACKAGE_DIR/Sources -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit"
+$PACKAGE_DIR/Scripts/header.sh -d "$PACKAGE_DIR/Sources" -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit"
+$PACKAGE_DIR/Scripts/header.sh -d "$PACKAGE_DIR/Tests"   -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit"
 
 if [ -z "$CI" ]; then
 	run_command periphery scan $PERIPHERY_OPTIONS --disable-update-check
