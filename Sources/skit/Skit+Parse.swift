@@ -1,5 +1,5 @@
 //
-//  SkitStub.swift
+//  Skit+Parse.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,18 +27,25 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if !canImport(Subprocess)
+import ArgumentParser
+import Foundation
+import SyntaxParser
 
-  import Foundation
+extension Skit {
+  internal struct Parse: ParsableCommand {
+    internal static let configuration = CommandConfiguration(
+      commandName: "parse",
+      abstract: "Parse Swift source on stdin into a JSON syntax tree on stdout."
+    )
 
-  @main
-  internal enum SkitStub {
-    internal static func main() {
-      FileHandle.standardError.write(
-        Data("skit: this platform is not supported (no Subprocess backend).\n".utf8)
-      )
-      exit(1)
+    internal func run() throws {
+      let code =
+        String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
+      let treeNodes = SyntaxParser.parse(code: code)
+      let encoder = JSONEncoder()
+      let data = try encoder.encode(treeNodes)
+      let json = String(decoding: data, as: UTF8.self)
+      print(json)
     }
   }
-
-#endif
+}
