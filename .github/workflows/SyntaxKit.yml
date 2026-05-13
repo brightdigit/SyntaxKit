@@ -242,7 +242,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Watch Ultra 3 (49mm)"
-            osVersion: "26.4.1"
+            osVersion: "26.5"
             download-platform: true
 
           # tvOS Build Matrix
@@ -250,7 +250,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple TV"
-            osVersion: "26.4.1"
+            osVersion: "26.5"
             download-platform: true
 
           # visionOS Build Matrix
