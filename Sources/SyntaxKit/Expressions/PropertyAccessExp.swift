@@ -40,12 +40,11 @@ internal struct PropertyAccessExp: CodeBlock, ExprCodeBlock, PropertyAccessible 
       ?? ExprSyntax(
         DeclReferenceExprSyntax(baseName: .identifier(""))
       )
-    let property = TokenSyntax.identifier(propertyName)
     return ExprSyntax(
       MemberAccessExprSyntax(
         base: baseSyntax,
-        dot: .periodToken(),
-        name: property
+        period: .periodToken(),
+        declName: DeclReferenceExprSyntax(baseName: .identifier(propertyName))
       )
     )
   }

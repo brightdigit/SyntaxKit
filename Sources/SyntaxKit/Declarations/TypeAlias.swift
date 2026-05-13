@@ -35,6 +35,7 @@ public struct TypeAlias: CodeBlock, Sendable {
   private let existingType: String
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     // `typealias` keyword token
     let keyword = TokenSyntax.keyword(.typealias, trailingTrivia: .space)

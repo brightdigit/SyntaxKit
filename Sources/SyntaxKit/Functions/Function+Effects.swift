@@ -42,6 +42,7 @@ extension Function {
 
   /// Marks the function as `throws` or `rethrows`.
   /// - Parameter isRethrows: Pass `true` to emit `rethrows` instead of `throws`.
+  /// - Returns: A copy of the function with the throws effect applied.
   public func `throws`(isRethrows: Bool = false) -> Self {
     var copy = self
     switch effect {
@@ -55,6 +56,7 @@ extension Function {
 
   /// Marks the function as `throws` with a specific error type.
   /// - Parameter errorType: The error type to specify in the throws clause.
+  /// - Returns: A copy of the function with the typed throws effect applied.
   public func `throws`(_ errorType: String) -> Self {
     var copy = self
     switch effect {
@@ -75,6 +77,7 @@ extension Function {
 
   /// Marks the function as `async throws` or `async rethrows`.
   /// - Parameter isRethrows: Pass `true` to emit `async rethrows`.
+  /// - Returns: A copy of the function with the async-throws effect applied.
   public func asyncThrows(isRethrows: Bool = false) -> Self {
     var copy = self
     copy.effect = .asyncThrows(isRethrows: isRethrows, errorType: nil)
@@ -83,6 +86,7 @@ extension Function {
 
   /// Marks the function as `async throws` with a specific error type.
   /// - Parameter errorType: The error type to specify in the throws clause.
+  /// - Returns: A copy of the function with the typed async-throws effect applied.
   public func asyncThrows(_ errorType: String) -> Self {
     var copy = self
     copy.effect = .asyncThrows(isRethrows: false, errorType: errorType)

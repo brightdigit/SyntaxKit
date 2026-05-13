@@ -1,3 +1,32 @@
+//
+//  ForLoopTests.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion.
+//  Copyright © 2026 BrightDigit.
+//
+//  Permission is hereby granted, free of charge, to any person
+//  obtaining a copy of this software and associated documentation
+//  files (the “Software”), to deal in the Software without
+//  restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following
+//  conditions:
+//
+//  The above copyright notice and this permission notice shall be
+//  included in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+//  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+//  OTHER DEALINGS IN THE SOFTWARE.
+//
+
 import Foundation
 import Testing
 
@@ -12,30 +41,26 @@ internal final class ForLoopTests {
       in: VariableExp("items"),
       then: {
         Call("print") {
-          ParameterExp(name: "", value: "item")
+          ParameterExp(name: "", value: VariableExp("item"))
         }
       }
     )
     let generated = forLoop.syntax.description
-    let expected = "for item in items {\n    print(item)\n}"
     #expect(generated.contains("for item in items"))
     #expect(generated.contains("print(item)"))
   }
 
   @Test
   internal func testForInWithWhereClause() throws {
-    let forLoop = try For(
+    let forLoop = For(
       VariableExp("number"),
       in: VariableExp("numbers"),
       where: {
-        try Infix("%") {
-          VariableExp("number")
-          Literal.integer(2)
-        }
+        Infix("%", lhs: VariableExp("number"), rhs: Literal.integer(2))
       },
       then: {
         Call("print") {
-          ParameterExp(name: "", value: "number")
+          ParameterExp(name: "", value: VariableExp("number"))
         }
       }
     )

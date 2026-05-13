@@ -1,3 +1,32 @@
+//
+//  EdgeCaseTestsExpressions.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion.
+//  Copyright © 2026 BrightDigit.
+//
+//  Permission is hereby granted, free of charge, to any person
+//  obtaining a copy of this software and associated documentation
+//  files (the “Software”), to deal in the Software without
+//  restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following
+//  conditions:
+//
+//  The above copyright notice and this permission notice shall be
+//  included in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+//  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+//  OTHER DEALINGS IN THE SOFTWARE.
+//
+
 import Foundation
 import SwiftSyntax
 import Testing
@@ -38,20 +67,15 @@ internal struct EdgeCaseTestsExpressions {
 
   @Test("Infix with complex expressions generates correct syntax")
   internal func testInfixWithComplexExpressions() throws {
-    let infix = try Infix("*") {
-      try Parenthesized {
-        try Infix("+") {
-          VariableExp("a")
-          VariableExp("b")
-        }
+    let infix = Infix(
+      "*",
+      lhs: Parenthesized {
+        Infix("+", lhs: VariableExp("a"), rhs: VariableExp("b"))
+      },
+      rhs: Parenthesized {
+        Infix("-", lhs: VariableExp("c"), rhs: VariableExp("d"))
       }
-      try Parenthesized {
-        try Infix("-") {
-          VariableExp("c")
-          VariableExp("d")
-        }
-      }
-    }
+    )
 
     let generated = infix.generateCode()
     #expect(generated.contains("(a + b) * (c - d)"))
@@ -69,11 +93,8 @@ internal struct EdgeCaseTestsExpressions {
 
   @Test("Return with complex expression generates correct syntax")
   internal func testReturnWithComplexExpression() throws {
-    let returnStmt = try Return {
-      try Infix("+") {
-        VariableExp("a")
-        VariableExp("b")
-      }
+    let returnStmt = Return {
+      Infix("+", lhs: VariableExp("a"), rhs: VariableExp("b"))
     }
 
     let generated = returnStmt.generateCode()

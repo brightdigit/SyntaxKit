@@ -39,10 +39,8 @@ internal struct OptionalChainingExp: CodeBlock {
     if let expr = base.syntax.as(ExprSyntax.self) {
       baseExpr = expr
     } else {
-      // Fallback to a default expression if conversion fails
-      #warning(
-        "TODO: Review fallback for failed expression conversion"
-      )
+      // TODO: Review fallback for failed expression conversion.
+      // Fallback to a default expression if conversion fails.
       baseExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
     }
     return OptionalChainingExprSyntax(expression: baseExpr)

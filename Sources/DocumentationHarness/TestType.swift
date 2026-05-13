@@ -33,6 +33,7 @@ import Foundation
 package enum TestType {
   /// Code was parsed for syntax validation only
   case parsing
+  // periphery:ignore - part of the package's public API surface; consumers may switch on it
   /// Code was executed (compiled and run)
   case execution
   /// Code validation was skipped

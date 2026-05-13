@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct Default: CodeBlock {
   private let body: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this switch case.
   public var switchCaseSyntax: SwitchCaseSyntax {
     let statements = CodeBlockItemListSyntax(
       body.compactMap {
@@ -56,6 +57,7 @@ public struct Default: CodeBlock {
       statements: statements
     )
   }
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol { switchCaseSyntax }
 
   /// Creates a default case declaration.

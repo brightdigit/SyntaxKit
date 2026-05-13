@@ -49,6 +49,7 @@ public struct Parameter: CodeBlock {
   /// Convenience flag – true when the parameter uses the underscore label.
   internal var isUnnamed: Bool { label == "_" }
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let callLabel = label ?? name
 

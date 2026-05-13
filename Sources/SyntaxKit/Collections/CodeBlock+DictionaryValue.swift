@@ -45,11 +45,9 @@ extension CodeBlock where Self: DictionaryValue {
       return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(token.text)))
     }
 
-    // Fallback for unsupported syntax types - create a default expression
-    // This prevents crashes while still allowing dictionary operations to continue
-    #warning(
-      "TODO: Review fallback for unsupported syntax types - consider if this should be an error instead"
-    )
+    // TODO: Review fallback for unsupported syntax types - consider if this should be an error instead.
+    // Fallback for unsupported syntax types - create a default expression so dictionary
+    // operations can continue rather than crashing.
     return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("")))
   }
 }

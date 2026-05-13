@@ -35,37 +35,23 @@ extension Function {
     switch effect {
     case .none:
       return nil
-    case let .throws(isRethrows, errorType):
+    case .throws(let isRethrows, let errorType):
       let throwsSpecifier = buildThrowsSpecifier(isRethrows: isRethrows)
-      if let errorType = errorType {
-        return FunctionEffectSpecifiersSyntax(
-          asyncSpecifier: nil,
-          throwsClause: buildThrowsClause(throwsSpecifier: throwsSpecifier, errorType: errorType)
-        )
-      } else {
-        return FunctionEffectSpecifiersSyntax(
-          asyncSpecifier: nil,
-          throwsSpecifier: throwsSpecifier
-        )
-      }
+      return FunctionEffectSpecifiersSyntax(
+        asyncSpecifier: nil,
+        throwsClause: buildThrowsClause(throwsSpecifier: throwsSpecifier, errorType: errorType)
+      )
     case .async:
       return FunctionEffectSpecifiersSyntax(
         asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-        throwsSpecifier: nil
+        throwsClause: nil
       )
-    case let .asyncThrows(isRethrows, errorType):
+    case .asyncThrows(let isRethrows, let errorType):
       let throwsSpecifier = buildThrowsSpecifier(isRethrows: isRethrows)
-      if let errorType = errorType {
-        return FunctionEffectSpecifiersSyntax(
-          asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-          throwsClause: buildThrowsClause(throwsSpecifier: throwsSpecifier, errorType: errorType)
-        )
-      } else {
-        return FunctionEffectSpecifiersSyntax(
-          asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
-          throwsSpecifier: throwsSpecifier
-        )
-      }
+      return FunctionEffectSpecifiersSyntax(
+        asyncSpecifier: .keyword(.async, leadingTrivia: .space, trailingTrivia: .space),
+        throwsClause: buildThrowsClause(throwsSpecifier: throwsSpecifier, errorType: errorType)
+      )
     }
   }
 
@@ -74,15 +60,19 @@ extension Function {
     .keyword(isRethrows ? .rethrows : .throws, leadingTrivia: .space)
   }
 
-  /// Builds the throws clause with error type.
-  private func buildThrowsClause(throwsSpecifier: TokenSyntax, errorType: String)
+  /// Builds the throws clause, optionally with a typed error.
+  private func buildThrowsClause(throwsSpecifier: TokenSyntax, errorType: String?)
     -> ThrowsClauseSyntax
   {
-    ThrowsClauseSyntax(
-      throwsSpecifier: throwsSpecifier,
-      leftParen: .leftParenToken(),
-      type: IdentifierTypeSyntax(name: .identifier(errorType)),
-      rightParen: .rightParenToken()
-    )
+    if let errorType {
+      ThrowsClauseSyntax(
+        throwsSpecifier: throwsSpecifier,
+        leftParen: .leftParenToken(),
+        type: IdentifierTypeSyntax(name: .identifier(errorType)),
+        rightParen: .rightParenToken()
+      )
+    } else {
+      ThrowsClauseSyntax(throwsSpecifier: throwsSpecifier)
+    }
   }
 }

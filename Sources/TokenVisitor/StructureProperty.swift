@@ -83,9 +83,7 @@ package struct StructureProperty: Codable, Equatable, Sendable {
 
   /// Creates a StructureProperty for a missing property with a nil value indicator.
   ///
-  /// - Parameters:
-  ///   - name: The property name
-  ///   - nilValue: The value to display for the nil value (will be converted to string)
+  /// - Parameter name: The property name. The value will be displayed as the nil-value placeholder.
   internal init(nilValueWithName name: String) {
     self.init(name: name, value: StructureValue(text: Self.nilValue), ref: nil)
   }

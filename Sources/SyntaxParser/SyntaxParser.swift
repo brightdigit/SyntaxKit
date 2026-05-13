@@ -49,6 +49,7 @@ import TokenVisitor
 package enum SyntaxParser {
   // MARK: - Configuration Constants
 
+  // periphery:ignore - retained until deprecated parse(code:options:) is removed (see #149)
   /// Option key to enable operator precedence folding during parsing.
   /// When enabled, expressions are reorganized according to Swift's operator precedence rules.
   @available(
@@ -57,6 +58,7 @@ package enum SyntaxParser {
   )
   private static let fold = "fold"
 
+  // periphery:ignore - retained until deprecated parse(code:options:) is removed (see #149)
   /// Option key to include missing/implicit tokens in the output.
   /// Useful for debugging or when you need to see all syntax elements including placeholders.
   @available(
@@ -82,6 +84,7 @@ package enum SyntaxParser {
     return TreeNode.parseTree(from: sourceFile)
   }
 
+  // periphery:ignore - scheduled for removal (see #149); kept for source compatibility
   /// Parses Swift source code and returns a JSON representation of its syntax tree.
   ///
   /// This method performs the complete parsing pipeline:

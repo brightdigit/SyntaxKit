@@ -35,6 +35,7 @@ public struct ConditionalOp: CodeBlock {
   private let thenExpression: any CodeBlock
   private let elseExpression: any CodeBlock
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let conditionExpr = ExprSyntax(
       fromProtocol: condition.syntax.as(ExprSyntax.self)

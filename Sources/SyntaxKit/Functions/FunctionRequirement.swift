@@ -37,6 +37,7 @@ public struct FunctionRequirement: CodeBlock {
   private var isStatic: Bool = false
   private var isMutating: Bool = false
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let funcKeyword = TokenSyntax.keyword(.func, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)
@@ -89,9 +90,9 @@ public struct FunctionRequirement: CodeBlock {
       ])
     }
     if isMutating {
-      modifiers = DeclModifierListSyntax(
-        modifiers + [DeclModifierSyntax(name: .keyword(.mutating, trailingTrivia: .space))]
-      )
+      modifiers += [
+        DeclModifierSyntax(name: .keyword(.mutating, trailingTrivia: .space))
+      ]
     }
 
     return FunctionDeclSyntax(

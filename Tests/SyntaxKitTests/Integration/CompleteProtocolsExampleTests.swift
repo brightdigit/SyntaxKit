@@ -1,13 +1,13 @@
 //
 //  CompleteProtocolsExampleTests.swift
-//  SyntaxKitTests
+//  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the "Software"), to deal in the Software without
+//  files (the “Software”), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -51,13 +51,13 @@ import Testing
       Extension("Vehicle") {
         Function("start") {
           Call("print") {
-            ParameterExp(name: "", value: "\"Starting \\(brand) vehicle...\"")
+            ParameterExp(name: "", value: VariableExp("\"Starting \\(brand) vehicle...\""))
           }
         }
 
         Function("stop") {
           Call("print") {
-            ParameterExp(name: "", value: "\"Stopping \\(brand) vehicle...\"")
+            ParameterExp(name: "", value: VariableExp("\"Stopping \\(brand) vehicle...\""))
           }
         }
       }
@@ -81,7 +81,7 @@ import Testing
 
         Function("start") {
           Call("print") {
-            ParameterExp(name: "", value: "\"Starting \\(brand) car engine...\"")
+            ParameterExp(name: "", value: VariableExp("\"Starting \\(brand) car engine...\""))
           }
         }
       }
@@ -97,7 +97,7 @@ import Testing
 
         Function("charge") {
           Call("print") {
-            ParameterExp(name: "", value: "\"Charging \\(brand) electric car...\"")
+            ParameterExp(name: "", value: VariableExp("\"Charging \\(brand) electric car...\""))
           }
           Assignment("batteryLevel", Literal.float(100.0))
         }
@@ -126,13 +126,16 @@ import Testing
 
       // Demonstrate protocol usage
       Function("demonstrateVehicle") {
-        Parameter(name: "vehicle", type: "Vehicle", isUnnamed: true)
+        Parameter(unlabeled: "vehicle", type: "Vehicle")
       } _: {
         Call("print") {
-          ParameterExp(name: "", value: "\"Vehicle brand: \\(vehicle.brand)\"")
+          ParameterExp(name: "", value: VariableExp("\"Vehicle brand: \\(vehicle.brand)\""))
         }
         Call("print") {
-          ParameterExp(name: "", value: "\"Number of wheels: \\(vehicle.numberOfWheels)\"")
+          ParameterExp(
+            name: "",
+            value: VariableExp("\"Number of wheels: \\(vehicle.numberOfWheels)\"")
+          )
         }
         VariableExp("vehicle").call("start")
         VariableExp("vehicle").call("stop")
@@ -143,13 +146,13 @@ import Testing
 
       // Demonstrate protocol composition
       Function("demonstrateElectricVehicle") {
-        Parameter(name: "vehicle", type: "Vehicle & Electric", isUnnamed: true)
+        Parameter(unlabeled: "vehicle", type: "Vehicle & Electric")
       } _: {
         Call("demonstrateVehicle") {
-          ParameterExp(name: "", value: "vehicle")
+          ParameterExp(name: "", value: VariableExp("vehicle"))
         }
         Call("print") {
-          ParameterExp(name: "", value: "\"Battery level: \\(vehicle.batteryLevel)%\"")
+          ParameterExp(name: "", value: VariableExp("\"Battery level: \\(vehicle.batteryLevel)%\""))
         }
         VariableExp("vehicle").call("charge")
       }
@@ -159,20 +162,20 @@ import Testing
 
       // Test the implementations
       Call("print") {
-        ParameterExp(name: "", value: "\"Testing regular car:\"")
+        ParameterExp(name: "", value: VariableExp("\"Testing regular car:\""))
       }
       .comment {
         Line("Test the implementations")
       }
       Call("demonstrateVehicle") {
-        ParameterExp(name: "", value: "toyota")
+        ParameterExp(name: "", value: VariableExp("toyota"))
       }
 
       Call("print") {
-        ParameterExp(name: "", value: "\"Testing electric car:\"")
+        ParameterExp(name: "", value: VariableExp("\"Testing electric car:\""))
       }
       Call("demonstrateElectricVehicle") {
-        ParameterExp(name: "", value: "tesla")
+        ParameterExp(name: "", value: VariableExp("tesla"))
       }
     }
   }

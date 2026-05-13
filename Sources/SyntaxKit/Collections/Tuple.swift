@@ -37,7 +37,7 @@ public struct Tuple: CodeBlock {
 
   /// The SwiftSyntax representation of this tuple expression.
   public var syntax: any SyntaxProtocol {
-    let list = TupleExprElementListSyntax(
+    let list = LabeledExprListSyntax(
       elements.enumerated().map { index, block in
         let elementExpr: ExprSyntax
         if isAsync {
@@ -53,7 +53,7 @@ public struct Tuple: CodeBlock {
           elementExpr = block.expr
         }
 
-        return TupleExprElementSyntax(
+        return LabeledExprSyntax(
           label: nil,
           colon: nil,
           expression: elementExpr,
@@ -90,12 +90,14 @@ public struct Tuple: CodeBlock {
 
   /// Creates a tuple pattern for switch cases.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
+  /// - Returns: A pattern that can match the supplied elements in a `switch` case.
   public static func pattern(_ elements: [(any PatternConvertible)?]) -> any PatternConvertible {
     TuplePattern(elements: elements)
   }
 
   /// Creates a tuple pattern that can be used as a CodeBlock.
   /// - Parameter elements: Array of pattern elements, where `nil` represents a wildcard pattern.
+  /// - Returns: A pattern wrapped as a ``PatternCodeBlock`` for use inside builders.
   public static func patternCodeBlock(_ elements: [(any PatternConvertible)?])
     -> any PatternCodeBlock
   {

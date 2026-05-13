@@ -36,6 +36,7 @@ public struct Protocol: CodeBlock, Sendable {
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let protocolKeyword = TokenSyntax.keyword(.protocol, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(name)

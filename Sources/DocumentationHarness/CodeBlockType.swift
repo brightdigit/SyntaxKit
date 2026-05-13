@@ -31,6 +31,7 @@ import Foundation
 
 internal enum CodeBlockType: Sendable {
   case example
+  // periphery:ignore - intentionally unavailable; retained for source compatibility
   @available(
     *, unavailable,
     message: "Parsing Package.swift manifests as documentation code blocks is unsupported."

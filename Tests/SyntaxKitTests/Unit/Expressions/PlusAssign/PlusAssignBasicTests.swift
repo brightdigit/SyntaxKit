@@ -1,13 +1,13 @@
 //
 //  PlusAssignBasicTests.swift
-//  SyntaxKitTests
+//  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the "Software"), to deal in the Software without
+//  files (the “Software”), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -40,6 +40,7 @@ import Testing
 internal final class PlusAssignBasicTests {
   /// Tests basic plus assignment expression.
   @Test("Basic plus assignment expression generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testBasicPlusAssign() {
     let plusAssign = PlusAssign("count", 1)
 
@@ -51,6 +52,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with variable and literal value.
   @Test("Plus assignment with variable and literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithVariableAndLiteralValue() {
     let plusAssign = PlusAssign("total", 42)
 
@@ -62,6 +64,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with function call value.
   @Test("Plus assignment with function call value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithFunctionCallValue() {
     let plusAssign = PlusAssign("total", 50)
 
@@ -73,6 +76,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with complex expression value.
   @Test("Plus assignment with complex expression value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithComplexExpressionValue() {
     let plusAssign = PlusAssign("score", 55)
 
@@ -84,6 +88,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with conditional expression value.
   @Test("Plus assignment with conditional expression value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithConditionalExpressionValue() {
     let plusAssign = PlusAssign("total", 60)
 
@@ -95,6 +100,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with closure expression value.
   @Test("Plus assignment with closure expression value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithClosureExpressionValue() {
     let plusAssign = PlusAssign("sum", 65)
 
@@ -106,6 +112,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with array literal value.
   @Test("Plus assignment with array literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithArrayLiteralValue() {
     let plusAssign = PlusAssign("list", 70)
 
@@ -117,6 +124,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with dictionary literal value.
   @Test("Plus assignment with dictionary literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithDictionaryLiteralValue() {
     let plusAssign = PlusAssign("dict", 75)
 
@@ -128,6 +136,7 @@ internal final class PlusAssignBasicTests {
 
   /// Tests plus assignment with tuple literal value.
   @Test("Plus assignment with tuple literal value generates correct syntax")
+  @available(*, deprecated, message: "Exercises deprecated PlusAssign API")
   internal func testPlusAssignWithTupleLiteralValue() {
     let plusAssign = PlusAssign("tuple", 80)
 

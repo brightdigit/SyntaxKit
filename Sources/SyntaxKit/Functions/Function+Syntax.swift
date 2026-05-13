@@ -91,11 +91,9 @@ extension Function {
       )
     }
     if isMutating {
-      modifiers = DeclModifierListSyntax(
-        modifiers + [
-          DeclModifierSyntax(name: .keyword(.mutating, trailingTrivia: .space))
-        ]
-      )
+      modifiers += [
+        DeclModifierSyntax(name: .keyword(.mutating, trailingTrivia: .space))
+      ]
     }
 
     return FunctionDeclSyntax(

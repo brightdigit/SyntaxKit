@@ -56,7 +56,7 @@ public struct For: CodeBlock, Sendable {
       )
       whereClauseSyntax = WhereClauseSyntax(
         whereKeyword: .keyword(.where, leadingTrivia: .space, trailingTrivia: .space),
-        guardResult: whereExpr
+        condition: whereExpr
       )
     }
 
@@ -80,7 +80,7 @@ public struct For: CodeBlock, Sendable {
     )
 
     return StmtSyntax(
-      ForInStmtSyntax(
+      ForStmtSyntax(
         forKeyword: .keyword(.for, trailingTrivia: .space),
         tryKeyword: nil,
         awaitKeyword: nil,

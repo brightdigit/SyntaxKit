@@ -102,8 +102,8 @@ internal struct FunctionCallExp: CodeBlock {
       calledExpression: ExprSyntax(
         MemberAccessExprSyntax(
           base: baseExpr,
-          dot: .periodToken(),
-          name: .identifier(methodName)
+          period: .periodToken(),
+          declName: DeclReferenceExprSyntax(baseName: .identifier(methodName))
         )
       ),
       leftParen: .leftParenToken(),

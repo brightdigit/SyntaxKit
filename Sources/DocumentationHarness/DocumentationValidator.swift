@@ -41,7 +41,6 @@ package struct DocumentationValidator: Validator {
   /// Creates a new documentation test harness
   /// - Parameters:
   ///   - codeValidator: Validator for Swift code syntax (defaults to CodeSyntaxValidator)
-  ///   - fileSearcher: File system searcher (defaults to FileManager.default)
   ///   - codeBlocksFrom: Function to extract code blocks from content
   package init(
     codeValidator: any SyntaxValidator = CodeSyntaxValidator(),

@@ -37,6 +37,7 @@ public struct ComputedProperty: CodeBlock {
   private var accessModifier: AccessModifier?
   private let explicitType: Bool
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let accessor = AccessorBlockSyntax(
       leftBrace: TokenSyntax.leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),

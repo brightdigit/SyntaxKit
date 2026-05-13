@@ -144,6 +144,7 @@ extension Variable {
     _ kind: VariableKind,
     name: String,
     @CodeBlockBuilderResult value: () throws -> [any CodeBlock],
+    // swiftlint:disable:next discouraged_optional_boolean
     explicitType: Bool? = nil
   ) rethrows {
     self.init(
