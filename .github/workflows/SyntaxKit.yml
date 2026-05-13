@@ -229,12 +229,15 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
 
+          # iOS / watchOS / tvOS / visionOS osVersion pinned to 26.4 until the
+          # macos-26 runner image ships Xcode 26.5 simulators — see #160.
+
           # iOS Build Matrix
           - type: ios
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "iPhone 17 Pro"
-            osVersion: "26.5"
+            osVersion: "26.4"
             download-platform: true
 
           # watchOS Build Matrix
@@ -242,7 +245,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Watch Ultra 3 (49mm)"
-            osVersion: "26.5"
+            osVersion: "26.4"
             download-platform: true
 
           # tvOS Build Matrix
@@ -250,7 +253,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple TV"
-            osVersion: "26.5"
+            osVersion: "26.4"
             download-platform: true
 
           # visionOS Build Matrix
@@ -258,7 +261,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Vision Pro"
-            osVersion: "26.5"
+            osVersion: "26.4"
             download-platform: true
 
     steps:

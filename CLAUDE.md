@@ -93,8 +93,8 @@ Sources/SyntaxKit/
 2. **skit Executable** - Command-line tool for parsing Swift code to JSON
 
 ### Platform Support
-- Swift 6.0+ required
-- Xcode 16.0+ for development
+- Swift 6.1+ required
+- Xcode 16.3+ for development
 
 ### Testing
 - Uses modern Swift Testing framework (`@Test` syntax)

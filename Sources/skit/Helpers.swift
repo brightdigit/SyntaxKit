@@ -27,250 +27,237 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+#if canImport(Subprocess)
 
-/// Hardcoded module name for the user's `Helpers/` compilation output. Inputs
-/// reach the compiled helpers via `import SyntaxKitHelpers`.
-internal let helpersModuleName = "SyntaxKitHelpers"
+  import Foundation
+  import Subprocess
 
-/// Platform-specific shared-library filename for a Swift library product.
-internal func dylibFilename(forLibrary name: String) -> String {
-  #if os(Linux)
-    return "lib\(name).so"
-  #else
-    return "lib\(name).dylib"
-  #endif
-}
+  /// Hardcoded module name for the user's `Helpers/` compilation output. Inputs
+  /// reach the compiled helpers via `import SyntaxKitHelpers`.
+  internal let helpersModuleName = "SyntaxKitHelpers"
 
-/// Bumped when the cache layout changes in a way that requires invalidation.
-private let helpersCacheSchemaVersion = "v1"
+  /// Platform-specific shared-library filename for a Swift library product.
+  internal func dylibFilename(forLibrary name: String) -> String {
+    #if os(Linux)
+      return "lib\(name).so"
+    #else
+      return "lib\(name).dylib"
+    #endif
+  }
 
-/// A compiled `Helpers/` directory ready to splice into the input spawn.
-internal struct CompiledHelpers: Sendable {
-  /// Directory containing `libSyntaxKitHelpers.dylib` + `.swiftmodule` files.
-  let outputDir: URL
-  /// Whether the build was reused from cache (false = freshly compiled).
-  let cacheHit: Bool
-}
+  /// Bumped when the cache layout changes in a way that requires invalidation.
+  private let helpersCacheSchemaVersion = "v1"
 
-// MARK: - Discovery
+  /// A compiled `Helpers/` directory ready to splice into the input spawn.
+  internal struct CompiledHelpers: Sendable {
+    /// Directory containing `libSyntaxKitHelpers.dylib` + `.swiftmodule` files.
+    let outputDir: URL
+    /// Whether the build was reused from cache (false = freshly compiled).
+    let cacheHit: Bool
+  }
 
-/// Walks up from `inputURL` looking for a `Helpers/` directory. Returns the
-/// first one found, or nil if no ancestor contains one.
-///
-/// When `inputURL` is a file, the search starts from its parent. When it's a
-/// directory, the search starts from the directory itself.
-internal func discoverHelpersDir(near inputURL: URL) -> URL? {
-  let fm = FileManager.default
-  var isDirectory: ObjCBool = false
-  let exists = fm.fileExists(atPath: inputURL.path, isDirectory: &isDirectory)
-  var dir = (exists && isDirectory.boolValue) ? inputURL : inputURL.deletingLastPathComponent()
-  dir = dir.standardizedFileURL
+  // MARK: - Discovery
 
-  while true {
-    let candidate = dir.appendingPathComponent("Helpers")
-    var isDir: ObjCBool = false
-    if fm.fileExists(atPath: candidate.path, isDirectory: &isDir), isDir.boolValue {
-      return candidate.standardizedFileURL
+  /// Walks up from `inputURL` looking for a `Helpers/` directory. Returns the
+  /// first one found, or nil if no ancestor contains one.
+  ///
+  /// When `inputURL` is a file, the search starts from its parent. When it's a
+  /// directory, the search starts from the directory itself.
+  internal func discoverHelpersDir(near inputURL: URL) -> URL? {
+    let fm = FileManager.default
+    var isDirectory: ObjCBool = false
+    let exists = fm.fileExists(atPath: inputURL.path, isDirectory: &isDirectory)
+    var dir = (exists && isDirectory.boolValue) ? inputURL : inputURL.deletingLastPathComponent()
+    dir = dir.standardizedFileURL
+
+    while true {
+      let candidate = dir.appendingPathComponent("Helpers")
+      var isDir: ObjCBool = false
+      if fm.fileExists(atPath: candidate.path, isDirectory: &isDir), isDir.boolValue {
+        return candidate.standardizedFileURL
+      }
+      let parent = dir.deletingLastPathComponent().standardizedFileURL
+      if parent.path == dir.path { return nil }
+      dir = parent
     }
-    let parent = dir.deletingLastPathComponent().standardizedFileURL
-    if parent.path == dir.path { return nil }
-    dir = parent
   }
-}
 
-/// Globs `**/*.swift` under `helpersDir`, skipping files prefixed with `_`.
-internal func collectHelperSources(in helpersDir: URL) throws -> [URL] {
-  guard
-    let enumerator = FileManager.default.enumerator(
-      at: helpersDir,
-      includingPropertiesForKeys: [.isRegularFileKey],
-      options: [.skipsHiddenFiles]
+  /// Globs `**/*.swift` under `helpersDir`, skipping files prefixed with `_`.
+  internal func collectHelperSources(in helpersDir: URL) throws -> [URL] {
+    guard
+      let enumerator = FileManager.default.enumerator(
+        at: helpersDir,
+        includingPropertiesForKeys: [.isRegularFileKey],
+        options: [.skipsHiddenFiles]
+      )
+    else {
+      throw CLIError(message: "could not enumerate \(helpersDir.path)")
+    }
+
+    var result: [URL] = []
+    for case let url as URL in enumerator {
+      let values = try url.resourceValues(forKeys: [.isRegularFileKey])
+      guard values.isRegularFile == true else { continue }
+      guard url.pathExtension == "swift" else { continue }
+      guard !url.lastPathComponent.hasPrefix("_") else { continue }
+      result.append(url.standardizedFileURL)
+    }
+    return result.sorted { $0.path < $1.path }
+  }
+
+  // MARK: - Build pipeline
+
+  /// Compiles helper sources into a per-key cache directory and returns the
+  /// directory plus a cache-hit flag. Returns nil when the helpers dir is empty.
+  internal func buildHelpers(
+    helpersDir: URL,
+    libPath: String
+  ) async throws -> CompiledHelpers? {
+    let sources = try collectHelperSources(in: helpersDir)
+    if sources.isEmpty { return nil }
+
+    let key = try await helpersCacheKey(sources: sources, libPath: libPath)
+    let cacheRoot = try syntaxKitCacheRoot()
+      .appendingPathComponent("helpers")
+      .appendingPathComponent(key)
+    let dylibPath =
+      cacheRoot
+      .appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
+
+    let fm = FileManager.default
+    if fm.fileExists(atPath: dylibPath) {
+      return CompiledHelpers(outputDir: cacheRoot, cacheHit: true)
+    }
+
+    try fm.createDirectory(
+      at: cacheRoot.deletingLastPathComponent(),
+      withIntermediateDirectories: true
     )
-  else {
-    throw CLIError(message: "could not enumerate \(helpersDir.path)")
-  }
 
-  var result: [URL] = []
-  for case let url as URL in enumerator {
-    let values = try url.resourceValues(forKeys: [.isRegularFileKey])
-    guard values.isRegularFile == true else { continue }
-    guard url.pathExtension == "swift" else { continue }
-    guard !url.lastPathComponent.hasPrefix("_") else { continue }
-    result.append(url.standardizedFileURL)
-  }
-  return result.sorted { $0.path < $1.path }
-}
+    let staging = cacheRoot.deletingLastPathComponent()
+      .appendingPathComponent(
+        "tmp.\(ProcessInfo.processInfo.processIdentifier).\(UUID().uuidString)")
+    try fm.createDirectory(at: staging, withIntermediateDirectories: true)
 
-// MARK: - Build pipeline
-
-/// Compiles helper sources into a per-key cache directory and returns the
-/// directory plus a cache-hit flag. Returns nil when the helpers dir is empty.
-internal func buildHelpers(
-  helpersDir: URL,
-  libPath: String
-) throws -> CompiledHelpers? {
-  let sources = try collectHelperSources(in: helpersDir)
-  if sources.isEmpty { return nil }
-
-  let key = try helpersCacheKey(sources: sources, libPath: libPath)
-  let cacheRoot = try syntaxKitCacheRoot()
-    .appendingPathComponent("helpers")
-    .appendingPathComponent(key)
-  let dylibPath =
-    cacheRoot
-    .appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
-
-  let fm = FileManager.default
-  if fm.fileExists(atPath: dylibPath) {
-    return CompiledHelpers(outputDir: cacheRoot, cacheHit: true)
-  }
-
-  try fm.createDirectory(
-    at: cacheRoot.deletingLastPathComponent(),
-    withIntermediateDirectories: true
-  )
-
-  let staging = cacheRoot.deletingLastPathComponent()
-    .appendingPathComponent("tmp.\(ProcessInfo.processInfo.processIdentifier).\(UUID().uuidString)")
-  try fm.createDirectory(at: staging, withIntermediateDirectories: true)
-
-  do {
-    try compileHelpers(sources: sources, into: staging, libPath: libPath)
-  } catch {
-    try? fm.removeItem(at: staging)
-    throw error
-  }
-
-  // Atomic rename into the cache path. If a peer beat us to it (rename failed
-  // because the destination now exists), keep theirs and drop ours.
-  do {
-    try fm.moveItem(at: staging, to: cacheRoot)
-  } catch {
-    try? fm.removeItem(at: staging)
-    if !fm.fileExists(atPath: dylibPath) {
+    do {
+      try await compileHelpers(sources: sources, into: staging, libPath: libPath)
+    } catch {
+      try? fm.removeItem(at: staging)
       throw error
     }
+
+    // Atomic rename into the cache path. If a peer beat us to it (rename failed
+    // because the destination now exists), keep theirs and drop ours.
+    do {
+      try fm.moveItem(at: staging, to: cacheRoot)
+    } catch {
+      try? fm.removeItem(at: staging)
+      if !fm.fileExists(atPath: dylibPath) {
+        throw error
+      }
+    }
+
+    return CompiledHelpers(outputDir: cacheRoot, cacheHit: false)
   }
 
-  return CompiledHelpers(outputDir: cacheRoot, cacheHit: false)
-}
+  private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) async throws {
+    let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
+    let dylib = outDir.appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
+    let modulePath = outDir.appendingPathComponent("\(helpersModuleName).swiftmodule").path
 
-private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) throws {
-  let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
-  let dylib = outDir.appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
-  let modulePath = outDir.appendingPathComponent("\(helpersModuleName).swiftmodule").path
+    var args: [String] = [
+      "-module-name", helpersModuleName,
+      "-emit-module",
+      "-emit-module-path", modulePath,
+      "-parse-as-library",
+      "-emit-library",
+      "-o", dylib,
+      "-suppress-warnings",
+      "-I", libPath,
+      "-L", libPath,
+      "-lSyntaxKit",
+      "-Xcc", "-I", "-Xcc", cShimsInclude,
+      "-Xlinker", "-rpath", "-Xlinker", libPath,
+    ]
+    #if !os(Linux)
+      // @rpath install_name is macOS-only; on Linux SONAME isn't needed because
+      // we use rpath-based loading and the dylib lives in a cache path that's
+      // known at link time.
+      args.append(contentsOf: [
+        "-Xlinker", "-install_name",
+        "-Xlinker", "@rpath/\(dylibFilename(forLibrary: helpersModuleName))",
+      ])
+    #endif
+    args.append(contentsOf: sources.map(\.path))
 
-  let process = Process()
-  process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-  var args: [String] = [
-    "swiftc",
-    "-module-name", helpersModuleName,
-    "-emit-module",
-    "-emit-module-path", modulePath,
-    "-parse-as-library",
-    "-emit-library",
-    "-o", dylib,
-    "-suppress-warnings",
-    "-I", libPath,
-    "-L", libPath,
-    "-lSyntaxKit",
-    "-Xcc", "-I", "-Xcc", cShimsInclude,
-    "-Xlinker", "-rpath", "-Xlinker", libPath,
-  ]
-  #if !os(Linux)
-    // @rpath install_name is macOS-only; on Linux SONAME isn't needed because
-    // we use rpath-based loading and the dylib lives in a cache path that's
-    // known at link time.
-    args.append(contentsOf: [
-      "-Xlinker", "-install_name",
-      "-Xlinker", "@rpath/\(dylibFilename(forLibrary: helpersModuleName))",
-    ])
-  #endif
-  args.append(contentsOf: sources.map(\.path))
-  process.arguments = args
+    let result = try await run(
+      .name("swiftc"),
+      arguments: Arguments(args),
+      output: .discarded,
+      error: .string(limit: 1 * 1_024 * 1_024)
+    )
 
-  let stderrPipe = Pipe()
-  process.standardOutput = FileHandle.nullDevice
-  process.standardError = stderrPipe
-
-  // Linux Foundation's `Process.waitUntilExit()` blocks indefinitely on
-  // already-exited children in some configurations; terminationHandler +
-  // semaphore is the workaround used elsewhere in this file.
-  let semaphore = DispatchSemaphore(value: 0)
-  process.terminationHandler = { _ in semaphore.signal() }
-
-  try process.run()
-
-  // Drain stderr BEFORE waiting on the semaphore — Linux pipe buffers are
-  // ~64 KB; if the child fills them we deadlock waiting for an exit that
-  // can't happen until we read.
-  let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-  semaphore.wait()
-  guard process.terminationStatus == 0 else {
-    let stderr = String(decoding: stderrData, as: UTF8.self)
-    throw CLIError(
-      message: """
-        skit: failed to compile Helpers/ (exit \(process.terminationStatus))
-        \(stderr)
-        """)
-  }
-}
-
-// MARK: - Cache key
-
-private func helpersCacheKey(sources: [URL], libPath: String) throws -> String {
-  var hasher = ContentHasher()
-  hasher.update(data: Data(helpersCacheSchemaVersion.utf8))
-
-  for source in sources {
-    let data = try Data(contentsOf: source)
-    hasher.update(data: Data(source.lastPathComponent.utf8))
-    hasher.update(data: data)
+    guard result.terminationStatus.isSuccess else {
+      let stderr = result.standardError ?? ""
+      throw CLIError(
+        message: """
+          skit: failed to compile Helpers/ (\(result.terminationStatus))
+          \(stderr)
+          """)
+    }
   }
 
-  if let swiftVersion = captureSwiftVersion() {
-    hasher.update(data: Data(swiftVersion.utf8))
+  // MARK: - Cache key
+
+  private func helpersCacheKey(sources: [URL], libPath: String) async throws -> String {
+    var hasher = ContentHasher()
+    hasher.update(data: Data(helpersCacheSchemaVersion.utf8))
+
+    for source in sources {
+      let data = try Data(contentsOf: source)
+      hasher.update(data: Data(source.lastPathComponent.utf8))
+      hasher.update(data: data)
+    }
+
+    if let swiftVersion = await captureSwiftVersion() {
+      hasher.update(data: Data(swiftVersion.utf8))
+    }
+    if let stamp = libStamp(libPath: libPath) {
+      hasher.update(data: Data(stamp.utf8))
+    }
+
+    return hasher.finalize()
   }
-  if let stamp = libStamp(libPath: libPath) {
-    hasher.update(data: Data(stamp.utf8))
+
+  internal func captureSwiftVersion() async -> String? {
+    let result = try? await run(
+      .name("swift"),
+      arguments: ["--version"],
+      output: .string(limit: 4_096),
+      error: .discarded
+    )
+    return result?.standardOutput
   }
 
-  return hasher.finalize()
-}
-
-internal func captureSwiftVersion() -> String? {
-  let process = Process()
-  process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-  process.arguments = ["swift", "--version"]
-  let pipe = Pipe()
-  process.standardOutput = pipe
-  process.standardError = FileHandle.nullDevice
-  let semaphore = DispatchSemaphore(value: 0)
-  process.terminationHandler = { _ in semaphore.signal() }
-  do { try process.run() } catch { return nil }
-  let data = pipe.fileHandleForReading.readDataToEndOfFile()
-  semaphore.wait()
-  return String(decoding: data, as: UTF8.self)
-}
-
-internal func libStamp(libPath: String) -> String? {
-  let dylib = "\(libPath)/\(dylibFilename(forLibrary: "SyntaxKit"))"
-  guard let attrs = try? FileManager.default.attributesOfItem(atPath: dylib) else { return nil }
-  let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
-  let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-  return "\(size)/\(Int(mtime))"
-}
-
-internal func syntaxKitCacheRoot() throws -> URL {
-  if let xdg = ProcessInfo.processInfo.environment["XDG_CACHE_HOME"], !xdg.isEmpty {
-    return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
+  internal func libStamp(libPath: String) -> String? {
+    let dylib = "\(libPath)/\(dylibFilename(forLibrary: "SyntaxKit"))"
+    guard let attrs = try? FileManager.default.attributesOfItem(atPath: dylib) else { return nil }
+    let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
+    let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
+    return "\(size)/\(Int(mtime))"
   }
-  let home = NSHomeDirectory()
-  #if os(macOS)
-    return URL(fileURLWithPath: home)
-      .appendingPathComponent("Library/Caches/com.brightdigit.SyntaxKit")
-  #else
-    return URL(fileURLWithPath: home).appendingPathComponent(".cache/syntaxkit")
-  #endif
-}
+
+  internal func syntaxKitCacheRoot() throws -> URL {
+    if let xdg = ProcessInfo.processInfo.environment["XDG_CACHE_HOME"], !xdg.isEmpty {
+      return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
+    }
+    let home = NSHomeDirectory()
+    #if os(macOS)
+      return URL(fileURLWithPath: home)
+        .appendingPathComponent("Library/Caches/com.brightdigit.SyntaxKit")
+    #else
+      return URL(fileURLWithPath: home).appendingPathComponent(".cache/syntaxkit")
+    #endif
+  }
+
+#endif
