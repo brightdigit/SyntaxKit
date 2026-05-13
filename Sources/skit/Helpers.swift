@@ -109,13 +109,21 @@
 
   /// Compiles helper sources into a per-key cache directory and returns the
   /// directory plus a cache-hit flag. Returns nil when the helpers dir is empty.
+  ///
+  /// Concurrent invocations are tolerated via the staging-dir + atomic-rename
+  /// pattern: if two processes race to compile the same key, the loser's
+  /// rename fails and we keep the winner's artefact.
   internal func buildHelpers(
     helpersDir: URL,
     libPath: String
   ) async throws -> CompiledHelpers? {
+    // Collect helper sources. An empty Helpers/ dir is "no helpers" rather
+    // than an error — the caller will fall back to no-helpers mode.
     let sources = try collectHelperSources(in: helpersDir)
     if sources.isEmpty { return nil }
 
+    // Compute the content-keyed cache path. The dylib's presence under that
+    // path is what makes a build "cached".
     let key = try await helpersCacheKey(sources: sources, libPath: libPath)
     let cacheRoot = try syntaxKitCacheRoot()
       .appendingPathComponent("helpers")
@@ -124,21 +132,28 @@
       cacheRoot
       .appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
 
+    // Cache hit: artefact already present, skip the whole compile.
     let fm = FileManager.default
     if fm.fileExists(atPath: dylibPath) {
       return CompiledHelpers(outputDir: cacheRoot, cacheHit: true)
     }
 
+    // Ensure the parent of the cache key dir exists. We don't create the
+    // key dir itself — the atomic move below installs it.
     try fm.createDirectory(
       at: cacheRoot.deletingLastPathComponent(),
       withIntermediateDirectories: true
     )
 
+    // Compile into a per-pid + uuid staging dir, then atomically rename into
+    // place. This is what lets concurrent skit invocations co-exist safely.
     let staging = cacheRoot.deletingLastPathComponent()
       .appendingPathComponent(
         "tmp.\(ProcessInfo.processInfo.processIdentifier).\(UUID().uuidString)")
     try fm.createDirectory(at: staging, withIntermediateDirectories: true)
 
+    // Run swiftc into the staging dir. Clean up on failure so we don't leak
+    // half-baked artefacts in the cache root.
     do {
       try await compileHelpers(sources: sources, into: staging, libPath: libPath)
     } catch {
@@ -160,11 +175,18 @@
     return CompiledHelpers(outputDir: cacheRoot, cacheHit: false)
   }
 
+  /// Invokes `swiftc` to build `sources` into a Swift module + dylib under
+  /// `outDir`. The dylib is named `lib<helpersModuleName>.{dylib,so}` and the
+  /// module file is `<helpersModuleName>.swiftmodule`. Output (stdout)
+  /// is discarded; stderr is captured for the error path.
   private func compileHelpers(sources: [URL], into outDir: URL, libPath: String) async throws {
     let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
     let dylib = outDir.appendingPathComponent(dylibFilename(forLibrary: helpersModuleName)).path
     let modulePath = outDir.appendingPathComponent("\(helpersModuleName).swiftmodule").path
 
+    // Base swiftc arguments: emit a library + module file linking against
+    // libSyntaxKit, with rpath set so the dylib can find libSyntaxKit at
+    // load time.
     var args: [String] = [
       "-module-name", helpersModuleName,
       "-emit-module",
@@ -188,8 +210,11 @@
         "-Xlinker", "@rpath/\(dylibFilename(forLibrary: helpersModuleName))",
       ])
     #endif
+    // Append source files last so the leading flags apply to all of them.
     args.append(contentsOf: sources.map(\.path))
 
+    // Spawn swiftc. Stderr is captured (1 MiB cap) so a compile failure can
+    // surface the diagnostic verbatim in a CLIError.
     let result = try await run(
       .name("swiftc"),
       arguments: Arguments(args),
@@ -209,16 +234,21 @@
 
   // MARK: - Cache key
 
+  /// Content-addressed cache key mixing schema version, each helper source's
+  /// filename + bytes, `swift --version`, and the libSyntaxKit stamp.
   private func helpersCacheKey(sources: [URL], libPath: String) async throws -> String {
     var hasher = ContentHasher()
     hasher.update(data: Data(helpersCacheSchemaVersion.utf8))
 
+    // Filename matters as well as bytes — two same-content files with
+    // different names produce different symbols.
     for source in sources {
       let data = try Data(contentsOf: source)
       hasher.update(data: Data(source.lastPathComponent.utf8))
       hasher.update(data: data)
     }
 
+    // Toolchain + dylib stamp invalidate on cross-version or in-place rebuild.
     if let swiftVersion = await captureSwiftVersion() {
       hasher.update(data: Data(swiftVersion.utf8))
     }
@@ -229,6 +259,7 @@
     return hasher.finalize()
   }
 
+  /// Verbatim `swift --version` output, or nil on spawn failure. Capped at 4 KiB.
   internal func captureSwiftVersion() async -> String? {
     let result = try? await run(
       .name("swift"),
@@ -239,6 +270,8 @@
     return result?.standardOutput
   }
 
+  /// `<size>/<mtime>` fingerprint of the bundled libSyntaxKit dylib, or nil
+  /// if unreadable. Catches in-place rebuilds without a version bump.
   internal func libStamp(libPath: String) -> String? {
     let dylib = "\(libPath)/\(dylibFilename(forLibrary: "SyntaxKit"))"
     guard let attrs = try? FileManager.default.attributesOfItem(atPath: dylib) else { return nil }
@@ -247,6 +280,8 @@
     return "\(size)/\(Int(mtime))"
   }
 
+  /// Root for all skit caches. Honours `XDG_CACHE_HOME`, else macOS
+  /// `~/Library/Caches/...` or Linux `~/.cache/syntaxkit`.
   internal func syntaxKitCacheRoot() throws -> URL {
     if let xdg = ProcessInfo.processInfo.environment["XDG_CACHE_HOME"], !xdg.isEmpty {
       return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")

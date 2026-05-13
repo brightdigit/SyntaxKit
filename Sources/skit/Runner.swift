@@ -34,19 +34,42 @@
   import SwiftParser
   import SwiftSyntax
 
+  // Run lifecycle (per `skit run` invocation):
+  //   1. resolveLibPath               — find lib/ (explicit flag → env → adjacent → brew)
+  //   2. toolchainCheck               — compare bundle stamp to `swift --version`
+  //   3. resolveHelpers               — discover + compile Helpers/ (memoised on disk)
+  //   4. runSingleFile / runDirectory — dispatch to single- or batch-input mode
+  //   5. processFile (per input)      — load → cache lookup → wrap → spawn → cache store
+  //   6. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
+  //   7. runSwift                     — spawn `swift` with timeout watchdog
+  // See Docs/skit.md for design rationale and trade-offs.
+
   // MARK: - Helpers resolution
 
+  /// How `skit run` should treat a `Helpers/` directory for this invocation.
   internal enum HelpersOptions {
+    /// Walk up from the input looking for `Helpers/`. The default.
     case auto
+    /// Skip helpers discovery entirely (`--no-helpers`). The wrapped input
+    /// won't be able to `import SyntaxKitHelpers`.
     case disabled
+    /// Use the directory at the given path (`--helpers <dir>`). Validated as
+    /// an existing directory in `resolveHelpers`.
     case explicit(String)
   }
 
+  /// Resolves a `Helpers/` directory and compiles it (or returns the cached
+  /// build). Returns nil when helpers are disabled, when no `Helpers/` was
+  /// found in auto mode, or when the directory exists but contains no `.swift`
+  /// sources. On success, writes a one-line "skit: helpers cached/compiled at
+  /// <path>" note to stderr so users can see whether the cache hit.
   internal func resolveHelpers(
     nearInputPath path: String,
     libPath: String,
     options: HelpersOptions
   ) async throws -> CompiledHelpers? {
+    // Pick the helpers dir according to the mode: walk up the tree, accept an
+    // explicit override (after validating it's a directory), or bail out.
     let helpersDir: URL?
     switch options {
     case .disabled:
@@ -65,6 +88,8 @@
     }
     guard let helpersDir else { return nil }
 
+    // Compile (or reuse the cached build). An empty Helpers/ dir is treated
+    // as "no helpers" rather than an error.
     guard let compiled = try await buildHelpers(helpersDir: helpersDir, libPath: libPath) else {
       return nil
     }
@@ -185,6 +210,11 @@
 
   // MARK: - Single-file mode
 
+  /// Runs `processFile` on a single input and writes its rendered Swift to
+  /// `outputPath` (or stdout when nil). Any stderr from the spawned `swift`
+  /// is surfaced verbatim. On a non-zero subprocess exit, calls `exit()`
+  /// directly — the caller in `Skit.Run.run()` won't see a thrown error in
+  /// that path.
   internal func runSingleFile(
     inputPath: String,
     outputPath: String?,
@@ -193,6 +223,8 @@
     useCache: Bool,
     timeoutSeconds: Int
   ) async throws {
+    // Render the input. `processFile` may hit the output cache and skip the
+    // spawn entirely; either way the result has the same shape.
     let result = try await processFile(
       inputPath: inputPath,
       libPath: libPath,
@@ -200,12 +232,16 @@
       useCache: useCache,
       timeoutSeconds: timeoutSeconds
     )
+    // Surface diagnostics from the spawned `swift` before deciding success.
     if !result.stderr.isEmpty {
       FileHandle.standardError.write(Data(result.stderr.utf8))
     }
+    // Non-zero subprocess exit propagates as a process exit. We don't write
+    // partial output in that case.
     guard result.exitCode == 0 else {
       exit(result.exitCode)
     }
+    // Deliver the rendered output to file or stdout.
     if let outputPath {
       try result.stdout.write(to: URL(fileURLWithPath: outputPath))
     } else {
@@ -215,6 +251,10 @@
 
   // MARK: - Folder mode
 
+  /// Walks `inputDir` for `.swift` inputs, processes them concurrently (up to
+  /// the active core count), and mirrors the rendered output into `outputDir`.
+  /// A failure on one input does not abort the batch — successful peers are
+  /// still written. Returns 0 if every input succeeded, 1 otherwise.
   internal func runDirectory(
     inputDir: String,
     outputDir: String,
@@ -226,6 +266,8 @@
     let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
     let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
 
+    // Phase 1: enumerate inputs. Top-level `Helpers/` is excluded so its
+    // sources aren't processed as DSL inputs.
     let inputs: [URL]
     do {
       inputs = try collectInputs(at: inputURL, excluding: helpersExcludePath(inputDir: inputURL))
@@ -239,12 +281,15 @@
       return 0
     }
 
+    // Phase 2: bounded-concurrency processing. Cap is the active core count
+    // so a 200-file batch doesn't fork 200 simultaneous `swift` processes.
     let maxConcurrent = max(1, ProcessInfo.processInfo.activeProcessorCount)
 
     var outcomes: [FileOutcome] = []
     var iterator = inputs.makeIterator()
 
     await withTaskGroup(of: FileOutcome.self) { group in
+      // Seed the group up to the concurrency cap…
       for _ in 0..<maxConcurrent {
         guard let next = iterator.next() else { break }
         group.addTask {
@@ -254,6 +299,7 @@
           )
         }
       }
+      // …then refill one task for every completion until inputs are exhausted.
       for await outcome in group {
         outcomes.append(outcome)
         if let next = iterator.next() {
@@ -267,8 +313,9 @@
       }
     }
 
-    // Write outputs and surface diagnostics. Successes are always written, even
-    // when other files in the batch failed (Tuist-analog batch semantics).
+    // Phase 3: write outputs and surface diagnostics. Successes are always
+    // written, even when other files in the batch failed (Tuist-analog batch
+    // semantics).
     var failed = 0
     for outcome in outcomes {
       let relative = outcome.input.path.dropFirst(inputURL.path.count + 1)
@@ -279,6 +326,8 @@
         failed += 1
         FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
       case .success(let processResult):
+        // Per-input stderr is fenced with a header so the batch log stays
+        // readable when several files emit diagnostics.
         if !processResult.stderr.isEmpty {
           FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
           FileHandle.standardError.write(Data(processResult.stderr.utf8))
@@ -300,6 +349,7 @@
       }
     }
 
+    // Phase 4: one-line batch summary + overall exit code.
     FileHandle.standardError.write(
       Data(
         "skit: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
@@ -308,11 +358,15 @@
     return failed == 0 ? 0 : 1
   }
 
+  /// Result of processing one input in directory mode. The error case is
+  /// stored (not thrown) so the batch can keep going.
   private struct FileOutcome: Sendable {
     let input: URL
     let result: Result<ProcessResult, any Error>
   }
 
+  /// `processFile` adapter that catches errors into the `FileOutcome` result
+  /// so a single failure doesn't tear down the surrounding `TaskGroup`.
   private func runOne(
     _ input: URL,
     libPath: String,
@@ -348,6 +402,9 @@
     return candidate.path
   }
 
+  /// Returns every `.swift` file under `inputDir` (recursive), sorted, with
+  /// hidden files, files prefixed by `_`, and the `excludedDir` subtree
+  /// removed. Sorted output keeps batch behaviour deterministic across runs.
   private func collectInputs(at inputDir: URL, excluding excludedDir: String?) throws -> [URL] {
     guard
       let enumerator = FileManager.default.enumerator(
@@ -362,12 +419,16 @@
     var result: [URL] = []
     for case let url as URL in enumerator {
       let values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
+      // Directories aren't outputs; if this is the excluded `Helpers/` dir,
+      // prune the whole subtree.
       if values.isDirectory == true {
         if let excludedDir, url.standardizedFileURL.path == excludedDir {
           enumerator.skipDescendants()
         }
         continue
       }
+      // Filter for `.swift` regular files, skipping the `_`-prefixed
+      // convention for "not an input" sources.
       guard values.isRegularFile == true else { continue }
       guard url.pathExtension == "swift" else { continue }
       guard !url.lastPathComponent.hasPrefix("_") else { continue }
@@ -378,12 +439,19 @@
 
   // MARK: - Per-file work
 
+  /// Raw outcome of rendering one input — what `processFile` returns to its
+  /// caller. `exitCode == 0` indicates the spawned `swift` succeeded (or that
+  /// the output cache hit, which is treated identically).
   private struct ProcessResult: Sendable {
     let exitCode: Int32
     let stdout: Data
     let stderr: String
   }
 
+  /// The per-input render pipeline: load source → consult the output cache →
+  /// (on miss) wrap → spawn `swift` → rewrite diagnostics → store the result
+  /// in the cache. The temp wrapper file is created in a per-run tmp dir and
+  /// torn down by `defer` whether the spawn succeeded or not.
   private func processFile(
     inputPath: String,
     libPath: String,
@@ -391,20 +459,30 @@
     useCache: Bool,
     timeoutSeconds: Int
   ) async throws -> ProcessResult {
+    // Load the input source. Anything past this point keys off these bytes.
     let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
     let absoluteInputPath = inputURL.path
     let source = try String(contentsOf: inputURL, encoding: .utf8)
 
+    // Compute the output cache key (skipped under `--no-cache`). Mixes input
+    // bytes, toolchain version, helpers fingerprint, libSyntaxKit stamp, and
+    // sorted SKIT_*/SYNTAXKIT_* env vars — see `outputCacheKey`.
     let cacheKey: String? =
       useCache
       ? await outputCacheKey(inputSource: source, helpers: helpers, libPath: libPath)
       : nil
+    // Cache hit: skip the wrap+spawn entirely and return the stored output.
     if let cacheKey, let cached = lookupCachedOutput(key: cacheKey) {
       return ProcessResult(exitCode: 0, stdout: cached, stderr: "")
     }
 
+    // Wrap the user's input into a complete Swift program that imports
+    // SyntaxKit, runs the body inside a Group { … } builder, and prints the
+    // result. See `wrap` for the exact template.
     let wrapped = wrap(source: source, originalPath: absoluteInputPath)
 
+    // Spill the wrapped program to a per-invocation temp dir. The dir is
+    // cleaned up unconditionally so a failed spawn doesn't leak files.
     let tmpDir = FileManager.default.temporaryDirectory
       .appendingPathComponent("skit-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
@@ -413,6 +491,8 @@
     let wrappedURL = tmpDir.appendingPathComponent("Input.wrapped.swift")
     try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
 
+    // Spawn `swift` on the wrapped file (with timeout watchdog). stdout is
+    // the rendered Swift source; stderr is compiler diagnostics, if any.
     let raw = try await runSwift(
       wrappedPath: wrappedURL.path,
       libPath: libPath,
@@ -427,6 +507,8 @@
       with: absoluteInputPath
     )
 
+    // Store on the way out. `try?` is deliberate: a cache write failure is
+    // not a render failure. The next run will simply miss and re-spawn.
     if let cacheKey, raw.exitCode == 0 {
       try? storeCachedOutput(key: cacheKey, data: raw.stdout)
     }
@@ -434,6 +516,8 @@
     return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
   }
 
+  /// Throwable error wrapper for skit's user-facing diagnostics. The message
+  /// is printed verbatim — keep it actionable (path, hint, next step).
   internal struct CLIError: Error, CustomStringConvertible {
     let message: String
     var description: String { message }
@@ -447,12 +531,16 @@
   /// The body is fenced in `#sourceLocation` directives so compiler diagnostics
   /// in the body reference the original input file and line numbers.
   internal func wrap(source: String, originalPath: String) -> String {
+    // Parse the input with SwiftSyntax. The location converter is needed to
+    // map the body's starting byte offset back to a 1-based line number for
+    // the `#sourceLocation` directive.
     let tree = Parser.parse(source: source)
     let locConverter = SourceLocationConverter(fileName: originalPath, tree: tree)
 
-    // Find the first non-import top-level statement; everything before it that
-    // is an import gets hoisted, anything before that which is *not* an import
-    // stays in the body (e.g. a top-level `// comment` is left alone).
+    // Scan top-level statements for hoistable imports. Everything before the
+    // first non-import statement that *is* an import gets hoisted; anything
+    // before that which is *not* an import stays in the body (e.g. a top-level
+    // `// comment` is left alone).
     var hoisted: [String] = []
     var firstBodyByte: AbsolutePosition?
 
@@ -467,6 +555,8 @@
       break
     }
 
+    // Compute the body slice (source from the first non-import byte onward)
+    // and the 1-based line number it lives on in the original file.
     let body: String
     let firstBodyLine: Int
     if let firstBodyByte {
@@ -478,6 +568,9 @@
       firstBodyLine = 1
     }
 
+    // Render the hoisted-imports block. Trailing newline only if non-empty so
+    // the wrapper doesn't grow an extra blank line in the common no-imports
+    // case.
     let hoistedBlock = hoisted.isEmpty ? "" : hoisted.joined(separator: "\n") + "\n"
 
     // #sourceLocation must use a forward-slash path; escape backslashes/quotes
@@ -487,6 +580,8 @@
       .replacingOccurrences(of: "\\", with: "\\\\")
       .replacingOccurrences(of: "\"", with: "\\\"")
 
+    // Build the final wrapper. Layout: SyntaxKit import → hoisted imports →
+    // Group { #sourceLocation(...) <body> #sourceLocation() } → print.
     return """
       import SyntaxKit
       \(hoistedBlock)
@@ -512,11 +607,19 @@
   private let stdoutLimitBytes: Int = 16 * 1_024 * 1_024
   private let stderrLimitBytes: Int = 1 * 1_024 * 1_024
 
+  /// Either the spawned `swift` ran to completion (success or failure) or
+  /// the watchdog elapsed first. The completed payload is normalized to the
+  /// shape callers want regardless of platform.
   private enum SwiftRunOutcome: Sendable {
     case completed(exitCode: Int32, stdout: Data, stderr: String)
     case timedOut
   }
 
+  /// Spawns `swift` (script-mode interpreter) on the wrapped input file,
+  /// optionally splicing in flags to import a precompiled helpers module.
+  /// When `timeoutSeconds > 0` the spawn races a sleep task in a throwing
+  /// task group; the loser is cancelled. On timeout, returns exit 124 with
+  /// a one-line stderr message — matching POSIX `timeout(1)`'s convention.
   private func runSwift(
     wrappedPath: String,
     libPath: String,
@@ -525,6 +628,8 @@
   ) async throws -> ProcessResult {
     let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
 
+    // Build the base argument list: link against libSyntaxKit, include the
+    // CShims headers, set rpath so the dylib loads at runtime.
     var arguments: [String] = [
       "-suppress-warnings",
       "-I", libPath,
@@ -534,6 +639,9 @@
       "-Xlinker", "-rpath", "-Xlinker", libPath,
     ]
 
+    // Splice in helpers-module flags only when a compiled helpers dylib is
+    // available. Skipping these makes `import SyntaxKitHelpers` fail in the
+    // wrapped input, which is fine when no Helpers/ dir was discovered.
     if let helpers {
       let helpersPath = helpers.outputDir.path
       arguments.append(contentsOf: [
@@ -547,6 +655,8 @@
     arguments.append(wrappedPath)
     let argumentsCopy = arguments
 
+    // The actual subprocess call, wrapped in a closure so the task-group race
+    // below can hold a single Sendable reference to it.
     let invocation: @Sendable () async throws -> SwiftRunOutcome = {
       let record = try await run(
         .name("swift"),
@@ -561,6 +671,9 @@
       )
     }
 
+    // Race the invocation against a sleep watchdog; whichever finishes first
+    // wins, the other is cancelled. `timeoutSeconds <= 0` opts out of the
+    // race entirely (useful for debugging genuinely long codegen).
     let outcome: SwiftRunOutcome
     if timeoutSeconds <= 0 {
       outcome = try await invocation()
@@ -577,6 +690,7 @@
       }
     }
 
+    // Normalize both outcomes into a single ProcessResult shape.
     switch outcome {
     case .completed(let exitCode, let stdout, let stderr):
       return ProcessResult(exitCode: exitCode, stdout: stdout, stderr: stderr)
@@ -589,6 +703,8 @@
     }
   }
 
+  /// Collapses Subprocess's `TerminationStatus` into a single Int32 exit code,
+  /// using the shell convention (128 + signal number) for signalled deaths.
   private func exitCode(from status: TerminationStatus) -> Int32 {
     switch status {
     case .exited(let code):

@@ -29,6 +29,12 @@
 
 import ArgumentParser
 
+/// The `skit` CLI entry point.
+///
+/// `Skit` itself is just an ArgumentParser shell that wires up two subcommands:
+/// `Run` (the default, rendering SyntaxKit DSL into Swift source) and `Parse`
+/// (the inverse, reading Swift source on stdin and emitting JSON). Their bodies
+/// live in `Skit+Run.swift` and `Skit+Parse.swift` respectively.
 @main
 internal struct Skit: AsyncParsableCommand {
   internal static let configuration = CommandConfiguration(

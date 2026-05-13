@@ -44,23 +44,33 @@
     libPath: String
   ) async -> String {
     var hasher = ContentHasher()
+    // Schema version: bump to invalidate every existing cache entry at once.
     hasher.update(data: Data(outputCacheSchemaVersion.utf8))
+    // Input source bytes: the primary driver of the key.
     hasher.update(data: Data(inputSource.utf8))
 
+    // Helpers fingerprint. The helpers cache dir name *is* the helpers cache
+    // key (per Helpers.swift), so re-mixing it here cheaply propagates any
+    // helpers change into this key.
     if let helpers {
-      // Helpers cache dir name *is* the helpers cache key (per Helpers.swift).
       hasher.update(data: Data(helpers.outputDir.lastPathComponent.utf8))
     } else {
       hasher.update(data: Data("no-helpers".utf8))
     }
 
+    // Toolchain version. Different `swift` builds emit different bytes for
+    // the same DSL input.
     if let version = await captureSwiftVersion() {
       hasher.update(data: Data(version.utf8))
     }
+    // libSyntaxKit stamp. A rebuilt dylib can change the rendered output
+    // even without a Swift-version bump.
     if let stamp = libStamp(libPath: libPath) {
       hasher.update(data: Data(stamp.utf8))
     }
 
+    // SKIT_*/SYNTAXKIT_* env vars. Sorted so the cache key is stable, and
+    // NUL-terminated so `"AB=" + "C"` doesn't collide with `"A=" + "BC"`.
     let env = ProcessInfo.processInfo.environment
       .filter { $0.key.hasPrefix("SKIT_") || $0.key.hasPrefix("SYNTAXKIT_") }
       .sorted { $0.key < $1.key }
@@ -84,11 +94,15 @@
     let final = cacheRoot.appendingPathComponent("output.swift")
     let fm = FileManager.default
 
+    // Ensure the parent of the cache key dir exists. The key dir itself is
+    // installed by the atomic rename below.
     try fm.createDirectory(
       at: cacheRoot.deletingLastPathComponent(),
       withIntermediateDirectories: true
     )
 
+    // Stage the payload in a per-pid + uuid sibling dir so it can be renamed
+    // into place as a single atomic step.
     let staging = cacheRoot.deletingLastPathComponent()
       .appendingPathComponent(
         "tmp.\(ProcessInfo.processInfo.processIdentifier).\(UUID().uuidString)"
@@ -96,6 +110,9 @@
     try fm.createDirectory(at: staging, withIntermediateDirectories: true)
     try data.write(to: staging.appendingPathComponent("output.swift"))
 
+    // Atomic rename into the cache path. If a peer already populated this
+    // key, swallow the rename error and drop our staging copy. Re-throw only
+    // if the destination is still missing afterwards.
     do {
       try fm.moveItem(at: staging, to: cacheRoot)
     } catch {
