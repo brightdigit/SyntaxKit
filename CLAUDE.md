@@ -75,6 +75,16 @@ Sources/SyntaxKit/
 4. Run `./Scripts/lint.sh` to ensure code quality
 5. Run `swift test` to verify functionality
 
+### Coding Conventions
+- **No global functions or variables.** Every function and `let`/`var` must be
+  nested inside a type (`struct`/`enum`/`class`) or an `extension`. This includes
+  declarations that look indented only because they sit inside a `#if … #endif`
+  conditional-compilation block (e.g. `Sources/skit/Runner.swift`) — those are
+  still file-scope globals and must be moved into a type. This is not currently
+  enforced by SwiftLint: a `custom_rules` regex can't reliably distinguish a
+  global nested in `#if` from a legitimate type member, so it needs an
+  AST-aware (SwiftSyntax) check to enforce. Until then, follow the rule by hand.
+
 ### Package Dependencies
 - **SwiftSyntax** (601.0.1+) - Apple's Swift syntax parser
 - **SwiftOperators** - Operator handling
