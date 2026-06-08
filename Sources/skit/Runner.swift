@@ -32,8 +32,6 @@
   import ArgumentParser
   import Foundation
   import Subprocess
-  import SwiftParser
-  import SwiftSyntax
 
   // Run lifecycle (per `skit run` invocation):
   //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
@@ -65,7 +63,6 @@
     }
 
     // MARK: - Dispatch
-    
 
     /// Classifies `input` (single file vs. directory) and renders it. Directory
     /// mode surfaces its batch exit code via `ExitCode` (so a partial-failure
@@ -266,8 +263,8 @@
 
       // Wrap the user's input into a complete Swift program that imports
       // SyntaxKit, runs the body inside a Group { … } builder, and prints the
-      // result. See `wrap` for the exact template.
-      let wrapped = Self.wrap(source: source, originalPath: absoluteInputPath)
+      // result. See `WrappedSource` for the exact template.
+      let wrapped = WrappedSource(source: source, originalPath: absoluteInputPath).rendered
 
       // Spill the wrapped program to a per-invocation temp dir. The dir is
       // cleaned up unconditionally so a failed spawn doesn't leak files.
@@ -299,78 +296,6 @@
       return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
     }
 
-    // MARK: - Wrapping
-
-    /// Splits the input into hoisted `import` declarations and a verbatim body,
-    /// returning a complete Swift program that runs SyntaxKit on the body.
-    ///
-    /// The body is fenced in `#sourceLocation` directives so compiler diagnostics
-    /// in the body reference the original input file and line numbers.
-    private static func wrap(source: String, originalPath: String) -> String {
-      // Parse the input with SwiftSyntax. The location converter is needed to
-      // map the body's starting byte offset back to a 1-based line number for
-      // the `#sourceLocation` directive.
-      let tree = Parser.parse(source: source)
-      let locConverter = SourceLocationConverter(fileName: originalPath, tree: tree)
-
-      // Scan top-level statements for hoistable imports. Everything before the
-      // first non-import statement that *is* an import gets hoisted; anything
-      // before that which is *not* an import stays in the body (e.g. a top-level
-      // `// comment` is left alone).
-      var hoisted: [String] = []
-      var firstBodyByte: AbsolutePosition?
-
-      for item in tree.statements {
-        if let importDecl = item.item.as(ImportDeclSyntax.self),
-          firstBodyByte == nil
-        {
-          hoisted.append(importDecl.description.trimmingCharacters(in: .whitespacesAndNewlines))
-          continue
-        }
-        firstBodyByte = item.position
-        break
-      }
-
-      // Compute the body slice (source from the first non-import byte onward)
-      // and the 1-based line number it lives on in the original file.
-      let body: String
-      let firstBodyLine: Int
-      if let firstBodyByte {
-        let start = source.utf8.index(source.utf8.startIndex, offsetBy: firstBodyByte.utf8Offset)
-        body = String(source[start...])
-        firstBodyLine = locConverter.location(for: firstBodyByte).line
-      } else {
-        body = ""
-        firstBodyLine = 1
-      }
-
-      // Render the hoisted-imports block. Trailing newline only if non-empty so
-      // the wrapper doesn't grow an extra blank line in the common no-imports
-      // case.
-      let hoistedBlock = hoisted.isEmpty ? "" : hoisted.joined(separator: "\n") + "\n"
-
-      // #sourceLocation must use a forward-slash path; escape backslashes/quotes
-      // defensively even though macOS paths shouldn't contain them.
-      let escapedPath =
-        originalPath
-        .replacingOccurrences(of: "\\", with: "\\\\")
-        .replacingOccurrences(of: "\"", with: "\\\"")
-
-      // Build the final wrapper. Layout: SyntaxKit import → hoisted imports →
-      // Group { #sourceLocation(...) <body> #sourceLocation() } → print.
-      return """
-        import SyntaxKit
-        \(hoistedBlock)
-        let __skit_root = Group {
-        #sourceLocation(file: "\(escapedPath)", line: \(firstBodyLine))
-        \(body)
-        #sourceLocation()
-        }
-
-        print(__skit_root.generateCode())
-        """
-    }
-
     // MARK: - Spawning swift
 
     /// Exit code returned when the spawned `swift` is killed by skit's timeout
@@ -388,26 +313,14 @@
     /// task group; the loser is cancelled. On timeout, returns exit 124 with
     /// a one-line stderr message — matching POSIX `timeout(1)`'s convention.
     private func runSwift(wrappedPath: String) async throws -> ProcessResult {
-      let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
-
-      // Link against libSyntaxKit, include the CShims headers, set rpath so
-      // the dylib loads at runtime.
-      let argumentsCopy: [String] = [
-        "-suppress-warnings",
-        "-I", libPath,
-        "-L", libPath,
-        "-lSyntaxKit",
-        "-Xcc", "-I", "-Xcc", cShimsInclude,
-        "-Xlinker", "-rpath", "-Xlinker", libPath,
-        wrappedPath,
-      ]
+      // Build the `swift` invocation (executable + link/include/rpath flags).
+      let configuration = Subprocess.Configuration.swift(libPath: libPath, wrappedPath: wrappedPath)
 
       // The actual subprocess call, wrapped in a closure so the task-group race
       // below can hold a single Sendable reference to it.
       let invocation: @Sendable () async throws -> SwiftRunOutcome = {
         let record = try await Subprocess.run(
-          .name("swift"),
-          arguments: Arguments(argumentsCopy),
+          configuration,
           output: .string(limit: Self.stdoutLimitBytes),
           error: .string(limit: Self.stderrLimitBytes)
         )
@@ -425,16 +338,9 @@
       if timeoutSeconds <= 0 {
         outcome = try await invocation()
       } else {
-        outcome = try await withThrowingTaskGroup(of: SwiftRunOutcome.self) { group in
-          group.addTask { try await invocation() }
-          group.addTask {
-            try await Task.sleep(for: .seconds(self.timeoutSeconds))
-            return .timedOut
-          }
-          let first = try await group.next()!
-          group.cancelAll()
-          return first
-        }
+        outcome =
+          try await Task.timeout(.seconds(timeoutSeconds), operation: invocation)
+          ?? .timedOut
       }
 
       // Normalize both outcomes into a single ProcessResult shape.
