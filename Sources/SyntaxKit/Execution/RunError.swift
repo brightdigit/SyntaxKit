@@ -1,5 +1,5 @@
 //
-//  SwiftRunOutcome.swift
+//  RunError.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,10 +27,22 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Either the spawned `swift` ran to completion (success or failure) or
-/// the watchdog elapsed first. The completed payload is normalized to the
-/// shape callers want regardless of platform.
-package enum SwiftRunOutcome: Sendable {
-  case completed(ProcessResult)
-  case timedOut
-}
+#if canImport(Subprocess)
+
+  /// Typed error surfaced by `Runner`. It decouples the renderer from the CLI:
+  /// `Runner` reports *what* went wrong, and `Skit.Run.run` decides the process
+  /// exit code (so the engine can also be driven in-process from a library).
+package enum RunError: Error {
+    /// The input path was invalid — missing, or a directory given without `-o`.
+    case invalidInput(String)
+    /// Single-file mode: the spawned `swift` exited non-zero. Carries that code
+    /// (e.g. a compile failure, `124` on timeout, `128 + signal`).
+    case renderFailed(exitCode: Int32)
+    /// Directory mode: at least one input failed; the batch exit code is `1`.
+    case batchFailed
+    /// A wrapped Foundation/Subprocess failure (file read/write, spawn error)
+    /// that has no dedicated exit-code mapping.
+    case unexpected(any Error)
+  }
+
+#endif

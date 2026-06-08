@@ -29,9 +29,17 @@
 
 #if canImport(Subprocess)
 
+  import Foundation
   import Subprocess
+  import SyntaxKit
 
   extension Subprocess.Configuration {
+    /// Bounded output capacity for the spawned `swift` (16 MiB stdout / 1 MiB
+    /// stderr). Output above this is exotic; we'd surface a clear SubprocessError
+    /// rather than silently truncate.
+    private static let stdoutLimitBytes = 16 * 1_024 * 1_024
+    private static let stderrLimitBytes = 1 * 1_024 * 1_024
+
     /// A configuration that runs the `swift` interpreter on `wrappedPath`,
     /// linked against `libSyntaxKit` in `libPath`.
     ///
@@ -50,6 +58,25 @@
         wrappedPath,
       ]
       return Self(executable: .name("swift"), arguments: Arguments(arguments))
+    }
+
+    /// Spawns `swift` for the render `invocation` and normalizes the result
+    /// into a `ProcessResult`. This is the Subprocess backend skit hands to
+    /// `Runner` as its `run` closure — the one seam between the (platform-
+    /// agnostic) engine in SyntaxKit and the Subprocess implementation.
+    internal static func runSwift(
+      for invocation: SyntaxKit.SwiftInvocation
+    ) async throws -> ProcessResult {
+      let record = try await Subprocess.run(
+        .swift(libPath: invocation.libPath, wrappedPath: invocation.wrappedPath),
+        output: .string(limit: stdoutLimitBytes),
+        error: .string(limit: stderrLimitBytes)
+      )
+      return ProcessResult(
+        exitCode: record.terminationStatus.exitCode,
+        stdout: Data((record.standardOutput ?? "").utf8),
+        stderr: record.standardError ?? ""
+      )
     }
   }
 

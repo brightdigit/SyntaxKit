@@ -1,5 +1,5 @@
 //
-//  SwiftRunOutcome.swift
+//  Subprocess.TerminationStatus+ExitCode.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,10 +27,23 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Either the spawned `swift` ran to completion (success or failure) or
-/// the watchdog elapsed first. The completed payload is normalized to the
-/// shape callers want regardless of platform.
-package enum SwiftRunOutcome: Sendable {
-  case completed(ProcessResult)
-  case timedOut
-}
+#if canImport(Subprocess)
+
+  import Subprocess
+
+  extension TerminationStatus {
+    /// Collapses the termination status into a single exit code, using the
+    /// shell convention (128 + signal number) for signalled deaths.
+    internal var exitCode: Int32 {
+      switch self {
+      case .exited(let code):
+        return Int32(truncatingIfNeeded: code)
+      #if !os(Windows)
+        case .signaled(let signal):
+          return 128 + Int32(truncatingIfNeeded: signal)
+      #endif
+      }
+    }
+  }
+
+#endif

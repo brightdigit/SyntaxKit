@@ -128,9 +128,14 @@ extension Skit {
         // doesn't re-spawn `swift`.
         let cache: OutputCache? = noCache ? nil : OutputCache(swiftVersion: swiftVersion)
 
-        // 5. Bind the per-invocation configuration into a Runner so the input
-        // orchestration doesn't have to thread libPath/cache/timeout around.
-        let runner = Runner(libPath: libPath, cache: cache, timeoutSeconds: timeoutSeconds)
+        // 5. Bind the per-invocation configuration into a Runner. skit supplies
+        // the Subprocess-backed `run` closure — the one seam between the
+        // platform-agnostic engine in SyntaxKit and the Subprocess backend.
+        let runner = Runner(
+          libPath: libPath,
+          cache: cache,
+          timeoutSeconds: timeoutSeconds
+        ) { try await Subprocess.Configuration.runSwift(for: $0) }
 
         // 6. Hand the input off to the runner: it classifies single-file vs.
         // directory mode (validating existence and the `-o` requirement) and
