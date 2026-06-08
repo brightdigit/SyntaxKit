@@ -32,15 +32,6 @@
   import Foundation
   import Subprocess
 
-  /// Platform-specific shared-library filename for a Swift library product.
-  internal func dylibFilename(forLibrary name: String) -> String {
-    #if os(Linux)
-      return "lib\(name).so"
-    #else
-      return "lib\(name).dylib"
-    #endif
-  }
-
   /// Verbatim `swift --version` output, or nil on spawn failure. Capped at 4 KiB.
   internal func captureSwiftVersion() async -> String? {
     let result = try? await run(
@@ -50,16 +41,6 @@
       error: .discarded
     )
     return result?.standardOutput
-  }
-
-  /// `<size>/<mtime>` fingerprint of the bundled libSyntaxKit dylib, or nil
-  /// if unreadable. Catches in-place rebuilds without a version bump.
-  internal func libStamp(libPath: String) -> String? {
-    let dylib = "\(libPath)/\(dylibFilename(forLibrary: "SyntaxKit"))"
-    guard let attrs = try? FileManager.default.attributesOfItem(atPath: dylib) else { return nil }
-    let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
-    let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-    return "\(size)/\(Int(mtime))"
   }
 
   /// Root for all skit caches. Honours `XDG_CACHE_HOME`, else macOS

@@ -1,5 +1,5 @@
 //
-//  FileManager+IsLibDir.swift
+//  FileManager+LibStamp.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -32,13 +32,15 @@
   import Foundation
 
   extension FileManager {
-    /// True if `path` is a directory containing `libSyntaxKit.{dylib,so}`.
-    internal func isLibDir(_ path: String) -> Bool {
-      var isDir: ObjCBool = false
-      guard fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else {
-        return false
-      }
-      return fileExists(atPath: "\(path)/\("SyntaxKit".dylibFilename)")
+    /// `<size>/<mtime>` fingerprint of `libSyntaxKit.{dylib,so}` under
+    /// `libPath`, or nil if unreadable. Catches in-place rebuilds without a
+    /// version bump.
+    internal func libStamp(libPath: String) -> String? {
+      let dylib = "\(libPath)/\("SyntaxKit".dylibFilename)"
+      guard let attrs = try? attributesOfItem(atPath: dylib) else { return nil }
+      let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
+      let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
+      return "\(size)/\(Int(mtime))"
     }
   }
 

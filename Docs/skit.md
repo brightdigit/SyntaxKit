@@ -171,6 +171,7 @@ A few things were considered for v1 and explicitly punted:
 ## Reference
 
 - [`Sources/skit/README.md`](../Sources/skit/README.md) — per-target quick reference (flag table).
+- [`Docs/skit-internals.md`](skit-internals.md) — per-module reference for Runner, OutputCache, and Toolchain.
 - [`Scripts/build-skit-release.sh`](../Scripts/build-skit-release.sh) — release-bundle builder.
 - [`Docs/research/tuist-manifest-pipeline.md`](research/tuist-manifest-pipeline.md) — the manifest-pipeline pattern this CLI borrows from.
 - [Issue #154](https://github.com/brightdigit/SyntaxKit/issues/154) — original tracking issue.

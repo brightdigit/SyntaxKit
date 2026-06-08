@@ -70,4 +70,5 @@ Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited
 
 ## Deeper dive
 
-For the architecture, design decisions, and trade-offs see [`Docs/skit.md`](../../Docs/skit.md).
+- [`Docs/skit.md`](../../Docs/skit.md) — architecture, design decisions, trade-offs.
+- [`Docs/skit-internals.md`](../../Docs/skit-internals.md) — per-module reference for Runner, OutputCache, and Toolchain (what each needs, how they call each other).

@@ -6,7 +6,7 @@ Note: in `Sources/skit/` every listed declaration is indented because it lives i
 
 Clean targets (no global funcs/vars): **SyntaxKit**, **SyntaxParser**, **TokenVisitor**.
 
-Generated: 2026-06-07. Branch: `research/swift-manifest-codegen`.
+Generated: 2026-06-08. Branch: `research/swift-manifest-codegen`.
 
 ---
 
@@ -15,20 +15,20 @@ Generated: 2026-06-07. Branch: `research/swift-manifest-codegen`.
 All inside `#if canImport(Subprocess)`.
 
 ### Functions
-- [ ] `internal func toolchainMismatchMessage(bundle: String, local: String) -> String`
-- [ ] `internal func runSingleFile(inputPath:outputPath:libPath:useCache:timeoutSeconds:) async throws`
-- [ ] `internal func runDirectory(inputDir:outputDir:libPath:useCache:timeoutSeconds:) async -> Int32`
-- [ ] `private func runOne(_ input: URL, libPath:useCache:timeoutSeconds:) async -> FileOutcome`
-- [ ] `private func collectInputs(at inputDir: URL) throws -> [URL]`
-- [ ] `private func processFile(inputPath:libPath:useCache:timeoutSeconds:) async throws -> ProcessResult`
-- [ ] `internal func wrap(source: String, originalPath: String) -> String`
-- [ ] `private func runSwift(wrappedPath:libPath:timeoutSeconds:) async throws -> ProcessResult`
-- [ ] `private func exitCode(from status: TerminationStatus) -> Int32`
+- [ ] L48 — `internal func toolchainMismatchMessage(bundle: String, local: String) -> String`
+- [ ] L72 — `internal func runSingleFile(inputPath:outputPath:libPath:useCache:timeoutSeconds:) async throws`
+- [ ] L110 — `internal func runDirectory(inputDir:outputDir:libPath:useCache:timeoutSeconds:) async -> Int32`
+- [ ] L213 — `private func runOne(_ input: URL, libPath:useCache:timeoutSeconds:) async -> FileOutcome`
+- [ ] L235 — `private func collectInputs(at inputDir: URL) throws -> [URL]`
+- [ ] L267 — `private func processFile(inputPath:libPath:useCache:timeoutSeconds:) async throws -> ProcessResult`
+- [ ] L336 — `private func wrap(source: String, originalPath: String) -> String`
+- [ ] L417 — `private func runSwift(wrappedPath:libPath:timeoutSeconds:) async throws -> ProcessResult`
+- [ ] L486 — `private func exitCode(from status: TerminationStatus) -> Int32`
 
 ### Variables
-- [ ] `private let timeoutExitCode: Int32 = 124`
-- [ ] `private let stdoutLimitBytes: Int = 16 * 1_024 * 1_024`
-- [ ] `private let stderrLimitBytes: Int = 1 * 1_024 * 1_024`
+- [ ] L405 — `private let timeoutExitCode: Int32 = 124`
+- [ ] L410 — `private let stdoutLimitBytes: Int = 16 * 1_024 * 1_024`
+- [ ] L411 — `private let stderrLimitBytes: Int = 1 * 1_024 * 1_024`
 
 ---
 
@@ -37,25 +37,8 @@ All inside `#if canImport(Subprocess)`.
 All inside `#if canImport(Subprocess)`.
 
 ### Functions
-- [ ] `internal func dylibFilename(forLibrary name: String) -> String`
-- [ ] `internal func captureSwiftVersion() async -> String?`
-- [ ] `internal func libStamp(libPath: String) -> String?`
-- [ ] `internal func syntaxKitCacheRoot() throws -> URL`
-
----
-
-## Sources/skit/OutputCache.swift
-
-All inside `#if canImport(Subprocess)`.
-
-### Functions
-- [ ] `internal func outputCacheKey(inputSource: String, libPath: String) async -> String`
-- [ ] `internal func lookupCachedOutput(key: String) -> Data?`
-- [ ] `internal func storeCachedOutput(key: String, data: Data) throws`
-- [ ] `private func outputCacheDir(for key: String) throws -> URL`
-
-### Variables
-- [ ] `private let outputCacheSchemaVersion = "v1"`
+- [ ] L36 — `internal func captureSwiftVersion() async -> String?`
+- [ ] L48 — `internal func syntaxKitCacheRoot() throws -> URL`
 
 ---
 
@@ -71,9 +54,9 @@ All inside `#if canImport(Subprocess)`.
 | Target | Global funcs | Global vars |
 |---|---:|---:|
 | skit / Runner.swift | 9 | 3 |
-| skit / Toolchain.swift | 4 | 0 |
-| skit / OutputCache.swift | 4 | 1 |
+| skit / Toolchain.swift | 2 | 0 |
+| skit / OutputCache.swift | 0 | 0 |
 | DocumentationHarness / Validator.swift | 0 | 1 |
-| **Total** | **17** | **5** |
+| **Total** | **11** | **4** |
 
 All `skit` globals are free functions/constants inside `#if canImport(Subprocess)` — a deliberate CLI style. `privateDefaultPathExtensions` is the lone non-skit global (a linter reverted an earlier attempt to nest it).

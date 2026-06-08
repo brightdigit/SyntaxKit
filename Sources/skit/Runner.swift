@@ -275,15 +275,14 @@
     let absoluteInputPath = inputURL.path
     let source = try String(contentsOf: inputURL, encoding: .utf8)
 
-    // Compute the output cache key (skipped under `--no-cache`). Mixes input
-    // bytes, toolchain version, libSyntaxKit stamp, and sorted
-    // SKIT_*/SYNTAXKIT_* env vars — see `outputCacheKey`.
-    let cacheKey: String? =
-      useCache
-      ? await outputCacheKey(inputSource: source, libPath: libPath)
-      : nil
+    // Compute the output cache key (skipped under `--no-cache`, or if the
+    // cache root can't be derived). Mixes input bytes, toolchain version,
+    // libSyntaxKit stamp, and sorted SKIT_*/SYNTAXKIT_* env vars — see
+    // `OutputCache.key(forInput:libPath:)`.
+    let cache: OutputCache? = useCache ? try? OutputCache() : nil
+    let cacheKey: String? = await cache?.key(forInput: source, libPath: libPath)
     // Cache hit: skip the wrap+spawn entirely and return the stored output.
-    if let cacheKey, let cached = lookupCachedOutput(key: cacheKey) {
+    if let cache, let cacheKey, let cached = cache.lookup(key: cacheKey) {
       return ProcessResult(exitCode: 0, stdout: cached, stderr: "")
     }
 
@@ -319,8 +318,8 @@
 
     // Store on the way out. `try?` is deliberate: a cache write failure is
     // not a render failure. The next run will simply miss and re-spawn.
-    if let cacheKey, raw.exitCode == 0 {
-      try? storeCachedOutput(key: cacheKey, data: raw.stdout)
+    if let cache, let cacheKey, raw.exitCode == 0 {
+      try? cache.store(key: cacheKey, data: raw.stdout)
     }
 
     return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
@@ -333,7 +332,7 @@
   ///
   /// The body is fenced in `#sourceLocation` directives so compiler diagnostics
   /// in the body reference the original input file and line numbers.
-  internal func wrap(source: String, originalPath: String) -> String {
+  private func wrap(source: String, originalPath: String) -> String {
     // Parse the input with SwiftSyntax. The location converter is needed to
     // map the body's starting byte offset back to a 1-based line number for
     // the `#sourceLocation` directive.
