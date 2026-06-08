@@ -39,14 +39,27 @@
   /// singletons used in production (and the typical test doubles) are
   /// thread-safe for the operations we invoke. The single instance is
   /// shared across concurrent `runOne` tasks in directory mode.
-  internal struct OutputCache: @unchecked Sendable {
+  internal struct OutputCache: Sendable {
     /// Bumped when the cache layout changes in a way that requires invalidation.
     private static let schemaVersion = "v1"
+
+    /// Home-relative cache root used when `XDG_CACHE_HOME` is unset: macOS
+    /// `~/Library/Caches/...`, else Linux `~/.cache/syntaxkit`. The home dir is
+    /// fixed for the process lifetime, so this is computed once.
+    private static let defaultCacheRoot: URL = {
+      let home = NSHomeDirectory()
+      #if os(macOS)
+        return URL(fileURLWithPath: home)
+          .appendingPathComponent("Library/Caches/com.brightdigit.SyntaxKit")
+      #else
+        return URL(fileURLWithPath: home).appendingPathComponent(".cache/syntaxkit")
+      #endif
+    }()
 
     /// `<syntaxKitCacheRoot>/outputs/`. Populated once at init; per-key
     /// directories are derived from it on demand.
     private let root: URL
-    private let fileManager: FileManager
+    private let fileManager: @Sendable () -> FileManager
     private let processInfo: ProcessInfo
 
     /// Verbatim `swift --version` output captured once for the lifetime of
@@ -56,10 +69,11 @@
 
     internal init(
       swiftVersion: String?,
-      fileManager: FileManager = .default,
+      fileManager: @autoclosure @escaping @Sendable () -> FileManager = .default,
       processInfo: ProcessInfo = .processInfo
-    ) throws {
-      self.root = try syntaxKitCacheRoot().appendingPathComponent("outputs")
+    ) {
+      self.root = processInfo.syntaxKitCacheRoot(default: Self.defaultCacheRoot)
+        .appendingPathComponent("outputs")
       self.swiftVersion = swiftVersion
       self.fileManager = fileManager
       self.processInfo = processInfo
@@ -83,7 +97,7 @@
       }
       // libSyntaxKit stamp. A rebuilt dylib can change the rendered output
       // even without a Swift-version bump.
-      if let stamp = fileManager.libStamp(libPath: libPath) {
+      if let stamp = fileManager().libStamp(libPath: libPath) {
         hasher.update(data: Data(stamp.utf8))
       }
 
@@ -112,7 +126,7 @@
 
       // Ensure the parent of the cache key dir exists. The key dir itself is
       // installed by the atomic rename below.
-      try fileManager.createDirectory(
+      try fileManager().createDirectory(
         at: cacheRoot.deletingLastPathComponent(),
         withIntermediateDirectories: true
       )
@@ -123,17 +137,17 @@
         .appendingPathComponent(
           "tmp.\(processInfo.processIdentifier).\(UUID().uuidString)"
         )
-      try fileManager.createDirectory(at: staging, withIntermediateDirectories: true)
+      try fileManager().createDirectory(at: staging, withIntermediateDirectories: true)
       try data.write(to: staging.appendingPathComponent("output.swift"))
 
       // Atomic rename into the cache path. If a peer already populated this
       // key, swallow the rename error and drop our staging copy. Re-throw only
       // if the destination is still missing afterwards.
       do {
-        try fileManager.moveItem(at: staging, to: cacheRoot)
+        try fileManager().moveItem(at: staging, to: cacheRoot)
       } catch {
-        try? fileManager.removeItem(at: staging)
-        if !fileManager.fileExists(atPath: final.path) {
+        try? fileManager().removeItem(at: staging)
+        if !fileManager().fileExists(atPath: final.path) {
           throw error
         }
       }

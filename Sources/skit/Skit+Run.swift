@@ -122,10 +122,10 @@ extension Skit {
           }
         }
 
-        // 4. Build the output cache (nil under `--no-cache` or if the cache
-        // root can't be derived). The captured `swiftVersion` is bound into
-        // the instance so per-input key derivation doesn't re-spawn `swift`.
-        let cache: OutputCache? = noCache ? nil : try? OutputCache(swiftVersion: swiftVersion)
+        // 4. Build the output cache (nil under `--no-cache`). The captured
+        // `swiftVersion` is bound into the instance so per-input key derivation
+        // doesn't re-spawn `swift`.
+        let cache: OutputCache? = noCache ? nil : OutputCache(swiftVersion: swiftVersion)
 
         // 5. Stat the input to pick single-file vs. directory mode. Directory
         // mode requires an explicit `-o` output dir; single-file mode falls
@@ -172,3 +172,22 @@ extension Skit {
     }
   }
 }
+
+#if canImport(Subprocess)
+
+  import Subprocess
+
+  extension Skit.Run {
+    /// Verbatim `swift --version` output, or nil on spawn failure. Capped at 4 KiB.
+    fileprivate func captureSwiftVersion() async -> String? {
+      let result = try? await Subprocess.run(
+        .name("swift"),
+        arguments: ["--version"],
+        output: .string(limit: 4_096),
+        error: .discarded
+      )
+      return result?.standardOutput
+    }
+  }
+
+#endif

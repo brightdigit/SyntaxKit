@@ -1,5 +1,5 @@
 //
-//  Toolchain.swift
+//  ProcessInfo+SyntaxKitCacheRoot.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,32 +30,17 @@
 #if canImport(Subprocess)
 
   import Foundation
-  import Subprocess
 
-  /// Verbatim `swift --version` output, or nil on spawn failure. Capped at 4 KiB.
-  internal func captureSwiftVersion() async -> String? {
-    let result = try? await run(
-      .name("swift"),
-      arguments: ["--version"],
-      output: .string(limit: 4_096),
-      error: .discarded
-    )
-    return result?.standardOutput
-  }
-
-  /// Root for all skit caches. Honours `XDG_CACHE_HOME`, else macOS
-  /// `~/Library/Caches/...` or Linux `~/.cache/syntaxkit`.
-  internal func syntaxKitCacheRoot() throws -> URL {
-    if let xdg = ProcessInfo.processInfo.environment["XDG_CACHE_HOME"], !xdg.isEmpty {
-      return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
+  extension ProcessInfo {
+    /// Root for all skit caches: `<XDG_CACHE_HOME>/syntaxkit` when that env
+    /// var is set and non-empty, otherwise `defaultRoot` (typically the
+    /// platform's home-relative cache dir).
+    internal func syntaxKitCacheRoot(default defaultRoot: URL) -> URL {
+      if let xdg = environment["XDG_CACHE_HOME"], !xdg.isEmpty {
+        return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
+      }
+      return defaultRoot
     }
-    let home = NSHomeDirectory()
-    #if os(macOS)
-      return URL(fileURLWithPath: home)
-        .appendingPathComponent("Library/Caches/com.brightdigit.SyntaxKit")
-    #else
-      return URL(fileURLWithPath: home).appendingPathComponent(".cache/syntaxkit")
-    #endif
   }
 
 #endif

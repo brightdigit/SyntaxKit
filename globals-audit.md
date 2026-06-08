@@ -34,11 +34,9 @@ All inside `#if canImport(Subprocess)`.
 
 ## Sources/skit/Toolchain.swift
 
-All inside `#if canImport(Subprocess)`.
-
-### Functions
-- [ ] L36 — `internal func captureSwiftVersion() async -> String?`
-- [ ] L48 — `internal func syntaxKitCacheRoot() throws -> URL`
+Resolved — file removed. Both globals were lifted into types/extensions:
+- [x] `captureSwiftVersion()` → `fileprivate` method on `Skit.Run` in `Skit+Run.swift`.
+- [x] `syntaxKitCacheRoot()` → `ProcessInfo.syntaxKitCacheRoot(default:)` in `ProcessInfo+SyntaxKitCacheRoot.swift`; the platform default is now a `private static let defaultCacheRoot` on `OutputCache`.
 
 ---
 
@@ -54,9 +52,9 @@ All inside `#if canImport(Subprocess)`.
 | Target | Global funcs | Global vars |
 |---|---:|---:|
 | skit / Runner.swift | 9 | 3 |
-| skit / Toolchain.swift | 2 | 0 |
+| skit / Toolchain.swift (removed) | 0 | 0 |
 | skit / OutputCache.swift | 0 | 0 |
 | DocumentationHarness / Validator.swift | 0 | 1 |
-| **Total** | **11** | **4** |
+| **Total** | **9** | **4** |
 
-All `skit` globals are free functions/constants inside `#if canImport(Subprocess)` — a deliberate CLI style. `privateDefaultPathExtensions` is the lone non-skit global (a linter reverted an earlier attempt to nest it).
+The remaining `skit` globals are free functions/constants inside `#if canImport(Subprocess)` in `Runner.swift` — a deliberate CLI style. `privateDefaultPathExtensions` is the lone non-skit global (a linter reverted an earlier attempt to nest it).
