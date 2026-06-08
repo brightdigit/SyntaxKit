@@ -34,13 +34,12 @@
   /// Bumped when the output cache layout changes in a way that requires invalidation.
   private let outputCacheSchemaVersion = "v1"
 
-  /// 64-bit content hash over (cache schema, input source bytes, helpers key,
-  /// swift version, libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars).
-  /// Any change in these inputs produces a fresh key and forces a recompile.
+  /// 64-bit content hash over (cache schema, input source bytes, swift
+  /// version, libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars). Any
+  /// change in these inputs produces a fresh key and forces a recompile.
   /// See `ContentHasher` for the choice of FNV-1a over a cryptographic hash.
   internal func outputCacheKey(
     inputSource: String,
-    helpers: CompiledHelpers?,
     libPath: String
   ) async -> String {
     var hasher = ContentHasher()
@@ -48,15 +47,6 @@
     hasher.update(data: Data(outputCacheSchemaVersion.utf8))
     // Input source bytes: the primary driver of the key.
     hasher.update(data: Data(inputSource.utf8))
-
-    // Helpers fingerprint. The helpers cache dir name *is* the helpers cache
-    // key (per Helpers.swift), so re-mixing it here cheaply propagates any
-    // helpers change into this key.
-    if let helpers {
-      hasher.update(data: Data(helpers.outputDir.lastPathComponent.utf8))
-    } else {
-      hasher.update(data: Data("no-helpers".utf8))
-    }
 
     // Toolchain version. Different `swift` builds emit different bytes for
     // the same DSL input.

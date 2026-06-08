@@ -37,11 +37,10 @@
   // Run lifecycle (per `skit run` invocation):
   //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
   //   2. ToolchainCheckResult.init    — compare bundle stamp to `swift --version`
-  //   3. CompiledHelpers.init         — discover + compile Helpers/ (memoised on disk)
-  //   4. runSingleFile / runDirectory — dispatch to single- or batch-input mode
-  //   5. processFile (per input)      — load → cache lookup → wrap → spawn → cache store
-  //   6. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
-  //   7. runSwift                     — spawn `swift` with timeout watchdog
+  //   3. runSingleFile / runDirectory — dispatch to single- or batch-input mode
+  //   4. processFile (per input)      — load → cache lookup → wrap → spawn → cache store
+  //   5. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
+  //   6. runSwift                     — spawn `swift` with timeout watchdog
   // See Docs/skit.md for design rationale and trade-offs.
 
   // MARK: - Toolchain check
@@ -74,7 +73,6 @@
     inputPath: String,
     outputPath: String?,
     libPath: String,
-    helpers: CompiledHelpers?,
     useCache: Bool,
     timeoutSeconds: Int
   ) async throws {
@@ -83,7 +81,6 @@
     let result = try await processFile(
       inputPath: inputPath,
       libPath: libPath,
-      helpers: helpers,
       useCache: useCache,
       timeoutSeconds: timeoutSeconds
     )
@@ -114,18 +111,16 @@
     inputDir: String,
     outputDir: String,
     libPath: String,
-    helpers: CompiledHelpers?,
     useCache: Bool,
     timeoutSeconds: Int
   ) async -> Int32 {
     let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
     let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
 
-    // Phase 1: enumerate inputs. Top-level `Helpers/` is excluded so its
-    // sources aren't processed as DSL inputs.
+    // Phase 1: enumerate inputs.
     let inputs: [URL]
     do {
-      inputs = try collectInputs(at: inputURL, excluding: helpersExcludePath(inputDir: inputURL))
+      inputs = try collectInputs(at: inputURL)
     } catch {
       FileHandle.standardError.write(Data("skit: failed to walk \(inputDir): \(error)\n".utf8))
       return 1
@@ -149,7 +144,7 @@
         guard let next = iterator.next() else { break }
         group.addTask {
           await runOne(
-            next, libPath: libPath, helpers: helpers,
+            next, libPath: libPath,
             useCache: useCache, timeoutSeconds: timeoutSeconds
           )
         }
@@ -160,7 +155,7 @@
         if let next = iterator.next() {
           group.addTask {
             await runOne(
-              next, libPath: libPath, helpers: helpers,
+              next, libPath: libPath,
               useCache: useCache, timeoutSeconds: timeoutSeconds
             )
           }
@@ -218,7 +213,6 @@
   private func runOne(
     _ input: URL,
     libPath: String,
-    helpers: CompiledHelpers?,
     useCache: Bool,
     timeoutSeconds: Int
   ) async -> FileOutcome {
@@ -226,7 +220,6 @@
       let result = try await processFile(
         inputPath: input.path,
         libPath: libPath,
-        helpers: helpers,
         useCache: useCache,
         timeoutSeconds: timeoutSeconds
       )
@@ -236,24 +229,10 @@
     }
   }
 
-  /// Returns the path of a `Helpers/` directory living directly under `inputDir`,
-  /// so the folder-mode enumerator can skip its descendants. Helpers that live
-  /// outside the input tree don't need to be excluded (they aren't enumerated).
-  private func helpersExcludePath(inputDir: URL) -> String? {
-    let candidate = inputDir.appendingPathComponent("Helpers").standardizedFileURL
-    var isDir: ObjCBool = false
-    guard FileManager.default.fileExists(atPath: candidate.path, isDirectory: &isDir),
-      isDir.boolValue
-    else {
-      return nil
-    }
-    return candidate.path
-  }
-
   /// Returns every `.swift` file under `inputDir` (recursive), sorted, with
-  /// hidden files, files prefixed by `_`, and the `excludedDir` subtree
-  /// removed. Sorted output keeps batch behaviour deterministic across runs.
-  private func collectInputs(at inputDir: URL, excluding excludedDir: String?) throws -> [URL] {
+  /// hidden files and files prefixed by `_` removed. Sorted output keeps
+  /// batch behaviour deterministic across runs.
+  private func collectInputs(at inputDir: URL) throws -> [URL] {
     guard
       let enumerator = FileManager.default.enumerator(
         at: inputDir,
@@ -267,14 +246,8 @@
     var result: [URL] = []
     for case let url as URL in enumerator {
       let values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
-      // Directories aren't outputs; if this is the excluded `Helpers/` dir,
-      // prune the whole subtree.
-      if values.isDirectory == true {
-        if let excludedDir, url.standardizedFileURL.path == excludedDir {
-          enumerator.skipDescendants()
-        }
-        continue
-      }
+      // Directories aren't outputs.
+      if values.isDirectory == true { continue }
       // Filter for `.swift` regular files, skipping the `_`-prefixed
       // convention for "not an input" sources.
       guard values.isRegularFile == true else { continue }
@@ -294,7 +267,6 @@
   private func processFile(
     inputPath: String,
     libPath: String,
-    helpers: CompiledHelpers?,
     useCache: Bool,
     timeoutSeconds: Int
   ) async throws -> ProcessResult {
@@ -304,11 +276,11 @@
     let source = try String(contentsOf: inputURL, encoding: .utf8)
 
     // Compute the output cache key (skipped under `--no-cache`). Mixes input
-    // bytes, toolchain version, helpers fingerprint, libSyntaxKit stamp, and
-    // sorted SKIT_*/SYNTAXKIT_* env vars — see `outputCacheKey`.
+    // bytes, toolchain version, libSyntaxKit stamp, and sorted
+    // SKIT_*/SYNTAXKIT_* env vars — see `outputCacheKey`.
     let cacheKey: String? =
       useCache
-      ? await outputCacheKey(inputSource: source, helpers: helpers, libPath: libPath)
+      ? await outputCacheKey(inputSource: source, libPath: libPath)
       : nil
     // Cache hit: skip the wrap+spawn entirely and return the stored output.
     if let cacheKey, let cached = lookupCachedOutput(key: cacheKey) {
@@ -335,7 +307,6 @@
     let raw = try await runSwift(
       wrappedPath: wrappedURL.path,
       libPath: libPath,
-      helpers: helpers,
       timeoutSeconds: timeoutSeconds
     )
     // #sourceLocation maps body diagnostics back to the input file. Errors in
@@ -439,45 +410,28 @@
   private let stdoutLimitBytes: Int = 16 * 1_024 * 1_024
   private let stderrLimitBytes: Int = 1 * 1_024 * 1_024
 
-  /// Spawns `swift` (script-mode interpreter) on the wrapped input file,
-  /// optionally splicing in flags to import a precompiled helpers module.
+  /// Spawns `swift` (script-mode interpreter) on the wrapped input file.
   /// When `timeoutSeconds > 0` the spawn races a sleep task in a throwing
   /// task group; the loser is cancelled. On timeout, returns exit 124 with
   /// a one-line stderr message — matching POSIX `timeout(1)`'s convention.
   private func runSwift(
     wrappedPath: String,
     libPath: String,
-    helpers: CompiledHelpers?,
     timeoutSeconds: Int
   ) async throws -> ProcessResult {
     let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
 
-    // Build the base argument list: link against libSyntaxKit, include the
-    // CShims headers, set rpath so the dylib loads at runtime.
-    var arguments: [String] = [
+    // Link against libSyntaxKit, include the CShims headers, set rpath so
+    // the dylib loads at runtime.
+    let argumentsCopy: [String] = [
       "-suppress-warnings",
       "-I", libPath,
       "-L", libPath,
       "-lSyntaxKit",
       "-Xcc", "-I", "-Xcc", cShimsInclude,
       "-Xlinker", "-rpath", "-Xlinker", libPath,
+      wrappedPath,
     ]
-
-    // Splice in helpers-module flags only when a compiled helpers dylib is
-    // available. Skipping these makes `import SyntaxKitHelpers` fail in the
-    // wrapped input, which is fine when no Helpers/ dir was discovered.
-    if let helpers {
-      let helpersPath = helpers.outputDir.path
-      arguments.append(contentsOf: [
-        "-I", helpersPath,
-        "-L", helpersPath,
-        "-l\(helpersModuleName)",
-        "-Xlinker", "-rpath", "-Xlinker", helpersPath,
-      ])
-    }
-
-    arguments.append(wrappedPath)
-    let argumentsCopy = arguments
 
     // The actual subprocess call, wrapped in a closure so the task-group race
     // below can hold a single Sendable reference to it.

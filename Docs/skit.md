@@ -2,7 +2,7 @@
 
 `skit` is a small CLI that takes a SyntaxKit DSL file as input and writes Swift source out the other side. The vision: pure data — JSON, YAML, your own format — drives a manifest written in the SyntaxKit DSL, and `skit` materializes it into idiomatic Swift you check in alongside everything else. Less hand-maintenance, fewer drift bugs.
 
-This doc walks through how `skit` is built. Two verbs, one wrap-and-spawn pipeline, two layers of cache, and a careful toolchain story underneath. Where there are sharp edges, this doc names them.
+This doc walks through how `skit` is built. Two verbs, one wrap-and-spawn pipeline, an output cache, and a careful toolchain story underneath. Where there are sharp edges, this doc names them.
 
 ## Two verbs
 
@@ -23,12 +23,10 @@ A `.swift` input file looks like a SyntaxKit DSL expression at the top level:
 
 ```swift
 // Models.swift
-import SyntaxKitHelpers   // optional — only if a Helpers/ dir is present
-
-equatableModel("Person", fields: [
-    ("name", "String"),
-    ("age", "Int"),
-])
+Struct("Person") {
+    Variable(.let, name: "name", type: "String")
+    Variable(.let, name: "age", type: "Int")
+}
 ```
 
 The input is not a complete Swift program. It has no `@main`, no `print`, no `let root = …`. `skit run` adds the boilerplate by wrapping the input in a `Group { … }` builder and a top-level `print` that renders the result:
@@ -36,14 +34,13 @@ The input is not a complete Swift program. It has no `@main`, no `print`, no `le
 ```swift
 // What `skit run` writes to a temp file before spawning `swift`:
 import SyntaxKit
-import SyntaxKitHelpers          // hoisted from the input
 
 let __skit_root = Group {
 #sourceLocation(file: "/path/to/Models.swift", line: 3)
-equatableModel("Person", fields: [
-    ("name", "String"),
-    ("age", "Int"),
-])
+Struct("Person") {
+    Variable(.let, name: "name", type: "String")
+    Variable(.let, name: "age", type: "Int")
+}
 #sourceLocation()
 }
 
@@ -54,26 +51,19 @@ print(__skit_root.generateCode())
 
 Three things deserve a closer look:
 
-**Imports get hoisted.** The wrapper has to start with `import SyntaxKit` so the DSL types are available. The user's `import`s — typically `import SyntaxKitHelpers` plus anything their Helpers/ module references — need to live at the top of the file, not inside `Group { … }`. `skit` parses the input with SwiftSyntax, peels off the leading `import` declarations, and lifts them into the wrapper preamble. Anything else (declarations, expressions, top-level types) stays in the body.
+**Imports get hoisted.** The wrapper has to start with `import SyntaxKit` so the DSL types are available. Any additional `import`s the user writes need to live at the top of the file, not inside `Group { … }`. `skit` parses the input with SwiftSyntax, peels off the leading `import` declarations, and lifts them into the wrapper preamble. Anything else (declarations, expressions, top-level types) stays in the body.
 
 **`#sourceLocation` keeps diagnostics readable.** When the spawned `swift` emits a compile error, it reports a line number in the wrapped temp file, which is meaningless to the user. The `#sourceLocation` directive remaps body diagnostics back to the original input path and line. Errors in the wrapper preamble (the `import` block, the `Group { … }` opening) still reference the temp file — `skit` rewrites occurrences of the temp path in stderr to the input path as a fallback, so users see something coherent.
 
 **`swift` runs in script mode.** Running `swift Input.swift` invokes the Swift interpreter rather than going through `swiftc` + `ld`. Cold-start is around 700ms on macOS; warm spawns are around 110ms. The CLI's hot path leans into this — for batch input via `skit run InputDir/`, we spawn one `swift` per input file in parallel up to the active core count.
 
-## Caches
+## Output cache
 
-Two layers, both keyed by content hash. They live under `~/Library/Caches/com.brightdigit.SyntaxKit/` on macOS, `$XDG_CACHE_HOME/syntaxkit` (or `~/.cache/syntaxkit`) on Linux.
+One layer, keyed by content hash. Lives under `~/Library/Caches/com.brightdigit.SyntaxKit/outputs/<sha>/output.swift` on macOS, `$XDG_CACHE_HOME/syntaxkit/outputs/<sha>/output.swift` (or `~/.cache/syntaxkit/outputs/<sha>/output.swift`) on Linux. On hit, `skit` skips the `swift` spawn for an input entirely.
 
-| Layer   | Path                          | What it skips on hit                          |
-| ------- | ----------------------------- | --------------------------------------------- |
-| Helpers | `helpers/<sha>/`              | the `swiftc` compile of `Helpers/*.swift`     |
-| Output  | `outputs/<sha>/output.swift`  | the `swift` spawn for an input                |
+The fully-rendered output of an input gets cached by a hash of (input bytes, libSyntaxKit stamp, swift version, sorted `SKIT_*`/`SYNTAXKIT_*` env vars). On hit, total wall time is around 0.14s, dominated by hash + file read. Cold miss matches the warm script-mode baseline (~0.5s).
 
-**Helpers cache.** Each project's `Helpers/` directory gets compiled into `libSyntaxKitHelpers.{dylib,so}` once and reused. The cache key is a hash of the helper sources, plus the bundled `libSyntaxKit` stamp, plus `swift --version`. Touching a helper file invalidates one shard; updating the toolchain invalidates everything. Hit on a warm cache: skip the ~1–2s `swiftc` compile entirely.
-
-**Output cache.** The fully-rendered output of an input gets cached by a hash of (input bytes, helpers shard, libSyntaxKit stamp, swift version, sorted `SKIT_*`/`SYNTAXKIT_*` env vars). On hit, `skit` doesn't spawn `swift` at all — total wall time is around 0.14s, dominated by hash + file read. Cold miss matches the warm script-mode baseline (~0.5s).
-
-`--no-cache` skips the output cache. There's no flag to skip the helpers cache — invalidate it by touching a helper or bumping the toolchain.
+`--no-cache` skips the cache.
 
 ## Toolchain stamping
 
@@ -97,28 +87,11 @@ The comparison is exact-string match. Patch-level drift broke the originating bu
 
 ## Timeout watchdog
 
-The spawned `swift` is the only unbounded piece of `skit run`'s hot path. The wrap step is microseconds. Helpers compile is cached. The output cache hits or misses in milliseconds. But the spawn itself runs *user code* — and that code is allowed to be arbitrarily slow, recursive, or stuck.
+The spawned `swift` is the only unbounded piece of `skit run`'s hot path. The wrap step is microseconds. The output cache hits or misses in milliseconds. But the spawn itself runs *user code* — and that code is allowed to be arbitrarily slow, recursive, or stuck.
 
 `skit run` defaults to a 60s per-input timeout. On expiry it sends `SIGTERM`, gives a 5s grace, then `SIGKILL`. The wrapped input exits with code 124 — POSIX `timeout(1)`'s convention. `--timeout <s>` overrides the default; `--timeout 0` disables the watchdog entirely (useful for debugging genuinely long codegen).
 
 The implementation is `DispatchSemaphore.wait(timeout: deadline)` paired with a `process.terminationHandler` that signals on child exit. The Linux Foundation `Process.waitUntilExit()` hangs on already-exited children on some configurations, which is why `skit` uses the semaphore-based wait everywhere. Same story for pipe drains — sequential reads after the child exits can deadlock when either pipe (~64 KB buffer on Linux) fills before exit, so both pipes drain concurrently via `DispatchGroup`.
-
-## Helpers
-
-Shared codegen utilities live in a `Helpers/` directory. `skit` walks up from the input, finds the nearest `Helpers/`, and compiles its sources into a Swift dylib that the wrapped input can `import SyntaxKitHelpers`.
-
-```
-project/
-├── Helpers/
-│   └── Models.swift     # public func equatableModel(_:fields:) -> any CodeBlock
-└── inputs/
-    ├── Person.swift     # imports SyntaxKitHelpers, calls equatableModel(...)
-    └── Pet.swift        # same
-```
-
-Files prefixed with `_` are skipped — a convention for private helpers within the helpers module. The module name is hard-coded to `SyntaxKitHelpers`.
-
-The helpers cache is per-content, so editing a helper triggers a fresh compile but reading the same helper across many inputs hits the cache.
 
 ## Sharp edges
 
@@ -134,11 +107,10 @@ let _ = Group {
 }
 ```
 
-This is a Swift compiler bug, not a `skit` bug. The workaround is to hoist the conditional into a helper function that uses **plain Swift `if`/`else`** (not a `Group { if … }` body) to return one of two `CodeBlock`s:
+This is a Swift compiler bug, not a `skit` bug. The workaround is to hoist the conditional into a plain Swift function that uses **plain Swift `if`/`else`** (not a `Group { if … }` body) to return one of two `CodeBlock`s:
 
 ```swift
-// In Helpers/Models.swift
-public func optionalDebugField(_ include: Bool) -> any CodeBlock {
+func optionalDebugField(_ include: Bool) -> any CodeBlock {
     if include {
         return Variable(.let, name: "debug", type: "Bool")
     } else {
@@ -147,14 +119,13 @@ public func optionalDebugField(_ include: Bool) -> any CodeBlock {
     }
 }
 
-// In Input.swift
 Struct("Config") {
     Variable(.let, name: "name", type: "String")
     optionalDebugField(buildIsDebug)
 }
 ```
 
-The helper itself can't use `Group { if … }` either — same crash. Plain Swift control flow only.
+The helper function itself can't use `Group { if … }` either — same crash. Plain Swift control flow only.
 
 ### `@main` and top-level decl attributes don't work
 
@@ -199,7 +170,7 @@ A few things were considered for v1 and explicitly punted:
 
 ## Reference
 
-- [`Sources/skit/README.md`](../Sources/skit/README.md) — per-target quick reference (flag table, helpers layout).
+- [`Sources/skit/README.md`](../Sources/skit/README.md) — per-target quick reference (flag table).
 - [`Scripts/build-skit-release.sh`](../Scripts/build-skit-release.sh) — release-bundle builder.
 - [`Docs/research/tuist-manifest-pipeline.md`](research/tuist-manifest-pipeline.md) — the manifest-pipeline pattern this CLI borrows from.
 - [Issue #154](https://github.com/brightdigit/SyntaxKit/issues/154) — original tracking issue.

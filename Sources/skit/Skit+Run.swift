@@ -58,18 +58,6 @@ extension Skit {
     )
     internal var libPath: String?
 
-    @Option(
-      name: .customLong("helpers"),
-      help: "Override Helpers/ directory location."
-    )
-    internal var helpersDir: String?
-
-    @Flag(
-      name: .customLong("no-helpers"),
-      help: "Skip helpers discovery entirely."
-    )
-    internal var noHelpers: Bool = false
-
     @Flag(
       name: .customLong("no-cache"),
       help: "Skip the rendered-output cache (always run swift)."
@@ -127,18 +115,7 @@ extension Skit {
           }
         }
 
-        // 3. Decide which helpers-resolution mode this invocation is in.
-        // The actual discovery / compilation happens later in `CompiledHelpers.init`.
-        let helpersOptions: HelpersOptions
-        if noHelpers {
-          helpersOptions = .disabled
-        } else if let dir = helpersDir {
-          helpersOptions = .explicit(dir)
-        } else {
-          helpersOptions = .auto
-        }
-
-        // 4. Stat the input to pick single-file vs. directory mode. Directory
+        // 3. Stat the input to pick single-file vs. directory mode. Directory
         // mode requires an explicit `-o` output dir; single-file mode falls
         // back to stdout.
         var isDirectory: ObjCBool = false
@@ -150,40 +127,24 @@ extension Skit {
           guard let output else {
             throw ValidationError("directory inputs require -o <output-dir>")
           }
-          // 5a. Resolve helpers relative to the input root. This is the only
-          // place we compile `Helpers/`; the result is reused across every
-          // input file in the directory.
-          let helpers = try await CompiledHelpers(
-            nearInputPath: input,
-            libPath: libPath,
-            options: helpersOptions
-          )
-          // 6a. Hand off to the directory orchestrator and surface its exit
+          // 4a. Hand off to the directory orchestrator and surface its exit
           // code via ExitCode (so a partial-failure batch returns 1).
           let exitCode = await runDirectory(
             inputDir: input,
             outputDir: output,
             libPath: libPath,
-            helpers: helpers,
             useCache: !noCache,
             timeoutSeconds: timeoutSeconds
           )
           throw ExitCode(exitCode)
         } else {
-          // 5b. Resolve helpers relative to this single file's parent.
-          let helpers = try await CompiledHelpers(
-            nearInputPath: input,
-            libPath: libPath,
-            options: helpersOptions
-          )
-          // 6b. Hand off to the single-file orchestrator. It calls `exit()`
+          // 4b. Hand off to the single-file orchestrator. It calls `exit()`
           // directly on non-zero subprocess exit, so a thrown ExitCode here
           // would be unreachable in that path.
           try await runSingleFile(
             inputPath: input,
             outputPath: output,
             libPath: libPath,
-            helpers: helpers,
             useCache: !noCache,
             timeoutSeconds: timeoutSeconds
           )

@@ -36,41 +36,17 @@ The bundle is portable: `cp -r .build/skit-release ~/anywhere/` and `~/anywhere/
 
 ```swift
 // Models.swift
-import SyntaxKitHelpers   // optional — only if a Helpers/ dir is present
-
-equatableModel("Person", fields: [
-    ("name", "String"),
-    ("age", "Int"),
-])
+Struct("Person") {
+    Variable(.let, name: "name", type: "String")
+    Variable(.let, name: "age", type: "Int")
+}
 ```
 
 What *won't* work inside the input: top-level `let`/`var` outside the builder DSL, `@main`, `print` (the wrapper adds its own). Result-builder closure rules apply.
 
-## Helpers
+## Cache
 
-Shared codegen utilities live in a `Helpers/` directory anywhere up-tree from the input. `skit` walks up from the input file (or directory) looking for one. Sources are pre-compiled into `libSyntaxKitHelpers.{dylib,so}` once and cached by content hash:
-
-```
-project/
-├── Helpers/
-│   └── Models.swift     # public func equatableModel(_:fields:) -> any CodeBlock
-└── inputs/
-    ├── Person.swift     # imports SyntaxKitHelpers, calls equatableModel(...)
-    └── Pet.swift        # same
-```
-
-Files prefixed with `_` are skipped (convention for private helpers within helpers). The helper module name is hard-coded to `SyntaxKitHelpers`.
-
-Force-disable: `--no-helpers`. Override location: `--helpers <dir>`.
-
-## Caches
-
-Two layers, both keyed on content + toolchain + dylib stamp + `SKIT_*`/`SYNTAXKIT_*` env vars. Live under `~/Library/Caches/com.brightdigit.SyntaxKit/` on macOS, `$XDG_CACHE_HOME/syntaxkit` (or `~/.cache/syntaxkit`) on Linux.
-
-| Layer   | Path                          | What it skips on hit                          |
-| ------- | ----------------------------- | --------------------------------------------- |
-| Helpers | `helpers/<sha>/`              | the `swiftc` compile of `Helpers/*.swift`     |
-| Output  | `outputs/<sha>/output.swift`  | the `swift` spawn for an input                |
+One layer, keyed on content + toolchain + dylib stamp + `SKIT_*`/`SYNTAXKIT_*` env vars. Lives under `~/Library/Caches/com.brightdigit.SyntaxKit/outputs/<sha>/output.swift` on macOS, `$XDG_CACHE_HOME/syntaxkit/outputs/<sha>/output.swift` (or `~/.cache/syntaxkit/outputs/<sha>/output.swift`) on Linux. On hit, `skit` skips the `swift` spawn for an input entirely.
 
 Output cache hit is roughly ~0.14s on macOS (no spawn at all); cold miss matches the warm `swift` script-mode baseline (~0.5s). Force a miss with `--no-cache`.
 
@@ -80,8 +56,6 @@ Output cache hit is roughly ~0.14s on macOS (no spawn at all); cold miss matches
 | ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `-o, --output <path>`   | stdout  | Output file (single-file mode) or directory (folder mode).                                                                                               |
 | `--lib <dir>`           | auto    | Directory containing `libSyntaxKit.{dylib,so}` + module files. Search order when omitted: `$SKIT_LIB_DIR` → `<bin-dir>/lib/` → `<bin-dir>/../lib/skit/`. |
-| `--helpers <dir>`       | walk-up | Explicit `Helpers/` directory.                                                                                                                           |
-| `--no-helpers`          | (off)   | Skip helpers discovery entirely.                                                                                                                         |
 | `--no-cache`            | (off)   | Skip the output cache; always spawn `swift`.                                                                                                             |
 | `--timeout <s>`         | `60`    | Per-input timeout for the spawned `swift` (SIGTERM → 5s → SIGKILL). On expiry the file exits with code 124. Pass `0` to disable.                         |
 | `--no-toolchain-check`  | (off)   | Skip the startup check that compares `lib/swift-version.txt` to `swift --version`. swiftmodules aren't reliably compatible across compiler versions; on mismatch skit refuses to spawn `swift` and points at the rebuild script. Auto-rebuild fallback tracked in [#157](https://github.com/brightdigit/SyntaxKit/issues/157). |
@@ -92,7 +66,7 @@ Output cache hit is roughly ~0.14s on macOS (no spawn at all); cold miss matches
 - **Linux** — verified on `swift:6.0-jammy/aarch64`. The Mach-O `install_name` step in `Scripts/build-skit-release.sh` is macOS-specific and skipped on Linux.
 - **Windows** — not supported.
 
-Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited children on `swift:6.0-jammy/aarch64`. `Runner.swift` and `Helpers.swift` work around it with `terminationHandler` + `DispatchSemaphore`.
+Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited children on `swift:6.0-jammy/aarch64`. `Runner.swift` works around it with `terminationHandler` + `DispatchSemaphore`.
 
 ## Deeper dive
 
