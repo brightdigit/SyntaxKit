@@ -1,5 +1,5 @@
 //
-//  FileOutcome.swift
+//  SingleFileRender.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,14 +29,18 @@
 
 package import Foundation
 
-/// Result of processing one input in directory mode. The error case is
-/// stored (not thrown) so the batch can keep going.
-package struct FileOutcome: Sendable {
-  package let input: URL
-  package let result: Result<ProcessResult, any Error>
+/// Result of `Runner.renderFile`. Both fields may be populated on success —
+/// the spawned `swift` can emit warnings to `stderr` alongside a valid
+/// `stdout`. The caller decides where the bytes go (file, stdout, in-memory).
+package struct SingleFileRender: Sendable {
+  /// Rendered Swift source produced by the wrapped program.
+  package let stdout: Data
+  /// Compiler diagnostics from the spawned `swift`, with the wrapper path
+  /// rewritten back to the original input. Empty when the toolchain was silent.
+  package let stderr: String
 
-  package init(input: URL, result: Result<ProcessResult, any Error>) {
-    self.input = input
-    self.result = result
+  package init(stdout: Data, stderr: String) {
+    self.stdout = stdout
+    self.stderr = stderr
   }
 }

@@ -31,21 +31,23 @@
 
   import Foundation
 
-  /// Whether a `skit run` input path resolves to a single `.swift` file or a
-  /// directory of them — the two modes `Runner` dispatches into. Built by
-  /// `resolve(input:output:)`, which stats the path and enforces the
-  /// per-mode output rules so `Skit.Run.run` can `switch` on a settled value
-  /// instead of juggling an `ObjCBool`.
-  internal enum RunInput {
-    /// A single input file rendered to `outputPath`, or stdout when nil.
+  /// Whether an input path resolves to a single `.swift` file or a directory
+  /// of them — the two modes a `Runner` caller dispatches into. Built by
+  /// `resolve(input:output:)`, which stats the path and enforces the per-mode
+  /// output rules so the caller can `switch` on a settled value instead of
+  /// juggling an `ObjCBool`.
+  package enum RunInput {
+    /// A single input file. `outputPath` is whatever the caller intends to
+    /// do with the rendered bytes (write to a file, ignore, etc.); `Runner`
+    /// itself does not act on it.
     case singleFile(inputPath: String, outputPath: String?)
     /// A directory of inputs mirrored into `outputDir` (always required).
     case directory(inputDir: String, outputDir: String)
 
     /// Classifies `input` by stat: existing directory → `.directory`,
     /// existing file → `.singleFile`. Throws `RunError.invalidInput` if the path
-    /// doesn't exist, or if a directory input wasn't given an explicit `-o`.
-    internal static func resolve(input: String, output: String?) throws(RunError) -> RunInput {
+    /// doesn't exist, or if a directory input wasn't given an explicit output.
+    package static func resolve(input: String, output: String?) throws(RunError) -> RunInput {
       var isDirectory: ObjCBool = false
       guard FileManager.default.fileExists(atPath: input, isDirectory: &isDirectory) else {
         throw RunError.invalidInput("input does not exist: \(input)")

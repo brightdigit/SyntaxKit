@@ -29,20 +29,23 @@
 
 import Foundation
 
-// Run lifecycle (per `skit run` invocation):
+// Render lifecycle (per `Runner` call):
 //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
 //   2. ToolchainCheckResult.init    — compare bundle stamp to `swift --version`
-//   3. Runner.runSingleFile / .runDirectory — single- or batch-input mode
+//   3. Runner.renderFile / .renderDirectory — single- or batch-input mode
 //   4. processFile (per input)      — load → cache lookup → wrap → spawn → cache store
 //   5. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
 //   6. runSwift                     — spawn `swift` with timeout watchdog
 // See Docs/skit.md for design rationale and trade-offs.
 
-/// Renders SyntaxKit DSL inputs into Swift source, holding the per-invocation
-/// configuration (`libPath`, `cache`, `timeoutSeconds`) so the individual
-/// inputs don't have to thread it through every call. Constructed once per
-/// `skit run` in `Skit.Run.run`; `Sendable` so a single value can be shared
-/// across the concurrent `runOne` tasks in directory mode.
+/// Renders SyntaxKit DSL inputs into Swift source. `Runner` is the SDK-shaped
+/// entry point: methods return rendered data (`SingleFileRender`) or
+/// structured per-file outcomes (`DirectoryRender`) and throw typed
+/// `RunError`s; callers — CLI, build plugin, in-process driver — decide what
+/// to do with stdout, stderr, exit codes, and so on.
+///
+/// Constructed once per render session; `Sendable` so a single value can be
+/// shared across the concurrent per-input tasks in directory mode.
 package struct Runner: Sendable {
   /// Directory holding `libSyntaxKit.{dylib,so}` + swiftmodules; reused for
   /// the spawned `swift`'s `-I`/`-L`/`-rpath` flags.
@@ -67,59 +70,32 @@ package struct Runner: Sendable {
     self.run = run
   }
 
-  // MARK: - Dispatch
-
-  /// Classifies `input` (single file vs. directory) and renders it, reporting
-  /// failures via the typed `RunError` so the caller — not this engine — owns
-  /// the process exit status. Directory mode throws `.batchFailed` on a
-  /// partial-failure batch; single-file mode throws `.renderFailed` on a
-  /// non-zero subprocess result. `.invalidInput` propagates from
-  /// `RunInput.resolve`; any Foundation/Subprocess failure is wrapped in
-  /// `.unexpected`. On success it returns normally (exit 0).
-  package func callAsFunction(input: String, output: String?) async throws(RunError) {
-    switch try RunInput.resolve(input: input, output: output) {
-    case .directory(let inputDir, let outputDir):
-      let exitCode = await runDirectory(inputDir: inputDir, outputDir: outputDir)
-      if exitCode != 0 {
-        throw RunError.batchFailed
-      }
-    case .singleFile(let inputPath, let outputPath):
-      do {
-        try await runSingleFile(inputPath: inputPath, outputPath: outputPath)
-      } catch let error as RunError {
-        throw error
-      } catch {
-        throw RunError.unexpected(error)
-      }
-    }
-  }
-
   // MARK: - Single-file mode
 
-  /// Runs `processFile` on a single input and writes its rendered Swift to
-  /// `outputPath` (or stdout when nil). Any stderr from the spawned `swift`
-  /// is surfaced verbatim. On a non-zero subprocess exit, throws
-  /// `RunError.renderFailed` carrying that code — the caller in `Skit.Run.run`
-  /// maps it to the process exit. We don't write partial output in that case.
-  private func runSingleFile(inputPath: String, outputPath: String?) async throws {
+  /// Renders one input and returns the rendered bytes plus any compiler
+  /// diagnostics. No file IO, no stdout/stderr writes — the caller decides
+  /// where the result goes.
+  ///
+  /// On a non-zero subprocess exit, throws `RunError.renderFailed(exitCode:
+  /// stderr:)` carrying the toolchain's diagnostic. Any Foundation/Subprocess
+  /// failure (file read, spawn) is wrapped in `RunError.unexpected`.
+  package func renderFile(input: String) async throws(RunError) -> SingleFileRender {
     // Render the input. `processFile` may hit the output cache and skip the
     // spawn entirely; either way the result has the same shape.
-    let result = try await processFile(inputPath: inputPath)
-    // Surface diagnostics from the spawned `swift` before deciding success.
-    if !result.stderr.isEmpty {
-      FileHandle.standardError.write(Data(result.stderr.utf8))
+    let result: ProcessResult
+    do {
+      result = try await processFile(inputPath: input)
+    } catch let error as RunError {
+      throw error
+    } catch {
+      throw RunError.unexpected(error)
     }
-    // Non-zero subprocess exit is reported as a typed failure carrying the
-    // code; the command layer turns it into the process exit status.
+    // Non-zero subprocess exit is reported as a typed failure carrying both
+    // the code and the (path-rewritten) toolchain diagnostic.
     guard result.exitCode == 0 else {
-      throw RunError.renderFailed(exitCode: result.exitCode)
+      throw RunError.renderFailed(exitCode: result.exitCode, stderr: result.stderr)
     }
-    // Deliver the rendered output to file or stdout.
-    if let outputPath {
-      try result.stdout.write(to: URL(fileURLWithPath: outputPath))
-    } else {
-      FileHandle.standardOutput.write(result.stdout)
-    }
+    return SingleFileRender(stdout: result.stdout, stderr: result.stderr)
   }
 
   // MARK: - Per-file work

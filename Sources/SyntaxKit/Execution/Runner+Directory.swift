@@ -31,35 +31,43 @@ import Foundation
 
 extension Runner {
   /// Walks `inputDir` for `.swift` inputs, processes them concurrently (up to
-  /// the active core count), and mirrors the rendered output into `outputDir`.
-  /// A failure on one input does not abort the batch — successful peers are
-  /// still written. Returns 0 if every input succeeded, 1 otherwise.
-  internal func runDirectory(inputDir: String, outputDir: String) async -> Int32 {
+  /// the active core count), and mirrors successfully-rendered outputs into
+  /// `outputDir`. A failure on one input does not abort the batch — successful
+  /// peers are still written. Returns a `DirectoryRender` with per-input
+  /// outcomes; the caller inspects `failureCount` (and per-outcome stderr) to
+  /// decide presentation.
+  ///
+  /// Throws `RunError.unexpected` only for bulk failures the SDK can't
+  /// recover from (e.g. the input directory can't be enumerated). An empty
+  /// input set is *not* an error — the result simply has no outcomes.
+  package func renderDirectory(
+    inputDir: String,
+    outputDir: String
+  ) async throws(RunError) -> DirectoryRender {
     let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
     let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
 
-    // Phase 1: enumerate inputs.
+    // Phase 1: enumerate inputs. A walk failure is a bulk failure: there's
+    // nothing per-file to report, so it surfaces as a typed throw.
     let inputs: [URL]
     do {
       inputs = try Self.collectInputs(at: inputURL)
     } catch {
-      FileHandle.standardError.write(Data("skit: failed to walk \(inputDir): \(error)\n".utf8))
-      return 1
+      throw RunError.unexpected(error)
     }
 
     if inputs.isEmpty {
-      FileHandle.standardError.write(Data("skit: no .swift inputs under \(inputDir)\n".utf8))
-      return 0
+      return DirectoryRender(outcomes: [])
     }
 
     // Phase 2: bounded-concurrency processing. Cap is the active core count
     // so a 200-file batch doesn't fork 200 simultaneous `swift` processes.
     let maxConcurrent = max(1, ProcessInfo.processInfo.activeProcessorCount)
 
-    var outcomes: [FileOutcome] = []
+    var renderResults: [RenderTaskResult] = []
     var iterator = inputs.makeIterator()
 
-    await withTaskGroup(of: FileOutcome.self) { group in
+    await withTaskGroup(of: RenderTaskResult.self) { group in
       // Seed the group up to the concurrency cap…
       for _ in 0..<maxConcurrent {
         guard let next = iterator.next() else { break }
@@ -67,34 +75,44 @@ extension Runner {
       }
       // …then refill one task for every completion until inputs are exhausted.
       for await outcome in group {
-        outcomes.append(outcome)
+        renderResults.append(outcome)
         if let next = iterator.next() {
           group.addTask { await self.runOne(next) }
         }
       }
     }
 
-    // Phase 3: write outputs and surface diagnostics. Successes are always
-    // written, even when other files in the batch failed (Tuist-analog batch
-    // semantics).
-    var failed = 0
-    for outcome in outcomes {
+    // Phase 3: write outputs and capture per-input outcomes. Successes are
+    // written even when other files in the batch failed (Tuist-analog batch
+    // semantics). No diagnostics are printed here; the caller does that.
+    var outcomes: [DirectoryRender.FileOutcome] = []
+    outcomes.reserveCapacity(renderResults.count)
+    for outcome in renderResults {
       let relative = outcome.input.path.dropFirst(inputURL.path.count + 1)
       let destination = outputURL.appendingPathComponent(String(relative))
 
       switch outcome.result {
       case .failure(let error):
-        failed += 1
-        FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
+        outcomes.append(
+          DirectoryRender.FileOutcome(
+            input: outcome.input,
+            destination: destination,
+            stderr: "",
+            result: .failure(error)
+          )
+        )
       case .success(let processResult):
-        // Per-input stderr is fenced with a header so the batch log stays
-        // readable when several files emit diagnostics.
-        if !processResult.stderr.isEmpty {
-          FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
-          FileHandle.standardError.write(Data(processResult.stderr.utf8))
-        }
         if processResult.exitCode != 0 {
-          failed += 1
+          outcomes.append(
+            DirectoryRender.FileOutcome(
+              input: outcome.input,
+              destination: destination,
+              stderr: processResult.stderr,
+              result: .failure(
+                .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
+              )
+            )
+          )
           continue
         }
         do {
@@ -103,30 +121,43 @@ extension Runner {
             withIntermediateDirectories: true
           )
           try processResult.stdout.write(to: destination)
+          outcomes.append(
+            DirectoryRender.FileOutcome(
+              input: outcome.input,
+              destination: destination,
+              stderr: processResult.stderr,
+              result: .success(())
+            )
+          )
         } catch {
-          failed += 1
-          FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
+          outcomes.append(
+            DirectoryRender.FileOutcome(
+              input: outcome.input,
+              destination: destination,
+              stderr: processResult.stderr,
+              result: .failure(.unexpected(error))
+            )
+          )
         }
       }
     }
 
-    // Phase 4: one-line batch summary + overall exit code.
-    FileHandle.standardError.write(
-      Data(
-        "skit: \(outcomes.count - failed)/\(outcomes.count) succeeded\n".utf8
-      ))
-
-    return failed == 0 ? 0 : 1
+    return DirectoryRender(outcomes: outcomes)
   }
 
-  /// `processFile` adapter that catches errors into the `FileOutcome` result
+  /// `processFile` adapter that catches errors into the `RenderTaskResult`
   /// so a single failure doesn't tear down the surrounding `TaskGroup`.
-  private func runOne(_ input: URL) async -> FileOutcome {
+  /// `processFile`'s heterogeneous Foundation/Subprocess throws are wrapped
+  /// in `RunError.unexpected` here so the rest of the pipeline sees a single
+  /// typed error.
+  private func runOne(_ input: URL) async -> RenderTaskResult {
     do {
       let result = try await processFile(inputPath: input.path)
-      return FileOutcome(input: input, result: .success(result))
+      return RenderTaskResult(input: input, result: .success(result))
+    } catch let error as RunError {
+      return RenderTaskResult(input: input, result: .failure(error))
     } catch {
-      return FileOutcome(input: input, result: .failure(error))
+      return RenderTaskResult(input: input, result: .failure(.unexpected(error)))
     }
   }
 
@@ -158,4 +189,13 @@ extension Runner {
     }
     return result.sorted { $0.path < $1.path }
   }
+}
+
+/// Payload the per-input render `TaskGroup` yields back to `renderDirectory`.
+/// Failures are captured (not thrown) so a single bad input doesn't tear down
+/// the group; `processFile`'s heterogeneous Foundation/Subprocess throws are
+/// normalized into `RunError` (typically `.unexpected`) by `runOne`.
+private struct RenderTaskResult: Sendable {
+  let input: URL
+  let result: Result<ProcessResult, RunError>
 }
