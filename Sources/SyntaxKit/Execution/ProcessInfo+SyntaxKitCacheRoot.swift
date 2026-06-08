@@ -1,5 +1,5 @@
 //
-//  SwiftRunOutcome.swift
+//  ProcessInfo+SyntaxKitCacheRoot.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,16 +27,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
+import Foundation
 
-  import Foundation
-
-  /// Either the spawned `swift` ran to completion (success or failure) or
-  /// the watchdog elapsed first. The completed payload is normalized to the
-  /// shape callers want regardless of platform.
-  internal enum SwiftRunOutcome: Sendable {
-    case completed(exitCode: Int32, stdout: Data, stderr: String)
-    case timedOut
+extension ProcessInfo {
+  /// Root for all skit caches: `<XDG_CACHE_HOME>/syntaxkit` when that env
+  /// var is set and non-empty, otherwise `defaultRoot` (typically the
+  /// platform's home-relative cache dir).
+  internal func syntaxKitCacheRoot(default defaultRoot: URL) -> URL {
+    if let xdg = environment["XDG_CACHE_HOME"], !xdg.isEmpty {
+      return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
+    }
+    return defaultRoot
   }
-
-#endif
+}

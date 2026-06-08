@@ -1,5 +1,5 @@
 //
-//  FileOutcome.swift
+//  ProcessResult.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,15 +27,19 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
+package import Foundation
 
-  import Foundation
+/// Raw outcome of rendering one input — what `processFile` returns to its
+/// caller. `exitCode == 0` indicates the spawned `swift` succeeded (or that
+/// the output cache hit, which is treated identically).
+package struct ProcessResult: Sendable {
+  package let exitCode: Int32
+  package let stdout: Data
+  package let stderr: String
 
-  /// Result of processing one input in directory mode. The error case is
-  /// stored (not thrown) so the batch can keep going.
-  internal struct FileOutcome: Sendable {
-    let input: URL
-    let result: Result<ProcessResult, any Error>
+  package init(exitCode: Int32, stdout: Data, stderr: String) {
+    self.exitCode = exitCode
+    self.stdout = stdout
+    self.stderr = stderr
   }
-
-#endif
+}

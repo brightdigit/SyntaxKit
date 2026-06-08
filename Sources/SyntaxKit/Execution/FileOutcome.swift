@@ -1,5 +1,5 @@
 //
-//  CLIError.swift
+//  FileOutcome.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,13 +27,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
+package import Foundation
 
-  /// Throwable error wrapper for skit's user-facing diagnostics. The message
-  /// is printed verbatim — keep it actionable (path, hint, next step).
-  internal struct CLIError: Error, CustomStringConvertible {
-    let message: String
-    var description: String { message }
+/// Result of processing one input in directory mode. The error case is
+/// stored (not thrown) so the batch can keep going.
+package struct FileOutcome: Sendable {
+  package let input: URL
+  package let result: Result<ProcessResult, any Error>
+
+  package init(input: URL, result: Result<ProcessResult, any Error>) {
+    self.input = input
+    self.result = result
   }
-
-#endif
+}

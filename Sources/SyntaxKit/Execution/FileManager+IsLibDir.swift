@@ -1,5 +1,5 @@
 //
-//  String+DylibFilename.swift
+//  FileManager+IsLibDir.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,19 +27,15 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
+import Foundation
 
-  extension String {
-    /// Treats `self` as a Swift library product name and returns the
-    /// platform-specific shared-library filename (`libFoo.dylib` on macOS,
-    /// `libFoo.so` on Linux).
-    internal var dylibFilename: String {
-      #if os(Linux)
-        return "lib\(self).so"
-      #else
-        return "lib\(self).dylib"
-      #endif
+extension FileManager {
+  /// True if `path` is a directory containing `libSyntaxKit.{dylib,so}`.
+  internal func isLibDir(_ path: String) -> Bool {
+    var isDir: ObjCBool = false
+    guard fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else {
+      return false
     }
+    return fileExists(atPath: "\(path)/\("SyntaxKit".dylibFilename)")
   }
-
-#endif
+}

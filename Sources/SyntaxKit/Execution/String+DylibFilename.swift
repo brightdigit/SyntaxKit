@@ -1,5 +1,5 @@
 //
-//  FileManager+LibStamp.swift
+//  String+DylibFilename.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,21 +27,15 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
-
-  import Foundation
-
-  extension FileManager {
-    /// `<size>/<mtime>` fingerprint of `libSyntaxKit.{dylib,so}` under
-    /// `libPath`, or nil if unreadable. Catches in-place rebuilds without a
-    /// version bump.
-    internal func libStamp(libPath: String) -> String? {
-      let dylib = "\(libPath)/\("SyntaxKit".dylibFilename)"
-      guard let attrs = try? attributesOfItem(atPath: dylib) else { return nil }
-      let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
-      let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-      return "\(size)/\(Int(mtime))"
-    }
+extension String {
+  /// Treats `self` as a Swift library product name and returns the
+  /// platform-specific shared-library filename (`libFoo.dylib` on macOS,
+  /// `libFoo.so` on Linux).
+  internal var dylibFilename: String {
+    #if os(Linux)
+      return "lib\(self).so"
+    #else
+      return "lib\(self).dylib"
+    #endif
   }
-
-#endif
+}

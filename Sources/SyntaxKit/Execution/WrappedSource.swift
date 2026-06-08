@@ -37,7 +37,7 @@ import SwiftSyntax
 ///
 /// The body is fenced in `#sourceLocation` directives so compiler diagnostics in
 /// the body reference the original input file and line numbers.
-internal struct WrappedSource {
+package struct WrappedSource {
   /// The original input path, used for the `#sourceLocation` directive.
   private let originalPath: String
   /// Top-level `import` declarations hoisted above the wrapper body, each already
@@ -52,7 +52,7 @@ internal struct WrappedSource {
   /// remaining body along with the line it begins on. Everything before the first
   /// non-import statement that *is* an import gets hoisted; anything before that
   /// which is *not* an import stays in the body (e.g. a leading `// comment`).
-  internal init(source: String, originalPath: String) {
+  package init(source: String, originalPath: String) {
     self.originalPath = originalPath
 
     // Parse the input with SwiftSyntax. The location converter is needed to
@@ -92,7 +92,7 @@ internal struct WrappedSource {
 
   /// A complete Swift program that imports SyntaxKit, runs the body inside a
   /// `Group { … }` builder, and prints the generated code.
-  internal var rendered: String {
+  package var rendered: String {
     // Render the hoisted-imports block. Trailing newline only if non-empty so
     // the wrapper doesn't grow an extra blank line in the common no-imports
     // case.

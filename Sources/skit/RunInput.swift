@@ -29,7 +29,6 @@
 
 #if canImport(Subprocess)
 
-  import ArgumentParser
   import Foundation
 
   /// Whether a `skit run` input path resolves to a single `.swift` file or a
@@ -44,16 +43,16 @@
     case directory(inputDir: String, outputDir: String)
 
     /// Classifies `input` by stat: existing directory → `.directory`,
-    /// existing file → `.singleFile`. Throws a `ValidationError` if the path
+    /// existing file → `.singleFile`. Throws `RunError.invalidInput` if the path
     /// doesn't exist, or if a directory input wasn't given an explicit `-o`.
-    internal static func resolve(input: String, output: String?) throws -> RunInput {
+    internal static func resolve(input: String, output: String?) throws(RunError) -> RunInput {
       var isDirectory: ObjCBool = false
       guard FileManager.default.fileExists(atPath: input, isDirectory: &isDirectory) else {
-        throw ValidationError("input does not exist: \(input)")
+        throw RunError.invalidInput("input does not exist: \(input)")
       }
       if isDirectory.boolValue {
         guard let output else {
-          throw ValidationError("directory inputs require -o <output-dir>")
+          throw RunError.invalidInput("directory inputs require -o <output-dir>")
         }
         return .directory(inputDir: input, outputDir: output)
       }

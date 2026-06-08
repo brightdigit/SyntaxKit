@@ -29,6 +29,7 @@
 
 import ArgumentParser
 import Foundation
+import SyntaxKit
 
 extension Skit {
   /// Render one or more SyntaxKit DSL files into Swift source.
@@ -133,8 +134,9 @@ extension Skit {
 
         // 6. Hand the input off to the runner: it classifies single-file vs.
         // directory mode (validating existence and the `-o` requirement) and
-        // renders accordingly, surfacing batch exit codes via ExitCode.
-        try await runner(input: input, output: output)
+        // renders accordingly, reporting failures via the typed `RunError`.
+        // The command layer owns the mapping from failure to process exit.
+        try await render(using: runner, input: input, output: output)
       #else
         // Subprocess is the only backend skit knows how to use to spawn
         // `swift`/`swiftc`. Without it (Windows, embedded), `run` cannot work.
@@ -152,6 +154,24 @@ extension Skit {
   import Subprocess
 
   extension Skit.Run {
+    /// Drives `runner` and translates its typed `RunError` into the process
+    /// exit behaviour the CLI promises: usage errors surface via ArgumentParser's
+    /// `ValidationError` (exit 64), render/batch failures via `ExitCode`, and
+    /// anything unexpected is rethrown for ArgumentParser to print (exit 1).
+    fileprivate func render(using runner: Runner, input: String, output: String?) async throws {
+      do {
+        try await runner(input: input, output: output)
+      } catch .invalidInput(let message) {
+        throw ValidationError(message)
+      } catch .renderFailed(let exitCode) {
+        throw ExitCode(exitCode)
+      } catch .batchFailed {
+        throw ExitCode(1)
+      } catch .unexpected(let underlying) {
+        throw underlying
+      }
+    }
+
     /// Verbatim `swift --version` output, or nil on spawn failure. Capped at 4 KiB.
     fileprivate func captureSwiftVersion() async -> String? {
       let result = try? await Subprocess.run(

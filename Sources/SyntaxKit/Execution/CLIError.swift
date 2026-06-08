@@ -1,5 +1,5 @@
 //
-//  Task+Timeout.swift
+//  CLIError.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,25 +27,13 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-extension Task where Failure == any Error, Success: Sendable {
-  /// Runs `operation`, returning its value, or `nil` if `duration` elapses
-  /// first. The operation and a sleep watchdog race in a throwing task group;
-  /// whichever finishes first wins and the loser is cancelled.
-  internal static func timeout(
-    _ duration: Duration,
-    operation: @escaping @Sendable () async throws -> Success
-  ) async throws -> Success? {
-    try await withThrowingTaskGroup(of: Success?.self) { group in
-      group.addTask { try await operation() }
-      group.addTask {
-        // Bare `Task` here means `Task<Success, any Error>`, which has no
-        // `sleep`; spell out the never-returning task to reach it.
-        try await Task<Never, Never>.sleep(for: duration)
-        return nil
-      }
-      let first = try await group.next()!
-      group.cancelAll()
-      return first
-    }
+/// Throwable error wrapper for skit's user-facing diagnostics. The message
+/// is printed verbatim — keep it actionable (path, hint, next step).
+package struct CLIError: Error, CustomStringConvertible {
+  package let message: String
+  package var description: String { message }
+
+  package init(message: String) {
+    self.message = message
   }
 }

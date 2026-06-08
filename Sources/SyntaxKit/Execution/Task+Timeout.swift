@@ -1,5 +1,5 @@
 //
-//  ProcessResult.swift
+//  Task+Timeout.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,17 +27,25 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
-
-  import Foundation
-
-  /// Raw outcome of rendering one input — what `processFile` returns to its
-  /// caller. `exitCode == 0` indicates the spawned `swift` succeeded (or that
-  /// the output cache hit, which is treated identically).
-  internal struct ProcessResult: Sendable {
-    let exitCode: Int32
-    let stdout: Data
-    let stderr: String
+extension Task where Failure == any Error, Success: Sendable {
+  /// Runs `operation`, returning its value, or `nil` if `duration` elapses
+  /// first. The operation and a sleep watchdog race in a throwing task group;
+  /// whichever finishes first wins and the loser is cancelled.
+  package static func timeout(
+    _ duration: Duration,
+    operation: @escaping @Sendable () async throws -> Success
+  ) async throws -> Success? {
+    try await withThrowingTaskGroup(of: Success?.self) { group in
+      group.addTask { try await operation() }
+      group.addTask {
+        // Bare `Task` here means `Task<Success, any Error>`, which has no
+        // `sleep`; spell out the never-returning task to reach it.
+        try await Task<Never, Never>.sleep(for: duration)
+        return nil
+      }
+      let first = try await group.next()!
+      group.cancelAll()
+      return first
+    }
   }
-
-#endif
+}

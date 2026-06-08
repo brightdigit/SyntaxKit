@@ -29,9 +29,9 @@
 
 #if canImport(Subprocess)
 
-  import ArgumentParser
   import Foundation
   import Subprocess
+  import SyntaxKit
 
   // Run lifecycle (per `skit run` invocation):
   //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
@@ -64,19 +64,28 @@
 
     // MARK: - Dispatch
 
-    /// Classifies `input` (single file vs. directory) and renders it. Directory
-    /// mode surfaces its batch exit code via `ExitCode` (so a partial-failure
-    /// batch returns 1); single-file mode renders to file/stdout and may call
-    /// `exit()` directly on a non-zero subprocess result. Throws a
-    /// `ValidationError` if the path doesn't exist, or if a directory input
-    /// wasn't given an explicit `-o`.
-    func callAsFunction(input: String, output: String?) async throws {
+    /// Classifies `input` (single file vs. directory) and renders it, reporting
+    /// failures via the typed `RunError` so the caller — not this engine — owns
+    /// the process exit status. Directory mode throws `.batchFailed` on a
+    /// partial-failure batch; single-file mode throws `.renderFailed` on a
+    /// non-zero subprocess result. `.invalidInput` propagates from
+    /// `RunInput.resolve`; any Foundation/Subprocess failure is wrapped in
+    /// `.unexpected`. On success it returns normally (exit 0).
+    internal func callAsFunction(input: String, output: String?) async throws(RunError) {
       switch try RunInput.resolve(input: input, output: output) {
       case .directory(let inputDir, let outputDir):
         let exitCode = await runDirectory(inputDir: inputDir, outputDir: outputDir)
-        throw ExitCode(exitCode)
+        if exitCode != 0 {
+          throw RunError.batchFailed
+        }
       case .singleFile(let inputPath, let outputPath):
-        try await runSingleFile(inputPath: inputPath, outputPath: outputPath)
+        do {
+          try await runSingleFile(inputPath: inputPath, outputPath: outputPath)
+        } catch let error as RunError {
+          throw error
+        } catch {
+          throw RunError.unexpected(error)
+        }
       }
     }
 
@@ -84,9 +93,9 @@
 
     /// Runs `processFile` on a single input and writes its rendered Swift to
     /// `outputPath` (or stdout when nil). Any stderr from the spawned `swift`
-    /// is surfaced verbatim. On a non-zero subprocess exit, calls `exit()`
-    /// directly — the caller in `Skit.Run.run()` won't see a thrown error in
-    /// that path.
+    /// is surfaced verbatim. On a non-zero subprocess exit, throws
+    /// `RunError.renderFailed` carrying that code — the caller in `Skit.Run.run`
+    /// maps it to the process exit. We don't write partial output in that case.
     private func runSingleFile(inputPath: String, outputPath: String?) async throws {
       // Render the input. `processFile` may hit the output cache and skip the
       // spawn entirely; either way the result has the same shape.
@@ -95,10 +104,10 @@
       if !result.stderr.isEmpty {
         FileHandle.standardError.write(Data(result.stderr.utf8))
       }
-      // Non-zero subprocess exit propagates as a process exit. We don't write
-      // partial output in that case.
+      // Non-zero subprocess exit is reported as a typed failure carrying the
+      // code; the command layer turns it into the process exit status.
       guard result.exitCode == 0 else {
-        exit(result.exitCode)
+        throw RunError.renderFailed(exitCode: result.exitCode)
       }
       // Deliver the rendered output to file or stdout.
       if let outputPath {

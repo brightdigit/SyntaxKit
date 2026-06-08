@@ -27,37 +27,33 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
+import Foundation
 
-  import Foundation
+/// Non-cryptographic 64-bit FNV-1a hasher used to derive content-addressed
+/// cache keys. The cache keys aren't security-critical — there's no
+/// adversary trying to forge a collision — so we don't need a cryptographic
+/// hash. 64 bits of output gives ~10⁻⁹ collision probability at 10⁶ cache
+/// entries, which is well past anything we'll see in practice.
+///
+/// FNV-1a is deterministic across processes and platforms (unlike the Swift
+/// stdlib `Hasher`, whose seed is randomized per-process) — that
+/// determinism is what makes it usable as an on-disk cache key.
+internal struct ContentHasher {
+  private static let offsetBasis: UInt64 = 0xcbf2_9ce4_8422_2325
+  private static let prime: UInt64 = 0x0000_0100_0000_01b3
 
-  /// Non-cryptographic 64-bit FNV-1a hasher used to derive content-addressed
-  /// cache keys. The cache keys aren't security-critical — there's no
-  /// adversary trying to forge a collision — so we don't need a cryptographic
-  /// hash. 64 bits of output gives ~10⁻⁹ collision probability at 10⁶ cache
-  /// entries, which is well past anything we'll see in practice.
-  ///
-  /// FNV-1a is deterministic across processes and platforms (unlike the Swift
-  /// stdlib `Hasher`, whose seed is randomized per-process) — that
-  /// determinism is what makes it usable as an on-disk cache key.
-  internal struct ContentHasher {
-    private static let offsetBasis: UInt64 = 0xcbf2_9ce4_8422_2325
-    private static let prime: UInt64 = 0x0000_0100_0000_01b3
+  private var state: UInt64 = ContentHasher.offsetBasis
 
-    private var state: UInt64 = ContentHasher.offsetBasis
-
-    internal mutating func update(data: Data) {
-      for byte in data {
-        state ^= UInt64(byte)
-        state &*= ContentHasher.prime
-      }
-    }
-
-    /// Returns the hash as a 16-char lowercase-hex string suitable for use as
-    /// a directory name.
-    internal func finalize() -> String {
-      String(format: "%016x", state)
+  internal mutating func update(data: Data) {
+    for byte in data {
+      state ^= UInt64(byte)
+      state &*= ContentHasher.prime
     }
   }
 
-#endif
+  /// Returns the hash as a 16-char lowercase-hex string suitable for use as
+  /// a directory name.
+  internal func finalize() -> String {
+    String(format: "%016x", state)
+  }
+}
