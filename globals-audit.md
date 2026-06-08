@@ -16,8 +16,6 @@ All inside `#if canImport(Subprocess)`.
 
 ### Functions
 - [ ] L66 — `internal func resolveHelpers(nearInputPath path: String, libPath: String, options: HelpersOptions) async throws -> CompiledHelpers?`
-- [ ] L109 — `internal func resolveLibPath(override: String?) throws -> String`
-- [ ] L147 — `private func isLibDir(_ path: String) -> Bool`
 - [ ] L173 — `internal func toolchainCheck(libPath: String) async -> ToolchainCheckResult`
 - [ ] L194 — `internal func toolchainMismatchMessage(bundle: String, local: String) -> String`
 - [ ] L218 — `internal func runSingleFile(inputPath:outputPath:libPath:helpers:useCache:timeoutSeconds:) async throws`
@@ -85,10 +83,10 @@ All inside `#if canImport(Subprocess)`.
 
 | Target | Global funcs | Global vars |
 |---|---:|---:|
-| skit / Runner.swift | 14 | 4 |
+| skit / Runner.swift | 12 | 4 |
 | skit / Helpers.swift | 9 | 2 |
 | skit / OutputCache.swift | 4 | 1 |
 | DocumentationHarness / Validator.swift | 0 | 1 |
-| **Total** | **27** | **8** |
+| **Total** | **25** | **8** |
 
 All `skit` globals are free functions/constants inside `#if canImport(Subprocess)` — a deliberate CLI style. `privateDefaultPathExtensions` is the lone non-skit global (a linter reverted an earlier attempt to nest it).

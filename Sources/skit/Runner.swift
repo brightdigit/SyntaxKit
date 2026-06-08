@@ -35,7 +35,7 @@
   import SwiftSyntax
 
   // Run lifecycle (per `skit run` invocation):
-  //   1. resolveLibPath               — find lib/ (explicit flag → env → adjacent → brew)
+  //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
   //   2. ToolchainCheckResult.init    — compare bundle stamp to `swift --version`
   //   3. CompiledHelpers.init         — discover + compile Helpers/ (memoised on disk)
   //   4. runSingleFile / runDirectory — dispatch to single- or batch-input mode
@@ -43,56 +43,6 @@
   //   6. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
   //   7. runSwift                     — spawn `swift` with timeout watchdog
   // See Docs/skit.md for design rationale and trade-offs.
-
-  // MARK: - Resource location
-
-  /// Resolves the directory containing `libSyntaxKit.dylib` + module files,
-  /// in priority order: explicit flag → env var → adjacent-to-binary
-  /// (`<bin-dir>/lib/`) → Homebrew layout (`<bin-dir>/../lib/skit/`).
-  internal func resolveLibPath(override: String?) throws -> String {
-    if let override {
-      guard isLibDir(override) else {
-        throw CLIError(message: "--lib path does not look like a SyntaxKit lib dir: \(override)")
-      }
-      return override
-    }
-
-    if let env = ProcessInfo.processInfo.environment["SKIT_LIB_DIR"], !env.isEmpty {
-      guard isLibDir(env) else {
-        throw CLIError(message: "SKIT_LIB_DIR is set but path is not a lib dir: \(env)")
-      }
-      return env
-    }
-
-    if let execURL = Bundle.main.executableURL?.resolvingSymlinksInPath() {
-      let execDir = execURL.deletingLastPathComponent()
-
-      let adjacent = execDir.appendingPathComponent("lib").path
-      if isLibDir(adjacent) { return adjacent }
-
-      let brewLayout = execDir.deletingLastPathComponent()
-        .appendingPathComponent("lib/skit").path
-      if isLibDir(brewLayout) { return brewLayout }
-    }
-
-    throw CLIError(
-      message: """
-        Could not locate SyntaxKit lib directory. Looked for:
-          1. --lib <dir>           (not provided)
-          2. $SKIT_LIB_DIR         (not set)
-          3. <binary-dir>/lib/     (not found)
-          4. <binary-dir>/../lib/skit/  (not found)
-        Run Scripts/build-skit-release.sh to produce a self-contained
-        release bundle under .build/skit-release/.
-        """)
-  }
-
-  private func isLibDir(_ path: String) -> Bool {
-    let fm = FileManager.default
-    var isDir: ObjCBool = false
-    guard fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { return false }
-    return fm.fileExists(atPath: "\(path)/\(dylibFilename(forLibrary: "SyntaxKit"))")
-  }
 
   // MARK: - Toolchain check
 

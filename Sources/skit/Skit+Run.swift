@@ -103,7 +103,10 @@ extension Skit {
         // live. The error message lists the four lookup paths in priority order.
         let libPath: String
         do {
-          libPath = try resolveLibPath(override: self.libPath)
+          let envLibPath = ProcessInfo.processInfo.environment["SKIT_LIB_DIR"].flatMap {
+            $0.isEmpty ? nil : $0
+          }
+          libPath = try Bundle.main.resolveLibPath(candidates: self.libPath, envLibPath)
         } catch {
           FileHandle.standardError.write(Data("\(error)\n".utf8))
           throw ExitCode(2)
