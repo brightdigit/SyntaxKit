@@ -48,14 +48,6 @@
   /// Bumped when the cache layout changes in a way that requires invalidation.
   private let helpersCacheSchemaVersion = "v1"
 
-  /// A compiled `Helpers/` directory ready to splice into the input spawn.
-  internal struct CompiledHelpers: Sendable {
-    /// Directory containing `libSyntaxKitHelpers.dylib` + `.swiftmodule` files.
-    let outputDir: URL
-    /// Whether the build was reused from cache (false = freshly compiled).
-    let cacheHit: Bool
-  }
-
   // MARK: - Discovery
 
   /// Walks up from `inputURL` looking for a `Helpers/` directory. Returns the

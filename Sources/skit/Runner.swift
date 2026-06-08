@@ -36,70 +36,13 @@
 
   // Run lifecycle (per `skit run` invocation):
   //   1. resolveLibPath               — find lib/ (explicit flag → env → adjacent → brew)
-  //   2. toolchainCheck               — compare bundle stamp to `swift --version`
-  //   3. resolveHelpers               — discover + compile Helpers/ (memoised on disk)
+  //   2. ToolchainCheckResult.init    — compare bundle stamp to `swift --version`
+  //   3. CompiledHelpers.init         — discover + compile Helpers/ (memoised on disk)
   //   4. runSingleFile / runDirectory — dispatch to single- or batch-input mode
   //   5. processFile (per input)      — load → cache lookup → wrap → spawn → cache store
   //   6. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
   //   7. runSwift                     — spawn `swift` with timeout watchdog
   // See Docs/skit.md for design rationale and trade-offs.
-
-  // MARK: - Helpers resolution
-
-  /// How `skit run` should treat a `Helpers/` directory for this invocation.
-  internal enum HelpersOptions {
-    /// Walk up from the input looking for `Helpers/`. The default.
-    case auto
-    /// Skip helpers discovery entirely (`--no-helpers`). The wrapped input
-    /// won't be able to `import SyntaxKitHelpers`.
-    case disabled
-    /// Use the directory at the given path (`--helpers <dir>`). Validated as
-    /// an existing directory in `resolveHelpers`.
-    case explicit(String)
-  }
-
-  /// Resolves a `Helpers/` directory and compiles it (or returns the cached
-  /// build). Returns nil when helpers are disabled, when no `Helpers/` was
-  /// found in auto mode, or when the directory exists but contains no `.swift`
-  /// sources. On success, writes a one-line "skit: helpers cached/compiled at
-  /// <path>" note to stderr so users can see whether the cache hit.
-  internal func resolveHelpers(
-    nearInputPath path: String,
-    libPath: String,
-    options: HelpersOptions
-  ) async throws -> CompiledHelpers? {
-    // Pick the helpers dir according to the mode: walk up the tree, accept an
-    // explicit override (after validating it's a directory), or bail out.
-    let helpersDir: URL?
-    switch options {
-    case .disabled:
-      return nil
-    case .auto:
-      helpersDir = discoverHelpersDir(near: URL(fileURLWithPath: path).standardizedFileURL)
-    case .explicit(let dir):
-      let url = URL(fileURLWithPath: dir).standardizedFileURL
-      var isDir: ObjCBool = false
-      guard FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir),
-        isDir.boolValue
-      else {
-        throw CLIError(message: "--helpers path is not a directory: \(dir)")
-      }
-      helpersDir = url
-    }
-    guard let helpersDir else { return nil }
-
-    // Compile (or reuse the cached build). An empty Helpers/ dir is treated
-    // as "no helpers" rather than an error.
-    guard let compiled = try await buildHelpers(helpersDir: helpersDir, libPath: libPath) else {
-      return nil
-    }
-    let suffix = compiled.cacheHit ? "cached" : "compiled"
-    FileHandle.standardError.write(
-      Data(
-        "skit: helpers \(suffix) at \(helpersDir.path)\n".utf8
-      ))
-    return compiled
-  }
 
   // MARK: - Resource location
 
@@ -152,44 +95,6 @@
   }
 
   // MARK: - Toolchain check
-
-  /// Filename for the bundle's recorded build-toolchain version.
-  internal let toolchainStampFilename = "swift-version.txt"
-
-  internal enum ToolchainCheckResult {
-    /// Bundle stamp matches the local `swift --version` exactly.
-    case match
-    /// `<libPath>/swift-version.txt` is missing (older bundle that predates
-    /// the stamp). skit prints a one-line note and proceeds.
-    case stampMissing
-    case mismatch(bundle: String, local: String)
-  }
-
-  /// Compares `<libPath>/swift-version.txt` to `captureSwiftVersion()`.
-  /// The swiftmodule format isn't reliably forward-compatible across even
-  /// patch-level Swift releases (originating bug: 6.3.0 → 6.3.2 rejected the
-  /// swiftmodule), so the comparison is exact-string after normalising
-  /// trailing whitespace.
-  internal func toolchainCheck(libPath: String) async -> ToolchainCheckResult {
-    let stampURL = URL(fileURLWithPath: libPath).appendingPathComponent(toolchainStampFilename)
-    guard let stampData = try? Data(contentsOf: stampURL),
-      let stampRaw = String(data: stampData, encoding: .utf8)
-    else {
-      FileHandle.standardError.write(
-        Data("skit: bundle has no toolchain stamp; skipping check\n".utf8)
-      )
-      return .stampMissing
-    }
-    guard let localRaw = await captureSwiftVersion() else {
-      FileHandle.standardError.write(
-        Data("skit: could not capture local `swift --version`; skipping toolchain check\n".utf8)
-      )
-      return .stampMissing
-    }
-    let bundle = stampRaw.trimmingCharacters(in: .whitespacesAndNewlines)
-    let local = localRaw.trimmingCharacters(in: .whitespacesAndNewlines)
-    return bundle == local ? .match : .mismatch(bundle: bundle, local: local)
-  }
 
   internal func toolchainMismatchMessage(bundle: String, local: String) -> String {
     """
@@ -358,13 +263,6 @@
     return failed == 0 ? 0 : 1
   }
 
-  /// Result of processing one input in directory mode. The error case is
-  /// stored (not thrown) so the batch can keep going.
-  private struct FileOutcome: Sendable {
-    let input: URL
-    let result: Result<ProcessResult, any Error>
-  }
-
   /// `processFile` adapter that catches errors into the `FileOutcome` result
   /// so a single failure doesn't tear down the surrounding `TaskGroup`.
   private func runOne(
@@ -439,15 +337,6 @@
 
   // MARK: - Per-file work
 
-  /// Raw outcome of rendering one input — what `processFile` returns to its
-  /// caller. `exitCode == 0` indicates the spawned `swift` succeeded (or that
-  /// the output cache hit, which is treated identically).
-  private struct ProcessResult: Sendable {
-    let exitCode: Int32
-    let stdout: Data
-    let stderr: String
-  }
-
   /// The per-input render pipeline: load source → consult the output cache →
   /// (on miss) wrap → spawn `swift` → rewrite diagnostics → store the result
   /// in the cache. The temp wrapper file is created in a per-run tmp dir and
@@ -514,13 +403,6 @@
     }
 
     return ProcessResult(exitCode: raw.exitCode, stdout: raw.stdout, stderr: stderr)
-  }
-
-  /// Throwable error wrapper for skit's user-facing diagnostics. The message
-  /// is printed verbatim — keep it actionable (path, hint, next step).
-  internal struct CLIError: Error, CustomStringConvertible {
-    let message: String
-    var description: String { message }
   }
 
   // MARK: - Wrapping
@@ -606,14 +488,6 @@
   /// SubprocessError rather than a silent truncation.
   private let stdoutLimitBytes: Int = 16 * 1_024 * 1_024
   private let stderrLimitBytes: Int = 1 * 1_024 * 1_024
-
-  /// Either the spawned `swift` ran to completion (success or failure) or
-  /// the watchdog elapsed first. The completed payload is normalized to the
-  /// shape callers want regardless of platform.
-  private enum SwiftRunOutcome: Sendable {
-    case completed(exitCode: Int32, stdout: Data, stderr: String)
-    case timedOut
-  }
 
   /// Spawns `swift` (script-mode interpreter) on the wrapped input file,
   /// optionally splicing in flags to import a precompiled helpers module.

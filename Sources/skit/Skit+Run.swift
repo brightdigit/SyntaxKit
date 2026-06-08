@@ -114,7 +114,7 @@ extension Skit {
         // versions, so a mismatch produces a clear error rather than letting
         // the spawned `swift` emit a cryptic module-version diagnostic.
         if !noToolchainCheck {
-          switch await toolchainCheck(libPath: libPath) {
+          switch await ToolchainCheckResult(libPath: libPath) {
           case .match, .stampMissing:
             break
           case .mismatch(let bundle, let local):
@@ -125,7 +125,7 @@ extension Skit {
         }
 
         // 3. Decide which helpers-resolution mode this invocation is in.
-        // The actual discovery / compilation happens later in `resolveHelpers`.
+        // The actual discovery / compilation happens later in `CompiledHelpers.init`.
         let helpersOptions: HelpersOptions
         if noHelpers {
           helpersOptions = .disabled
@@ -150,7 +150,7 @@ extension Skit {
           // 5a. Resolve helpers relative to the input root. This is the only
           // place we compile `Helpers/`; the result is reused across every
           // input file in the directory.
-          let helpers = try await resolveHelpers(
+          let helpers = try await CompiledHelpers(
             nearInputPath: input,
             libPath: libPath,
             options: helpersOptions
@@ -168,7 +168,7 @@ extension Skit {
           throw ExitCode(exitCode)
         } else {
           // 5b. Resolve helpers relative to this single file's parent.
-          let helpers = try await resolveHelpers(
+          let helpers = try await CompiledHelpers(
             nearInputPath: input,
             libPath: libPath,
             options: helpersOptions
