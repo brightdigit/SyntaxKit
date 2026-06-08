@@ -43,25 +43,6 @@
   //   6. runSwift                     — spawn `swift` with timeout watchdog
   // See Docs/skit.md for design rationale and trade-offs.
 
-  // MARK: - Toolchain check
-
-  internal func toolchainMismatchMessage(bundle: String, local: String) -> String {
-    """
-    skit: toolchain mismatch
-      bundle: \(bundle)
-      local:  \(local)
-    The bundle's libSyntaxKit was built against a different `swift` than the
-    one on your PATH. Swift swiftmodules aren't reliably compatible across
-    versions, so spawning `swift` would fail with a cryptic module-version
-    diagnostic.
-
-    Rebuild the bundle with:
-      Scripts/build-skit-release.sh
-    Or pass --no-toolchain-check to try anyway.
-
-    """
-  }
-
   // MARK: - Single-file mode
 
   /// Runs `processFile` on a single input and writes its rendered Swift to

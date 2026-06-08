@@ -15,7 +15,7 @@ Generated: 2026-06-08. Branch: `research/swift-manifest-codegen`.
 All inside `#if canImport(Subprocess)`.
 
 ### Functions
-- [ ] L48 — `internal func toolchainMismatchMessage(bundle: String, local: String) -> String`
+- [x] `toolchainMismatchMessage(bundle:local:)` → `fileprivate` method on `Skit.Run` in `Skit+Run.swift`.
 - [ ] L72 — `internal func runSingleFile(inputPath:outputPath:libPath:useCache:timeoutSeconds:) async throws`
 - [ ] L110 — `internal func runDirectory(inputDir:outputDir:libPath:useCache:timeoutSeconds:) async -> Int32`
 - [ ] L213 — `private func runOne(_ input: URL, libPath:useCache:timeoutSeconds:) async -> FileOutcome`
@@ -51,10 +51,10 @@ Resolved — file removed. Both globals were lifted into types/extensions:
 
 | Target | Global funcs | Global vars |
 |---|---:|---:|
-| skit / Runner.swift | 9 | 3 |
+| skit / Runner.swift | 8 | 3 |
 | skit / Toolchain.swift (removed) | 0 | 0 |
 | skit / OutputCache.swift | 0 | 0 |
 | DocumentationHarness / Validator.swift | 0 | 1 |
-| **Total** | **9** | **4** |
+| **Total** | **8** | **4** |
 
 The remaining `skit` globals are free functions/constants inside `#if canImport(Subprocess)` in `Runner.swift` — a deliberate CLI style. `privateDefaultPathExtensions` is the lone non-skit global (a linter reverted an earlier attempt to nest it).

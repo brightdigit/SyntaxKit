@@ -188,6 +188,25 @@ extension Skit {
       )
       return result?.standardOutput
     }
+
+    /// Human-readable error emitted when the bundle's recorded `swift --version`
+    /// differs from the local one, explaining why and how to recover.
+    fileprivate func toolchainMismatchMessage(bundle: String, local: String) -> String {
+      """
+      skit: toolchain mismatch
+        bundle: \(bundle)
+        local:  \(local)
+      The bundle's libSyntaxKit was built against a different `swift` than the
+      one on your PATH. Swift swiftmodules aren't reliably compatible across
+      versions, so spawning `swift` would fail with a cryptic module-version
+      diagnostic.
+
+      Rebuild the bundle with:
+        Scripts/build-skit-release.sh
+      Or pass --no-toolchain-check to try anyway.
+
+      """
+    }
   }
 
 #endif
