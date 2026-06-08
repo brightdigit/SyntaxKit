@@ -12,23 +12,16 @@ Generated: 2026-06-08. Branch: `research/swift-manifest-codegen`.
 
 ## Sources/skit/Runner.swift
 
-All inside `#if canImport(Subprocess)`.
-
-### Functions
-- [x] `toolchainMismatchMessage(bundle:local:)` → `fileprivate` method on `Skit.Run` in `Skit+Run.swift`.
-- [ ] L72 — `internal func runSingleFile(inputPath:outputPath:libPath:useCache:timeoutSeconds:) async throws`
-- [ ] L110 — `internal func runDirectory(inputDir:outputDir:libPath:useCache:timeoutSeconds:) async -> Int32`
-- [ ] L213 — `private func runOne(_ input: URL, libPath:useCache:timeoutSeconds:) async -> FileOutcome`
-- [ ] L235 — `private func collectInputs(at inputDir: URL) throws -> [URL]`
-- [ ] L267 — `private func processFile(inputPath:libPath:useCache:timeoutSeconds:) async throws -> ProcessResult`
-- [ ] L336 — `private func wrap(source: String, originalPath: String) -> String`
-- [ ] L417 — `private func runSwift(wrappedPath:libPath:timeoutSeconds:) async throws -> ProcessResult`
-- [ ] L486 — `private func exitCode(from status: TerminationStatus) -> Int32`
-
-### Variables
-- [ ] L405 — `private let timeoutExitCode: Int32 = 124`
-- [ ] L410 — `private let stdoutLimitBytes: Int = 16 * 1_024 * 1_024`
-- [ ] L411 — `private let stderrLimitBytes: Int = 1 * 1_024 * 1_024`
+Resolved — all eight functions and three constants were lifted into a new
+`internal struct Runner: Sendable` (in the same file) that holds the
+per-invocation configuration (`libPath`, `cache`, `timeoutSeconds`). The lone
+`internal` entry point is `callAsFunction(input:output:)` (invoked as
+`runner(input:output:)`); everything else is private:
+- [x] `runSingleFile` / `runDirectory` → **private** mode methods, dispatched by `callAsFunction` via `RunInput`.
+- [x] `runOne` / `processFile` / `runSwift` → config-dependent private instance methods.
+- [x] `collectInputs` / `wrap` / `exitCode` → pure `private static` methods.
+- [x] `timeoutExitCode` / `stdoutLimitBytes` / `stderrLimitBytes` → `private static let` constants.
+- [x] `toolchainMismatchMessage(bundle:local:)` → `fileprivate` method on `Skit.Run` in `Skit+Run.swift` (moved earlier).
 
 ---
 
@@ -51,10 +44,10 @@ Resolved — file removed. Both globals were lifted into types/extensions:
 
 | Target | Global funcs | Global vars |
 |---|---:|---:|
-| skit / Runner.swift | 8 | 3 |
+| skit / Runner.swift | 0 | 0 |
 | skit / Toolchain.swift (removed) | 0 | 0 |
 | skit / OutputCache.swift | 0 | 0 |
 | DocumentationHarness / Validator.swift | 0 | 1 |
-| **Total** | **8** | **4** |
+| **Total** | **0** | **1** |
 
-The remaining `skit` globals are free functions/constants inside `#if canImport(Subprocess)` in `Runner.swift` — a deliberate CLI style. `privateDefaultPathExtensions` is the lone non-skit global (a linter reverted an earlier attempt to nest it).
+All `skit` file-scope globals have been lifted into types/extensions. `privateDefaultPathExtensions` in `DocumentationHarness/Validator.swift` is the lone remaining global (a linter reverted an earlier attempt to nest it).

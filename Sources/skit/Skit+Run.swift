@@ -36,7 +36,7 @@ extension Skit {
   /// `Run` is the default subcommand. It accepts either a single `.swift`
   /// file or a directory of `.swift` files; in directory mode the rendered
   /// output is written into a mirrored tree under `-o`. The actual work is
-  /// delegated to free functions in `Runner.swift`.
+  /// delegated to a `Runner` value (`Runner.swift`).
   internal struct Run: AsyncParsableCommand {
     internal static let configuration = CommandConfiguration(
       commandName: "run",
@@ -127,40 +127,14 @@ extension Skit {
         // doesn't re-spawn `swift`.
         let cache: OutputCache? = noCache ? nil : OutputCache(swiftVersion: swiftVersion)
 
-        // 5. Stat the input to pick single-file vs. directory mode. Directory
-        // mode requires an explicit `-o` output dir; single-file mode falls
-        // back to stdout.
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(atPath: input, isDirectory: &isDirectory) else {
-          throw ValidationError("input does not exist: \(input)")
-        }
+        // 5. Bind the per-invocation configuration into a Runner so the input
+        // orchestration doesn't have to thread libPath/cache/timeout around.
+        let runner = Runner(libPath: libPath, cache: cache, timeoutSeconds: timeoutSeconds)
 
-        if isDirectory.boolValue {
-          guard let output else {
-            throw ValidationError("directory inputs require -o <output-dir>")
-          }
-          // 6a. Hand off to the directory orchestrator and surface its exit
-          // code via ExitCode (so a partial-failure batch returns 1).
-          let exitCode = await runDirectory(
-            inputDir: input,
-            outputDir: output,
-            libPath: libPath,
-            cache: cache,
-            timeoutSeconds: timeoutSeconds
-          )
-          throw ExitCode(exitCode)
-        } else {
-          // 6b. Hand off to the single-file orchestrator. It calls `exit()`
-          // directly on non-zero subprocess exit, so a thrown ExitCode here
-          // would be unreachable in that path.
-          try await runSingleFile(
-            inputPath: input,
-            outputPath: output,
-            libPath: libPath,
-            cache: cache,
-            timeoutSeconds: timeoutSeconds
-          )
-        }
+        // 6. Hand the input off to the runner: it classifies single-file vs.
+        // directory mode (validating existence and the `-o` requirement) and
+        // renders accordingly, surfacing batch exit codes via ExitCode.
+        try await runner(input: input, output: output)
       #else
         // Subprocess is the only backend skit knows how to use to spawn
         // `swift`/`swiftc`. Without it (Windows, embedded), `run` cannot work.
