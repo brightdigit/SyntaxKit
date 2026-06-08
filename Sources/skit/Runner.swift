@@ -73,7 +73,7 @@
     inputPath: String,
     outputPath: String?,
     libPath: String,
-    useCache: Bool,
+    cache: OutputCache?,
     timeoutSeconds: Int
   ) async throws {
     // Render the input. `processFile` may hit the output cache and skip the
@@ -81,7 +81,7 @@
     let result = try await processFile(
       inputPath: inputPath,
       libPath: libPath,
-      useCache: useCache,
+      cache: cache,
       timeoutSeconds: timeoutSeconds
     )
     // Surface diagnostics from the spawned `swift` before deciding success.
@@ -111,7 +111,7 @@
     inputDir: String,
     outputDir: String,
     libPath: String,
-    useCache: Bool,
+    cache: OutputCache?,
     timeoutSeconds: Int
   ) async -> Int32 {
     let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
@@ -145,7 +145,7 @@
         group.addTask {
           await runOne(
             next, libPath: libPath,
-            useCache: useCache, timeoutSeconds: timeoutSeconds
+            cache: cache, timeoutSeconds: timeoutSeconds
           )
         }
       }
@@ -156,7 +156,7 @@
           group.addTask {
             await runOne(
               next, libPath: libPath,
-              useCache: useCache, timeoutSeconds: timeoutSeconds
+              cache: cache, timeoutSeconds: timeoutSeconds
             )
           }
         }
@@ -213,14 +213,14 @@
   private func runOne(
     _ input: URL,
     libPath: String,
-    useCache: Bool,
+    cache: OutputCache?,
     timeoutSeconds: Int
   ) async -> FileOutcome {
     do {
       let result = try await processFile(
         inputPath: input.path,
         libPath: libPath,
-        useCache: useCache,
+        cache: cache,
         timeoutSeconds: timeoutSeconds
       )
       return FileOutcome(input: input, result: .success(result))
@@ -267,7 +267,7 @@
   private func processFile(
     inputPath: String,
     libPath: String,
-    useCache: Bool,
+    cache: OutputCache?,
     timeoutSeconds: Int
   ) async throws -> ProcessResult {
     // Load the input source. Anything past this point keys off these bytes.
@@ -275,12 +275,11 @@
     let absoluteInputPath = inputURL.path
     let source = try String(contentsOf: inputURL, encoding: .utf8)
 
-    // Compute the output cache key (skipped under `--no-cache`, or if the
-    // cache root can't be derived). Mixes input bytes, toolchain version,
-    // libSyntaxKit stamp, and sorted SKIT_*/SYNTAXKIT_* env vars — see
-    // `OutputCache.key(forInput:libPath:)`.
-    let cache: OutputCache? = useCache ? try? OutputCache() : nil
-    let cacheKey: String? = await cache?.key(forInput: source, libPath: libPath)
+    // Compute the output cache key (nil under `--no-cache` or when the cache
+    // root couldn't be derived at startup). Mixes input bytes, toolchain
+    // version, libSyntaxKit stamp, and sorted SKIT_*/SYNTAXKIT_* env vars
+    // — see `OutputCache.key(forInput:libPath:)`.
+    let cacheKey: String? = cache?.key(forInput: source, libPath: libPath)
     // Cache hit: skip the wrap+spawn entirely and return the stored output.
     if let cache, let cacheKey, let cached = cache.lookup(key: cacheKey) {
       return ProcessResult(exitCode: 0, stdout: cached, stderr: "")

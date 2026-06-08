@@ -21,9 +21,9 @@ A contributor's map of the three modules that do the actual work inside `skit ru
 | Symbol | Defined in | What it returns | Consumers |
 |---|---|---|---|
 | `String.dylibFilename` | `String+DylibFilename.swift` | `"lib<self>.dylib"` on macOS, `"lib<self>.so"` on Linux | `FileManager.isLibDir`, `FileManager.libStamp` |
-| `FileManager.libStamp(libPath:)` | `FileManager+LibStamp.swift` | `"<size>/<mtime>"` of `libSyntaxKit.{dylib,so}`, or nil | `OutputCache.outputCacheKey` |
-| `captureSwiftVersion()` | `Toolchain.swift` | verbatim `swift --version` stdout (≤4 KiB), or nil on spawn failure | `OutputCache.outputCacheKey`, `ToolchainCheckResult` |
-| `syntaxKitCacheRoot()` | `Toolchain.swift` | `~/Library/Caches/com.brightdigit.SyntaxKit` (macOS), `$XDG_CACHE_HOME/syntaxkit` or `~/.cache/syntaxkit` (Linux) | `OutputCache.outputCacheDir` |
+| `FileManager.libStamp(libPath:)` | `FileManager+LibStamp.swift` | `"<size>/<mtime>"` of `libSyntaxKit.{dylib,so}`, or nil | `OutputCache.key` |
+| `captureSwiftVersion()` | `Toolchain.swift` | verbatim `swift --version` stdout (≤4 KiB), or nil on spawn failure | `Skit.Run.run` (called once per invocation, then threaded into `ToolchainCheckResult.init` and `OutputCache.init`) |
+| `syntaxKitCacheRoot()` | `Toolchain.swift` | `~/Library/Caches/com.brightdigit.SyntaxKit` (macOS), `$XDG_CACHE_HOME/syntaxkit` or `~/.cache/syntaxkit` (Linux) | `OutputCache.init` |
 
 **Why these four belong together.** They all answer the same question from different angles: "what state of the world does a cache key depend on?" The Swift toolchain (`captureSwiftVersion`), the runtime dylib (`libStamp` via `String.dylibFilename`), and the on-disk cache layout (`syntaxKitCacheRoot`). Together they give `OutputCache` everything it needs to compute a stable, sound key. The two that fit naturally as instance APIs (`String.dylibFilename`, `FileManager.libStamp`) live in their own extension files; the rest stay as free functions in `Toolchain.swift`.
 
@@ -67,15 +67,17 @@ Raced against a sleep watchdog in a throwing task group; the loser is cancelled.
 
 **Purpose.** Cache the rendered Swift (the stdout of the spawned `swift` for a given input) so re-running with unchanged inputs avoids the spawn entirely. Hit cost ≈ 0.14s on macOS vs. ~0.5s for a cold script-mode `swift` spawn.
 
-**Shape.** Single `internal struct OutputCache` (`OutputCache.swift:35`), consumed only from `Runner.processFile`. `init()` throws — it resolves the cache root via `Toolchain.syntaxKitCacheRoot()` and binds it to `self.root` (`<syntaxKitCacheRoot>/outputs/`). The caller wraps the init in `try?` so a non-derivable cache root short-circuits silently (same effective behaviour as `--no-cache` for that invocation).
+**Shape.** Single `internal struct OutputCache: @unchecked Sendable`, built once per `skit run` invocation in `Skit.Run.run` and shared across every input. `init(swiftVersion:fileManager:processInfo:)` throws — it resolves the cache root via `Toolchain.syntaxKitCacheRoot()`, binds it to `self.root` (`<syntaxKitCacheRoot>/outputs/`), and stores `swiftVersion` so key derivation never has to re-spawn `swift`. The caller wraps the init in `try?` so a non-derivable cache root short-circuits silently (same effective behaviour as `--no-cache` for that invocation).
+
+The `@unchecked Sendable` conformance covers the `FileManager` / `ProcessInfo` stored properties (reference types that don't auto-derive Sendable, but the singletons we use are thread-safe for these operations). Runner shares one `OutputCache?` instance across concurrent `runOne` tasks in directory mode.
 
 **Surface** (all `internal` instance methods):
 
-- **`key(forInput:libPath:)`** — async, mixes:
+- **`key(forInput:libPath:)`** — synchronous (no `await`), mixes:
   - schema version (`Self.schemaVersion = "v1"` — bump to invalidate everything)
   - input source bytes (the primary driver)
-  - `swift --version` (via `captureSwiftVersion`)
-  - libSyntaxKit `<size>/<mtime>` stamp (via `FileManager.default.libStamp(libPath:)`)
+  - `self.swiftVersion` (captured at init from `Skit.Run.run`)
+  - libSyntaxKit `<size>/<mtime>` stamp (via `FileManager.libStamp(libPath:)`)
   - sorted, NUL-terminated `SKIT_*` / `SYNTAXKIT_*` env vars
 - **`lookup(key:)`** — returns the cached `output.swift` bytes or nil.
 - **`store(key:data:)`** — atomic stage+rename: writes into `tmp.<pid>.<uuid>/output.swift` next to the key dir, then `moveItem` to install. If a concurrent peer beat us to it, swallow the rename error and drop our staging copy; re-throw only if the destination is still missing afterwards.
@@ -92,15 +94,16 @@ Storage is wrapped in `try?` at the caller in `processFile` — a cache *write* 
 Skit.Run.run()
  ├─ Bundle.main.resolveLibPath(candidates: --lib, $SKIT_LIB_DIR)   → libPath
  │    └─ FileManager.default.isLibDir → "SyntaxKit".dylibFilename
- ├─ ToolchainCheckResult(libPath:)                                 → verify (uses captureSwiftVersion)
- └─ runSingleFile / runDirectory(libPath, useCache, timeoutSeconds)
+ ├─ captureSwiftVersion()                                          → swiftVersion (spawned exactly once)
+ ├─ ToolchainCheckResult(libPath:, swiftVersion:)                  → gate (compare to bundle stamp)
+ ├─ try? OutputCache(swiftVersion:)                                → cache (nil under --no-cache or unresolvable root)
+ └─ runSingleFile / runDirectory(libPath, cache, timeoutSeconds)
       └─ processFile(input)
-           ├─ try? OutputCache()                                    ← nil under --no-cache (or unresolvable root)
-           ├─ cache?.key(forInput: source, libPath:)                 ← captureSwiftVersion + FileManager.default.libStamp
-           ├─ cache.lookup(key:)                                     ← hit returns immediately
+           ├─ cache?.key(forInput: source, libPath:)                ← self.swiftVersion + FileManager.default.libStamp
+           ├─ cache.lookup(key:)                                    ← hit returns immediately
            ├─ wrap(source) → temp wrapper.swift
-           ├─ runSwift(wrappedPath, libPath)                         ← spawns `swift` linked against libSyntaxKit
-           └─ try? cache.store(key:, data:)                          ← on the way out (atomic stage+rename)
+           ├─ runSwift(wrappedPath, libPath)                        ← spawns `swift` linked against libSyntaxKit
+           └─ try? cache.store(key:, data:)                         ← on the way out (atomic stage+rename)
 ```
 
 Three coupling facts worth remembering:

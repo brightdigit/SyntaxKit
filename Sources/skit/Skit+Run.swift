@@ -100,12 +100,19 @@ extension Skit {
           throw ExitCode(2)
         }
 
-        // 2. Compare the bundle's recorded `swift --version` against the local
+        // 2. Capture local `swift --version` once. Feeds both the toolchain
+        // check (compares against the bundle stamp) and the output cache key
+        // (one shard per toolchain). Doing this here means we spawn
+        // `swift --version` exactly once per `skit run` invocation rather
+        // than once per input.
+        let swiftVersion = await captureSwiftVersion()
+
+        // 3. Compare the bundle's recorded `swift --version` against the local
         // one. swiftmodules aren't reliably forward-compatible across compiler
         // versions, so a mismatch produces a clear error rather than letting
         // the spawned `swift` emit a cryptic module-version diagnostic.
         if !noToolchainCheck {
-          switch await ToolchainCheckResult(libPath: libPath) {
+          switch ToolchainCheckResult(libPath: libPath, swiftVersion: swiftVersion) {
           case .match, .stampMissing:
             break
           case .mismatch(let bundle, let local):
@@ -115,7 +122,12 @@ extension Skit {
           }
         }
 
-        // 3. Stat the input to pick single-file vs. directory mode. Directory
+        // 4. Build the output cache (nil under `--no-cache` or if the cache
+        // root can't be derived). The captured `swiftVersion` is bound into
+        // the instance so per-input key derivation doesn't re-spawn `swift`.
+        let cache: OutputCache? = noCache ? nil : try? OutputCache(swiftVersion: swiftVersion)
+
+        // 5. Stat the input to pick single-file vs. directory mode. Directory
         // mode requires an explicit `-o` output dir; single-file mode falls
         // back to stdout.
         var isDirectory: ObjCBool = false
@@ -127,25 +139,25 @@ extension Skit {
           guard let output else {
             throw ValidationError("directory inputs require -o <output-dir>")
           }
-          // 4a. Hand off to the directory orchestrator and surface its exit
+          // 6a. Hand off to the directory orchestrator and surface its exit
           // code via ExitCode (so a partial-failure batch returns 1).
           let exitCode = await runDirectory(
             inputDir: input,
             outputDir: output,
             libPath: libPath,
-            useCache: !noCache,
+            cache: cache,
             timeoutSeconds: timeoutSeconds
           )
           throw ExitCode(exitCode)
         } else {
-          // 4b. Hand off to the single-file orchestrator. It calls `exit()`
+          // 6b. Hand off to the single-file orchestrator. It calls `exit()`
           // directly on non-zero subprocess exit, so a thrown ExitCode here
           // would be unreachable in that path.
           try await runSingleFile(
             inputPath: input,
             outputPath: output,
             libPath: libPath,
-            useCache: !noCache,
+            cache: cache,
             timeoutSeconds: timeoutSeconds
           )
         }

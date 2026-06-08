@@ -33,23 +33,43 @@
 
   /// On-disk cache of rendered skit output, content-keyed so a re-run on
   /// unchanged input skips the `swift` spawn entirely.
-  internal struct OutputCache {
+  ///
+  /// `@unchecked Sendable` because the stored `FileManager` / `ProcessInfo`
+  /// are reference types that don't auto-derive Sendable, but the default
+  /// singletons used in production (and the typical test doubles) are
+  /// thread-safe for the operations we invoke. The single instance is
+  /// shared across concurrent `runOne` tasks in directory mode.
+  internal struct OutputCache: @unchecked Sendable {
     /// Bumped when the cache layout changes in a way that requires invalidation.
     private static let schemaVersion = "v1"
 
     /// `<syntaxKitCacheRoot>/outputs/`. Populated once at init; per-key
     /// directories are derived from it on demand.
     private let root: URL
+    private let fileManager: FileManager
+    private let processInfo: ProcessInfo
 
-    internal init() throws {
+    /// Verbatim `swift --version` output captured once for the lifetime of
+    /// this cache, so per-input key derivation doesn't re-spawn `swift`.
+    /// nil if capture failed before construction.
+    private let swiftVersion: String?
+
+    internal init(
+      swiftVersion: String?,
+      fileManager: FileManager = .default,
+      processInfo: ProcessInfo = .processInfo
+    ) throws {
       self.root = try syntaxKitCacheRoot().appendingPathComponent("outputs")
+      self.swiftVersion = swiftVersion
+      self.fileManager = fileManager
+      self.processInfo = processInfo
     }
 
     /// 64-bit content hash over (schema version, input source bytes, swift
     /// version, libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars). Any
     /// change in these inputs produces a fresh key and forces a recompile.
     /// See `ContentHasher` for the choice of FNV-1a over a cryptographic hash.
-    internal func key(forInput source: String, libPath: String) async -> String {
+    internal func key(forInput source: String, libPath: String) -> String {
       var hasher = ContentHasher()
       // Schema version: bump to invalidate every existing cache entry at once.
       hasher.update(data: Data(Self.schemaVersion.utf8))
@@ -58,18 +78,18 @@
 
       // Toolchain version. Different `swift` builds emit different bytes for
       // the same DSL input.
-      if let version = await captureSwiftVersion() {
-        hasher.update(data: Data(version.utf8))
+      if let swiftVersion {
+        hasher.update(data: Data(swiftVersion.utf8))
       }
       // libSyntaxKit stamp. A rebuilt dylib can change the rendered output
       // even without a Swift-version bump.
-      if let stamp = FileManager.default.libStamp(libPath: libPath) {
+      if let stamp = fileManager.libStamp(libPath: libPath) {
         hasher.update(data: Data(stamp.utf8))
       }
 
       // SKIT_*/SYNTAXKIT_* env vars. Sorted so the cache key is stable, and
       // NUL-terminated so `"AB=" + "C"` doesn't collide with `"A=" + "BC"`.
-      let env = ProcessInfo.processInfo.environment
+      let env = processInfo.environment
         .filter { $0.key.hasPrefix("SKIT_") || $0.key.hasPrefix("SYNTAXKIT_") }
         .sorted { $0.key < $1.key }
       for (key, value) in env {
@@ -89,7 +109,6 @@
     internal func store(key: String, data: Data) throws {
       let cacheRoot = directory(for: key)
       let final = cacheRoot.appendingPathComponent("output.swift")
-      let fileManager = FileManager.default
 
       // Ensure the parent of the cache key dir exists. The key dir itself is
       // installed by the atomic rename below.
@@ -102,7 +121,7 @@
       // into place as a single atomic step.
       let staging = cacheRoot.deletingLastPathComponent()
         .appendingPathComponent(
-          "tmp.\(ProcessInfo.processInfo.processIdentifier).\(UUID().uuidString)"
+          "tmp.\(processInfo.processIdentifier).\(UUID().uuidString)"
         )
       try fileManager.createDirectory(at: staging, withIntermediateDirectories: true)
       try data.write(to: staging.appendingPathComponent("output.swift"))

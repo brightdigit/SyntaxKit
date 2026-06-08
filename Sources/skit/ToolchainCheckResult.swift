@@ -44,12 +44,12 @@
   }
 
   extension ToolchainCheckResult {
-    /// Compares `<libPath>/swift-version.txt` to `captureSwiftVersion()`.
-    /// The swiftmodule format isn't reliably forward-compatible across even
-    /// patch-level Swift releases (originating bug: 6.3.0 → 6.3.2 rejected the
-    /// swiftmodule), so the comparison is exact-string after normalising
-    /// trailing whitespace.
-    internal init(libPath: String) async {
+    /// Compares `<libPath>/swift-version.txt` to the caller-captured
+    /// `swiftVersion` string. The swiftmodule format isn't reliably
+    /// forward-compatible across even patch-level Swift releases (originating
+    /// bug: 6.3.0 → 6.3.2 rejected the swiftmodule), so the comparison is
+    /// exact-string after normalising trailing whitespace.
+    internal init(libPath: String, swiftVersion: String?) {
       let stampURL = URL(fileURLWithPath: libPath)
         .appendingPathComponent(Self.toolchainStampFilename)
       guard let stampData = try? Data(contentsOf: stampURL),
@@ -61,7 +61,7 @@
         self = .stampMissing
         return
       }
-      guard let localRaw = await captureSwiftVersion() else {
+      guard let localRaw = swiftVersion else {
         FileHandle.standardError.write(
           Data("skit: could not capture local `swift --version`; skipping toolchain check\n".utf8)
         )
