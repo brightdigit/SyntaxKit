@@ -59,7 +59,7 @@ extension Runner {
 
     // Phase 3: write successes and capture a per-input outcome for each.
     let outcomes = renderResults.map {
-      writeOutput(for: $0, inputBase: inputURL, outputBase: outputURL)
+      FileManager.default.writeOutput(for: $0, inputBase: inputURL, outputBase: outputURL)
     }
 
     return DirectoryRender(outcomes: outcomes)
@@ -92,63 +92,6 @@ extension Runner {
     }
 
     return renderResults
-  }
-
-  /// Builds the `FileOutcome` for one render result, writing a successful
-  /// render's stdout to its mirrored destination under `outputBase`. The write
-  /// side effect lives here; failures (a non-zero render exit, or a write
-  /// error) are captured into the returned outcome rather than thrown, so a
-  /// failing peer doesn't prevent successful files in the batch from being
-  /// written (Tuist-analog batch semantics). No diagnostics are printed here;
-  /// the caller does that.
-  private func writeOutput(
-    for result: RenderTaskResult,
-    inputBase: URL,
-    outputBase: URL
-  ) -> DirectoryRender.FileOutcome {
-    let relative = result.input.path.dropFirst(inputBase.path.count + 1)
-    let destination = outputBase.appendingPathComponent(String(relative))
-
-    switch result.result {
-    case .failure(let error):
-      return DirectoryRender.FileOutcome(
-        input: result.input,
-        destination: destination,
-        stderr: "",
-        result: .failure(error)
-      )
-    case .success(let processResult):
-      if processResult.exitCode != 0 {
-        return DirectoryRender.FileOutcome(
-          input: result.input,
-          destination: destination,
-          stderr: processResult.stderr,
-          result: .failure(
-            .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
-          )
-        )
-      }
-      do {
-        try FileManager.default.createDirectory(
-          at: destination.deletingLastPathComponent(),
-          withIntermediateDirectories: true
-        )
-        try processResult.stdout.write(to: destination)
-        return DirectoryRender.FileOutcome(
-          input: result.input,
-          destination: destination,
-          stderr: processResult.stderr,
-          result: .success(())
-        )
-      } catch {
-        return DirectoryRender.FileOutcome(
-          input: result.input,
-          destination: destination,
-          stderr: processResult.stderr,
-          result: .failure(.unexpected(error))
-        )
-      }
-    }
   }
 
   /// `processFile` adapter that catches errors into the `RenderTaskResult`
@@ -205,6 +148,52 @@ extension FileManager {
       result.append(url.standardizedFileURL)
     }
     return result.sorted { $0.path < $1.path }
+  }
+
+  /// Builds the `FileOutcome` for one render result, writing a successful
+  /// render's stdout to its mirrored destination under `outputBase`. The write
+  /// side effect lives here; failures (a non-zero render exit, or a write
+  /// error) are folded into the returned outcome rather than thrown, so a
+  /// failing peer doesn't prevent successful files in the batch from being
+  /// written (Tuist-analog batch semantics). No diagnostics are printed here;
+  /// the caller does that.
+  fileprivate func writeOutput(
+    for result: RenderTaskResult,
+    inputBase: URL,
+    outputBase: URL
+  ) -> DirectoryRender.FileOutcome {
+    let relative = result.input.path.dropFirst(inputBase.path.count + 1)
+    let destination = outputBase.appendingPathComponent(String(relative))
+
+    // stderr is the toolchain's diagnostics whenever the render produced any —
+    // i.e. on every successful spawn, regardless of how the write then fares.
+    let stderr = (try? result.result.get())?.stderr ?? ""
+
+    // Fold the render result into the write result: a render failure passes
+    // through, a non-zero exit becomes `.renderFailed`, and a clean render is
+    // committed to disk (capturing any write error as `.unexpected`).
+    let outcome = result.result.flatMap { processResult -> Result<Void, RunError> in
+      guard processResult.exitCode == 0 else {
+        return .failure(
+          .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
+        )
+      }
+      return Result {
+        try createDirectory(
+          at: destination.deletingLastPathComponent(),
+          withIntermediateDirectories: true
+        )
+        try processResult.stdout.write(to: destination)
+      }
+      .mapError(RunError.unexpected)
+    }
+
+    return DirectoryRender.FileOutcome(
+      input: result.input,
+      destination: destination,
+      stderr: stderr,
+      result: outcome
+    )
   }
 }
 
