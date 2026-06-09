@@ -42,6 +42,9 @@ internal struct ContentHasher {
   private static let offsetBasis: UInt64 = 0xcbf2_9ce4_8422_2325
   private static let prime: UInt64 = 0x0000_0100_0000_01b3
 
+  /// `String(format:)` specifier for the 16-char lowercase-hex digest.
+  private static let hexFormat = "%016x"
+
   private var state: UInt64 = ContentHasher.offsetBasis
 
   internal mutating func update(data: Data) {
@@ -54,6 +57,6 @@ internal struct ContentHasher {
   /// Returns the hash as a 16-char lowercase-hex string suitable for use as
   /// a directory name.
   internal func finalize() -> String {
-    String(format: "%016x", state)
+    String(format: Self.hexFormat, state)
   }
 }

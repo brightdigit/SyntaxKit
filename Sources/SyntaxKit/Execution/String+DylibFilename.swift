@@ -28,14 +28,24 @@
 //
 
 extension String {
+  /// Shared-library filename prefix (`lib`).
+  private static let dylibPrefix = "lib"
+  #if os(Linux)
+    /// Linux shared-library filename extension.
+    private static let linuxDylibExtension = ".so"
+  #else
+    /// macOS shared-library filename extension.
+    private static let macOSDylibExtension = ".dylib"
+  #endif
+
   /// Treats `self` as a Swift library product name and returns the
   /// platform-specific shared-library filename (`libFoo.dylib` on macOS,
   /// `libFoo.so` on Linux).
   internal var dylibFilename: String {
     #if os(Linux)
-      return "lib\(self).so"
+      return "\(Self.dylibPrefix)\(self)\(Self.linuxDylibExtension)"
     #else
-      return "lib\(self).dylib"
+      return "\(Self.dylibPrefix)\(self)\(Self.macOSDylibExtension)"
     #endif
   }
 }

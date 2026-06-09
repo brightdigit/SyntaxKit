@@ -40,6 +40,18 @@
     private static let stdoutLimitBytes = 16 * 1_024 * 1_024
     private static let stderrLimitBytes = 1 * 1_024 * 1_024
 
+    /// Subdirectory of the lib dir holding the SwiftSyntax CShims headers.
+    private static let cShimsIncludeSuffix = "_SwiftSyntaxCShims-include"
+
+    /// swiftc flags used to build the `swift` invocation.
+    private static let flagSuppressWarnings = "-suppress-warnings"
+    private static let flagInclude = "-I"
+    private static let flagLibrarySearchPath = "-L"
+    private static let flagLinkSyntaxKit = "-lSyntaxKit"
+    private static let flagPassToClang = "-Xcc"
+    private static let flagPassToLinker = "-Xlinker"
+    private static let flagRPath = "-rpath"
+
     /// A configuration that runs the `swift` interpreter on `wrappedPath`,
     /// linked against `libSyntaxKit` in `libPath`.
     ///
@@ -47,17 +59,17 @@
     /// headers, and set rpath so the dylib loads at runtime. The executable is
     /// resolved by name on `PATH`.
     internal static func swift(libPath: String, wrappedPath: String) -> Self {
-      let cShimsInclude = "\(libPath)/_SwiftSyntaxCShims-include"
+      let cShimsInclude = "\(libPath)/\(cShimsIncludeSuffix)"
       let arguments: [String] = [
-        "-suppress-warnings",
-        "-I", libPath,
-        "-L", libPath,
-        "-lSyntaxKit",
-        "-Xcc", "-I", "-Xcc", cShimsInclude,
-        "-Xlinker", "-rpath", "-Xlinker", libPath,
+        flagSuppressWarnings,
+        flagInclude, libPath,
+        flagLibrarySearchPath, libPath,
+        flagLinkSyntaxKit,
+        flagPassToClang, flagInclude, flagPassToClang, cShimsInclude,
+        flagPassToLinker, flagRPath, flagPassToLinker, libPath,
         wrappedPath,
       ]
-      return Self(executable: .name("swift"), arguments: Arguments(arguments))
+      return Self(executable: .name(Skit.swiftExecutableName), arguments: Arguments(arguments))
     }
 
     /// Spawns `swift` for the render `invocation` and normalizes the result

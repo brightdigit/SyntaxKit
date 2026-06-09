@@ -51,6 +51,11 @@ package struct Runner: Sendable {
   /// watchdog. Matches POSIX `timeout(1)`.
   private static let timeoutExitCode: Int32 = 124
 
+  /// Prefix for the per-invocation temp dir holding the wrapped input.
+  private static let tempDirectoryPrefix = "skit"
+  /// Filename of the wrapped Swift program spilled into the temp dir.
+  private static let wrappedInputFileName = "Input.wrapped.swift"
+
   /// Directory holding `libSyntaxKit.{dylib,so}` + swiftmodules; reused for
   /// the spawned `swift`'s `-I`/`-L`/`-rpath` flags.
   private let libPath: String
@@ -133,11 +138,11 @@ package struct Runner: Sendable {
     // Spill the wrapped program to a per-invocation temp dir. The dir is
     // cleaned up unconditionally so a failed spawn doesn't leak files.
     let tmpDir = FileManager.default.temporaryDirectory
-      .appendingPathComponent("skit-\(UUID().uuidString)")
+      .appendingPathComponent("\(Self.tempDirectoryPrefix)-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: tmpDir) }
 
-    let wrappedURL = tmpDir.appendingPathComponent("Input.wrapped.swift")
+    let wrappedURL = tmpDir.appendingPathComponent(Self.wrappedInputFileName)
     try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
 
     // Spawn `swift` on the wrapped file (with timeout watchdog). stdout is

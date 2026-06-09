@@ -41,6 +41,23 @@ package struct OutputCache: Sendable {
   /// Bumped when the cache layout changes in a way that requires invalidation.
   private static let schemaVersion = "v1"
 
+  #if os(macOS)
+    /// macOS home-relative cache subpath (under `~`).
+    private static let macOSCacheSubpath = "Library/Caches/com.brightdigit.SyntaxKit"
+  #else
+    /// Linux home-relative cache subpath (under `~`).
+    private static let linuxCacheSubpath = ".cache/syntaxkit"
+  #endif
+  /// Leaf directory holding the rendered outputs within the cache root.
+  private static let outputsDirectoryName = "outputs"
+  /// Filename of the rendered Swift source stored per cache key.
+  private static let outputFileName = "output.swift"
+  /// Prefix for the per-writer staging directory used for atomic stores.
+  private static let stagingDirectoryPrefix = "tmp"
+  /// Environment-variable prefixes mixed into the cache key.
+  private static let skitEnvPrefix = "SKIT_"
+  private static let syntaxKitEnvPrefix = "SYNTAXKIT_"
+
   /// Home-relative cache root used when `XDG_CACHE_HOME` is unset: macOS
   /// `~/Library/Caches/...`, else Linux `~/.cache/syntaxkit`. The home dir is
   /// fixed for the process lifetime, so this is computed once.
@@ -48,9 +65,9 @@ package struct OutputCache: Sendable {
     let home = NSHomeDirectory()
     #if os(macOS)
       return URL(fileURLWithPath: home)
-        .appendingPathComponent("Library/Caches/com.brightdigit.SyntaxKit")
+        .appendingPathComponent(macOSCacheSubpath)
     #else
-      return URL(fileURLWithPath: home).appendingPathComponent(".cache/syntaxkit")
+      return URL(fileURLWithPath: home).appendingPathComponent(linuxCacheSubpath)
     #endif
   }()
 
@@ -71,7 +88,7 @@ package struct OutputCache: Sendable {
     processInfo: ProcessInfo = .processInfo
   ) {
     self.root = processInfo.syntaxKitCacheRoot(default: Self.defaultCacheRoot)
-      .appendingPathComponent("outputs")
+      .appendingPathComponent(Self.outputsDirectoryName)
     self.swiftVersion = swiftVersion
     self.fileManager = fileManager
     self.processInfo = processInfo
@@ -102,7 +119,9 @@ package struct OutputCache: Sendable {
     // SKIT_*/SYNTAXKIT_* env vars. Sorted so the cache key is stable, and
     // NUL-terminated so `"AB=" + "C"` doesn't collide with `"A=" + "BC"`.
     let env = processInfo.environment
-      .filter { $0.key.hasPrefix("SKIT_") || $0.key.hasPrefix("SYNTAXKIT_") }
+      .filter {
+        $0.key.hasPrefix(Self.skitEnvPrefix) || $0.key.hasPrefix(Self.syntaxKitEnvPrefix)
+      }
       .sorted { $0.key < $1.key }
     for (key, value) in env {
       hasher.update(data: Data("\(key)=\(value)\0".utf8))
@@ -113,14 +132,14 @@ package struct OutputCache: Sendable {
 
   /// Returns the cached rendered output for `key`, or nil on miss.
   package func lookup(key: String) -> Data? {
-    try? Data(contentsOf: directory(for: key).appendingPathComponent("output.swift"))
+    try? Data(contentsOf: directory(for: key).appendingPathComponent(Self.outputFileName))
   }
 
   /// Atomically stores `data` under `key`. Concurrent writers race via a
   /// `tmp.<pid>.<uuid>/` staging dir + rename; the loser drops their copy.
   package func store(key: String, data: Data) throws {
     let cacheRoot = directory(for: key)
-    let final = cacheRoot.appendingPathComponent("output.swift")
+    let final = cacheRoot.appendingPathComponent(Self.outputFileName)
 
     // Ensure the parent of the cache key dir exists. The key dir itself is
     // installed by the atomic rename below.
@@ -133,10 +152,10 @@ package struct OutputCache: Sendable {
     // into place as a single atomic step.
     let staging = cacheRoot.deletingLastPathComponent()
       .appendingPathComponent(
-        "tmp.\(processInfo.processIdentifier).\(UUID().uuidString)"
+        "\(Self.stagingDirectoryPrefix).\(processInfo.processIdentifier).\(UUID().uuidString)"
       )
     try fileManager().createDirectory(at: staging, withIntermediateDirectories: true)
-    try data.write(to: staging.appendingPathComponent("output.swift"))
+    try data.write(to: staging.appendingPathComponent(Self.outputFileName))
 
     // Atomic rename into the cache path. If a peer already populated this
     // key, swallow the rename error and drop our staging copy. Re-throw only

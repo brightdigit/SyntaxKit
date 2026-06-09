@@ -43,8 +43,30 @@ extension Skit {
   /// output is written into a mirrored tree under `-o`. The actual work is
   /// delegated to a `Runner` value (`Runner.swift`).
   internal struct Run: AsyncParsableCommand {
+    /// The subcommand name as invoked on the command line.
+    internal static let commandName = "run"
+
+    /// User-facing option/flag names (the `--long` CLI surface).
+    internal static let outputOptionName = "output"
+    internal static let libOptionName = "lib"
+    internal static let noCacheFlagName = "no-cache"
+    internal static let timeoutOptionName = "timeout"
+    internal static let noToolchainCheckFlagName = "no-toolchain-check"
+
+    /// Environment variable holding an override for the libSyntaxKit directory.
+    internal static let libDirEnvironmentKey = "SKIT_LIB_DIR"
+
+    /// Prefix for skit's own diagnostics written to stderr.
+    internal static let messagePrefix = "skit: "
+
+    /// Argument passed to `swift` to capture the toolchain version banner.
+    internal static let versionFlag = "--version"
+
+    /// Path to the script that rebuilds the self-contained release bundle.
+    internal static let buildReleaseScriptPath = "Scripts/build-skit-release.sh"
+
     internal static let configuration = CommandConfiguration(
-      commandName: "run",
+      commandName: commandName,
       abstract: "Render SyntaxKit DSL input(s) into Swift source."
     )
 
@@ -52,31 +74,31 @@ extension Skit {
     internal var input: String
 
     @Option(
-      name: [.short, .customLong("output")],
+      name: [.short, .customLong(Run.outputOptionName)],
       help: "Output file (single-file mode) or directory (folder mode)."
     )
     internal var output: String?
 
     @Option(
-      name: .customLong("lib"),
+      name: .customLong(Run.libOptionName),
       help: "Directory containing libSyntaxKit.dylib + module files."
     )
     internal var libPath: String?
 
     @Flag(
-      name: .customLong("no-cache"),
+      name: .customLong(Run.noCacheFlagName),
       help: "Skip the rendered-output cache (always run swift)."
     )
     internal var noCache: Bool = false
 
     @Option(
-      name: .customLong("timeout"),
+      name: .customLong(Run.timeoutOptionName),
       help: "Per-input timeout for the spawned `swift` in seconds (0 disables)."
     )
     internal var timeoutSeconds: Int = 60
 
     @Flag(
-      name: .customLong("no-toolchain-check"),
+      name: .customLong(Run.noToolchainCheckFlagName),
       help: "Skip the bundle/local Swift-toolchain comparison."
     )
     internal var noToolchainCheck: Bool = false
@@ -84,7 +106,8 @@ extension Skit {
     internal func validate() throws {
       guard timeoutSeconds >= 0 else {
         throw ValidationError(
-          "--timeout expects a non-negative integer (seconds), got: \(timeoutSeconds)"
+          "--\(Self.timeoutOptionName) expects a non-negative integer (seconds), "
+            + "got: \(timeoutSeconds)"
         )
       }
     }
@@ -96,7 +119,7 @@ extension Skit {
         // live. The error message lists the four lookup paths in priority order.
         let libPath: String
         do {
-          let envLibPath = ProcessInfo.processInfo.environment["SKIT_LIB_DIR"].flatMap {
+          let envLibPath = ProcessInfo.processInfo.environment[Self.libDirEnvironmentKey].flatMap {
             $0.isEmpty ? nil : $0
           }
           libPath = try Bundle.main.resolveLibPath(candidates: self.libPath, envLibPath)
@@ -149,9 +172,10 @@ extension Skit {
       #else
         // Subprocess is the only backend skit knows how to use to spawn
         // `swift`/`swiftc`. Without it (Windows, embedded), `run` cannot work.
-        FileHandle.standardError.write(
-          Data("skit: run is not supported on this platform (no Subprocess backend).\n".utf8)
-        )
+        let message =
+          "\(Self.messagePrefix)run is not supported on this platform "
+          + "(no Subprocess backend).\n"
+        FileHandle.standardError.write(Data(message.utf8))
         throw ExitCode(1)
       #endif
     }

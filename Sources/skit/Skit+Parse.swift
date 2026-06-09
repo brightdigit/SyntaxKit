@@ -33,8 +33,11 @@ import SyntaxParser
 
 extension Skit {
   internal struct Parse: ParsableCommand {
+    /// The subcommand name as invoked on the command line.
+    internal static let commandName = "parse"
+
     internal static let configuration = CommandConfiguration(
-      commandName: "parse",
+      commandName: commandName,
       abstract: "Parse Swift source on stdin into a JSON syntax tree on stdout."
     )
 

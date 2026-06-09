@@ -30,6 +30,12 @@
 package import Foundation
 
 extension Bundle {
+  /// Bundle-relative lib dir name for the adjacent layout (`<exec-dir>/lib`).
+  private static let libDirectoryName = "lib"
+  /// Bundle-relative lib dir path for the Homebrew layout
+  /// (`<exec-dir>/../lib/skit`).
+  private static let homebrewLibSkitSubpath = "lib/skit"
+
   /// Resolves a directory containing `libSyntaxKit.dylib` + swiftmodules.
   ///
   /// Tries each non-nil entry in `candidates` in order; if any non-nil
@@ -52,13 +58,13 @@ extension Bundle {
     if let execURL = executableURL?.resolvingSymlinksInPath() {
       let execDir = execURL.deletingLastPathComponent()
 
-      let adjacent = execDir.appendingPathComponent("lib").path
+      let adjacent = execDir.appendingPathComponent(Self.libDirectoryName).path
       if fileManager.isLibDir(adjacent) {
         return adjacent
       }
 
       let brewLayout = execDir.deletingLastPathComponent()
-        .appendingPathComponent("lib/skit").path
+        .appendingPathComponent(Self.homebrewLibSkitSubpath).path
       if fileManager.isLibDir(brewLayout) {
         return brewLayout
       }

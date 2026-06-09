@@ -37,8 +37,15 @@ import ArgumentParser
 /// live in `Skit+Run.swift` and `Skit+Parse.swift` respectively.
 @main
 internal struct Skit: AsyncParsableCommand {
+  /// The top-level command name as invoked on the command line.
+  internal static let commandName = "skit"
+
+  /// Name of the `swift` executable resolved on `PATH`. Shared by the
+  /// toolchain-version capture and the Subprocess `swift` configuration.
+  internal static let swiftExecutableName = "swift"
+
   internal static let configuration = CommandConfiguration(
-    commandName: "skit",
+    commandName: commandName,
     abstract: "Render SyntaxKit DSL into Swift source, or parse Swift into JSON.",
     subcommands: [Run.self, Parse.self],
     defaultSubcommand: Run.self

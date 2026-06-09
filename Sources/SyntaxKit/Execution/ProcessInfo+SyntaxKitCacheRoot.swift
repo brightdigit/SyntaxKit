@@ -30,12 +30,17 @@
 import Foundation
 
 extension ProcessInfo {
+  /// Environment variable pointing at the XDG cache root, if set.
+  private static let xdgCacheHomeEnvKey = "XDG_CACHE_HOME"
+  /// Leaf directory appended to the XDG cache root for skit's caches.
+  private static let cacheDirectoryName = "syntaxkit"
+
   /// Root for all skit caches: `<XDG_CACHE_HOME>/syntaxkit` when that env
   /// var is set and non-empty, otherwise `defaultRoot` (typically the
   /// platform's home-relative cache dir).
   internal func syntaxKitCacheRoot(default defaultRoot: URL) -> URL {
-    if let xdg = environment["XDG_CACHE_HOME"], !xdg.isEmpty {
-      return URL(fileURLWithPath: xdg).appendingPathComponent("syntaxkit")
+    if let xdg = environment[Self.xdgCacheHomeEnvKey], !xdg.isEmpty {
+      return URL(fileURLWithPath: xdg).appendingPathComponent(Self.cacheDirectoryName)
     }
     return defaultRoot
   }

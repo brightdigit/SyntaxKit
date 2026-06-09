@@ -113,7 +113,7 @@ import SyntaxKit
         // surface the original "failed to walk" framing the CLI used to print
         // before the SDK split.
         FileHandle.standardError.write(
-          Data("skit: failed to walk \(input): \(underlying)\n".utf8)
+          Data("\(Self.messagePrefix)failed to walk \(input): \(underlying)\n".utf8)
         )
         throw ExitCode(1)
       } catch {
@@ -123,7 +123,8 @@ import SyntaxKit
       }
 
       if result.outcomes.isEmpty {
-        FileHandle.standardError.write(Data("skit: no .swift inputs under \(input)\n".utf8))
+        FileHandle.standardError.write(
+          Data("\(Self.messagePrefix)no .swift inputs under \(input)\n".utf8))
         return
       }
 
@@ -144,8 +145,8 @@ import SyntaxKit
 
       FileHandle.standardError.write(
         Data(
-          "skit: \(result.outcomes.count - result.failureCount)/\(result.outcomes.count) succeeded\n"
-            .utf8
+          ("\(Self.messagePrefix)\(result.outcomes.count - result.failureCount)"
+            + "/\(result.outcomes.count) succeeded\n").utf8
         )
       )
 
@@ -157,8 +158,8 @@ import SyntaxKit
     /// Verbatim `swift --version` output, or nil on spawn failure. Capped at 4 KiB.
     internal func captureSwiftVersion() async -> String? {
       let result = try? await Subprocess.run(
-        .name("swift"),
-        arguments: ["--version"],
+        .name(Skit.swiftExecutableName),
+        arguments: [Self.versionFlag],
         output: .string(limit: 4_096),
         error: .discarded
       )
@@ -169,7 +170,7 @@ import SyntaxKit
     /// differs from the local one, explaining why and how to recover.
     internal func toolchainMismatchMessage(bundle: String, local: String) -> String {
       """
-      skit: toolchain mismatch
+      \(Self.messagePrefix)toolchain mismatch
         bundle: \(bundle)
         local:  \(local)
       The bundle's libSyntaxKit was built against a different `swift` than the
@@ -178,8 +179,8 @@ import SyntaxKit
       diagnostic.
 
       Rebuild the bundle with:
-        Scripts/build-skit-release.sh
-      Or pass --no-toolchain-check to try anyway.
+        \(Self.buildReleaseScriptPath)
+      Or pass --\(Self.noToolchainCheckFlagName) to try anyway.
 
       """
     }

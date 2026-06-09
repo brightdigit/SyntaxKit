@@ -30,20 +30,27 @@
 import Foundation
 
 extension FileManager {
+  /// Library product name whose platform-specific dylib marks a lib dir.
+  private static let syntaxKitProductName = "SyntaxKit"
+  /// File extension identifying SyntaxKit DSL input files.
+  private static let swiftFileExtension = "swift"
+  /// Filename prefix marking a source as "not an input" (skipped in batches).
+  private static let nonInputFilePrefix = "_"
+
   /// True if `path` is a directory containing `libSyntaxKit.{dylib,so}`.
   internal func isLibDir(_ path: String) -> Bool {
     var isDir: ObjCBool = false
     guard fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else {
       return false
     }
-    return fileExists(atPath: "\(path)/\("SyntaxKit".dylibFilename)")
+    return fileExists(atPath: "\(path)/\(Self.syntaxKitProductName.dylibFilename)")
   }
 
   /// `<size>/<mtime>` fingerprint of `libSyntaxKit.{dylib,so}` under
   /// `libPath`, or nil if unreadable. Catches in-place rebuilds without a
   /// version bump.
   internal func libStamp(libPath: String) -> String? {
-    let dylib = "\(libPath)/\("SyntaxKit".dylibFilename)"
+    let dylib = "\(libPath)/\(Self.syntaxKitProductName.dylibFilename)"
     guard let attrs = try? attributesOfItem(atPath: dylib) else { return nil }
     let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
     let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
@@ -81,8 +88,8 @@ extension FileManager {
       // Filter for `.swift` regular files, skipping the `_`-prefixed
       // convention for "not an input" sources.
       guard values.isRegularFile == true else { continue }
-      guard url.pathExtension == "swift" else { continue }
-      guard !url.lastPathComponent.hasPrefix("_") else { continue }
+      guard url.pathExtension == Self.swiftFileExtension else { continue }
+      guard !url.lastPathComponent.hasPrefix(Self.nonInputFilePrefix) else { continue }
       result.append(url.standardizedFileURL)
     }
     return result.sorted { $0.path < $1.path }
