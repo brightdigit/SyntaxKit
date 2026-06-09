@@ -49,22 +49,31 @@ extension Runner {
 
     // Phase 1: enumerate inputs. A walk failure is a bulk failure: there's
     // nothing per-file to report, so it surfaces as a typed throw.
-    let inputs: [URL]
-    do {
-      inputs = try Self.collectInputs(at: inputURL)
-    } catch {
-      throw RunError.unexpected(error)
-    }
-
-    if inputs.isEmpty {
+    let inputs = try FileManager.default.collectInputs(at: inputURL)
+    guard !inputs.isEmpty else {
       return DirectoryRender(outcomes: [])
     }
 
-    // Phase 2: bounded-concurrency processing. Cap is the active core count
-    // so a 200-file batch doesn't fork 200 simultaneous `swift` processes.
+    // Phase 2: render every input with bounded concurrency.
+    let renderResults = await processInputs(inputs)
+
+    // Phase 3: write successes and capture a per-input outcome for each.
+    let outcomes = renderResults.map {
+      writeOutput(for: $0, inputBase: inputURL, outputBase: outputURL)
+    }
+
+    return DirectoryRender(outcomes: outcomes)
+  }
+
+  /// Renders every input through `runOne` with bounded concurrency. The cap is
+  /// the active core count so a 200-file batch doesn't fork 200 simultaneous
+  /// `swift` processes: the group is seeded up to the cap, then refilled one
+  /// task per completion until the inputs are exhausted.
+  private func processInputs(_ inputs: [URL]) async -> [RenderTaskResult] {
     let maxConcurrent = max(1, ProcessInfo.processInfo.activeProcessorCount)
 
     var renderResults: [RenderTaskResult] = []
+    renderResults.reserveCapacity(inputs.count)
     var iterator = inputs.makeIterator()
 
     await withTaskGroup(of: RenderTaskResult.self) { group in
@@ -82,67 +91,64 @@ extension Runner {
       }
     }
 
-    // Phase 3: write outputs and capture per-input outcomes. Successes are
-    // written even when other files in the batch failed (Tuist-analog batch
-    // semantics). No diagnostics are printed here; the caller does that.
-    var outcomes: [DirectoryRender.FileOutcome] = []
-    outcomes.reserveCapacity(renderResults.count)
-    for outcome in renderResults {
-      let relative = outcome.input.path.dropFirst(inputURL.path.count + 1)
-      let destination = outputURL.appendingPathComponent(String(relative))
+    return renderResults
+  }
 
-      switch outcome.result {
-      case .failure(let error):
-        outcomes.append(
-          DirectoryRender.FileOutcome(
-            input: outcome.input,
-            destination: destination,
-            stderr: "",
-            result: .failure(error)
+  /// Builds the `FileOutcome` for one render result, writing a successful
+  /// render's stdout to its mirrored destination under `outputBase`. The write
+  /// side effect lives here; failures (a non-zero render exit, or a write
+  /// error) are captured into the returned outcome rather than thrown, so a
+  /// failing peer doesn't prevent successful files in the batch from being
+  /// written (Tuist-analog batch semantics). No diagnostics are printed here;
+  /// the caller does that.
+  private func writeOutput(
+    for result: RenderTaskResult,
+    inputBase: URL,
+    outputBase: URL
+  ) -> DirectoryRender.FileOutcome {
+    let relative = result.input.path.dropFirst(inputBase.path.count + 1)
+    let destination = outputBase.appendingPathComponent(String(relative))
+
+    switch result.result {
+    case .failure(let error):
+      return DirectoryRender.FileOutcome(
+        input: result.input,
+        destination: destination,
+        stderr: "",
+        result: .failure(error)
+      )
+    case .success(let processResult):
+      if processResult.exitCode != 0 {
+        return DirectoryRender.FileOutcome(
+          input: result.input,
+          destination: destination,
+          stderr: processResult.stderr,
+          result: .failure(
+            .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
           )
         )
-      case .success(let processResult):
-        if processResult.exitCode != 0 {
-          outcomes.append(
-            DirectoryRender.FileOutcome(
-              input: outcome.input,
-              destination: destination,
-              stderr: processResult.stderr,
-              result: .failure(
-                .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
-              )
-            )
-          )
-          continue
-        }
-        do {
-          try FileManager.default.createDirectory(
-            at: destination.deletingLastPathComponent(),
-            withIntermediateDirectories: true
-          )
-          try processResult.stdout.write(to: destination)
-          outcomes.append(
-            DirectoryRender.FileOutcome(
-              input: outcome.input,
-              destination: destination,
-              stderr: processResult.stderr,
-              result: .success(())
-            )
-          )
-        } catch {
-          outcomes.append(
-            DirectoryRender.FileOutcome(
-              input: outcome.input,
-              destination: destination,
-              stderr: processResult.stderr,
-              result: .failure(.unexpected(error))
-            )
-          )
-        }
+      }
+      do {
+        try FileManager.default.createDirectory(
+          at: destination.deletingLastPathComponent(),
+          withIntermediateDirectories: true
+        )
+        try processResult.stdout.write(to: destination)
+        return DirectoryRender.FileOutcome(
+          input: result.input,
+          destination: destination,
+          stderr: processResult.stderr,
+          result: .success(())
+        )
+      } catch {
+        return DirectoryRender.FileOutcome(
+          input: result.input,
+          destination: destination,
+          stderr: processResult.stderr,
+          result: .failure(.unexpected(error))
+        )
       }
     }
-
-    return DirectoryRender(outcomes: outcomes)
   }
 
   /// `processFile` adapter that catches errors into the `RenderTaskResult`
@@ -160,24 +166,35 @@ extension Runner {
       return RenderTaskResult(input: input, result: .failure(.unexpected(error)))
     }
   }
+}
 
+extension FileManager {
   /// Returns every `.swift` file under `inputDir` (recursive), sorted, with
   /// hidden files and files prefixed by `_` removed. Sorted output keeps
   /// batch behaviour deterministic across runs.
-  private static func collectInputs(at inputDir: URL) throws -> [URL] {
+  ///
+  /// Throws `RunError.unexpected` when the directory can't be enumerated or a
+  /// file's resource values can't be read — both are bulk failures with
+  /// nothing per-file to report.
+  internal func collectInputs(at inputDir: URL) throws(RunError) -> [URL] {
     guard
-      let enumerator = FileManager.default.enumerator(
+      let enumerator = enumerator(
         at: inputDir,
         includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
         options: [.skipsHiddenFiles]
       )
     else {
-      throw CLIError(message: "could not enumerate \(inputDir.path)")
+      throw RunError.unexpected(CLIError(message: "could not enumerate \(inputDir.path)"))
     }
 
     var result: [URL] = []
     for case let url as URL in enumerator {
-      let values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
+      let values: URLResourceValues
+      do {
+        values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
+      } catch {
+        throw RunError.unexpected(error)
+      }
       // Directories aren't outputs.
       if values.isDirectory == true { continue }
       // Filter for `.swift` regular files, skipping the `_`-prefixed

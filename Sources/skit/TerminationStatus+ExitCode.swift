@@ -1,5 +1,5 @@
 //
-//  Subprocess.TerminationStatus+ExitCode.swift
+//  TerminationStatus+ExitCode.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.

@@ -48,6 +48,11 @@
   // shell pipeline that forks a background `sleep` holding stderr open.
   @Suite("Subprocess timeout-cancel")
   internal struct SkitSubprocessTimeoutTests {
+    private enum Outcome: Equatable, Sendable {
+      case completed(TerminationStatus)
+      case timedOut
+    }
+
     @Test(
       "cancel-on-timeout completes within a bounded wall-time when grandchildren hold pipe fds"
     )
@@ -90,11 +95,6 @@
         elapsed < .seconds(15),
         "timeout-cancel took \(elapsed); possible swift-subprocess #256 regression"
       )
-    }
-
-    private enum Outcome: Equatable, Sendable {
-      case completed(TerminationStatus)
-      case timedOut
     }
   }
 

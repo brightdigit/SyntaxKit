@@ -33,14 +33,12 @@ package protocol Validator {
   func validateFile(at fileURL: URL) throws -> [ValidationResult]
 }
 
-private extension [String] {
+extension [String] {
   /// Default file extensions for documentation files
-  static let defaultPathExtensions: [String] = ["md"]
-  
+  fileprivate static let defaultPathExtensions: [String] = ["md"]
 }
 
 extension Validator {
-
   /// Validates all Swift code examples found in documentation files
   /// - Parameters:
   ///   - relativePaths: Array of relative paths to search for documentation

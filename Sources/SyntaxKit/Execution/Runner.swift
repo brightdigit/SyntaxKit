@@ -47,6 +47,10 @@ import Foundation
 /// Constructed once per render session; `Sendable` so a single value can be
 /// shared across the concurrent per-input tasks in directory mode.
 package struct Runner: Sendable {
+  /// Exit code returned when the spawned `swift` is killed by skit's timeout
+  /// watchdog. Matches POSIX `timeout(1)`.
+  private static let timeoutExitCode: Int32 = 124
+
   /// Directory holding `libSyntaxKit.{dylib,so}` + swiftmodules; reused for
   /// the spawned `swift`'s `-I`/`-L`/`-rpath` flags.
   private let libPath: String
@@ -157,10 +161,6 @@ package struct Runner: Sendable {
   }
 
   // MARK: - Spawning swift
-
-  /// Exit code returned when the spawned `swift` is killed by skit's timeout
-  /// watchdog. Matches POSIX `timeout(1)`.
-  private static let timeoutExitCode: Int32 = 124
 
   /// Spawns `swift` (via the injected `run` backend) on the wrapped input file.
   /// When `timeoutSeconds > 0` the spawn races a sleep task in a throwing
