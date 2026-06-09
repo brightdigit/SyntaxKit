@@ -134,10 +134,10 @@ import SyntaxKit
         }
         // .renderFailed already had its stderr surfaced above. Other failures
         // (process spawn, write) carry the diagnostic in the error itself.
-        if case .failure(let error) = outcome.result, case .renderFailed = error {
-          continue
-        }
-        if case .failure(let error) = outcome.result {
+        if let error = outcome.result {
+          if let runError = error as? RunError, case .renderFailed = runError {
+            continue
+          }
           FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
         }
       }

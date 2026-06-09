@@ -48,8 +48,15 @@ extension Runner {
     let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
 
     // Phase 1: enumerate inputs. A walk failure is a bulk failure: there's
-    // nothing per-file to report, so it surfaces as a typed throw.
-    let inputs = try FileManager.default.collectInputs(at: inputURL)
+    // nothing per-file to report, so it surfaces as a typed throw. The
+    // collect-specific error is folded into `RunError.unexpected` — the bulk
+    // channel the caller already presents.
+    let inputs: [URL]
+    do {
+      inputs = try FileManager.default.collectInputs(at: inputURL)
+    } catch {
+      throw RunError.unexpected(error)
+    }
     guard !inputs.isEmpty else {
       return DirectoryRender(outcomes: [])
     }
@@ -111,96 +118,13 @@ extension Runner {
   }
 }
 
-extension FileManager {
-  /// Returns every `.swift` file under `inputDir` (recursive), sorted, with
-  /// hidden files and files prefixed by `_` removed. Sorted output keeps
-  /// batch behaviour deterministic across runs.
-  ///
-  /// Throws `RunError.unexpected` when the directory can't be enumerated or a
-  /// file's resource values can't be read — both are bulk failures with
-  /// nothing per-file to report.
-  internal func collectInputs(at inputDir: URL) throws(RunError) -> [URL] {
-    guard
-      let enumerator = enumerator(
-        at: inputDir,
-        includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
-        options: [.skipsHiddenFiles]
-      )
-    else {
-      throw RunError.unexpected(CLIError(message: "could not enumerate \(inputDir.path)"))
-    }
-
-    var result: [URL] = []
-    for case let url as URL in enumerator {
-      let values: URLResourceValues
-      do {
-        values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
-      } catch {
-        throw RunError.unexpected(error)
-      }
-      // Directories aren't outputs.
-      if values.isDirectory == true { continue }
-      // Filter for `.swift` regular files, skipping the `_`-prefixed
-      // convention for "not an input" sources.
-      guard values.isRegularFile == true else { continue }
-      guard url.pathExtension == "swift" else { continue }
-      guard !url.lastPathComponent.hasPrefix("_") else { continue }
-      result.append(url.standardizedFileURL)
-    }
-    return result.sorted { $0.path < $1.path }
-  }
-
-  /// Builds the `FileOutcome` for one render result, writing a successful
-  /// render's stdout to its mirrored destination under `outputBase`. The write
-  /// side effect lives here; failures (a non-zero render exit, or a write
-  /// error) are folded into the returned outcome rather than thrown, so a
-  /// failing peer doesn't prevent successful files in the batch from being
-  /// written (Tuist-analog batch semantics). No diagnostics are printed here;
-  /// the caller does that.
-  fileprivate func writeOutput(
-    for result: RenderTaskResult,
-    inputBase: URL,
-    outputBase: URL
-  ) -> DirectoryRender.FileOutcome {
-    let relative = result.input.path.dropFirst(inputBase.path.count + 1)
-    let destination = outputBase.appendingPathComponent(String(relative))
-
-    // stderr is the toolchain's diagnostics whenever the render produced any —
-    // i.e. on every successful spawn, regardless of how the write then fares.
-    let stderr = (try? result.result.get())?.stderr ?? ""
-
-    // Fold the render result into the write result: a render failure passes
-    // through, a non-zero exit becomes `.renderFailed`, and a clean render is
-    // committed to disk (capturing any write error as `.unexpected`).
-    let outcome = result.result.flatMap { processResult -> Result<Void, RunError> in
-      guard processResult.exitCode == 0 else {
-        return .failure(
-          .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
-        )
-      }
-      return Result {
-        try createDirectory(
-          at: destination.deletingLastPathComponent(),
-          withIntermediateDirectories: true
-        )
-        try processResult.stdout.write(to: destination)
-      }
-      .mapError(RunError.unexpected)
-    }
-
-    return DirectoryRender.FileOutcome(
-      input: result.input,
-      stderr: stderr,
-      result: outcome
-    )
-  }
-}
-
 /// Payload the per-input render `TaskGroup` yields back to `renderDirectory`.
 /// Failures are captured (not thrown) so a single bad input doesn't tear down
 /// the group; `processFile`'s heterogeneous Foundation/Subprocess throws are
 /// normalized into `RunError` (typically `.unexpected`) by `runOne`.
-private struct RenderTaskResult: Sendable {
-  let input: URL
-  let result: Result<ProcessResult, RunError>
+/// `internal` so `FileManager.writeOutput` (in `FileManager+Execution.swift`)
+/// can consume it.
+internal struct RenderTaskResult: Sendable {
+  internal let input: URL
+  internal let result: Result<ProcessResult, RunError>
 }

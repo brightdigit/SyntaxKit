@@ -1,5 +1,5 @@
 //
-//  FileManager+IsLibDir.swift
+//  CollectInputsError.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,15 +27,15 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-
-extension FileManager {
-  /// True if `path` is a directory containing `libSyntaxKit.{dylib,so}`.
-  internal func isLibDir(_ path: String) -> Bool {
-    var isDir: ObjCBool = false
-    guard fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else {
-      return false
-    }
-    return fileExists(atPath: "\(path)/\("SyntaxKit".dylibFilename)")
-  }
+/// Typed error surfaced by `FileManager.collectInputs(at:)`. The two cases map
+/// to the two distinct ways the input walk can fail, so the caller can tell a
+/// directory it couldn't enumerate apart from a file whose resource values it
+/// couldn't read.
+package enum CollectInputsError: Error {
+  /// The directory could not be enumerated (`FileManager.enumerator` returned
+  /// nil). Carries a user-facing `CLIError` describing the path.
+  case cliError(CLIError)
+  /// A file's resource values (isRegularFile/isDirectory) could not be read;
+  /// carries the underlying Foundation error.
+  case resourceValuesFailure(any Error)
 }

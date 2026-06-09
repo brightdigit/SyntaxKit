@@ -39,20 +39,20 @@
   /// batch down.
   package struct DirectoryRender: Sendable {
     /// Per-input result. `stderr` carries the (possibly path-rewritten)
-    /// diagnostics from the spawned `swift`; it may be present in both
-    /// success and failure cases (e.g. a successful render that emitted
-    /// warnings). `result` is `.success` when the rendered output was
-    /// written to its mirrored destination; `.failure` when the input could
-    /// not be rendered or its output could not be written.
+    /// diagnostics from the spawned `swift`; it may be present whether or not
+    /// the input succeeded (e.g. a successful render that emitted warnings).
+    /// `result` is `nil` when the rendered output was written to its mirrored
+    /// destination, and carries the error when the input could not be rendered
+    /// or its output could not be written (typically a `RunError`).
     package struct FileOutcome: Sendable {
       package let input: URL
       package let stderr: String
-      package let result: Result<Void, RunError>
+      package let result: (any Error)?
 
       package init(
         input: URL,
         stderr: String,
-        result: Result<Void, RunError>
+        result: (any Error)?
       ) {
         self.input = input
         self.stderr = stderr
@@ -71,7 +71,7 @@
     /// failure semantics fit the host).
     package var failureCount: Int {
       outcomes.reduce(into: 0) { count, outcome in
-        if case .failure = outcome.result { count += 1 }
+        if outcome.result != nil { count += 1 }
       }
     }
   }

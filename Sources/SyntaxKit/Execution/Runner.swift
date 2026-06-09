@@ -60,13 +60,13 @@ package struct Runner: Sendable {
   private let timeoutSeconds: Int
   /// Backend that actually spawns `swift` for one `SwiftInvocation`. Injected
   /// by the caller (skit supplies a Subprocess-based implementation).
-  private let run: @Sendable (SwiftInvocation) async throws -> ProcessResult
+  private let run: @Sendable (SwiftInvocation) async throws -> SwiftRunOutcome
 
   package init(
     libPath: String,
     cache: OutputCache?,
     timeoutSeconds: Int,
-    run: @Sendable @escaping (SwiftInvocation) async throws -> ProcessResult
+    run: @Sendable @escaping (SwiftInvocation) async throws -> SwiftRunOutcome
   ) {
     self.libPath = libPath
     self.cache = cache
@@ -170,9 +170,10 @@ package struct Runner: Sendable {
     let invocation = SwiftInvocation(libPath: libPath, wrappedPath: wrappedPath)
 
     // The actual backend call, wrapped in a closure so the task-group race
-    // below can hold a single Sendable reference to it.
+    // below can hold a single Sendable reference to it. The backend already
+    // reports a `SwiftRunOutcome` (always `.completed` on a finished spawn).
     let operation: @Sendable () async throws -> SwiftRunOutcome = {
-      .completed(try await self.run(invocation))
+      try await self.run(invocation)
     }
 
     // Race the invocation against a sleep watchdog; whichever finishes first

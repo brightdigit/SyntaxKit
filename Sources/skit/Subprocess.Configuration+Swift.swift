@@ -61,21 +61,25 @@
     }
 
     /// Spawns `swift` for the render `invocation` and normalizes the result
-    /// into a `ProcessResult`. This is the Subprocess backend skit hands to
+    /// into a `SwiftRunOutcome`. This is the Subprocess backend skit hands to
     /// `Runner` as its `run` closure — the one seam between the (platform-
-    /// agnostic) engine in SyntaxKit and the Subprocess implementation.
+    /// agnostic) engine in SyntaxKit and the Subprocess implementation. A
+    /// completed spawn always reports `.completed`; the timeout race that can
+    /// produce `.timedOut` lives in `Runner`.
     internal static func runSwift(
       for invocation: SyntaxKit.SwiftInvocation
-    ) async throws -> ProcessResult {
+    ) async throws -> SwiftRunOutcome {
       let record = try await Subprocess.run(
         .swift(libPath: invocation.libPath, wrappedPath: invocation.wrappedPath),
         output: .string(limit: stdoutLimitBytes),
         error: .string(limit: stderrLimitBytes)
       )
-      return ProcessResult(
-        exitCode: record.terminationStatus.exitCode,
-        stdout: Data((record.standardOutput ?? "").utf8),
-        stderr: record.standardError ?? ""
+      return .completed(
+        ProcessResult(
+          exitCode: record.terminationStatus.exitCode,
+          stdout: Data((record.standardOutput ?? "").utf8),
+          stderr: record.standardError ?? ""
+        )
       )
     }
   }
