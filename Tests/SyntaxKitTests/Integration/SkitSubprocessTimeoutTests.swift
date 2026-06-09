@@ -76,7 +76,7 @@
           try await Task.sleep(for: .seconds(1))
           return .timedOut
         }
-        let first = try await group.next()!
+        let first = try #require(await group.next())
         group.cancelAll()
         return first
       }

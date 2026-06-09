@@ -42,22 +42,19 @@
     /// diagnostics from the spawned `swift`; it may be present in both
     /// success and failure cases (e.g. a successful render that emitted
     /// warnings). `result` is `.success` when the rendered output was
-    /// written to `destination`; `.failure` when the input could not be
-    /// rendered or its output could not be written.
+    /// written to its mirrored destination; `.failure` when the input could
+    /// not be rendered or its output could not be written.
     package struct FileOutcome: Sendable {
       package let input: URL
-      package let destination: URL
       package let stderr: String
       package let result: Result<Void, RunError>
 
       package init(
         input: URL,
-        destination: URL,
         stderr: String,
         result: Result<Void, RunError>
       ) {
         self.input = input
-        self.destination = destination
         self.stderr = stderr
         self.result = result
       }

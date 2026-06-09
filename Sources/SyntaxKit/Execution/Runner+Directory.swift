@@ -190,7 +190,6 @@ extension FileManager {
 
     return DirectoryRender.FileOutcome(
       input: result.input,
-      destination: destination,
       stderr: stderr,
       result: outcome
     )
