@@ -44,7 +44,7 @@ extension Bundle {
   /// from `executableURL`:
   ///   - `<exec-dir>/lib`             (adjacent layout)
   ///   - `<exec-dir>/../lib/skit`     (Homebrew layout)
-  package func resolveLibPath(candidates: String?...) throws -> String {
+  package func resolveLibPath(candidates: [String?]) throws -> String {
     let fileManager = FileManager.default
 
     for candidate in candidates {

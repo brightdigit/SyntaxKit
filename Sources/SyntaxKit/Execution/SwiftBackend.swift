@@ -1,5 +1,5 @@
 //
-//  RunError.swift
+//  SwiftBackend.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,19 +27,19 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Typed error surfaced by `Runner`. It decouples the renderer from any
-/// particular caller: `Runner` reports *what* went wrong, and the caller
-/// (CLI, build plugin, in-process driver) decides how to present it.
-package enum RunError: Error {
-  /// The input path was invalid — missing, or a directory given without an
-  /// output directory.
-  case invalidInput(String)
-  /// Single-file render: the spawned `swift` exited non-zero. Carries that
-  /// code (e.g. a compile failure, `124` on timeout, `128 + signal`) and
-  /// the (path-rewritten) stderr the toolchain emitted, so the caller can
-  /// surface diagnostics without having to fish them out elsewhere.
-  case renderFailed(exitCode: Int32, stderr: String)
-  /// A wrapped Foundation/Subprocess failure (file read/write, spawn error)
-  /// that has no dedicated mapping.
-  case unexpected(any Error)
+/// The two `swift`-toolchain operations a render session needs from a spawn
+/// backend: capture the local toolchain version (feeds the toolchain check and
+/// the cache key), and run `swift` for one `SwiftInvocation`.
+///
+/// SyntaxKit defines the contract; a Subprocess-based conformance lives in the
+/// `skit` CLI. `Sendable` so the spawn method can be captured in `Runner`'s
+/// `@Sendable` run closure.
+package protocol SwiftBackend: Sendable {
+  /// Verbatim `swift --version` output, or nil if the toolchain couldn't be
+  /// queried.
+  func captureSwiftVersion() async -> String?
+
+  /// Spawns `swift` for `invocation` and normalizes the result into a
+  /// `SwiftRunOutcome`.
+  func runSwift(for invocation: SwiftInvocation) async throws -> SwiftRunOutcome
 }

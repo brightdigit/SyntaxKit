@@ -27,53 +27,49 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#if canImport(Subprocess)
+package import Foundation
 
-  package import Foundation
+/// Result of `Runner.renderDirectory`. Successful rendered outputs are
+/// written into the mirrored output tree as the batch progresses; this
+/// value is the post-batch summary the caller inspects to decide
+/// presentation (logging, exit code, etc.). Per-input failures are
+/// captured here, not thrown, so a single bad input doesn't tear the
+/// batch down.
+package struct DirectoryRender: Sendable {
+  /// Per-input result. `stderr` carries the (possibly path-rewritten)
+  /// diagnostics from the spawned `swift`; it may be present whether or not
+  /// the input succeeded (e.g. a successful render that emitted warnings).
+  /// `result` is `nil` when the rendered output was written to its mirrored
+  /// destination, and carries the error when the input could not be rendered
+  /// or its output could not be written (typically a `RunError`).
+  package struct FileOutcome: Sendable {
+    package let input: URL
+    package let stderr: String
+    package let result: (any Error)?
 
-  /// Result of `Runner.renderDirectory`. Successful rendered outputs are
-  /// written into the mirrored output tree as the batch progresses; this
-  /// value is the post-batch summary the caller inspects to decide
-  /// presentation (logging, exit code, etc.). Per-input failures are
-  /// captured here, not thrown, so a single bad input doesn't tear the
-  /// batch down.
-  package struct DirectoryRender: Sendable {
-    /// Per-input result. `stderr` carries the (possibly path-rewritten)
-    /// diagnostics from the spawned `swift`; it may be present whether or not
-    /// the input succeeded (e.g. a successful render that emitted warnings).
-    /// `result` is `nil` when the rendered output was written to its mirrored
-    /// destination, and carries the error when the input could not be rendered
-    /// or its output could not be written (typically a `RunError`).
-    package struct FileOutcome: Sendable {
-      package let input: URL
-      package let stderr: String
-      package let result: (any Error)?
-
-      package init(
-        input: URL,
-        stderr: String,
-        result: (any Error)?
-      ) {
-        self.input = input
-        self.stderr = stderr
-        self.result = result
-      }
-    }
-
-    package let outcomes: [FileOutcome]
-
-    package init(outcomes: [FileOutcome]) {
-      self.outcomes = outcomes
-    }
-
-    /// Number of inputs whose `result` is `.failure` — the signal the caller
-    /// uses to map a partially-failed batch to a non-zero exit (or whatever
-    /// failure semantics fit the host).
-    package var failureCount: Int {
-      outcomes.reduce(into: 0) { count, outcome in
-        if outcome.result != nil { count += 1 }
-      }
+    package init(
+      input: URL,
+      stderr: String,
+      result: (any Error)?
+    ) {
+      self.input = input
+      self.stderr = stderr
+      self.result = result
     }
   }
 
-#endif
+  package let outcomes: [FileOutcome]
+
+  package init(outcomes: [FileOutcome]) {
+    self.outcomes = outcomes
+  }
+
+  /// Number of inputs whose `result` is `.failure` — the signal the caller
+  /// uses to map a partially-failed batch to a non-zero exit (or whatever
+  /// failure semantics fit the host).
+  package var failureCount: Int {
+    outcomes.reduce(into: 0) { count, outcome in
+      if outcome.result != nil { count += 1 }
+    }
+  }
+}

@@ -31,10 +31,6 @@ import ArgumentParser
 import Foundation
 import SyntaxKit
 
-#if canImport(Subprocess)
-  import Subprocess
-#endif
-
 extension Skit {
   /// Render one or more SyntaxKit DSL files into Swift source.
   ///
@@ -112,72 +108,57 @@ extension Skit {
       }
     }
 
-    internal func run() async throws {
-      #if canImport(Subprocess)
-        // 1. Resolve the libSyntaxKit bundle dir. Failure here is fatal — we
-        // can't spawn `swift` without knowing where the dylib + swiftmodules
-        // live. The error message lists the four lookup paths in priority order.
-        let libPath: String
-        do {
-          let envLibPath = ProcessInfo.processInfo.environment[Self.libDirEnvironmentKey].flatMap {
-            $0.isEmpty ? nil : $0
-          }
-          libPath = try Bundle.main.resolveLibPath(candidates: self.libPath, envLibPath)
-        } catch {
-          FileHandle.standardError.write(Data("\(error)\n".utf8))
-          throw ExitCode(2)
-        }
+    internal func execute() async throws(CommandError) {
+      // The spawn backend is nil only where there's no Subprocess backend
+      // (Windows, embedded) — there `run` can't spawn `swift`/`swiftc`.
+      guard let backend = Self.swiftBackend else {
+        throw CommandError.unsupportedPlatform
+      }
 
-        // 2. Capture local `swift --version` once. Feeds both the toolchain
-        // check (compares against the bundle stamp) and the output cache key
-        // (one shard per toolchain). Doing this here means we spawn
-        // `swift --version` exactly once per `skit run` invocation rather
-        // than once per input.
-        let swiftVersion = await captureSwiftVersion()
+      // Capture the two backend-dependent inputs to the otherwise
+      // platform-agnostic session setup: the local `swift --version` (feeds
+      // the toolchain check + the cache key, spawned exactly once per run)
+      // and the SKIT_LIB_DIR override.
+      let swiftVersion = await backend.captureSwiftVersion()
+      let envLibPath = ProcessInfo.processInfo.environment[Self.libDirEnvironmentKey]
+        .flatMap { $0.isEmpty ? nil : $0 }
 
-        // 3. Compare the bundle's recorded `swift --version` against the local
-        // one. swiftmodules aren't reliably forward-compatible across compiler
-        // versions, so a mismatch produces a clear error rather than letting
-        // the spawned `swift` emit a cryptic module-version diagnostic.
-        if !noToolchainCheck {
-          switch ToolchainCheckResult(libPath: libPath, swiftVersion: swiftVersion) {
-          case .match, .stampMissing:
-            break
-          case .mismatch(let bundle, let local):
-            FileHandle.standardError.write(
-              Data(toolchainMismatchMessage(bundle: bundle, local: local).utf8))
-            throw ExitCode(2)
-          }
-        }
-
-        // 4. Build the output cache (nil under `--no-cache`). The captured
-        // `swiftVersion` is bound into the instance so per-input key derivation
-        // doesn't re-spawn `swift`.
-        let cache: OutputCache? = noCache ? nil : OutputCache(swiftVersion: swiftVersion)
-
-        // 5. Bind the per-invocation configuration into a Runner. skit supplies
-        // the Subprocess-backed `run` closure — the one seam between the
-        // platform-agnostic engine in SyntaxKit and the Subprocess backend.
-        let runner = Runner(
-          libPath: libPath,
-          cache: cache,
+      // Resolve lib dir → toolchain-gate → cache → assemble Runner. That
+      // orchestration lives in SyntaxKit (the `Runner` session initializer);
+      // skit injects the captured `swiftVersion` and the backend's spawn
+      // method, and maps the typed setup failure onto the CLI's exit policy.
+      let runner: Runner
+      do {
+        runner = try Runner(
+          libCandidates: [self.libPath, envLibPath],
+          swiftVersion: swiftVersion,
+          enforceToolchainCheck: !noToolchainCheck,
+          useCache: !noCache,
           timeoutSeconds: timeoutSeconds
-        ) { try await Subprocess.Configuration.runSwift(for: $0) }
+        ) { try await backend.runSwift(for: $0) }
+      } catch {
+        throw CommandError(error)
+      }
 
-        // 6. Hand the input off to the runner: it classifies single-file vs.
-        // directory mode (validating existence and the `-o` requirement) and
-        // renders accordingly, reporting failures via the typed `RunError`.
-        // The command layer owns the mapping from failure to process exit.
-        try await render(using: runner, input: input, output: output)
-      #else
-        // Subprocess is the only backend skit knows how to use to spawn
-        // `swift`/`swiftc`. Without it (Windows, embedded), `run` cannot work.
-        let message =
-          "\(Self.messagePrefix)run is not supported on this platform "
-          + "(no Subprocess backend).\n"
-        FileHandle.standardError.write(Data(message.utf8))
-        throw ExitCode(1)
-      #endif
+      // Hand the input off to the runner: `render` owns presentation and the
+      // single-file/directory dispatch, translating render failures into
+      // `CommandError` for the outer catch to map.
+      try await render(using: runner, input: input, output: output)
+    }
+
+    /// Renders the input(s), with a single seam between the pipeline and the
+    /// process: every step `throw`s a typed `CommandError`, and the outer catch
+    /// maps that to its stderr diagnostic + terminal `ExitCode`/`ValidationError`.
+    /// Any non-`CommandError` propagates to ArgumentParser unchanged.
+    internal func run() async throws {
+      do {
+        try await self.execute()
+      } catch {
+        if let diagnostic = error.diagnostic {
+          FileHandle.standardError.write(Data(diagnostic.utf8))
+        }
+        throw error.terminalError
+      }
     }
   }
 }
