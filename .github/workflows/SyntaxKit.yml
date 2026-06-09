@@ -226,15 +226,12 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
 
-          # iOS / watchOS / tvOS / visionOS osVersion pinned to 26.4 until the
-          # macos-26 runner image ships Xcode 26.5 simulators — see #160.
-
           # iOS Build Matrix
           - type: ios
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "iPhone 17 Pro"
-            osVersion: "26.4.1"
+            osVersion: "26.5"
             download-platform: true
 
           # watchOS Build Matrix
@@ -258,7 +255,7 @@ jobs:
             runs-on: macos-26
             xcode: "/Applications/Xcode_26.5.app"
             deviceName: "Apple Vision Pro"
-            osVersion: "26.4.1"
+            osVersion: "26.5"
             download-platform: true
 
     steps:
@@ -298,7 +295,7 @@ jobs:
         swift:
           - version: "6.2"
           - version: "6.3"
-        android-api-level: [33, 34, 35, 36]
+        android-api-level: [33, 34, 35]
     steps:
       - uses: actions/checkout@v6
       - name: Free disk space

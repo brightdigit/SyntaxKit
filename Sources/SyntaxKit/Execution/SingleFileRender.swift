@@ -27,19 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-package import Foundation
+public import Foundation
 
 /// Result of `Runner.renderFile`. Both fields may be populated on success —
 /// the spawned `swift` can emit warnings to `stderr` alongside a valid
 /// `stdout`. The caller decides where the bytes go (file, stdout, in-memory).
-package struct SingleFileRender: Sendable {
+public struct SingleFileRender: Sendable {
   /// Rendered Swift source produced by the wrapped program.
-  package let stdout: Data
+  public let stdout: Data
   /// Compiler diagnostics from the spawned `swift`, with the wrapper path
   /// rewritten back to the original input. Empty when the toolchain was silent.
-  package let stderr: String
+  public let stderr: String
 
-  package init(stdout: Data, stderr: String) {
+  /// Creates a single-file render result from the rendered `stdout` bytes and
+  /// any `stderr` diagnostics.
+  public init(stdout: Data, stderr: String) {
     self.stdout = stdout
     self.stderr = stderr
   }

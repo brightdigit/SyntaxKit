@@ -31,7 +31,7 @@
 /// to the two distinct ways the input walk can fail, so the caller can tell a
 /// directory it couldn't enumerate apart from a file whose resource values it
 /// couldn't read.
-package enum CollectInputsError: Error {
+public enum CollectInputsError: Error {
   /// The directory could not be enumerated (`FileManager.enumerator` returned
   /// nil). Carries a user-facing `CLIError` describing the path.
   case cliError(CLIError)

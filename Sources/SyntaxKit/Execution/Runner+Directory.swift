@@ -40,7 +40,7 @@ extension Runner {
   /// Throws `RunError.unexpected` only for bulk failures the SDK can't
   /// recover from (e.g. the input directory can't be enumerated). An empty
   /// input set is *not* an error — the result simply has no outcomes.
-  package func renderDirectory(
+  public func renderDirectory(
     inputDir: String,
     outputDir: String
   ) async throws(RunError) -> DirectoryRender {

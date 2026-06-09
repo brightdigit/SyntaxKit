@@ -27,17 +27,21 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-package import Foundation
+public import Foundation
 
 /// Raw outcome of rendering one input — what `processFile` returns to its
 /// caller. `exitCode == 0` indicates the spawned `swift` succeeded (or that
 /// the output cache hit, which is treated identically).
-package struct ProcessResult: Sendable {
-  package let exitCode: Int32
-  package let stdout: Data
-  package let stderr: String
+public struct ProcessResult: Sendable {
+  /// Exit status of the spawned `swift`. `0` indicates success (or a cache hit).
+  public let exitCode: Int32
+  /// Bytes the wrapped program emitted to standard output — the rendered source.
+  public let stdout: Data
+  /// Compiler diagnostics from the spawned `swift`. Empty when it was silent.
+  public let stderr: String
 
-  package init(exitCode: Int32, stdout: Data, stderr: String) {
+  /// Creates a result from a finished (or cache-served) render.
+  public init(exitCode: Int32, stdout: Data, stderr: String) {
     self.exitCode = exitCode
     self.stdout = stdout
     self.stderr = stderr

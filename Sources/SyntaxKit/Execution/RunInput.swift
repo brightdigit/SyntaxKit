@@ -34,7 +34,7 @@ import Foundation
 /// `resolve(input:output:)`, which stats the path and enforces the per-mode
 /// output rules so the caller can `switch` on a settled value instead of
 /// juggling an `ObjCBool`.
-package enum RunInput {
+public enum RunInput {
   /// A single input file. `outputPath` is whatever the caller intends to
   /// do with the rendered bytes (write to a file, ignore, etc.); `Runner`
   /// itself does not act on it.
@@ -45,7 +45,7 @@ package enum RunInput {
   /// Classifies `input` by stat: existing directory → `.directory`,
   /// existing file → `.singleFile`. Throws `RunError.invalidInput` if the path
   /// doesn't exist, or if a directory input wasn't given an explicit output.
-  package static func resolve(input: String, output: String?) throws(RunError) -> RunInput {
+  public static func resolve(input: String, output: String?) throws(RunError) -> RunInput {
     var isDirectory: ObjCBool = false
     guard FileManager.default.fileExists(atPath: input, isDirectory: &isDirectory) else {
       throw RunError.invalidInput("input does not exist: \(input)")

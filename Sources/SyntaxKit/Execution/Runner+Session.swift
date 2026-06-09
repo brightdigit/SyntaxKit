@@ -33,7 +33,7 @@ extension Runner {
   /// Why a render session couldn't be brought up. Decoupled from any caller:
   /// the initializer reports *what* failed; the caller (CLI, build plugin,
   /// in-process driver) decides how to present it and which exit code to use.
-  package enum SetupError: Error {
+  public enum SetupError: Error {
     /// The libSyntaxKit directory couldn't be resolved from the supplied
     /// candidates or the bundle-relative fallbacks. Carries the underlying
     /// `CLIError` describing the lookup.
@@ -55,7 +55,7 @@ extension Runner {
   ///
   /// - Throws: `SetupError` for a lookup or toolchain failure, so the caller
   ///   owns the presentation and exit mapping.
-  package init(
+  public init(
     libCandidates: [String?],
     swiftVersion: String?,
     enforceToolchainCheck: Bool,

@@ -31,7 +31,10 @@
 /// directory (for `-I`/`-L`/`-rpath`) and the path to the wrapped source.
 /// `Runner` hands this to its `run` closure, which performs the actual spawn —
 /// the seam that keeps the engine free of any Subprocess dependency.
-package struct SwiftInvocation: Sendable {
-  package let libPath: String
-  package let wrappedPath: String
+public struct SwiftInvocation: Sendable {
+  /// Directory holding `libSyntaxKit` + swiftmodules, used for the spawned
+  /// `swift`'s `-I`/`-L`/`-rpath` flags.
+  public let libPath: String
+  /// Path to the wrapped DSL source the spawned `swift` should compile and run.
+  public let wrappedPath: String
 }

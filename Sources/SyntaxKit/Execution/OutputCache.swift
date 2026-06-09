@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-package import Foundation
+public import Foundation
 
 /// On-disk cache of rendered skit output, content-keyed so a re-run on
 /// unchanged input skips the `swift` spawn entirely.
@@ -37,7 +37,7 @@ package import Foundation
 /// across the concurrent `runOne` tasks in directory mode. The default
 /// singletons used in production (and the typical test doubles) are
 /// thread-safe for the operations we invoke.
-package struct OutputCache: Sendable {
+public struct OutputCache: Sendable {
   /// Bumped when the cache layout changes in a way that requires invalidation.
   private static let schemaVersion = "v1"
 
@@ -82,7 +82,10 @@ package struct OutputCache: Sendable {
   /// nil if capture failed before construction.
   private let swiftVersion: String?
 
-  package init(
+  /// Creates a cache rooted under the SyntaxKit cache directory, keyed in part
+  /// by the captured `swiftVersion`. `fileManager`/`processInfo` are injectable
+  /// for testing.
+  public init(
     swiftVersion: String?,
     fileManager: @autoclosure @escaping @Sendable () -> FileManager = .default,
     processInfo: ProcessInfo = .processInfo
@@ -98,7 +101,7 @@ package struct OutputCache: Sendable {
   /// version, libSyntaxKit stamp, sorted SKIT_*/SYNTAXKIT_* env vars). Any
   /// change in these inputs produces a fresh key and forces a recompile.
   /// See `ContentHasher` for the choice of FNV-1a over a cryptographic hash.
-  package func key(forInput source: String, libPath: String) -> String {
+  public func key(forInput source: String, libPath: String) -> String {
     var hasher = ContentHasher()
     // Schema version: bump to invalidate every existing cache entry at once.
     hasher.update(data: Data(Self.schemaVersion.utf8))
@@ -131,13 +134,13 @@ package struct OutputCache: Sendable {
   }
 
   /// Returns the cached rendered output for `key`, or nil on miss.
-  package func lookup(key: String) -> Data? {
+  public func lookup(key: String) -> Data? {
     try? Data(contentsOf: directory(for: key).appendingPathComponent(Self.outputFileName))
   }
 
   /// Atomically stores `data` under `key`. Concurrent writers race via a
   /// `tmp.<pid>.<uuid>/` staging dir + rename; the loser drops their copy.
-  package func store(key: String, data: Data) throws {
+  public func store(key: String, data: Data) throws {
     let cacheRoot = directory(for: key)
     let final = cacheRoot.appendingPathComponent(Self.outputFileName)
 

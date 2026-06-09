@@ -46,7 +46,7 @@ import Foundation
 ///
 /// Constructed once per render session; `Sendable` so a single value can be
 /// shared across the concurrent per-input tasks in directory mode.
-package struct Runner: Sendable {
+public struct Runner: Sendable {
   /// Exit code returned when the spawned `swift` is killed by skit's timeout
   /// watchdog. Matches POSIX `timeout(1)`.
   private static let timeoutExitCode: Int32 = 124
@@ -67,7 +67,9 @@ package struct Runner: Sendable {
   /// by the caller (skit supplies a Subprocess-based implementation).
   private let run: @Sendable (SwiftInvocation) async throws -> SwiftRunOutcome
 
-  package init(
+  /// Creates a runner bound to a lib directory, an optional output cache, a
+  /// per-input timeout, and the backend closure that spawns `swift`.
+  public init(
     libPath: String,
     cache: OutputCache?,
     timeoutSeconds: Int,
@@ -88,7 +90,7 @@ package struct Runner: Sendable {
   /// On a non-zero subprocess exit, throws `RunError.renderFailed(exitCode:
   /// stderr:)` carrying the toolchain's diagnostic. Any Foundation/Subprocess
   /// failure (file read, spawn) is wrapped in `RunError.unexpected`.
-  package func renderFile(input: String) async throws(RunError) -> SingleFileRender {
+  public func renderFile(input: String) async throws(RunError) -> SingleFileRender {
     // Render the input. `processFile` may hit the output cache and skip the
     // spawn entirely; either way the result has the same shape.
     let result: ProcessResult
@@ -188,7 +190,7 @@ package struct Runner: Sendable {
     if timeoutSeconds <= 0 {
       outcome = try await operation()
     } else {
-      outcome = try await Task.timeout(.seconds(timeoutSeconds), operation: operation) ?? .timedOut
+      outcome = try await Task.timeout(seconds: timeoutSeconds, operation: operation) ?? .timedOut
     }
 
     // Normalize both outcomes into a single ProcessResult shape.

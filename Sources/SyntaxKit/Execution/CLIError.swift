@@ -29,11 +29,14 @@
 
 /// Throwable error wrapper for skit's user-facing diagnostics. The message
 /// is printed verbatim — keep it actionable (path, hint, next step).
-package struct CLIError: Error, CustomStringConvertible {
-  package let message: String
-  package var description: String { message }
+public struct CLIError: Error, CustomStringConvertible {
+  /// The user-facing diagnostic, printed verbatim.
+  public let message: String
+  /// The error description, identical to `message`.
+  public var description: String { message }
 
-  package init(message: String) {
+  /// Creates an error carrying a verbatim user-facing `message`.
+  public init(message: String) {
     self.message = message
   }
 }

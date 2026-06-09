@@ -28,11 +28,15 @@
 //
 
 extension Task where Failure == any Error, Success: Sendable {
-  /// Runs `operation`, returning its value, or `nil` if `duration` elapses
+  /// Runs `operation`, returning its value, or `nil` if `seconds` elapses
   /// first. The operation and a sleep watchdog race in a throwing task group;
   /// whichever finishes first wins and the loser is cancelled.
-  package static func timeout(
-    _ duration: Duration,
+  ///
+  /// Takes seconds rather than a `Duration` so the engine stays buildable on
+  /// the package's minimum deployment targets — `Duration` requires iOS 16 /
+  /// tvOS 16 / watchOS 9, whereas `Task.sleep(nanoseconds:)` back-deploys.
+  public static func timeout(
+    seconds: Int,
     operation: @escaping @Sendable () async throws -> Success
   ) async throws -> Success? {
     try await withThrowingTaskGroup(of: Success?.self) { group in
@@ -40,7 +44,7 @@ extension Task where Failure == any Error, Success: Sendable {
       group.addTask {
         // Bare `Task` here means `Task<Success, any Error>`, which has no
         // `sleep`; spell out the never-returning task to reach it.
-        try await Task<Never, Never>.sleep(for: duration)
+        try await Task<Never, Never>.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
         return nil
       }
       let first = try await group.next()!

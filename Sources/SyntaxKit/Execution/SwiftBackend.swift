@@ -34,7 +34,7 @@
 /// SyntaxKit defines the contract; a Subprocess-based conformance lives in the
 /// `skit` CLI. `Sendable` so the spawn method can be captured in `Runner`'s
 /// `@Sendable` run closure.
-package protocol SwiftBackend: Sendable {
+public protocol SwiftBackend: Sendable {
   /// Verbatim `swift --version` output, or nil if the toolchain couldn't be
   /// queried.
   func captureSwiftVersion() async -> String?

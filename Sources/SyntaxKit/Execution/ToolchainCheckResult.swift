@@ -29,7 +29,10 @@
 
 import Foundation
 
-package enum ToolchainCheckResult {
+/// Outcome of comparing the bundle's recorded build toolchain against the
+/// local `swift --version`. The swiftmodule format isn't reliably
+/// forward-compatible across Swift releases, so a mismatch is worth surfacing.
+public enum ToolchainCheckResult {
   /// Filename for the bundle's recorded build-toolchain version.
   private static let toolchainStampFilename = "swift-version.txt"
 
@@ -38,6 +41,7 @@ package enum ToolchainCheckResult {
   /// `<libPath>/swift-version.txt` is missing (older bundle that predates
   /// the stamp). skit prints a one-line note and proceeds.
   case stampMissing
+  /// The bundle stamp and the local `swift --version` differ.
   case mismatch(bundle: String, local: String)
 }
 
@@ -47,7 +51,7 @@ extension ToolchainCheckResult {
   /// forward-compatible across even patch-level Swift releases (originating
   /// bug: 6.3.0 → 6.3.2 rejected the swiftmodule), so the comparison is
   /// exact-string after normalising trailing whitespace.
-  package init(libPath: String, swiftVersion: String?) {
+  public init(libPath: String, swiftVersion: String?) {
     let stampURL = URL(fileURLWithPath: libPath)
       .appendingPathComponent(Self.toolchainStampFilename)
     guard let stampData = try? Data(contentsOf: stampURL),

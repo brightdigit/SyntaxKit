@@ -30,7 +30,7 @@
 /// Typed error surfaced by `Runner`. It decouples the renderer from any
 /// particular caller: `Runner` reports *what* went wrong, and the caller
 /// (CLI, build plugin, in-process driver) decides how to present it.
-package enum RunError: Error {
+public enum RunError: Error {
   /// The input path was invalid — missing, or a directory given without an
   /// output directory.
   case invalidInput(String)

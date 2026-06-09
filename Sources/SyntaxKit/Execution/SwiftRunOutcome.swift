@@ -30,7 +30,7 @@
 /// Either the spawned `swift` ran to completion (success or failure) or
 /// the watchdog elapsed first. The completed payload is normalized to the
 /// shape callers want regardless of platform.
-package enum SwiftRunOutcome: Sendable {
+public enum SwiftRunOutcome: Sendable {
   case completed(ProcessResult)
   case timedOut
 }
