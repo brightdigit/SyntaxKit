@@ -132,4 +132,37 @@ extension Runner {
 internal struct RenderTaskResult: Sendable {
   internal let input: URL
   internal let result: Result<ProcessResult, RunError>
+
+  struct OutputDestination: Sendable {
+    let output: Data
+    let destination: URL
+  }
+
+  internal func writeOutput(
+    to destination: URL, toolchain: Runner.ToolchainVerification,
+    using writeOutputDestination: (OutputDestination) throws -> Void
+  ) throws(RunError) {
+    let result = try self.result.get()
+
+    guard result.exitCode == 0 else {
+      throw
+        .renderFailed(
+          exitCode: result.exitCode,
+          stderr: result.stderr,
+          toolchain: toolchain
+        )
+    }
+
+    let outputDestination = OutputDestination(output: result.stdout, destination: destination)
+
+    do {
+      try writeOutputDestination(outputDestination)
+    } catch {
+      throw .unexpected(error)
+    }
+    //    try writeOutputWith(destination)
+    //    return Result { try writeData(processResult.stdout, to: destination) }
+    //      .mapError(RunError.unexpected)
+
+  }
 }

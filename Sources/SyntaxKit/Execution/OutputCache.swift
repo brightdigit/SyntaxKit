@@ -175,7 +175,7 @@ public struct OutputCache: Sendable {
       try fileManager().moveItem(at: staging, to: cacheRoot)
     } catch {
       try? fileManager().removeItem(at: staging)
-      if !fileManager().fileExists(atPath: final.path) {
+      if fileManager().pathKind(atPath: final.path) == .missing {
         throw error
       }
     }

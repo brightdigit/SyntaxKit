@@ -39,11 +39,8 @@ extension FileManager {
 
   /// True if `path` is a directory containing `libSyntaxKit.{dylib,so}`.
   internal func isLibDir(_ path: String) -> Bool {
-    var isDir: ObjCBool = false
-    guard fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else {
-      return false
-    }
-    return fileExists(atPath: "\(path)/\(Self.syntaxKitProductName.dylibFilename)")
+    guard pathKind(atPath: path) == .directory else { return false }
+    return pathKind(atPath: "\(path)/\(Self.syntaxKitProductName.dylibFilename)") != .missing
   }
 
   /// `<size>/<mtime>` fingerprint of `libSyntaxKit.{dylib,so}` under
@@ -51,48 +48,40 @@ extension FileManager {
   /// version bump.
   internal func libStamp(libPath: String) -> String? {
     let dylib = "\(libPath)/\(Self.syntaxKitProductName.dylibFilename)"
-    guard let attrs = try? attributesOfItem(atPath: dylib) else { return nil }
-    let size = (attrs[.size] as? NSNumber)?.intValue ?? 0
-    let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970 ?? 0
-    return "\(size)/\(Int(mtime))"
+    return fingerprint(atPath: dylib).map {
+      "\($0.size)/\(Int($0.modificationDate.timeIntervalSince1970))"
+    }
   }
 
   /// Returns every `.swift` file under `inputDir` (recursive), sorted, with
-  /// hidden files and files prefixed by `_` removed. Sorted output keeps
-  /// batch behaviour deterministic across runs.
+  /// hidden files and files prefixed by `_` removed. The recursive walk and
+  /// sort come from `regularFiles(under:)`; this method adds only the SyntaxKit
+  /// input convention (`.swift` extension, skip the `_`-prefixed "not an input"
+  /// sources).
   ///
   /// Throws `CollectInputsError.cliError` when the directory can't be
   /// enumerated, or `.resourceValuesFailure` when a file's resource values
   /// can't be read — both are bulk failures with nothing per-file to report.
   internal func collectInputs(at inputDir: URL) throws(CollectInputsError) -> [URL] {
-    guard
-      let enumerator = enumerator(
-        at: inputDir,
-        includingPropertiesForKeys: [.isRegularFileKey, .isDirectoryKey],
-        options: [.skipsHiddenFiles]
-      )
-    else {
-      throw .cliError(CLIError(message: "could not enumerate \(inputDir.path)"))
+    let files: [URL]
+    do {
+      files = try regularFiles(under: inputDir)
+    } catch {
+      // `error` is typed `FileEnumerationError`; map each case onto the
+      // collect-specific error the caller already presents.
+      switch error {
+      case .notEnumerable(let directory):
+        throw .cliError(CLIError(message: "could not enumerate \(directory.path)"))
+      case .resourceValuesUnavailable(_, let underlying):
+        throw .resourceValuesFailure(underlying)
+      }
     }
 
-    var result: [URL] = []
-    for case let url as URL in enumerator {
-      let values: URLResourceValues
-      do {
-        values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
-      } catch {
-        throw .resourceValuesFailure(error)
-      }
-      // Directories aren't outputs.
-      if values.isDirectory == true { continue }
-      // Filter for `.swift` regular files, skipping the `_`-prefixed
-      // convention for "not an input" sources.
-      guard values.isRegularFile == true else { continue }
-      guard url.pathExtension == Self.swiftFileExtension else { continue }
-      guard !url.lastPathComponent.hasPrefix(Self.nonInputFilePrefix) else { continue }
-      result.append(url.standardizedFileURL)
-    }
-    return result.sorted { $0.path < $1.path }
+    return
+      files
+      .filter { $0.pathExtension == Self.swiftFileExtension }
+      .filter { !$0.lastPathComponent.hasPrefix(Self.nonInputFilePrefix) }
+      .map(\.standardizedFileURL)
   }
 
   /// Builds the `FileOutcome` for one render result, writing a successful
@@ -108,43 +97,20 @@ extension FileManager {
     outputBase: URL,
     toolchain: Runner.ToolchainVerification
   ) -> DirectoryRender.FileOutcome {
-    let relative = result.input.path.dropFirst(inputBase.path.count + 1)
-    let destination = outputBase.appendingPathComponent(String(relative))
+    // Mirror the input's location under the output base (generic path math).
+    let destination = result.input.rerooted(from: inputBase, onto: outputBase)
 
     // stderr is the toolchain's diagnostics whenever the render produced any —
     // i.e. on every successful spawn, regardless of how the write then fares.
     let stderr = (try? result.result.get())?.stderr ?? ""
 
-    // Fold the render result into the write result: a render failure passes
-    // through, a non-zero exit becomes `.renderFailed`, and a clean render is
-    // committed to disk (capturing any write error as `.unexpected`).
-    let outcome = result.result.flatMap { processResult -> Result<Void, RunError> in
-      guard processResult.exitCode == 0 else {
-        return .failure(
-          .renderFailed(
-            exitCode: processResult.exitCode,
-            stderr: processResult.stderr,
-            toolchain: toolchain
-          )
-        )
+    let failure: RunError?
+    do {
+      try result.writeOutput(to: destination, toolchain: toolchain) { [self] in
+        try self.writeData($0.output, to: $0.destination)
       }
-      return Result {
-        try createDirectory(
-          at: destination.deletingLastPathComponent(),
-          withIntermediateDirectories: true
-        )
-        try processResult.stdout.write(to: destination)
-      }
-      .mapError(RunError.unexpected)
-    }
-
-    // Collapse the success/failure result into the outcome's optional error
-    // (nil == success).
-    let failure: (any Error)?
-    switch outcome {
-    case .success:
       failure = nil
-    case .failure(let error):
+    } catch {
       failure = error
     }
 

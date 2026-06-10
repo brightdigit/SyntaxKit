@@ -46,16 +46,16 @@ public enum RunInput {
   /// existing file → `.singleFile`. Throws `RunError.invalidInput` if the path
   /// doesn't exist, or if a directory input wasn't given an explicit output.
   public static func resolve(input: String, output: String?) throws(RunError) -> RunInput {
-    var isDirectory: ObjCBool = false
-    guard FileManager.default.fileExists(atPath: input, isDirectory: &isDirectory) else {
+    switch FileManager.default.pathKind(atPath: input) {
+    case .missing:
       throw RunError.invalidInput("input does not exist: \(input)")
-    }
-    if isDirectory.boolValue {
+    case .directory:
       guard let output else {
         throw RunError.invalidInput("directory inputs require -o <output-dir>")
       }
       return .directory(inputDir: input, outputDir: output)
+    case .file:
+      return .singleFile(inputPath: input, outputPath: output)
     }
-    return .singleFile(inputPath: input, outputPath: output)
   }
 }

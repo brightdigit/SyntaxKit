@@ -137,7 +137,7 @@ extension Skit.Run {
       // .renderFailed already had its stderr surfaced above. Other failures
       // (process spawn, write) carry the diagnostic in the error itself.
       if let error = outcome.result {
-        if let runError = error as? RunError, case .renderFailed = runError {
+        if case .renderFailed = error {
           continue
         }
         FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))

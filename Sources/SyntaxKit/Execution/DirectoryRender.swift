@@ -40,21 +40,22 @@ public struct DirectoryRender: Sendable {
   /// diagnostics from the spawned `swift`; it may be present whether or not
   /// the input succeeded (e.g. a successful render that emitted warnings).
   /// `result` is `nil` when the rendered output was written to its mirrored
-  /// destination, and carries the error when the input could not be rendered
-  /// or its output could not be written (typically a `RunError`).
+  /// destination, and carries the `RunError` when the input could not be
+  /// rendered (`.renderFailed`) or its output could not be written
+  /// (`.unexpected`).
   public struct FileOutcome: Sendable {
     /// The input file this outcome describes.
     public let input: URL
     /// The (possibly path-rewritten) `swift` diagnostics for this input.
     public let stderr: String
-    /// `nil` when the output was written; the error otherwise.
-    public let result: (any Error)?
+    /// `nil` when the output was written; the `RunError` otherwise.
+    public let result: RunError?
 
     /// Creates an outcome for one rendered (or failed) input.
     public init(
       input: URL,
       stderr: String,
-      result: (any Error)?
+      result: RunError?
     ) {
       self.input = input
       self.stderr = stderr

@@ -35,7 +35,7 @@ import Testing
 @Suite internal struct OutputCacheTests {
   /// A `ProcessInfo` whose environment is fixed, so cache-key derivation can be
   /// tested without depending on the real process environment.
-  private final class FakeProcessInfo: ProcessInfo, Sendable {
+  private final class FakeProcessInfo: ProcessInfo {
     private let fixedEnvironment: [String: String]
 
     init(environment: [String: String]) {
