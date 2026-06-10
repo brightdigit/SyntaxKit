@@ -75,16 +75,8 @@ internal enum Render {
       rendered = try await runner.renderFile(input: input)
     } catch {
       // `error` is typed `RunError` (renderFile is `throws(RunError)`); the
-      // switch is exhaustive, so this single catch is both total (satisfies
-      // `throws(RunCommandError)`) and free of an unreachable clause.
-      switch error {
-      case .invalidInput(let message):
-        throw RunCommandError.usage(message)
-      case .renderFailed(let exitCode, let stderr, let toolchain):
-        throw RunCommandError.renderFailed(exitCode: exitCode, stderr: stderr, toolchain: toolchain)
-      case .unexpected(let underlying):
-        throw RunCommandError.unexpected(underlying)
-      }
+      // initializer's switch is exhaustive, so this single catch is total.
+      throw RunCommandError(renderFileError: error)
     }
 
     if !rendered.stderr.isEmpty {
@@ -115,17 +107,10 @@ internal enum Render {
     let outcomes: [FileOutcome]
     do {
       outcomes = try await runner.renderDirectory(inputDir: input, outputDir: output)
-    } catch .invalidInput(let message) {
-      throw RunCommandError.usage(message)
-    } catch .unexpected(let underlying) {
-      // `renderDirectory` only wraps directory-walk failures in `.unexpected`;
-      // `RunCommandError.directoryWalkFailed` carries the original "failed to
-      // walk" framing the CLI prints.
-      throw RunCommandError.directoryWalkFailed(input: input, underlying: underlying)
     } catch {
-      // renderDirectory does not throw .renderFailed — that's a per-file
-      // outcome. Defensive.
-      throw RunCommandError.failed
+      // `error` is typed `RunError` (renderDirectory is `throws(RunError)`);
+      // the initializer's switch is exhaustive, so this single catch is total.
+      throw RunCommandError(renderDirectoryError: error, input: input)
     }
 
     if outcomes.isEmpty {
@@ -135,20 +120,7 @@ internal enum Render {
       return
     }
 
-    for outcome in outcomes {
-      if !outcome.stderr.isEmpty {
-        FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
-        FileHandle.standardError.write(Data(outcome.stderr.utf8))
-      }
-      // .renderFailed already had its stderr surfaced above. Other failures
-      // (process spawn, write) carry the diagnostic in the error itself.
-      if let error = outcome.result {
-        if case .renderFailed = error {
-          continue
-        }
-        FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
-      }
-    }
+    reportOutcomeDiagnostics(outcomes)
 
     FileHandle.standardError.write(
       Data(
@@ -164,6 +136,27 @@ internal enum Render {
         FileHandle.standardError.write(Data(hint.utf8))
       }
       throw RunCommandError.failed
+    }
+  }
+
+  /// Prints per-input diagnostics for a batch: each file's compiler stderr
+  /// (fenced with a `---- path ----` header), then for any non-`.renderFailed`
+  /// failure (whose stderr was just surfaced) a one-line `path: error`. Spawn/
+  /// write failures carry their diagnostic in the error itself.
+  private static func reportOutcomeDiagnostics(_ outcomes: [FileOutcome]) {
+    for outcome in outcomes {
+      if !outcome.stderr.isEmpty {
+        FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
+        FileHandle.standardError.write(Data(outcome.stderr.utf8))
+      }
+      // .renderFailed already had its stderr surfaced above. Other failures
+      // (process spawn, write) carry the diagnostic in the error itself.
+      if let error = outcome.result {
+        if case .renderFailed = error {
+          continue
+        }
+        FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
+      }
     }
   }
 }

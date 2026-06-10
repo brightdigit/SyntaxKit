@@ -112,6 +112,36 @@ internal enum RunCommandError: Error {
     }
   }
 
+  /// Maps the `RunError` from `Runner.renderFile` onto the CLI's exit policy.
+  /// `renderFile`'s error is exhaustive over `RunError`, so every case has a
+  /// direct translation.
+  internal init(renderFileError error: RunError) {
+    switch error {
+    case .invalidInput(let message):
+      self = .usage(message)
+    case .renderFailed(let exitCode, let stderr, let toolchain):
+      self = .renderFailed(exitCode: exitCode, stderr: stderr, toolchain: toolchain)
+    case .unexpected(let underlying):
+      self = .unexpected(underlying)
+    }
+  }
+
+  /// Maps the `RunError` from `Runner.renderDirectory` onto the CLI's exit
+  /// policy. Unlike the single-file path, `renderDirectory` only wraps
+  /// directory-walk failures in `.unexpected` (carrying `input` for the
+  /// "failed to walk" framing), and never throws `.renderFailed` — that's a
+  /// per-file outcome — so that case is defensive.
+  internal init(renderDirectoryError error: RunError, input: String) {
+    switch error {
+    case .invalidInput(let message):
+      self = .usage(message)
+    case .unexpected(let underlying):
+      self = .directoryWalkFailed(input: input, underlying: underlying)
+    case .renderFailed:
+      self = .failed
+    }
+  }
+
   /// A one-line note appended to a render failure when the bundle/local Swift
   /// toolchain wasn't confirmed compatible — so a module-version error reads
   /// as a possible toolchain mismatch rather than a mysterious build failure.
