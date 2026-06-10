@@ -50,7 +50,8 @@ import Testing
     }
 
     do {
-      _ = try await runner.render(source: "let x = 1\n", originalPath: "/tmp/input.swift")
+      // Omit `originalPath` — exercises the optional anonymous-snippet path.
+      _ = try await runner.render(source: "let x = 1\n")
       return nil
     } catch {
       return error

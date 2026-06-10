@@ -36,7 +36,6 @@ public import Foundation
 //   4. processFile (per input)      — cache lookup → wrap → spawn → cache store
 //   5. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
 //   6. runSwift                     — spawn `swift` with timeout watchdog
-// See Docs/skit.md for design rationale and trade-offs.
 
 /// Renders SyntaxKit DSL inputs into Swift source. `Runner` is the SDK-shaped
 /// entry point: methods return rendered data (`SingleFileRender`) or
@@ -76,8 +75,8 @@ public struct Runner: Sendable {
   /// the real result. Carried onto `RunError.renderFailed`.
   public let toolchainVerification: ToolchainVerification
 
-  /// Creates a runner bound to a lib directory, an optional output cache, a
-  /// per-input timeout, and the backend closure that spawns `swift`.
+  /// Creates a runner bound to a lib dir, optional output cache, per-input
+  /// timeout, and the backend closure that spawns `swift`.
   public init(
     libPath: String,
     cache: OutputCache?,
@@ -99,15 +98,14 @@ public struct Runner: Sendable {
   /// Renders one in-memory input and returns the rendered bytes plus any
   /// compiler diagnostics. The SDK reads no input and writes no output;
   /// `originalPath` is only a diagnostic label (`#sourceLocation` + stderr
-  /// path-rewriting), and the caller decides where the result goes.
+  /// path-rewriting) — pass `nil` for an anonymous snippet.
   /// On a non-zero subprocess exit, throws `RunError.renderFailed` carrying the
   /// toolchain's diagnostic. Any Foundation/Subprocess failure (the internal
   /// temp-wrapper write, spawn) is wrapped in `RunError.unexpected`.
   public func render(
     source: String,
-    originalPath: String
+    originalPath: String? = nil
   ) async throws(RunError) -> SingleFileRender {
-    // `processFile` may hit the output cache and skip the spawn; same shape.
     let result: ProcessResult
     do {
       result = try await processFile(source: source, originalPath: originalPath)
@@ -135,9 +133,11 @@ public struct Runner: Sendable {
   /// from the caller; `originalPath` is only a `#sourceLocation`/stderr label
   /// (never opened). The temp wrapper is created in a per-run tmp dir and torn
   /// down by `defer`. `internal` so `Runner+Directory.swift` can reuse it.
-  internal func processFile(source: String, originalPath: String) async throws -> ProcessResult {
-    // The label diagnostics map back to; standardized to match `#sourceLocation`.
-    let absoluteInputPath = URL(fileURLWithPath: originalPath).standardizedFileURL.path
+  internal func processFile(source: String, originalPath: String?) async throws -> ProcessResult {
+    // Diagnostics label: standardize a given path, else a synthetic snippet name.
+    let absoluteInputPath =
+      originalPath.map { URL(fileURLWithPath: $0).standardizedFileURL.path }
+      ?? "source.swift"
 
     // Compute the output cache key (nil under `--no-cache` or when the cache
     // root couldn't be derived at startup). Mixes input bytes, toolchain
