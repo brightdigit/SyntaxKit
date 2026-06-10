@@ -8,7 +8,7 @@ let process = Process()
 process.executableURL = URL(fileURLWithPath: "/usr/bin/swift")
 process.arguments = [
     "run", "--package-path", "../../../", "swift", 
-    "Examples/Completed/enum_generator/dsl.swift"
+    "Examples/Demos/enum_generator/dsl.swift"
 ]
 process.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 

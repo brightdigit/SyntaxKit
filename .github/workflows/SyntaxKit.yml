@@ -65,7 +65,7 @@ jobs:
         run: |
           if [[ "${{ steps.check.outputs.full }}" == "true" ]]; then
             echo 'ubuntu-os=["noble","jammy"]' >> "$GITHUB_OUTPUT"
-            echo 'ubuntu-swift=[{"version":"6.0"},{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
+            echo 'ubuntu-swift=[{"version":"6.1"},{"version":"6.2"},{"version":"6.3"}]' >> "$GITHUB_OUTPUT"
             echo 'ubuntu-type=["","wasm","wasm-embedded"]' >> "$GITHUB_OUTPUT"
           else
             echo 'ubuntu-os=["noble"]' >> "$GITHUB_OUTPUT"
@@ -79,15 +79,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{ matrix.swift.nightly && format('swiftlang/swift:nightly-{0}-{1}', matrix.swift.version, matrix.os) || format('swift:{0}-{1}', matrix.swift.version, matrix.os) }}
     strategy:
+      fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.configure.outputs.ubuntu-os) }}
         swift: ${{ fromJSON(needs.configure.outputs.ubuntu-swift) }}
         type: ${{ fromJSON(needs.configure.outputs.ubuntu-type) }}
         exclude:
-          - swift: {version: "6.0"}
-            type: wasm
-          - swift: {version: "6.0"}
-            type: wasm-embedded
           - swift: {version: "6.1"}
             type: wasm
           - swift: {version: "6.1"}
@@ -298,7 +295,7 @@ jobs:
         swift:
           - version: "6.2"
           - version: "6.3"
-        android-api-level: [33, 34, 35, 36]
+        android-api-level: [33, 34, 35]
     steps:
       - uses: actions/checkout@v6
       - name: Free disk space

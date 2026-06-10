@@ -1,7 +1,21 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
+// `import Foundation` in a package manifest is intentional and supported: it's
+// here for `ProcessInfo.processInfo.environment` below (the SYNTAXKIT_DYNAMIC_LIB
+// build switch). Don't "tidy" it away.
+import Foundation
 import PackageDescription
+
+// MARK: - Library Linkage
+
+// The SyntaxKit library product is normally built with automatic (static)
+// linkage. The self-contained skit release bundle (Scripts/build-skit-release.sh)
+// needs a dynamic libSyntaxKit.dylib instead, so it sets SYNTAXKIT_DYNAMIC_LIB=1
+// rather than patching this manifest in place.
+// swiftlint:disable:next explicit_top_level_acl explicit_acl
+let syntaxKitLibraryType: Product.Library.LibraryType? =
+  ProcessInfo.processInfo.environment["SYNTAXKIT_DYNAMIC_LIB"] == "1" ? .dynamic : nil
 
 // MARK: - Swift Settings Configuration
 
@@ -59,21 +73,9 @@ let swiftSettings: [SwiftSetting] = [
   // Warn unsafe reflection
   .enableExperimentalFeature("WarnUnsafeReflection"),
 
-  // Enhanced compiler checking
-  // .unsafeFlags([
-  //   // Enable concurrency warnings
-  //   "-warn-concurrency",
-  //   // Enable actor data race checks
-  //   "-enable-actor-data-race-checks",
-  //   // Complete strict concurrency checking
-  //   "-strict-concurrency=complete",
-  //   // Enable testing support
-  //   "-enable-testing",
-  //   // Warn about functions with >100 lines
-  //   "-Xfrontend", "-warn-long-function-bodies=100",
-  //   // Warn about slow type checking expressions
-  //   "-Xfrontend", "-warn-long-expression-type-checking=100"
-  // ])
+  // NOTE: strict-concurrency / actor-data-race / long-body warnings are not
+  // enabled yet — they're too noisy against the current SwiftSyntax-heavy code.
+  // Revisit once the codebase is closer to clean under `-strict-concurrency`.
 ]
 
 // swiftlint:disable:next explicit_top_level_acl explicit_acl
@@ -89,6 +91,7 @@ let package = Package(
   products: [
     .library(
       name: "SyntaxKit",
+      type: syntaxKitLibraryType,
       targets: ["SyntaxKit"]
     ),
     .executable(
@@ -98,7 +101,10 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
-    .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0")
+    .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
+    .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
+    .package(url: "https://github.com/swiftlang/swift-subprocess.git", from: "0.4.0"),
+    .package(url: "https://github.com/apple/swift-system.git", from: "1.0.0")
   ],
   targets: [
     .target(
@@ -141,12 +147,35 @@ let package = Package(
     ),
     .executableTarget(
       name: "skit",
-      dependencies: ["SyntaxParser"],
+      dependencies: [
+        "SyntaxKit",
+        "SyntaxParser",
+        .product(name: "SwiftSyntax", package: "swift-syntax"),
+        .product(name: "SwiftParser", package: "swift-syntax"),
+        .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        .product(
+          name: "Subprocess",
+          package: "swift-subprocess",
+          condition: .when(platforms: [.macOS, .linux, .windows])
+        ),
+        .product(
+          name: "SystemPackage",
+          package: "swift-system",
+          condition: .when(platforms: [.linux, .windows])
+        )
+      ],
       swiftSettings: swiftSettings
     ),
     .testTarget(
       name: "SyntaxKitTests",
-      dependencies: ["SyntaxKit"],
+      dependencies: [
+        "SyntaxKit",
+        .product(
+          name: "Subprocess",
+          package: "swift-subprocess",
+          condition: .when(platforms: [.macOS, .linux, .windows])
+        )
+      ],
       swiftSettings: swiftSettings
     ),
     .testTarget(

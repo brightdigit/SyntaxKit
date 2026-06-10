@@ -1,48 +1,51 @@
 Enum("VendingMachineError") {
-    Case("invalidSelection")
-    Case("insufficientFunds").associatedValue("coinsNeeded", type: "Int")
-    Case("outOfStock")
+    EnumCase("invalidSelection")
+    EnumCase("insufficientFunds").associatedValue("coinsNeeded", type: "Int")
+    EnumCase("outOfStock")
 }
+.inherits("Error")
 
 Class("VendingMachine") {
-    Variable(.var, name: "inventory", equals: Literal.dictionary(Dictionary(uniqueKeysWithValues: [
-        ("Candy Bar", Item(price: 12, count: 7)),
-        ("Chips", Item(price: 10, count: 4)),
-        ("Pretzels", Item(price: 7, count: 11))
-    ])))
+    // Dictionary values are `Init`-expressions of an external `Item` type, which
+    // Literal.dictionary's typed cases can't represent — emit the literal as raw
+    // Swift source via VariableExp.
+    Variable(.var, name: "inventory") {
+        VariableExp("""
+            [
+                "Candy Bar": Item(price: 12, count: 7),
+                "Chips": Item(price: 10, count: 4),
+                "Pretzels": Item(price: 7, count: 11)
+            ]
+            """)
+    }
     Variable(.var, name: "coinsDeposited", equals: 0)
 
-    Function("vend"){
+    Function("vend") {
         Parameter("name", labeled: "itemNamed", type: "String")
     } _: {
-        Guard("let item = inventory[itemNamed]") else: {
-            Throw(
-                EnumValue("VendingMachineError", case: "invalidSelection")
-            )
+        Guard {
+            Let("item", "inventory[itemNamed]")
+        } else: {
+            Throw(VariableExp("VendingMachineError.invalidSelection"))
         }
-        Guard("item.count > 0") else: {
-            Throw(
-                EnumValue("VendingMachineError", case: "outOfStock")
-            )
+        Guard {
+            Infix(">", lhs: VariableExp("item.count"), rhs: Literal.integer(0))
+        } else: {
+            Throw(VariableExp("VendingMachineError.outOfStock"))
         }
-        Guard("item.price <= coinsDeposited") else: {
-            Throw(
-                EnumValue("VendingMachineError", case: "insufficientFunds"){
-                    ParameterExp("coinsNeeded", value: Infix("-"){
-                        VariableExp("item").property("price")
-                        VariableExp("coinsDeposited")
-                    })
-                }
-            )
+        Guard {
+            Infix("<=", lhs: VariableExp("item.price"), rhs: VariableExp("coinsDeposited"))
+        } else: {
+            Throw(VariableExp(
+                "VendingMachineError.insufficientFunds(coinsNeeded: item.price - coinsDeposited)"
+            ))
         }
-        Infix("-=", "coinsDeposited", VariableExp("item").property("price"))
-        Variable("newItem", equals: VariableExp("item"))
-        Infix("-=", "newItem.count", 1)
-        Assignment("inventory[itemNamed]", .ref("newItem"))
-        Call("print", "Dispensing \\(itemNamed)")
-    }
+        Infix("-=", lhs: VariableExp("coinsDeposited"), rhs: VariableExp("item.price"))
+        Variable(.var, name: "newItem") { VariableExp("item") }
+        Infix("-=", lhs: VariableExp("newItem.count"), rhs: Literal.integer(1))
+        Assignment("inventory[itemNamed]", VariableExp("newItem"))
+        Call("print") {
+            ParameterExp(unlabeled: Literal.string("Dispensing \\(itemNamed)"))
+        }
+    }.throws()
 }
-
-
-
-
