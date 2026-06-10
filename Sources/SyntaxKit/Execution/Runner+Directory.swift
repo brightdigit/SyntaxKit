@@ -30,47 +30,52 @@
 import Foundation
 
 extension Runner {
-  /// Walks `inputDir` for `.swift` inputs, processes them concurrently (up to
-  /// the active core count), and mirrors successfully-rendered outputs into
-  /// `outputDir`. A failure on one input does not abort the batch — successful
-  /// peers are still written. Returns the per-input outcomes; the caller
-  /// inspects `failureCount` (and per-outcome stderr) to decide presentation.
-  ///
-  /// Throws `RunError.unexpected` only for bulk failures the SDK can't
-  /// recover from (e.g. the input directory can't be enumerated). An empty
-  /// input set is *not* an error — the returned array is simply empty.
-  public func renderDirectory(
-    inputDir: String,
-    outputDir: String
-  ) async throws(RunError) -> [FileOutcome] {
-    let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
-    let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
-
-    // Phase 1: enumerate inputs. A walk failure is a bulk failure: there's
-    // nothing per-file to report, so it surfaces as a typed throw. The
-    // collect-specific error is folded into `RunError.unexpected` — the bulk
-    // channel the caller already presents.
-    let inputs: [URL]
-    do {
-      inputs = try fileManager().collectInputs(at: inputURL)
-    } catch {
-      throw RunError.unexpected(error)
-    }
-    guard !inputs.isEmpty else {
+  /// Renders a batch of in-memory inputs concurrently (up to the active core
+  /// count) and returns a per-input `FileOutcome` carrying the rendered
+  /// `stdout`, diagnostics, and any `RunError`. The SDK reads nothing and
+  /// writes nothing — the caller supplies the sources (e.g. via
+  /// `FileManager.collectInputs` + reads) and writes each successful
+  /// `stdout` wherever it likes (e.g. by rerooting `outcome.input`). A failure
+  /// on one input does not affect its peers; inspect `failureCount` (and
+  /// per-outcome `stderr`) to decide presentation. An empty input set yields an
+  /// empty array.
+  public func render(sources: [RenderInput]) async -> [FileOutcome] {
+    guard !sources.isEmpty else {
       return []
     }
 
-    // Phase 2: render every input with bounded concurrency.
-    let renderResults = await processInputs(inputs)
+    // Render every input with bounded concurrency, then fold each raw result
+    // into the public per-input outcome.
+    let renderResults = await processInputs(sources)
+    return renderResults.map(outcome(for:))
+  }
 
-    // Phase 3: write successes and capture a per-input outcome for each.
-    return renderResults.map {
-      fileManager().writeOutput(
-        for: $0,
-        inputBase: inputURL,
-        outputBase: outputURL,
-        toolchain: toolchainVerification
+  /// Folds one raw `RenderTaskResult` into a public `FileOutcome`: a zero-exit
+  /// render yields its `stdout` with `result == nil`; a non-zero exit becomes
+  /// `.renderFailed` (carrying the session toolchain); a captured throw is
+  /// surfaced as-is. No file IO — writing is the caller's job.
+  private func outcome(for taskResult: RenderTaskResult) -> FileOutcome {
+    switch taskResult.result {
+    case .success(let process) where process.exitCode == 0:
+      return FileOutcome(
+        input: taskResult.input,
+        stdout: process.stdout,
+        stderr: process.stderr,
+        result: nil
       )
+    case .success(let process):
+      return FileOutcome(
+        input: taskResult.input,
+        stdout: Data(),
+        stderr: process.stderr,
+        result: .renderFailed(
+          exitCode: process.exitCode,
+          stderr: process.stderr,
+          toolchain: toolchainVerification
+        )
+      )
+    case .failure(let error):
+      return FileOutcome(input: taskResult.input, stdout: Data(), stderr: "", result: error)
     }
   }
 
@@ -78,7 +83,7 @@ extension Runner {
   /// the active core count so a 200-file batch doesn't fork 200 simultaneous
   /// `swift` processes: the group is seeded up to the cap, then refilled one
   /// task per completion until the inputs are exhausted.
-  private func processInputs(_ inputs: [URL]) async -> [RenderTaskResult] {
+  private func processInputs(_ inputs: [RenderInput]) async -> [RenderTaskResult] {
     let maxConcurrent = max(1, ProcessInfo.processInfo.activeProcessorCount)
 
     var renderResults: [RenderTaskResult] = []
@@ -108,14 +113,14 @@ extension Runner {
   /// `processFile`'s heterogeneous Foundation/Subprocess throws are wrapped
   /// in `RunError.unexpected` here so the rest of the pipeline sees a single
   /// typed error.
-  private func runOne(_ input: URL) async -> RenderTaskResult {
+  private func runOne(_ input: RenderInput) async -> RenderTaskResult {
     do {
-      let result = try await processFile(inputPath: input.path)
-      return RenderTaskResult(input: input, result: .success(result))
+      let result = try await processFile(source: input.source, originalPath: input.url.path)
+      return RenderTaskResult(input: input.url, result: .success(result))
     } catch let error as RunError {
-      return RenderTaskResult(input: input, result: .failure(error))
+      return RenderTaskResult(input: input.url, result: .failure(error))
     } catch {
-      return RenderTaskResult(input: input, result: .failure(.unexpected(error)))
+      return RenderTaskResult(input: input.url, result: .failure(.unexpected(error)))
     }
   }
 }

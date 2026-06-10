@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+public import Foundation
 
 extension FileManager {
   /// Library product name whose platform-specific dylib marks a lib dir.
@@ -64,7 +64,10 @@ extension FileManager {
   /// Throws `CollectInputsError.cliError` when the directory can't be
   /// enumerated, or `.resourceValuesFailure` when a file's resource values
   /// can't be read — both are bulk failures with nothing per-file to report.
-  internal func collectInputs(at inputDir: URL) throws(CollectInputsError) -> [URL] {
+  ///
+  /// `public` so callers (e.g. the skit CLI) can collect inputs explicitly and
+  /// feed the in-memory sources to `Runner.render(sources:)`.
+  public func collectInputs(at inputDir: URL) throws(CollectInputsError) -> [URL] {
     let files: [URL]
     do {
       files = try regularFiles(under: inputDir)
@@ -84,42 +87,5 @@ extension FileManager {
       .filter { $0.pathExtension == Self.swiftFileExtension }
       .filter { !$0.lastPathComponent.hasPrefix(Self.nonInputFilePrefix) }
       .map(\.standardizedFileURL)
-  }
-
-  /// Builds the `FileOutcome` for one render result, writing a successful
-  /// render's stdout to its mirrored destination under `outputBase`. The write
-  /// side effect lives here; failures (a non-zero render exit, or a write
-  /// error) are folded into the returned outcome rather than thrown, so a
-  /// failing peer doesn't prevent successful files in the batch from being
-  /// written (Tuist-analog batch semantics). No diagnostics are printed here;
-  /// the caller does that.
-  internal func writeOutput(
-    for result: RenderTaskResult,
-    inputBase: URL,
-    outputBase: URL,
-    toolchain: ToolchainVerification
-  ) -> FileOutcome {
-    // Mirror the input's location under the output base (generic path math).
-    let destination = result.input.rerooted(from: inputBase, onto: outputBase)
-
-    // stderr is the toolchain's diagnostics whenever the render produced any —
-    // i.e. on every successful spawn, regardless of how the write then fares.
-    let stderr = (try? result.result.get())?.stderr ?? ""
-
-    let failure: RunError?
-    do {
-      try result.writeOutput(to: destination, toolchain: toolchain) { [self] in
-        try self.writeData($0.output, to: $0.destination)
-      }
-      failure = nil
-    } catch {
-      failure = error
-    }
-
-    return FileOutcome(
-      input: result.input,
-      stderr: stderr,
-      result: failure
-    )
   }
 }

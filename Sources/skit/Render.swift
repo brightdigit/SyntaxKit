@@ -62,101 +62,53 @@ internal enum Render {
     }
   }
 
-  /// Renders one input via `Runner.renderFile`, prints any compiler stderr,
-  /// and writes the rendered Swift source either to `outputPath` or to
-  /// stdout. The runner itself does none of that — that's the CLI's job.
+  /// Reads `input`, renders it via the filesystem-free `Runner.render(source:)`,
+  /// prints any compiler stderr, and writes the rendered Swift source either to
+  /// `output` or to stdout. The runner reads and writes nothing — that's the
+  /// CLI's job.
   private static func renderSingle(
     runner: Runner,
     input: String,
     output: String?
   ) async throws(RunCommandError) {
+    let inputURL = URL(fileURLWithPath: input).standardizedFileURL
+    let source: String
+    do {
+      source = try String(contentsOf: inputURL, encoding: .utf8)
+    } catch {
+      throw RunCommandError.unexpected(error)
+    }
+
     let rendered: SingleFileRender
     do {
-      rendered = try await runner.renderFile(input: input)
+      rendered = try await runner.render(source: source, originalPath: inputURL.path)
     } catch {
-      // `error` is typed `RunError` (renderFile is `throws(RunError)`); the
+      // `error` is typed `RunError` (render is `throws(RunError)`); the
       // initializer's switch is exhaustive, so this single catch is total.
       throw RunCommandError(renderFileError: error)
     }
 
+    try emit(rendered, to: output)
+  }
+
+  /// Prints any diagnostics, then writes the rendered source to `output` (or
+  /// stdout when `output` is nil). A write failure has no diagnostic of its own,
+  /// so the underlying error is surfaced (ArgumentParser prints it, exit 1).
+  private static func emit(
+    _ rendered: SingleFileRender,
+    to output: String?
+  ) throws(RunCommandError) {
     if !rendered.stderr.isEmpty {
       FileHandle.standardError.write(Data(rendered.stderr.utf8))
     }
-    if let output {
-      do {
-        try rendered.stdout.write(to: URL(fileURLWithPath: output))
-      } catch {
-        // A write failure has no diagnostic of its own; surface the underlying
-        // error (ArgumentParser prints it, exit 1).
-        throw RunCommandError.unexpected(error)
-      }
-    } else {
+    guard let output else {
       FileHandle.standardOutput.write(rendered.stdout)
-    }
-  }
-
-  /// Renders a directory batch via `Runner.renderDirectory`, prints per-input
-  /// diagnostics (fenced when several files emit them), surfaces non-render
-  /// failures, prints a one-line summary, and maps any failures to
-  /// `ExitCode(1)` — Tuist-analog batch semantics.
-  private static func renderBatch(
-    runner: Runner,
-    input: String,
-    output: String
-  ) async throws(RunCommandError) {
-    let outcomes: [FileOutcome]
-    do {
-      outcomes = try await runner.renderDirectory(inputDir: input, outputDir: output)
-    } catch {
-      // `error` is typed `RunError` (renderDirectory is `throws(RunError)`);
-      // the initializer's switch is exhaustive, so this single catch is total.
-      throw RunCommandError(renderDirectoryError: error, input: input)
-    }
-
-    if outcomes.isEmpty {
-      FileHandle.standardError.write(
-        Data("\(Skit.Run.messagePrefix)no .swift inputs under \(input)\n".utf8)
-      )
       return
     }
-
-    reportOutcomeDiagnostics(outcomes)
-
-    FileHandle.standardError.write(
-      Data(
-        ("\(Skit.Run.messagePrefix)\(outcomes.count - outcomes.failureCount)"
-          + "/\(outcomes.count) succeeded\n").utf8
-      )
-    )
-
-    if outcomes.failureCount > 0 {
-      // Some inputs failed; if the toolchain couldn't be verified, hint once
-      // that a Swift-version mismatch may be behind the build errors above.
-      if let hint = RunCommandError.toolchainHint(runner.toolchainVerification) {
-        FileHandle.standardError.write(Data(hint.utf8))
-      }
-      throw RunCommandError.failed
-    }
-  }
-
-  /// Prints per-input diagnostics for a batch: each file's compiler stderr
-  /// (fenced with a `---- path ----` header), then for any non-`.renderFailed`
-  /// failure (whose stderr was just surfaced) a one-line `path: error`. Spawn/
-  /// write failures carry their diagnostic in the error itself.
-  private static func reportOutcomeDiagnostics(_ outcomes: [FileOutcome]) {
-    for outcome in outcomes {
-      if !outcome.stderr.isEmpty {
-        FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
-        FileHandle.standardError.write(Data(outcome.stderr.utf8))
-      }
-      // .renderFailed already had its stderr surfaced above. Other failures
-      // (process spawn, write) carry the diagnostic in the error itself.
-      if let error = outcome.result {
-        if case .renderFailed = error {
-          continue
-        }
-        FileHandle.standardError.write(Data("\(outcome.input.path): \(error)\n".utf8))
-      }
+    do {
+      try rendered.stdout.write(to: URL(fileURLWithPath: output))
+    } catch {
+      throw RunCommandError.unexpected(error)
     }
   }
 }

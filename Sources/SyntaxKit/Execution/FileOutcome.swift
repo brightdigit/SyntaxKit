@@ -29,32 +29,36 @@
 
 public import Foundation
 
-/// Per-input result of a directory-mode render. `stderr` carries the (possibly
-/// path-rewritten) diagnostics from the spawned `swift`; it may be present
-/// whether or not the input succeeded (e.g. a successful render that emitted
-/// warnings). `result` is `nil` when the rendered output was written to its
-/// mirrored destination, and carries the `RunError` when the input could not
-/// be rendered (`.renderFailed`) or its output could not be written
-/// (`.unexpected`).
+/// Per-input result of a batch render. `stdout` is the rendered Swift source
+/// (empty on failure). `stderr` carries the (possibly path-rewritten)
+/// diagnostics from the spawned `swift`; it may be present whether or not the
+/// input succeeded (e.g. a successful render that emitted warnings). `result`
+/// is `nil` when the input rendered successfully (so `stdout` is valid and the
+/// caller may write it), and carries the `RunError` when the input could not be
+/// rendered (`.renderFailed`/`.unexpected`).
 ///
-/// `Runner.renderDirectory` returns `[FileOutcome]`; per-input failures are
+/// `Runner.render(sources:)` returns `[FileOutcome]`; per-input failures are
 /// captured here, not thrown, so a single bad input doesn't tear the batch
-/// down.
+/// down. The SDK does not write `stdout` anywhere — the caller owns that.
 public struct FileOutcome: Sendable {
   /// The input file this outcome describes.
   public let input: URL
+  /// The rendered Swift source for this input; empty when `result` is non-nil.
+  public let stdout: Data
   /// The (possibly path-rewritten) `swift` diagnostics for this input.
   public let stderr: String
-  /// `nil` when the output was written; the `RunError` otherwise.
+  /// `nil` when the input rendered successfully; the `RunError` otherwise.
   public let result: RunError?
 
   /// Creates an outcome for one rendered (or failed) input.
   public init(
     input: URL,
+    stdout: Data,
     stderr: String,
     result: RunError?
   ) {
     self.input = input
+    self.stdout = stdout
     self.stderr = stderr
     self.result = result
   }

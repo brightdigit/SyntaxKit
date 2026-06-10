@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+public import Foundation
 
 extension FileManager {
   /// Classifies what exists at `path` in a single stat — `.missing`, `.file`,
@@ -105,8 +105,9 @@ extension FileManager {
   }
 
   /// Writes `data` to `destination`, first creating any missing intermediate
-  /// directories.
-  internal func writeData(_ data: Data, to destination: URL) throws {
+  /// directories. `public` so a caller writing a rendered batch (e.g. the skit
+  /// CLI) can mirror outputs into a destination tree.
+  public func writeData(_ data: Data, to destination: URL) throws {
     try createDirectory(
       at: destination.deletingLastPathComponent(),
       withIntermediateDirectories: true

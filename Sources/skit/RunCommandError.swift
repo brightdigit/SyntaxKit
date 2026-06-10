@@ -126,19 +126,15 @@ internal enum RunCommandError: Error {
     }
   }
 
-  /// Maps the `RunError` from `Runner.renderDirectory` onto the CLI's exit
-  /// policy. Unlike the single-file path, `renderDirectory` only wraps
-  /// directory-walk failures in `.unexpected` (carrying `input` for the
-  /// "failed to walk" framing), and never throws `.renderFailed` — that's a
-  /// per-file outcome — so that case is defensive.
-  internal init(renderDirectoryError error: RunError, input: String) {
+  /// Maps the `CollectInputsError` from `FileManager.collectInputs` onto the
+  /// CLI's exit policy. Both cases are bulk directory-walk failures, carrying
+  /// `input` for the "failed to walk" framing the CLI prints.
+  internal init(collectInputsError error: CollectInputsError, input: String) {
     switch error {
-    case .invalidInput(let message):
-      self = .usage(message)
-    case .unexpected(let underlying):
+    case .cliError(let underlying):
       self = .directoryWalkFailed(input: input, underlying: underlying)
-    case .renderFailed:
-      self = .failed
+    case .resourceValuesFailure(let underlying):
+      self = .directoryWalkFailed(input: input, underlying: underlying)
     }
   }
 

@@ -1,5 +1,5 @@
 //
-//  URL+Reroot.swift
+//  RenderInput.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,18 +29,22 @@
 
 public import Foundation
 
-extension URL {
-  /// Re-roots this URL from `base` onto `newBase`, preserving the relative
-  /// subpath — e.g. `/in/sub/a.swift` re-rooted from `/in` onto `/out` becomes
-  /// `/out/sub/a.swift`. Used to mirror an input tree into an output tree.
-  ///
-  /// - Precondition: `self` is located under `base` (its path is prefixed by
-  ///   `base`'s). Callers that enumerate `base` satisfy this by construction.
-  ///
-  /// `public` so a caller mirroring a rendered batch (e.g. the skit CLI) can
-  /// map each `FileOutcome.input` onto its destination tree.
-  public func rerooted(from base: URL, onto newBase: URL) -> URL {
-    let relative = path.dropFirst(base.path.count + 1)
-    return newBase.appendingPathComponent(String(relative))
+/// One in-memory input for a batch render: the source bytes paired with the
+/// URL that identifies them. `Runner.render(sources:)` never opens `url` — it
+/// is a *label*, used for `#sourceLocation` mapping and stderr path-rewriting,
+/// and carried back on the matching `FileOutcome` so the caller can map the
+/// rendered output to a destination (e.g. by rerooting `url` onto an output
+/// tree). The caller is responsible for reading the file into `source`.
+public struct RenderInput: Sendable {
+  /// The URL identifying this input. Used as a diagnostic label and as the
+  /// key the caller reroots when writing output; never opened by the SDK.
+  public let url: URL
+  /// The input's source bytes, already read into memory by the caller.
+  public let source: String
+
+  /// Pairs an identifying `url` with its already-loaded `source`.
+  public init(url: URL, source: String) {
+    self.url = url
+    self.source = source
   }
 }

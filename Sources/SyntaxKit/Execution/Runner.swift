@@ -32,8 +32,8 @@ public import Foundation
 // Render lifecycle (per `Runner` call):
 //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
 //   2. ToolchainCheckResult.init    — compare bundle stamp to `swift --version`
-//   3. Runner.renderFile / .renderDirectory — single- or batch-input mode
-//   4. processFile (per input)      — load → cache lookup → wrap → spawn → cache store
+//   3. Runner.render(source:) / .render(sources:) — single- or batch-input mode
+//   4. processFile (per input)      — cache lookup → wrap → spawn → cache store
 //   5. wrap                         — hoist imports, wrap body in Group { … }, #sourceLocation
 //   6. runSwift                     — spawn `swift` with timeout watchdog
 // See Docs/skit.md for design rationale and trade-offs.
@@ -96,19 +96,21 @@ public struct Runner: Sendable {
 
   // MARK: - Single-file mode
 
-  /// Renders one input and returns the rendered bytes plus any compiler
-  /// diagnostics. No file IO, no stdout/stderr writes — the caller decides
-  /// where the result goes.
-  ///
-  /// On a non-zero subprocess exit, throws `RunError.renderFailed(exitCode:
-  /// stderr:)` carrying the toolchain's diagnostic. Any Foundation/Subprocess
-  /// failure (file read, spawn) is wrapped in `RunError.unexpected`.
-  public func renderFile(input: String) async throws(RunError) -> SingleFileRender {
-    // Render the input. `processFile` may hit the output cache and skip the
-    // spawn entirely; either way the result has the same shape.
+  /// Renders one in-memory input and returns the rendered bytes plus any
+  /// compiler diagnostics. The SDK reads no input and writes no output;
+  /// `originalPath` is only a diagnostic label (`#sourceLocation` + stderr
+  /// path-rewriting), and the caller decides where the result goes.
+  /// On a non-zero subprocess exit, throws `RunError.renderFailed` carrying the
+  /// toolchain's diagnostic. Any Foundation/Subprocess failure (the internal
+  /// temp-wrapper write, spawn) is wrapped in `RunError.unexpected`.
+  public func render(
+    source: String,
+    originalPath: String
+  ) async throws(RunError) -> SingleFileRender {
+    // `processFile` may hit the output cache and skip the spawn; same shape.
     let result: ProcessResult
     do {
-      result = try await processFile(inputPath: input)
+      result = try await processFile(source: source, originalPath: originalPath)
     } catch let error as RunError {
       throw error
     } catch {
@@ -128,16 +130,14 @@ public struct Runner: Sendable {
 
   // MARK: - Per-file work
 
-  /// The per-input render pipeline: load source → consult the output cache →
-  /// (on miss) wrap → spawn `swift` → rewrite diagnostics → store the result
-  /// in the cache. The temp wrapper file is created in a per-run tmp dir and
-  /// torn down by `defer` whether the spawn succeeded or not. `internal` so
-  /// the directory-mode extension (`Runner+Directory.swift`) can reuse it.
-  internal func processFile(inputPath: String) async throws -> ProcessResult {
-    // Load the input source. Anything past this point keys off these bytes.
-    let inputURL = URL(fileURLWithPath: inputPath).standardizedFileURL
-    let absoluteInputPath = inputURL.path
-    let source = try String(contentsOf: inputURL, encoding: .utf8)
+  /// The per-input render pipeline: consult the output cache → (on miss) wrap →
+  /// spawn `swift` → rewrite diagnostics → store in the cache. `source` comes
+  /// from the caller; `originalPath` is only a `#sourceLocation`/stderr label
+  /// (never opened). The temp wrapper is created in a per-run tmp dir and torn
+  /// down by `defer`. `internal` so `Runner+Directory.swift` can reuse it.
+  internal func processFile(source: String, originalPath: String) async throws -> ProcessResult {
+    // The label diagnostics map back to; standardized to match `#sourceLocation`.
+    let absoluteInputPath = URL(fileURLWithPath: originalPath).standardizedFileURL.path
 
     // Compute the output cache key (nil under `--no-cache` or when the cache
     // root couldn't be derived at startup). Mixes input bytes, toolchain

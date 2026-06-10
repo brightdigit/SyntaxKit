@@ -33,18 +33,13 @@ import Testing
 @testable import SyntaxKit
 
 @Suite internal struct RunnerRenderFailureTests {
-  /// Runs `renderFile` against a throwaway input with a stub backend that
-  /// always reports a non-zero exit, so the render fails deterministically
-  /// without spawning `swift`. Returns the thrown `RunError`, or nil if the
-  /// call unexpectedly succeeded.
+  /// Runs `render(source:originalPath:)` against in-memory source with a stub
+  /// backend that always reports a non-zero exit, so the render fails
+  /// deterministically without spawning `swift`. Returns the thrown `RunError`,
+  /// or nil if the call unexpectedly succeeded.
   private func renderFailure(
     toolchain: ToolchainVerification
   ) async -> RunError? {
-    let input = FileManager.default.temporaryDirectory
-      .appendingPathComponent("skit-input-\(UUID().uuidString).swift")
-    try? Data("let x = 1\n".utf8).write(to: input)
-    defer { try? FileManager.default.removeItem(at: input) }
-
     let runner = Runner(
       libPath: "/does/not/matter",
       cache: nil,
@@ -55,7 +50,7 @@ import Testing
     }
 
     do {
-      _ = try await runner.renderFile(input: input.path)
+      _ = try await runner.render(source: "let x = 1\n", originalPath: "/tmp/input.swift")
       return nil
     } catch {
       return error

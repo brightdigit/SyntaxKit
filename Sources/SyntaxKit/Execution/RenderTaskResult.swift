@@ -29,45 +29,12 @@
 
 import Foundation
 
-/// Payload the per-input render `TaskGroup` yields back to `renderDirectory`.
+/// Payload the per-input render `TaskGroup` yields back to `render(sources:)`.
 /// Failures are captured (not thrown) so a single bad input doesn't tear down
 /// the group; `processFile`'s heterogeneous Foundation/Subprocess throws are
-/// normalized into `RunError` (typically `.unexpected`) by `runOne`.
-/// `internal` so `FileManager.writeOutput` (in `FileManager+Execution.swift`)
-/// can consume it.
+/// normalized into `RunError` (typically `.unexpected`) by `runOne`. `Runner`
+/// then folds each value into a public `FileOutcome`.
 internal struct RenderTaskResult: Sendable {
-  /// Bundles a successful render's bytes with the destination they should be
-  /// written to. Nested because it's only ever produced by `writeOutput` to
-  /// hand off to its caller-supplied writer closure.
-  internal struct OutputDestination: Sendable {
-    internal let output: Data
-    internal let destination: URL
-  }
-
   internal let input: URL
   internal let result: Result<ProcessResult, RunError>
-
-  internal func writeOutput(
-    to destination: URL,
-    toolchain: ToolchainVerification,
-    using writeOutputDestination: (OutputDestination) throws -> Void
-  ) throws(RunError) {
-    let result = try self.result.get()
-
-    guard result.exitCode == 0 else {
-      throw .renderFailed(
-        exitCode: result.exitCode,
-        stderr: result.stderr,
-        toolchain: toolchain
-      )
-    }
-
-    let outputDestination = OutputDestination(output: result.stdout, destination: destination)
-
-    do {
-      try writeOutputDestination(outputDestination)
-    } catch {
-      throw .unexpected(error)
-    }
-  }
 }
