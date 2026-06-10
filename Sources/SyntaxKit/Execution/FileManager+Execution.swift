@@ -105,7 +105,8 @@ extension FileManager {
   internal func writeOutput(
     for result: RenderTaskResult,
     inputBase: URL,
-    outputBase: URL
+    outputBase: URL,
+    toolchain: Runner.ToolchainVerification
   ) -> DirectoryRender.FileOutcome {
     let relative = result.input.path.dropFirst(inputBase.path.count + 1)
     let destination = outputBase.appendingPathComponent(String(relative))
@@ -120,7 +121,11 @@ extension FileManager {
     let outcome = result.result.flatMap { processResult -> Result<Void, RunError> in
       guard processResult.exitCode == 0 else {
         return .failure(
-          .renderFailed(exitCode: processResult.exitCode, stderr: processResult.stderr)
+          .renderFailed(
+            exitCode: processResult.exitCode,
+            stderr: processResult.stderr,
+            toolchain: toolchain
+          )
         )
       }
       return Result {

@@ -75,8 +75,8 @@ extension Skit.Run {
       switch error {
       case .invalidInput(let message):
         throw CommandError.usage(message)
-      case .renderFailed(let exitCode, let stderr):
-        throw CommandError.renderFailed(exitCode: exitCode, stderr: stderr)
+      case .renderFailed(let exitCode, let stderr, let toolchain):
+        throw CommandError.renderFailed(exitCode: exitCode, stderr: stderr, toolchain: toolchain)
       case .unexpected(let underlying):
         throw CommandError.unexpected(underlying)
       }
@@ -152,6 +152,11 @@ extension Skit.Run {
     )
 
     if result.failureCount > 0 {
+      // Some inputs failed; if the toolchain couldn't be verified, hint once
+      // that a Swift-version mismatch may be behind the build errors above.
+      if let hint = CommandError.toolchainHint(runner.toolchainVerification) {
+        FileHandle.standardError.write(Data(hint.utf8))
+      }
       throw CommandError.failed
     }
   }

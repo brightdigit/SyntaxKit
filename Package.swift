@@ -1,7 +1,18 @@
 // swift-tools-version: 6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
+import Foundation
 import PackageDescription
+
+// MARK: - Library Linkage
+
+// The SyntaxKit library product is normally built with automatic (static)
+// linkage. The self-contained skit release bundle (Scripts/build-skit-release.sh)
+// needs a dynamic libSyntaxKit.dylib instead, so it sets SYNTAXKIT_DYNAMIC_LIB=1
+// rather than patching this manifest in place.
+// swiftlint:disable:next explicit_top_level_acl explicit_acl
+let syntaxKitLibraryType: Product.Library.LibraryType? =
+  ProcessInfo.processInfo.environment["SYNTAXKIT_DYNAMIC_LIB"] == "1" ? .dynamic : nil
 
 // MARK: - Swift Settings Configuration
 
@@ -89,6 +100,7 @@ let package = Package(
   products: [
     .library(
       name: "SyntaxKit",
+      type: syntaxKitLibraryType,
       targets: ["SyntaxKit"]
     ),
     .executable(

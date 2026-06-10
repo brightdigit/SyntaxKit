@@ -47,6 +47,23 @@ import Foundation
 /// Constructed once per render session; `Sendable` so a single value can be
 /// shared across the concurrent per-input tasks in directory mode.
 public struct Runner: Sendable {
+  /// Outcome of the bundle/local Swift-toolchain compatibility check performed
+  /// when the render session was created. Stored on the `Runner` and carried on
+  /// `RunError.renderFailed` so a caller can hint that an *unverified* toolchain
+  /// may be the real cause of a build error — swiftmodules aren't reliably
+  /// compatible across compiler versions. A confirmed *mismatch* never reaches
+  /// here; it fails session setup via `SetupError.toolchainMismatch`.
+  public enum ToolchainVerification: Sendable, Equatable {
+    /// The bundle's recorded `swift --version` matched the local one.
+    case verified
+    /// The caller opted out of the check (`enforceToolchainCheck == false`).
+    case notChecked
+    /// The check ran but couldn't compare versions — the bundle had no
+    /// toolchain stamp, or the local `swift --version` couldn't be captured —
+    /// so compatibility is unknown.
+    case unverified
+  }
+
   /// Exit code returned when the spawned `swift` is killed by skit's timeout
   /// watchdog. Matches POSIX `timeout(1)`.
   private static let timeoutExitCode: Int32 = 124
@@ -66,6 +83,11 @@ public struct Runner: Sendable {
   /// Backend that actually spawns `swift` for one `SwiftInvocation`. Injected
   /// by the caller (skit supplies a Subprocess-based implementation).
   private let run: @Sendable (SwiftInvocation) async throws -> SwiftRunOutcome
+  /// Whether this session's bundle/local Swift toolchain was confirmed
+  /// compatible. Defaults to `.notChecked` for callers that construct a
+  /// `Runner` directly; the session initializer (`Runner+Session.swift`) sets
+  /// the real result. Carried onto `RunError.renderFailed`.
+  public let toolchainVerification: ToolchainVerification
 
   /// Creates a runner bound to a lib directory, an optional output cache, a
   /// per-input timeout, and the backend closure that spawns `swift`.
@@ -73,11 +95,13 @@ public struct Runner: Sendable {
     libPath: String,
     cache: OutputCache?,
     timeoutSeconds: Int,
+    toolchainVerification: ToolchainVerification = .notChecked,
     run: @Sendable @escaping (SwiftInvocation) async throws -> SwiftRunOutcome
   ) {
     self.libPath = libPath
     self.cache = cache
     self.timeoutSeconds = timeoutSeconds
+    self.toolchainVerification = toolchainVerification
     self.run = run
   }
 
@@ -104,7 +128,11 @@ public struct Runner: Sendable {
     // Non-zero subprocess exit is reported as a typed failure carrying both
     // the code and the (path-rewritten) toolchain diagnostic.
     guard result.exitCode == 0 else {
-      throw RunError.renderFailed(exitCode: result.exitCode, stderr: result.stderr)
+      throw RunError.renderFailed(
+        exitCode: result.exitCode,
+        stderr: result.stderr,
+        toolchain: toolchainVerification
+      )
     }
     return SingleFileRender(stdout: result.stdout, stderr: result.stderr)
   }

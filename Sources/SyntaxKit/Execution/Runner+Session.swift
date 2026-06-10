@@ -75,14 +75,21 @@ extension Runner {
     // 2. Compare the bundle's recorded `swift --version` against the local one.
     // swiftmodules aren't reliably forward-compatible across compiler versions,
     // so a mismatch is surfaced rather than letting the spawned `swift` emit a
-    // cryptic module-version diagnostic.
+    // cryptic module-version diagnostic. A *mismatch* fails setup; anything else
+    // is remembered (no IO here — the SDK stays silent) so a later render
+    // failure can hint that an unverified toolchain may be the cause.
+    let verification: ToolchainVerification
     if enforceToolchainCheck {
       switch ToolchainCheckResult(libPath: libPath, swiftVersion: swiftVersion) {
-      case .match, .stampMissing:
-        break
+      case .match:
+        verification = .verified
+      case .stampMissing:
+        verification = .unverified
       case .mismatch(let bundle, let local):
         throw SetupError.toolchainMismatch(bundle: bundle, local: local)
       }
+    } else {
+      verification = .notChecked
     }
 
     // 3. Build the output cache (nil when disabled). The captured `swiftVersion`
@@ -94,6 +101,7 @@ extension Runner {
       libPath: libPath,
       cache: cache,
       timeoutSeconds: timeoutSeconds,
+      toolchainVerification: verification,
       run: run
     )
   }

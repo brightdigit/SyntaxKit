@@ -66,7 +66,12 @@ extension Runner {
 
     // Phase 3: write successes and capture a per-input outcome for each.
     let outcomes = renderResults.map {
-      FileManager.default.writeOutput(for: $0, inputBase: inputURL, outputBase: outputURL)
+      FileManager.default.writeOutput(
+        for: $0,
+        inputBase: inputURL,
+        outputBase: outputURL,
+        toolchain: toolchainVerification
+      )
     }
 
     return DirectoryRender(outcomes: outcomes)

@@ -76,6 +76,11 @@ public struct OutputCache: Sendable {
   private let root: URL
   private let fileManager: @Sendable () -> FileManager
   private let processInfo: ProcessInfo
+  /// Factory for the per-key hasher. Pluggable so the cache's hashing algorithm
+  /// can be swapped; defaults to `ContentHasher` (FNV-1a). A factory rather than
+  /// a stored instance because `key(forInput:libPath:)` needs a fresh, empty
+  /// hasher per call.
+  private let makeHasher: @Sendable () -> any ContentHashing
 
   /// Verbatim `swift --version` output captured once for the lifetime of
   /// this cache, so per-input key derivation doesn't re-spawn `swift`.
@@ -84,17 +89,20 @@ public struct OutputCache: Sendable {
 
   /// Creates a cache rooted under the SyntaxKit cache directory, keyed in part
   /// by the captured `swiftVersion`. `fileManager`/`processInfo` are injectable
-  /// for testing.
+  /// for testing; `makeHasher` is injectable to plug in a different
+  /// `ContentHashing` algorithm (defaults to `ContentHasher`).
   public init(
     swiftVersion: String?,
     fileManager: @autoclosure @escaping @Sendable () -> FileManager = .default,
-    processInfo: ProcessInfo = .processInfo
+    processInfo: ProcessInfo = .processInfo,
+    makeHasher: @escaping @Sendable () -> any ContentHashing = { ContentHasher() }
   ) {
     self.root = processInfo.syntaxKitCacheRoot(default: Self.defaultCacheRoot)
       .appendingPathComponent(Self.outputsDirectoryName)
     self.swiftVersion = swiftVersion
     self.fileManager = fileManager
     self.processInfo = processInfo
+    self.makeHasher = makeHasher
   }
 
   /// 64-bit content hash over (schema version, input source bytes, swift
@@ -102,7 +110,7 @@ public struct OutputCache: Sendable {
   /// change in these inputs produces a fresh key and forces a recompile.
   /// See `ContentHasher` for the choice of FNV-1a over a cryptographic hash.
   public func key(forInput source: String, libPath: String) -> String {
-    var hasher = ContentHasher()
+    var hasher = makeHasher()
     // Schema version: bump to invalidate every existing cache entry at once.
     hasher.update(data: Data(Self.schemaVersion.utf8))
     // Input source bytes: the primary driver of the key.

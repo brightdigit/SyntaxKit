@@ -38,8 +38,10 @@ public enum ToolchainCheckResult {
 
   /// Bundle stamp matches the local `swift --version` exactly.
   case match
-  /// `<libPath>/swift-version.txt` is missing (older bundle that predates
-  /// the stamp). skit prints a one-line note and proceeds.
+  /// The toolchain check couldn't be performed: either `<libPath>/swift-version.txt`
+  /// is missing (older bundle that predates the stamp) or the local
+  /// `swift --version` couldn't be captured. The caller proceeds; presentation
+  /// of the skipped-check note belongs to the call site, not this value type.
   case stampMissing
   /// The bundle stamp and the local `swift --version` differ.
   case mismatch(bundle: String, local: String)
@@ -57,16 +59,10 @@ extension ToolchainCheckResult {
     guard let stampData = try? Data(contentsOf: stampURL),
       let stampRaw = String(data: stampData, encoding: .utf8)
     else {
-      FileHandle.standardError.write(
-        Data("skit: bundle has no toolchain stamp; skipping check\n".utf8)
-      )
       self = .stampMissing
       return
     }
     guard let localRaw = swiftVersion else {
-      FileHandle.standardError.write(
-        Data("skit: could not capture local `swift --version`; skipping toolchain check\n".utf8)
-      )
       self = .stampMissing
       return
     }

@@ -48,8 +48,10 @@ extension Skit.Run {
     case toolchainMismatch(bundle: String, local: String)
     /// The spawned `swift` exited non-zero (compile failure, `124` on timeout,
     /// `128 + signal`). Carries that code + the toolchain stderr; the code is
-    /// passed through as the process exit.
-    case renderFailed(exitCode: Int32, stderr: String)
+    /// passed through as the process exit. Also carries the session's
+    /// `toolchainVerification` so an unverified toolchain can be hinted as a
+    /// possible cause alongside the diagnostics.
+    case renderFailed(exitCode: Int32, stderr: String, toolchain: Runner.ToolchainVerification)
     /// A directory batch couldn't be walked. Exit 1.
     case directoryWalkFailed(input: String, underlying: any Error)
     /// A render/batch failure whose diagnostics were already surfaced (per-input
@@ -82,8 +84,10 @@ extension Skit.Run {
         return "\(error)\n"
       case .toolchainMismatch(let bundle, let local):
         return Self.toolchainMismatchMessage(bundle: bundle, local: local)
-      case .renderFailed(_, let stderr):
-        return stderr.isEmpty ? nil : stderr
+      case .renderFailed(_, let stderr, let toolchain):
+        let parts = [stderr.isEmpty ? nil : stderr, Self.toolchainHint(toolchain)]
+          .compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined()
       case .directoryWalkFailed(let input, let underlying):
         return "\(Skit.Run.messagePrefix)failed to walk \(input): \(underlying)\n"
       case .unsupportedPlatform:
@@ -100,12 +104,33 @@ extension Skit.Run {
         return ValidationError(message)
       case .libResolutionFailed, .toolchainMismatch:
         return ExitCode(2)
-      case .renderFailed(let exitCode, _):
+      case .renderFailed(let exitCode, _, _):
         return ExitCode(exitCode)
       case .directoryWalkFailed, .failed, .unsupportedPlatform:
         return ExitCode(1)
       case .unexpected(let underlying):
         return underlying
+      }
+    }
+
+    /// A one-line note appended to a render failure when the bundle/local Swift
+    /// toolchain wasn't confirmed compatible — so a module-version error reads
+    /// as a possible toolchain mismatch rather than a mysterious build failure.
+    /// `nil` when the toolchain was verified (nothing to add). `internal` so the
+    /// directory-batch path can surface the same note once.
+    internal static func toolchainHint(_ verification: Runner.ToolchainVerification) -> String? {
+      switch verification {
+      case .verified:
+        return nil
+      case .notChecked:
+        return "\(Skit.Run.messagePrefix)note: the bundle/local Swift-toolchain check was skipped "
+          + "(--\(Skit.Run.noToolchainCheckFlagName)); if this is a module-version error, a "
+          + "toolchain mismatch may be the cause.\n"
+      case .unverified:
+        return
+          "\(Skit.Run.messagePrefix)note: couldn't verify the bundle's Swift toolchain against "
+          + "your local `swift` (no toolchain stamp, or version capture failed); if this is a "
+          + "module-version error, a toolchain mismatch may be the cause.\n"
       }
     }
 

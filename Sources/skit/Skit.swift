@@ -44,6 +44,10 @@ internal struct Skit: AsyncParsableCommand {
   /// toolchain-version capture and the Subprocess `swift` configuration.
   internal static let swiftExecutableName = "swift"
 
+  /// Name of the `swiftc` compiler resolved on `PATH`. Used to compile a
+  /// wrapped DSL program into a temporary executable before running it.
+  internal static let swiftcExecutableName = "swiftc"
+
   internal static let configuration = CommandConfiguration(
     commandName: commandName,
     abstract: "Render SyntaxKit DSL into Swift source, or parse Swift into JSON.",

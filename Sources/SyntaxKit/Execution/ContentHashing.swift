@@ -1,5 +1,5 @@
 //
-//  RunError.swift
+//  ContentHashing.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,22 +27,26 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Typed error surfaced by `Runner`. It decouples the renderer from any
-/// particular caller: `Runner` reports *what* went wrong, and the caller
-/// (CLI, build plugin, in-process driver) decides how to present it.
-public enum RunError: Error {
-  /// The input path was invalid — missing, or a directory given without an
-  /// output directory.
-  case invalidInput(String)
-  /// Single-file render: the spawned `swift` exited non-zero. Carries that
-  /// code (e.g. a compile failure, `124` on timeout, `128 + signal`) and
-  /// the (path-rewritten) stderr the toolchain emitted, so the caller can
-  /// surface diagnostics without having to fish them out elsewhere. Also
-  /// carries the session's `toolchainVerification`: when it isn't `.verified`,
-  /// the failure may stem from a Swift-toolchain mismatch the check couldn't
-  /// rule out, which the caller can hint at.
-  case renderFailed(exitCode: Int32, stderr: String, toolchain: Runner.ToolchainVerification)
-  /// A wrapped Foundation/Subprocess failure (file read/write, spawn error)
-  /// that has no dedicated mapping.
-  case unexpected(any Error)
+public import Foundation
+
+/// An incremental hasher used to derive `OutputCache` keys. Abstracted so the
+/// cache's hashing is pluggable: inject a different conformer via
+/// `OutputCache.init(…, makeHasher:)` to swap the algorithm (e.g. a
+/// cryptographic digest) without touching the cache.
+///
+/// Two contractual requirements callers depend on, which the default
+/// `ContentHasher` (FNV-1a) satisfies and a replacement must too:
+/// - **Determinism across processes and platforms.** Keys are persisted to
+///   disk and compared on later runs, so the same byte stream must always
+///   produce the same digest. (The stdlib `Hasher` is unsuitable — it is
+///   per-process seeded.)
+/// - **A digest usable as a directory name.** `finalize()` returns a string
+///   that is safe to use as a path component.
+public protocol ContentHashing {
+  /// Creates an empty hasher, ready to accept `update(data:)` calls.
+  init()
+  /// Mixes `data`'s bytes into the running digest. Order-significant.
+  mutating func update(data: Data)
+  /// Returns the final digest as a filesystem-safe string.
+  func finalize() -> String
 }

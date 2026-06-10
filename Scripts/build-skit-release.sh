@@ -25,32 +25,14 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="$REPO_ROOT/.build/skit-release"
-PACKAGE_FILE="$REPO_ROOT/Package.swift"
-PACKAGE_BACKUP="$(mktemp)"
-
-cleanup() {
-  if [[ -s "$PACKAGE_BACKUP" ]]; then
-    cp "$PACKAGE_BACKUP" "$PACKAGE_FILE"
-  fi
-  rm -f "$PACKAGE_BACKUP"
-}
-trap cleanup EXIT
-
-cp "$PACKAGE_FILE" "$PACKAGE_BACKUP"
-
-echo "==> Flipping SyntaxKit library to type: .dynamic (temporary)"
-python3 - "$PACKAGE_FILE" <<'PY'
-import sys, pathlib
-p = pathlib.Path(sys.argv[1])
-src = p.read_text()
-old = '    .library(\n      name: "SyntaxKit",\n      targets: ["SyntaxKit"]\n    ),'
-new = '    .library(\n      name: "SyntaxKit",\n      type: .dynamic,\n      targets: ["SyntaxKit"]\n    ),'
-if old not in src:
-    sys.exit("Package.swift: expected SyntaxKit library product block not found")
-p.write_text(src.replace(old, new, 1))
-PY
 
 cd "$REPO_ROOT"
+
+# Build the SyntaxKit library product as a dynamic libSyntaxKit.dylib. Package.swift
+# reads SYNTAXKIT_DYNAMIC_LIB and flips the library product to type: .dynamic, so
+# we never mutate the canonical manifest.
+echo "==> Building with SYNTAXKIT_DYNAMIC_LIB=1 (dynamic libSyntaxKit)"
+export SYNTAXKIT_DYNAMIC_LIB=1
 
 echo "==> swift build -c release --product skit"
 swift build -c release --product skit

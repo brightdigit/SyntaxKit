@@ -61,6 +61,10 @@ extension Skit {
     /// Path to the script that rebuilds the self-contained release bundle.
     internal static let buildReleaseScriptPath = "Scripts/build-skit-release.sh"
 
+    /// Largest timeout we can safely convert to nanoseconds without overflowing
+    /// the `UInt64` multiplication in `Task.timeout` (`UInt64(seconds) * 1e9`).
+    internal static let maxTimeoutSeconds = Int(UInt64.max / 1_000_000_000)
+
     internal static let configuration = CommandConfiguration(
       commandName: commandName,
       abstract: "Render SyntaxKit DSL input(s) into Swift source."
@@ -103,6 +107,14 @@ extension Skit {
       guard timeoutSeconds >= 0 else {
         throw ValidationError(
           "--\(Self.timeoutOptionName) expects a non-negative integer (seconds), "
+            + "got: \(timeoutSeconds)"
+        )
+      }
+      // Upper bound: the value is later multiplied by 1_000_000_000 into a
+      // `UInt64` of nanoseconds, which overflows silently past this point.
+      guard timeoutSeconds <= Self.maxTimeoutSeconds else {
+        throw ValidationError(
+          "--\(Self.timeoutOptionName) is too large (max \(Self.maxTimeoutSeconds) seconds), "
             + "got: \(timeoutSeconds)"
         )
       }
