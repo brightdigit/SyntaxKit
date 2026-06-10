@@ -32,7 +32,14 @@
   import Foundation
   import Subprocess
   import SyntaxKit
-  import System
+
+  // System (FilePath) ships in the Apple SDK on Darwin; non-Apple platforms
+  // need swift-system's `SystemPackage` product to get the same `FilePath`.
+  #if canImport(System)
+    import System
+  #else
+    import SystemPackage
+  #endif
 
   extension Subprocess.Configuration {
     /// Bounded output capacity for the spawned process (16 MiB stdout / 1 MiB

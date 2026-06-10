@@ -1,5 +1,5 @@
 //
-//  Skit.Run+Render.swift
+//  Render.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,23 +30,28 @@
 import Foundation
 import SyntaxKit
 
-extension Skit.Run {
+/// Render-side IO for the `skit run` subcommand: classifies the input, calls
+/// the silent `Runner` SDK, and owns all stdout/stderr presentation and file
+/// writes. Hosted in an `enum` namespace because none of these helpers use
+/// instance state from `Skit.Run` — extracted from `Skit.Run` so the
+/// subcommand struct stays focused on argument parsing.
+internal enum Render {
   /// Classifies `input` and dispatches to the matching `Runner` SDK method.
   /// The SDK layer is silent — this function (and its helpers) own all
   /// stdout/stderr presentation and file IO, and translate `RunError`/batch
-  /// failures into the typed `CommandError` that `run()` maps to a process
-  /// exit. Success-path output is still written here.
-  internal func render(using runner: Runner, input: String, output: String?)
-    async throws(CommandError)
+  /// failures into the typed `RunCommandError` that `Skit.Run.run()` maps to
+  /// a process exit. Success-path output is still written here.
+  internal static func render(using runner: Runner, input: String, output: String?)
+    async throws(RunCommandError)
   {
     let resolved: RunInput
     do {
       resolved = try RunInput.resolve(input: input, output: output)
     } catch .invalidInput(let message) {
-      throw CommandError.usage(message)
+      throw RunCommandError.usage(message)
     } catch {
       // RunInput.resolve only throws .invalidInput; defensive.
-      throw CommandError.failed
+      throw RunCommandError.failed
     }
 
     switch resolved {
@@ -60,25 +65,25 @@ extension Skit.Run {
   /// Renders one input via `Runner.renderFile`, prints any compiler stderr,
   /// and writes the rendered Swift source either to `outputPath` or to
   /// stdout. The runner itself does none of that — that's the CLI's job.
-  fileprivate func renderSingle(
+  private static func renderSingle(
     runner: Runner,
     input: String,
     output: String?
-  ) async throws(CommandError) {
+  ) async throws(RunCommandError) {
     let rendered: SingleFileRender
     do {
       rendered = try await runner.renderFile(input: input)
     } catch {
       // `error` is typed `RunError` (renderFile is `throws(RunError)`); the
       // switch is exhaustive, so this single catch is both total (satisfies
-      // `throws(CommandError)`) and free of an unreachable clause.
+      // `throws(RunCommandError)`) and free of an unreachable clause.
       switch error {
       case .invalidInput(let message):
-        throw CommandError.usage(message)
+        throw RunCommandError.usage(message)
       case .renderFailed(let exitCode, let stderr, let toolchain):
-        throw CommandError.renderFailed(exitCode: exitCode, stderr: stderr, toolchain: toolchain)
+        throw RunCommandError.renderFailed(exitCode: exitCode, stderr: stderr, toolchain: toolchain)
       case .unexpected(let underlying):
-        throw CommandError.unexpected(underlying)
+        throw RunCommandError.unexpected(underlying)
       }
     }
 
@@ -91,7 +96,7 @@ extension Skit.Run {
       } catch {
         // A write failure has no diagnostic of its own; surface the underlying
         // error (ArgumentParser prints it, exit 1).
-        throw CommandError.unexpected(error)
+        throw RunCommandError.unexpected(error)
       }
     } else {
       FileHandle.standardOutput.write(rendered.stdout)
@@ -102,34 +107,35 @@ extension Skit.Run {
   /// diagnostics (fenced when several files emit them), surfaces non-render
   /// failures, prints a one-line summary, and maps any failures to
   /// `ExitCode(1)` — Tuist-analog batch semantics.
-  fileprivate func renderBatch(
+  private static func renderBatch(
     runner: Runner,
     input: String,
     output: String
-  ) async throws(CommandError) {
-    let result: DirectoryRender
+  ) async throws(RunCommandError) {
+    let outcomes: [FileOutcome]
     do {
-      result = try await runner.renderDirectory(inputDir: input, outputDir: output)
+      outcomes = try await runner.renderDirectory(inputDir: input, outputDir: output)
     } catch .invalidInput(let message) {
-      throw CommandError.usage(message)
+      throw RunCommandError.usage(message)
     } catch .unexpected(let underlying) {
       // `renderDirectory` only wraps directory-walk failures in `.unexpected`;
-      // `CommandError.directoryWalkFailed` carries the original "failed to
+      // `RunCommandError.directoryWalkFailed` carries the original "failed to
       // walk" framing the CLI prints.
-      throw CommandError.directoryWalkFailed(input: input, underlying: underlying)
+      throw RunCommandError.directoryWalkFailed(input: input, underlying: underlying)
     } catch {
       // renderDirectory does not throw .renderFailed — that's a per-file
       // outcome. Defensive.
-      throw CommandError.failed
+      throw RunCommandError.failed
     }
 
-    if result.outcomes.isEmpty {
+    if outcomes.isEmpty {
       FileHandle.standardError.write(
-        Data("\(Self.messagePrefix)no .swift inputs under \(input)\n".utf8))
+        Data("\(Skit.Run.messagePrefix)no .swift inputs under \(input)\n".utf8)
+      )
       return
     }
 
-    for outcome in result.outcomes {
+    for outcome in outcomes {
       if !outcome.stderr.isEmpty {
         FileHandle.standardError.write(Data("---- \(outcome.input.path) ----\n".utf8))
         FileHandle.standardError.write(Data(outcome.stderr.utf8))
@@ -146,18 +152,18 @@ extension Skit.Run {
 
     FileHandle.standardError.write(
       Data(
-        ("\(Self.messagePrefix)\(result.outcomes.count - result.failureCount)"
-          + "/\(result.outcomes.count) succeeded\n").utf8
+        ("\(Skit.Run.messagePrefix)\(outcomes.count - outcomes.failureCount)"
+          + "/\(outcomes.count) succeeded\n").utf8
       )
     )
 
-    if result.failureCount > 0 {
+    if outcomes.failureCount > 0 {
       // Some inputs failed; if the toolchain couldn't be verified, hint once
       // that a Swift-version mismatch may be behind the build errors above.
-      if let hint = CommandError.toolchainHint(runner.toolchainVerification) {
+      if let hint = RunCommandError.toolchainHint(runner.toolchainVerification) {
         FileHandle.standardError.write(Data(hint.utf8))
       }
-      throw CommandError.failed
+      throw RunCommandError.failed
     }
   }
 }

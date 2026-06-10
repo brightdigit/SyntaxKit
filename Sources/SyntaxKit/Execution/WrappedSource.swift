@@ -48,6 +48,36 @@ public struct WrappedSource {
   /// The 1-based line number the body starts on in the original file.
   private let firstBodyLine: Int
 
+  /// A complete Swift program that imports SyntaxKit, runs the body inside a
+  /// `Group { … }` builder, and prints the generated code.
+  public var rendered: String {
+    // Render the hoisted-imports block. Trailing newline only if non-empty so
+    // the wrapper doesn't grow an extra blank line in the common no-imports
+    // case.
+    let hoistedBlock = hoistedImports.isEmpty ? "" : hoistedImports.joined(separator: "\n") + "\n"
+
+    // #sourceLocation must use a forward-slash path; escape backslashes/quotes
+    // defensively even though macOS paths shouldn't contain them.
+    let escapedPath =
+      originalPath
+      .replacingOccurrences(of: "\\", with: "\\\\")
+      .replacingOccurrences(of: "\"", with: "\\\"")
+
+    // Build the final wrapper. Layout: SyntaxKit import → hoisted imports →
+    // Group { #sourceLocation(...) <body> #sourceLocation() } → print.
+    return """
+      import SyntaxKit
+      \(hoistedBlock)
+      let __skit_root = Group {
+      #sourceLocation(file: "\(escapedPath)", line: \(firstBodyLine))
+      \(body)
+      #sourceLocation()
+      }
+
+      print(__skit_root.generateCode())
+      """
+  }
+
   /// Parses `source`, hoisting leading `import` declarations and capturing the
   /// remaining body along with the line it begins on. Everything before the first
   /// non-import statement that *is* an import gets hoisted; anything before that
@@ -88,35 +118,5 @@ public struct WrappedSource {
       self.body = ""
       self.firstBodyLine = 1
     }
-  }
-
-  /// A complete Swift program that imports SyntaxKit, runs the body inside a
-  /// `Group { … }` builder, and prints the generated code.
-  public var rendered: String {
-    // Render the hoisted-imports block. Trailing newline only if non-empty so
-    // the wrapper doesn't grow an extra blank line in the common no-imports
-    // case.
-    let hoistedBlock = hoistedImports.isEmpty ? "" : hoistedImports.joined(separator: "\n") + "\n"
-
-    // #sourceLocation must use a forward-slash path; escape backslashes/quotes
-    // defensively even though macOS paths shouldn't contain them.
-    let escapedPath =
-      originalPath
-      .replacingOccurrences(of: "\\", with: "\\\\")
-      .replacingOccurrences(of: "\"", with: "\\\"")
-
-    // Build the final wrapper. Layout: SyntaxKit import → hoisted imports →
-    // Group { #sourceLocation(...) <body> #sourceLocation() } → print.
-    return """
-      import SyntaxKit
-      \(hoistedBlock)
-      let __skit_root = Group {
-      #sourceLocation(file: "\(escapedPath)", line: \(firstBodyLine))
-      \(body)
-      #sourceLocation()
-      }
-
-      print(__skit_root.generateCode())
-      """
   }
 }

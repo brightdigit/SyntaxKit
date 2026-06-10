@@ -33,17 +33,16 @@ extension Runner {
   /// Walks `inputDir` for `.swift` inputs, processes them concurrently (up to
   /// the active core count), and mirrors successfully-rendered outputs into
   /// `outputDir`. A failure on one input does not abort the batch — successful
-  /// peers are still written. Returns a `DirectoryRender` with per-input
-  /// outcomes; the caller inspects `failureCount` (and per-outcome stderr) to
-  /// decide presentation.
+  /// peers are still written. Returns the per-input outcomes; the caller
+  /// inspects `failureCount` (and per-outcome stderr) to decide presentation.
   ///
   /// Throws `RunError.unexpected` only for bulk failures the SDK can't
   /// recover from (e.g. the input directory can't be enumerated). An empty
-  /// input set is *not* an error — the result simply has no outcomes.
+  /// input set is *not* an error — the returned array is simply empty.
   public func renderDirectory(
     inputDir: String,
     outputDir: String
-  ) async throws(RunError) -> DirectoryRender {
+  ) async throws(RunError) -> [FileOutcome] {
     let inputURL = URL(fileURLWithPath: inputDir).standardizedFileURL
     let outputURL = URL(fileURLWithPath: outputDir).standardizedFileURL
 
@@ -53,28 +52,26 @@ extension Runner {
     // channel the caller already presents.
     let inputs: [URL]
     do {
-      inputs = try FileManager.default.collectInputs(at: inputURL)
+      inputs = try fileManager().collectInputs(at: inputURL)
     } catch {
       throw RunError.unexpected(error)
     }
     guard !inputs.isEmpty else {
-      return DirectoryRender(outcomes: [])
+      return []
     }
 
     // Phase 2: render every input with bounded concurrency.
     let renderResults = await processInputs(inputs)
 
     // Phase 3: write successes and capture a per-input outcome for each.
-    let outcomes = renderResults.map {
-      FileManager.default.writeOutput(
+    return renderResults.map {
+      fileManager().writeOutput(
         for: $0,
         inputBase: inputURL,
         outputBase: outputURL,
         toolchain: toolchainVerification
       )
     }
-
-    return DirectoryRender(outcomes: outcomes)
   }
 
   /// Renders every input through `runOne` with bounded concurrency. The cap is
@@ -120,49 +117,5 @@ extension Runner {
     } catch {
       return RenderTaskResult(input: input, result: .failure(.unexpected(error)))
     }
-  }
-}
-
-/// Payload the per-input render `TaskGroup` yields back to `renderDirectory`.
-/// Failures are captured (not thrown) so a single bad input doesn't tear down
-/// the group; `processFile`'s heterogeneous Foundation/Subprocess throws are
-/// normalized into `RunError` (typically `.unexpected`) by `runOne`.
-/// `internal` so `FileManager.writeOutput` (in `FileManager+Execution.swift`)
-/// can consume it.
-internal struct RenderTaskResult: Sendable {
-  internal let input: URL
-  internal let result: Result<ProcessResult, RunError>
-
-  struct OutputDestination: Sendable {
-    let output: Data
-    let destination: URL
-  }
-
-  internal func writeOutput(
-    to destination: URL, toolchain: Runner.ToolchainVerification,
-    using writeOutputDestination: (OutputDestination) throws -> Void
-  ) throws(RunError) {
-    let result = try self.result.get()
-
-    guard result.exitCode == 0 else {
-      throw
-        .renderFailed(
-          exitCode: result.exitCode,
-          stderr: result.stderr,
-          toolchain: toolchain
-        )
-    }
-
-    let outputDestination = OutputDestination(output: result.stdout, destination: destination)
-
-    do {
-      try writeOutputDestination(outputDestination)
-    } catch {
-      throw .unexpected(error)
-    }
-    //    try writeOutputWith(destination)
-    //    return Result { try writeData(processResult.stdout, to: destination) }
-    //      .mapError(RunError.unexpected)
-
   }
 }

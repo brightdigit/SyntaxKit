@@ -29,36 +29,6 @@
 
 import Foundation
 
-/// What exists at a filesystem path — the result of a single existence check,
-/// replacing the `fileExists(atPath:isDirectory:)` + `ObjCBool` idiom with a
-/// value callers can `switch` over.
-internal enum PathKind: Equatable {
-  /// Nothing exists at the path.
-  case missing
-  /// A regular file (or any non-directory) exists at the path.
-  case file
-  /// A directory exists at the path.
-  case directory
-}
-
-/// Size + modification date of a file: the change-detection inputs behind a
-/// content fingerprint/stamp.
-internal struct FileFingerprint: Equatable {
-  /// File size in bytes (0 when the attribute is absent).
-  internal let size: Int
-  /// Last-modification date (Unix epoch when the attribute is absent).
-  internal let modificationDate: Date
-}
-
-/// A recursive regular-file enumeration failure, decoupled from any domain so
-/// the caller maps it onto its own error type.
-internal enum FileEnumerationError: Error {
-  /// The directory couldn't be enumerated at all.
-  case notEnumerable(URL)
-  /// A file's resource values couldn't be read mid-walk.
-  case resourceValuesUnavailable(URL, any Error)
-}
-
 extension FileManager {
   /// Classifies what exists at `path` in a single stat — `.missing`, `.file`,
   /// or `.directory`.

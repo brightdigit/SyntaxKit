@@ -49,9 +49,6 @@ extension Skit {
     internal static let timeoutOptionName = "timeout"
     internal static let noToolchainCheckFlagName = "no-toolchain-check"
 
-    /// Environment variable holding an override for the libSyntaxKit directory.
-    internal static let libDirEnvironmentKey = "SKIT_LIB_DIR"
-
     /// Prefix for skit's own diagnostics written to stderr.
     internal static let messagePrefix = "skit: "
 
@@ -59,7 +56,7 @@ extension Skit {
     internal static let versionFlag = "--version"
 
     /// Path to the script that rebuilds the self-contained release bundle.
-    internal static let buildReleaseScriptPath = "Scripts/build-skit-release.sh"
+    internal static let buildReleaseScriptPath = "Scripts/build-skit.sh"
 
     /// Largest timeout we can safely convert to nanoseconds without overflowing
     /// the `UInt64` multiplication in `Task.timeout` (`UInt64(seconds) * 1e9`).
@@ -120,11 +117,11 @@ extension Skit {
       }
     }
 
-    internal func execute() async throws(CommandError) {
+    internal func execute() async throws(RunCommandError) {
       // The spawn backend is nil only where there's no Subprocess backend
       // (Windows, embedded) — there `run` can't spawn `swift`/`swiftc`.
       guard let backend = Self.swiftBackend else {
-        throw CommandError.unsupportedPlatform
+        throw RunCommandError.unsupportedPlatform
       }
 
       // Capture the two backend-dependent inputs to the otherwise
@@ -132,8 +129,7 @@ extension Skit {
       // the toolchain check + the cache key, spawned exactly once per run)
       // and the SKIT_LIB_DIR override.
       let swiftVersion = await backend.captureSwiftVersion()
-      let envLibPath = ProcessInfo.processInfo.environment[Self.libDirEnvironmentKey]
-        .flatMap { $0.isEmpty ? nil : $0 }
+      let envLibPath = ProcessInfo.processInfo.skitLibPath
 
       // Resolve lib dir → toolchain-gate → cache → assemble Runner. That
       // orchestration lives in SyntaxKit (the `Runner` session initializer);
@@ -149,19 +145,19 @@ extension Skit {
           timeoutSeconds: timeoutSeconds
         ) { try await backend.runSwift(for: $0) }
       } catch {
-        throw CommandError(error)
+        throw RunCommandError(error)
       }
 
-      // Hand the input off to the runner: `render` owns presentation and the
+      // Hand the input off to the runner: `Render` owns presentation and the
       // single-file/directory dispatch, translating render failures into
-      // `CommandError` for the outer catch to map.
-      try await render(using: runner, input: input, output: output)
+      // `RunCommandError` for the outer catch to map.
+      try await Render.render(using: runner, input: input, output: output)
     }
 
     /// Renders the input(s), with a single seam between the pipeline and the
-    /// process: every step `throw`s a typed `CommandError`, and the outer catch
+    /// process: every step `throw`s a typed `RunCommandError`, and the outer catch
     /// maps that to its stderr diagnostic + terminal `ExitCode`/`ValidationError`.
-    /// Any non-`CommandError` propagates to ArgumentParser unchanged.
+    /// Any non-`RunCommandError` propagates to ArgumentParser unchanged.
     internal func run() async throws {
       do {
         try await self.execute()

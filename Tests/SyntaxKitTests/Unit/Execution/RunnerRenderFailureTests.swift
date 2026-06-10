@@ -38,7 +38,7 @@ import Testing
   /// without spawning `swift`. Returns the thrown `RunError`, or nil if the
   /// call unexpectedly succeeded.
   private func renderFailure(
-    toolchain: Runner.ToolchainVerification
+    toolchain: ToolchainVerification
   ) async -> RunError? {
     let input = FileManager.default.temporaryDirectory
       .appendingPathComponent("skit-input-\(UUID().uuidString).swift")

@@ -27,22 +27,9 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+public import Foundation
 
 extension Runner {
-  /// Why a render session couldn't be brought up. Decoupled from any caller:
-  /// the initializer reports *what* failed; the caller (CLI, build plugin,
-  /// in-process driver) decides how to present it and which exit code to use.
-  public enum SetupError: Error {
-    /// The libSyntaxKit directory couldn't be resolved from the supplied
-    /// candidates or the bundle-relative fallbacks. Carries the underlying
-    /// `CLIError` describing the lookup.
-    case libResolutionFailed(any Error)
-    /// The bundle's recorded `swift --version` differs from the local one,
-    /// so spawning `swift` would hit a swiftmodule-version mismatch.
-    case toolchainMismatch(bundle: String, local: String)
-  }
-
   /// Brings up a render-ready `Runner`: resolves the libSyntaxKit directory
   /// from `libCandidates` (falling back to bundle-relative layouts), optionally
   /// gates on the bundle/local toolchain comparison, and wires up the output
@@ -53,7 +40,7 @@ extension Runner {
   /// (`swift --version` output, or nil if capture failed) and the `run` closure
   /// that actually spawns `swift` for one `SwiftInvocation`.
   ///
-  /// - Throws: `SetupError` for a lookup or toolchain failure, so the caller
+  /// - Throws: `RunnerSetupError` for a lookup or toolchain failure, so the caller
   ///   owns the presentation and exit mapping.
   public init(
     libCandidates: [String?],
@@ -61,15 +48,19 @@ extension Runner {
     enforceToolchainCheck: Bool,
     useCache: Bool,
     timeoutSeconds: Int,
+    fileManager: @autoclosure @escaping @Sendable () -> FileManager = .default,
     run: @Sendable @escaping (SwiftInvocation) async throws -> SwiftRunOutcome
-  ) throws(SetupError) {
+  ) throws(RunnerSetupError) {
     // 1. Resolve the libSyntaxKit bundle dir. Failure is fatal — there's no
     // dylib + swiftmodules to link against without it.
     let libPath: String
     do {
-      libPath = try Bundle.main.resolveLibPath(candidates: libCandidates)
+      libPath = try Bundle.main.resolveLibPath(
+        candidates: libCandidates,
+        fileManager: fileManager()
+      )
     } catch {
-      throw SetupError.libResolutionFailed(error)
+      throw RunnerSetupError.libResolutionFailed(error)
     }
 
     // 2. Compare the bundle's recorded `swift --version` against the local one.
@@ -86,7 +77,7 @@ extension Runner {
       case .stampMissing:
         verification = .unverified
       case .mismatch(let bundle, let local):
-        throw SetupError.toolchainMismatch(bundle: bundle, local: local)
+        throw RunnerSetupError.toolchainMismatch(bundle: bundle, local: local)
       }
     } else {
       verification = .notChecked
@@ -94,7 +85,10 @@ extension Runner {
 
     // 3. Build the output cache (nil when disabled). The captured `swiftVersion`
     // is bound in so per-input key derivation doesn't re-spawn `swift`.
-    let cache: OutputCache? = useCache ? OutputCache(swiftVersion: swiftVersion) : nil
+    let cache: OutputCache? =
+      useCache
+      ? OutputCache(swiftVersion: swiftVersion, fileManager: fileManager())
+      : nil
 
     // 4. Delegate to the designated initializer, binding the spawn closure.
     self.init(
@@ -102,6 +96,7 @@ extension Runner {
       cache: cache,
       timeoutSeconds: timeoutSeconds,
       toolchainVerification: verification,
+      fileManager: fileManager(),
       run: run
     )
   }

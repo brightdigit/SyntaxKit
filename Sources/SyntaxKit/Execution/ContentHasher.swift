@@ -51,6 +51,8 @@ public struct ContentHasher: ContentHashing {
   /// Creates a hasher seeded with the FNV-1a offset basis.
   public init() {}
 
+  /// Mixes `data` into the running hash state via FNV-1a (XOR each byte into
+  /// the state, then multiply by the FNV prime).
   public mutating func update(data: Data) {
     for byte in data {
       state ^= UInt64(byte)

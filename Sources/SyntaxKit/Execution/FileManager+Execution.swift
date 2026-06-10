@@ -39,7 +39,9 @@ extension FileManager {
 
   /// True if `path` is a directory containing `libSyntaxKit.{dylib,so}`.
   internal func isLibDir(_ path: String) -> Bool {
-    guard pathKind(atPath: path) == .directory else { return false }
+    guard pathKind(atPath: path) == .directory else {
+      return false
+    }
     return pathKind(atPath: "\(path)/\(Self.syntaxKitProductName.dylibFilename)") != .missing
   }
 
@@ -95,8 +97,8 @@ extension FileManager {
     for result: RenderTaskResult,
     inputBase: URL,
     outputBase: URL,
-    toolchain: Runner.ToolchainVerification
-  ) -> DirectoryRender.FileOutcome {
+    toolchain: ToolchainVerification
+  ) -> FileOutcome {
     // Mirror the input's location under the output base (generic path math).
     let destination = result.input.rerooted(from: inputBase, onto: outputBase)
 
@@ -114,7 +116,7 @@ extension FileManager {
       failure = error
     }
 
-    return DirectoryRender.FileOutcome(
+    return FileOutcome(
       input: result.input,
       stderr: stderr,
       result: failure

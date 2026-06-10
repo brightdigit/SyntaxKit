@@ -33,9 +33,6 @@ import Foundation
 /// local `swift --version`. The swiftmodule format isn't reliably
 /// forward-compatible across Swift releases, so a mismatch is worth surfacing.
 public enum ToolchainCheckResult {
-  /// Filename for the bundle's recorded build-toolchain version.
-  private static let toolchainStampFilename = "swift-version.txt"
-
   /// Bundle stamp matches the local `swift --version` exactly.
   case match
   /// The toolchain check couldn't be performed: either `<libPath>/swift-version.txt`
@@ -45,6 +42,9 @@ public enum ToolchainCheckResult {
   case stampMissing
   /// The bundle stamp and the local `swift --version` differ.
   case mismatch(bundle: String, local: String)
+
+  /// Filename for the bundle's recorded build-toolchain version.
+  private static let toolchainStampFilename = "swift-version.txt"
 }
 
 extension ToolchainCheckResult {

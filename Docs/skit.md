@@ -75,7 +75,7 @@ error: module compiled with Swift 6.3 cannot be imported by the Swift 6.3.2 comp
 
 If `skit`'s bundled `lib/SyntaxKit.swiftmodule` doesn't match the user's `swift`, the spawned interpreter emits exactly this diagnostic and refuses to compile the wrapped input. The user is left staring at a cryptic message that doesn't name the actual problem.
 
-`skit` mitigates this by recording the build toolchain at bundle time. `Scripts/build-skit-release.sh` writes `lib/swift-version.txt` containing the output of `swift --version`. On startup, `skit run` reads the stamp and compares it to a freshly-captured local `swift --version`. Three paths:
+`skit` mitigates this by recording the build toolchain at bundle time. `Scripts/build-skit.sh` writes `lib/swift-version.txt` containing the output of `swift --version`. On startup, `skit run` reads the stamp and compares it to a freshly-captured local `swift --version`. Three paths:
 
 - **Match.** Proceed silently.
 - **Mismatch.** Print a clear error naming both versions and the rebuild command, exit 2. Skip with `--no-toolchain-check`.
@@ -153,7 +153,7 @@ A `#if os(macOS) … #endif` block in the input is evaluated when the wrapped fi
 
 **macOS** is the primary target. The build and release flows live in `Scripts/`; the bundle is portable across machines with the same Swift version.
 
-**Linux** is verified on `swift:6.0-jammy/aarch64`. One adjustment compared to macOS: the Mach-O `install_name` rewrite in `Scripts/build-skit-release.sh` is skipped — GNU `ld` doesn't accept the flag. The `-rpath` injection (which is what actually locates the dylib at runtime) works on both platforms.
+**Linux** is verified on `swift:6.0-jammy/aarch64`. One adjustment compared to macOS: the Mach-O `install_name` rewrite in `Scripts/build-skit.sh` is skipped — GNU `ld` doesn't accept the flag. The `-rpath` injection (which is what actually locates the dylib at runtime) works on both platforms.
 
 The Foundation.Process workarounds described earlier are Linux-driven. `Process.waitUntilExit()` blocks indefinitely on already-exited children on `swift:6.0-jammy/aarch64` — `skit` uses `DispatchSemaphore` everywhere a child wait is needed, and drains stdout/stderr pipes concurrently to avoid deadlocks when either pipe buffer fills.
 
@@ -171,8 +171,7 @@ A few things were considered for v1 and explicitly punted:
 ## Reference
 
 - [`Sources/skit/README.md`](../Sources/skit/README.md) — per-target quick reference (flag table).
-- [`Docs/skit-internals.md`](skit-internals.md) — per-module reference for Runner, OutputCache, and Toolchain.
-- [`Scripts/build-skit-release.sh`](../Scripts/build-skit-release.sh) — release-bundle builder.
+- [`Scripts/build-skit.sh`](../Scripts/build-skit.sh) — release-bundle builder (use `--debug` for the fast iteration variant).
 - [`Docs/research/tuist-manifest-pipeline.md`](research/tuist-manifest-pipeline.md) — the manifest-pipeline pattern this CLI borrows from.
 - [Issue #154](https://github.com/brightdigit/SyntaxKit/issues/154) — original tracking issue.
 - [Issue #157](https://github.com/brightdigit/SyntaxKit/issues/157), [Issue #158](https://github.com/brightdigit/SyntaxKit/issues/158) — follow-ups.

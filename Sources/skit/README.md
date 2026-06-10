@@ -15,7 +15,7 @@ skit parse < Input.swift      # parse Swift source into a JSON syntax tree
 
 ```bash
 # Build a self-contained release bundle (binary + dylib + swiftmodules).
-Scripts/build-skit-release.sh
+Scripts/build-skit.sh
 # → .build/skit-release/{skit, lib/}
 
 cat > /tmp/Person.swift <<'SWIFT'
@@ -63,7 +63,7 @@ Output cache hit is roughly ~0.14s on macOS (no spawn at all); cold miss matches
 ## Platform notes
 
 - **macOS** — primary target. All build/release/test flows in `Scripts/`.
-- **Linux** — verified on `swift:6.0-jammy/aarch64`. The Mach-O `install_name` step in `Scripts/build-skit-release.sh` is macOS-specific and skipped on Linux.
+- **Linux** — verified on `swift:6.0-jammy/aarch64`. The Mach-O `install_name` step in `Scripts/build-skit.sh` is macOS-specific and skipped on Linux.
 - **Windows** — not supported.
 
 Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited children on `swift:6.0-jammy/aarch64`. `Runner.swift` works around it with `terminationHandler` + `DispatchSemaphore`.
@@ -71,4 +71,3 @@ Known Linux gotcha: `Foundation.Process.waitUntilExit()` hangs on already-exited
 ## Deeper dive
 
 - [`Docs/skit.md`](../../Docs/skit.md) — architecture, design decisions, trade-offs.
-- [`Docs/skit-internals.md`](../../Docs/skit-internals.md) — per-module reference for Runner, OutputCache, and Toolchain (what each needs, how they call each other).

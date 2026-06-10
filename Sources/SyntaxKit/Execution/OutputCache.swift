@@ -32,10 +32,10 @@ public import Foundation
 /// On-disk cache of rendered skit output, content-keyed so a re-run on
 /// unchanged input skips the `swift` spawn entirely.
 ///
-/// `Sendable`: the stored state is a `@Sendable` `FileManager` factory plus a
-/// `ProcessInfo` and value types, so the single instance can be shared safely
-/// across the concurrent `runOne` tasks in directory mode. The default
-/// singletons used in production (and the typical test doubles) are
+/// `Sendable`: the stored state is a `@Sendable` `FileManager` factory plus
+/// an `EnvironmentProvider` and value types, so the single instance can be
+/// shared safely across the concurrent `runOne` tasks in directory mode. The
+/// default singletons used in production (and the typical test doubles) are
 /// thread-safe for the operations we invoke.
 public struct OutputCache: Sendable {
   /// Bumped when the cache layout changes in a way that requires invalidation.
@@ -75,7 +75,7 @@ public struct OutputCache: Sendable {
   /// directories are derived from it on demand.
   private let root: URL
   private let fileManager: @Sendable () -> FileManager
-  private let processInfo: ProcessInfo
+  private let environmentProvider: any EnvironmentProvider
   /// Factory for the per-key hasher. Pluggable so the cache's hashing algorithm
   /// can be swapped; defaults to `ContentHasher` (FNV-1a). A factory rather than
   /// a stored instance because `key(forInput:libPath:)` needs a fresh, empty
@@ -88,20 +88,20 @@ public struct OutputCache: Sendable {
   private let swiftVersion: String?
 
   /// Creates a cache rooted under the SyntaxKit cache directory, keyed in part
-  /// by the captured `swiftVersion`. `fileManager`/`processInfo` are injectable
-  /// for testing; `makeHasher` is injectable to plug in a different
+  /// by the captured `swiftVersion`. `fileManager`/`environmentProvider` are
+  /// injectable for testing; `makeHasher` is injectable to plug in a different
   /// `ContentHashing` algorithm (defaults to `ContentHasher`).
   public init(
     swiftVersion: String?,
     fileManager: @autoclosure @escaping @Sendable () -> FileManager = .default,
-    processInfo: ProcessInfo = .processInfo,
+    environmentProvider: any EnvironmentProvider = ProcessInfo.processInfo,
     makeHasher: @escaping @Sendable () -> any ContentHashing = { ContentHasher() }
   ) {
-    self.root = processInfo.syntaxKitCacheRoot(default: Self.defaultCacheRoot)
+    self.root = environmentProvider.syntaxKitCacheRoot(default: Self.defaultCacheRoot)
       .appendingPathComponent(Self.outputsDirectoryName)
     self.swiftVersion = swiftVersion
     self.fileManager = fileManager
-    self.processInfo = processInfo
+    self.environmentProvider = environmentProvider
     self.makeHasher = makeHasher
   }
 
@@ -129,7 +129,7 @@ public struct OutputCache: Sendable {
 
     // SKIT_*/SYNTAXKIT_* env vars. Sorted so the cache key is stable, and
     // NUL-terminated so `"AB=" + "C"` doesn't collide with `"A=" + "BC"`.
-    let env = processInfo.environment
+    let env = environmentProvider.environment
       .filter {
         $0.key.hasPrefix(Self.skitEnvPrefix) || $0.key.hasPrefix(Self.syntaxKitEnvPrefix)
       }
@@ -163,7 +163,7 @@ public struct OutputCache: Sendable {
     // into place as a single atomic step.
     let staging = cacheRoot.deletingLastPathComponent()
       .appendingPathComponent(
-        "\(Self.stagingDirectoryPrefix).\(processInfo.processIdentifier).\(UUID().uuidString)"
+        "\(Self.stagingDirectoryPrefix).\(environmentProvider.processIdentifier).\(UUID().uuidString)"
       )
     try fileManager().createDirectory(at: staging, withIntermediateDirectories: true)
     try data.write(to: staging.appendingPathComponent(Self.outputFileName))

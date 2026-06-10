@@ -33,17 +33,15 @@ import Testing
 @testable import SyntaxKit
 
 @Suite internal struct OutputCacheTests {
-  /// A `ProcessInfo` whose environment is fixed, so cache-key derivation can be
-  /// tested without depending on the real process environment.
-  private final class FakeProcessInfo: ProcessInfo {
-    private let fixedEnvironment: [String: String]
-
-    init(environment: [String: String]) {
-      self.fixedEnvironment = environment
-      super.init()
-    }
-
-    override var environment: [String: String] { fixedEnvironment }
+  /// A value-type `EnvironmentProvider` whose environment is fixed, so
+  /// cache-key derivation can be tested without depending on the real process
+  /// environment. A value type rather than a `ProcessInfo` subclass because
+  /// `swift-corelibs-foundation` (Linux/Windows) declares `ProcessInfo` as
+  /// `final` with `environment` on an extension — subclass-and-override
+  /// doesn't compile there.
+  private struct FakeEnvironment: EnvironmentProvider {
+    let environment: [String: String]
+    let processIdentifier: Int32 = 1
   }
 
   /// A stub `ContentHashing` that ignores its input and returns a fixed digest,
@@ -60,7 +58,10 @@ import Testing
     swiftVersion: String? = "swift 6.1",
     environment: [String: String] = [:]
   ) -> OutputCache {
-    OutputCache(swiftVersion: swiftVersion, processInfo: FakeProcessInfo(environment: environment))
+    OutputCache(
+      swiftVersion: swiftVersion,
+      environmentProvider: FakeEnvironment(environment: environment)
+    )
   }
 
   private func key(_ cache: OutputCache, source: String = "Struct(\"Foo\") {}") -> String {
@@ -71,7 +72,7 @@ import Testing
   internal func usesInjectedHasher() {
     let cache = OutputCache(
       swiftVersion: "swift 6.1",
-      processInfo: FakeProcessInfo(environment: [:]),
+      environmentProvider: FakeEnvironment(environment: [:]),
       makeHasher: { StubHasher() }
     )
     #expect(cache.key(forInput: "anything", libPath: Self.libPath) == "stub-digest")

@@ -1,5 +1,5 @@
 //
-//  RunError.swift
+//  EnvironmentProvider+SyntaxKitCacheRoot.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,22 +27,27 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Typed error surfaced by `Runner`. It decouples the renderer from any
-/// particular caller: `Runner` reports *what* went wrong, and the caller
-/// (CLI, build plugin, in-process driver) decides how to present it.
-public enum RunError: Error {
-  /// The input path was invalid — missing, or a directory given without an
-  /// output directory.
-  case invalidInput(String)
-  /// Single-file render: the spawned `swift` exited non-zero. Carries that
-  /// code (e.g. a compile failure, `124` on timeout, `128 + signal`) and
-  /// the (path-rewritten) stderr the toolchain emitted, so the caller can
-  /// surface diagnostics without having to fish them out elsewhere. Also
-  /// carries the session's `toolchainVerification`: when it isn't `.verified`,
-  /// the failure may stem from a Swift-toolchain mismatch the check couldn't
-  /// rule out, which the caller can hint at.
-  case renderFailed(exitCode: Int32, stderr: String, toolchain: ToolchainVerification)
-  /// A wrapped Foundation/Subprocess failure (file read/write, spawn error)
-  /// that has no dedicated mapping.
-  case unexpected(any Error)
+internal import Foundation
+
+/// Constants for `EnvironmentProvider.syntaxKitCacheRoot(default:)`. Nested
+/// in a private enum to satisfy the "no globals" rule while letting the
+/// protocol extension below reference them.
+private enum SyntaxKitCacheRootConstants {
+  /// Environment variable pointing at the XDG cache root, if set.
+  static let xdgCacheHomeEnvKey = "XDG_CACHE_HOME"
+  /// Leaf directory appended to the XDG cache root for skit's caches.
+  static let cacheDirectoryName = "syntaxkit"
+}
+
+extension EnvironmentProvider {
+  /// Root for all skit caches: `<XDG_CACHE_HOME>/syntaxkit` when that env
+  /// var is set and non-empty, otherwise `defaultRoot` (typically the
+  /// platform's home-relative cache dir).
+  internal func syntaxKitCacheRoot(default defaultRoot: URL) -> URL {
+    if let xdg = environment[SyntaxKitCacheRootConstants.xdgCacheHomeEnvKey], !xdg.isEmpty {
+      return URL(fileURLWithPath: xdg)
+        .appendingPathComponent(SyntaxKitCacheRootConstants.cacheDirectoryName)
+    }
+    return defaultRoot
+  }
 }

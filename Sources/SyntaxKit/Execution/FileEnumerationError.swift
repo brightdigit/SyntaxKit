@@ -1,5 +1,5 @@
 //
-//  ProcessInfo+SyntaxKitCacheRoot.swift
+//  FileEnumerationError.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,19 +29,11 @@
 
 import Foundation
 
-extension ProcessInfo {
-  /// Environment variable pointing at the XDG cache root, if set.
-  private static let xdgCacheHomeEnvKey = "XDG_CACHE_HOME"
-  /// Leaf directory appended to the XDG cache root for skit's caches.
-  private static let cacheDirectoryName = "syntaxkit"
-
-  /// Root for all skit caches: `<XDG_CACHE_HOME>/syntaxkit` when that env
-  /// var is set and non-empty, otherwise `defaultRoot` (typically the
-  /// platform's home-relative cache dir).
-  internal func syntaxKitCacheRoot(default defaultRoot: URL) -> URL {
-    if let xdg = environment[Self.xdgCacheHomeEnvKey], !xdg.isEmpty {
-      return URL(fileURLWithPath: xdg).appendingPathComponent(Self.cacheDirectoryName)
-    }
-    return defaultRoot
-  }
+/// A recursive regular-file enumeration failure, decoupled from any domain so
+/// the caller maps it onto its own error type.
+internal enum FileEnumerationError: Error {
+  /// The directory couldn't be enumerated at all.
+  case notEnumerable(URL)
+  /// A file's resource values couldn't be read mid-walk.
+  case resourceValuesUnavailable(URL, any Error)
 }

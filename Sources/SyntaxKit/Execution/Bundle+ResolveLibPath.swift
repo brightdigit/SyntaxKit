@@ -44,9 +44,10 @@ extension Bundle {
   /// from `executableURL`:
   ///   - `<exec-dir>/lib`             (adjacent layout)
   ///   - `<exec-dir>/../lib/skit`     (Homebrew layout)
-  public func resolveLibPath(candidates: [String?]) throws -> String {
-    let fileManager = FileManager.default
-
+  public func resolveLibPath(
+    candidates: [String?],
+    fileManager: FileManager = .default
+  ) throws -> String {
     for candidate in candidates {
       guard let candidate else { continue }
       guard fileManager.isLibDir(candidate) else {
@@ -76,7 +77,7 @@ extension Bundle {
           1. explicit candidates       (none provided or all empty)
           2. <binary-dir>/lib/         (not found)
           3. <binary-dir>/../lib/skit/ (not found)
-        Run Scripts/build-skit-release.sh to produce a self-contained
+        Run Scripts/build-skit.sh to produce a self-contained
         release bundle under .build/skit-release/.
         """
     )

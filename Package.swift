@@ -112,7 +112,8 @@ let package = Package(
     .package(url: "https://github.com/swiftlang/swift-syntax.git", from: "601.0.1"),
     .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
     .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
-    .package(url: "https://github.com/swiftlang/swift-subprocess.git", from: "0.4.0")
+    .package(url: "https://github.com/swiftlang/swift-subprocess.git", from: "0.4.0"),
+    .package(url: "https://github.com/apple/swift-system.git", from: "1.0.0")
   ],
   targets: [
     .target(
@@ -165,6 +166,11 @@ let package = Package(
           name: "Subprocess",
           package: "swift-subprocess",
           condition: .when(platforms: [.macOS, .linux, .windows])
+        ),
+        .product(
+          name: "SystemPackage",
+          package: "swift-system",
+          condition: .when(platforms: [.linux, .windows])
         )
       ],
       swiftSettings: swiftSettings

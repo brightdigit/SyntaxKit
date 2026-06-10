@@ -1,5 +1,5 @@
 //
-//  RunError.swift
+//  RunnerSetupError.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,22 +27,16 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-/// Typed error surfaced by `Runner`. It decouples the renderer from any
-/// particular caller: `Runner` reports *what* went wrong, and the caller
-/// (CLI, build plugin, in-process driver) decides how to present it.
-public enum RunError: Error {
-  /// The input path was invalid — missing, or a directory given without an
-  /// output directory.
-  case invalidInput(String)
-  /// Single-file render: the spawned `swift` exited non-zero. Carries that
-  /// code (e.g. a compile failure, `124` on timeout, `128 + signal`) and
-  /// the (path-rewritten) stderr the toolchain emitted, so the caller can
-  /// surface diagnostics without having to fish them out elsewhere. Also
-  /// carries the session's `toolchainVerification`: when it isn't `.verified`,
-  /// the failure may stem from a Swift-toolchain mismatch the check couldn't
-  /// rule out, which the caller can hint at.
-  case renderFailed(exitCode: Int32, stderr: String, toolchain: ToolchainVerification)
-  /// A wrapped Foundation/Subprocess failure (file read/write, spawn error)
-  /// that has no dedicated mapping.
-  case unexpected(any Error)
+/// Why a render session couldn't be brought up. Decoupled from any caller:
+/// the `Runner` session initializer reports *what* failed; the caller (CLI,
+/// build plugin, in-process driver) decides how to present it and which exit
+/// code to use.
+public enum RunnerSetupError: Error {
+  /// The libSyntaxKit directory couldn't be resolved from the supplied
+  /// candidates or the bundle-relative fallbacks. Carries the underlying
+  /// `CLIError` describing the lookup.
+  case libResolutionFailed(any Error)
+  /// The bundle's recorded `swift --version` differs from the local one,
+  /// so spawning `swift` would hit a swiftmodule-version mismatch.
+  case toolchainMismatch(bundle: String, local: String)
 }

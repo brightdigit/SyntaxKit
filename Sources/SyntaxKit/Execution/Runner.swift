@@ -27,7 +27,7 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
+public import Foundation
 
 // Render lifecycle (per `Runner` call):
 //   1. Bundle.main.resolveLibPath   — find lib/ (explicit flag → env → adjacent → brew)
@@ -40,30 +40,13 @@ import Foundation
 
 /// Renders SyntaxKit DSL inputs into Swift source. `Runner` is the SDK-shaped
 /// entry point: methods return rendered data (`SingleFileRender`) or
-/// structured per-file outcomes (`DirectoryRender`) and throw typed
+/// structured per-file outcomes (`[FileOutcome]`) and throw typed
 /// `RunError`s; callers — CLI, build plugin, in-process driver — decide what
 /// to do with stdout, stderr, exit codes, and so on.
 ///
 /// Constructed once per render session; `Sendable` so a single value can be
 /// shared across the concurrent per-input tasks in directory mode.
 public struct Runner: Sendable {
-  /// Outcome of the bundle/local Swift-toolchain compatibility check performed
-  /// when the render session was created. Stored on the `Runner` and carried on
-  /// `RunError.renderFailed` so a caller can hint that an *unverified* toolchain
-  /// may be the real cause of a build error — swiftmodules aren't reliably
-  /// compatible across compiler versions. A confirmed *mismatch* never reaches
-  /// here; it fails session setup via `SetupError.toolchainMismatch`.
-  public enum ToolchainVerification: Sendable, Equatable {
-    /// The bundle's recorded `swift --version` matched the local one.
-    case verified
-    /// The caller opted out of the check (`enforceToolchainCheck == false`).
-    case notChecked
-    /// The check ran but couldn't compare versions — the bundle had no
-    /// toolchain stamp, or the local `swift --version` couldn't be captured —
-    /// so compatibility is unknown.
-    case unverified
-  }
-
   /// Exit code returned when the spawned `swift` is killed by skit's timeout
   /// watchdog. Matches POSIX `timeout(1)`.
   private static let timeoutExitCode: Int32 = 124
@@ -83,6 +66,10 @@ public struct Runner: Sendable {
   /// Backend that actually spawns `swift` for one `SwiftInvocation`. Injected
   /// by the caller (skit supplies a Subprocess-based implementation).
   private let run: @Sendable (SwiftInvocation) async throws -> SwiftRunOutcome
+  /// FileManager factory used for tmp-dir creation, batch enumeration, and
+  /// per-input writes. Injectable so tests can swap in a fake; defaults to
+  /// `.default` in production.
+  internal let fileManager: @Sendable () -> FileManager
   /// Whether this session's bundle/local Swift toolchain was confirmed
   /// compatible. Defaults to `.notChecked` for callers that construct a
   /// `Runner` directly; the session initializer (`Runner+Session.swift`) sets
@@ -96,12 +83,14 @@ public struct Runner: Sendable {
     cache: OutputCache?,
     timeoutSeconds: Int,
     toolchainVerification: ToolchainVerification = .notChecked,
+    fileManager: @autoclosure @escaping @Sendable () -> FileManager = .default,
     run: @Sendable @escaping (SwiftInvocation) async throws -> SwiftRunOutcome
   ) {
     self.libPath = libPath
     self.cache = cache
     self.timeoutSeconds = timeoutSeconds
     self.toolchainVerification = toolchainVerification
+    self.fileManager = fileManager
     self.run = run
   }
 
@@ -167,10 +156,10 @@ public struct Runner: Sendable {
 
     // Spill the wrapped program to a per-invocation temp dir. The dir is
     // cleaned up unconditionally so a failed spawn doesn't leak files.
-    let tmpDir = FileManager.default.temporaryDirectory
+    let tmpDir = fileManager().temporaryDirectory
       .appendingPathComponent("\(Self.tempDirectoryPrefix)-\(UUID().uuidString)")
-    try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
-    defer { try? FileManager.default.removeItem(at: tmpDir) }
+    try fileManager().createDirectory(at: tmpDir, withIntermediateDirectories: true)
+    defer { try? fileManager().removeItem(at: tmpDir) }
 
     let wrappedURL = tmpDir.appendingPathComponent(Self.wrappedInputFileName)
     try wrapped.write(to: wrappedURL, atomically: true, encoding: .utf8)
