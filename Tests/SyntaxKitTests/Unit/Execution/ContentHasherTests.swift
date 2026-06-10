@@ -52,7 +52,9 @@ import Testing
   @Test("Same bytes produce the same digest across fresh hashers")
   internal func determinism() {
     let data = Data("the quick brown fox".utf8)
-    #expect(digest(of: data) == digest(of: data))
+    let first = digest(of: data)
+    let second = digest(of: data)
+    #expect(first == second)
   }
 
   @Test("Different inputs produce different digests")

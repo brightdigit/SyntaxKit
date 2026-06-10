@@ -72,6 +72,11 @@ extension FileManager {
 
     var result: [URL] = []
     for case let url as URL in enumerator {
+      // `.skipsHiddenFiles` keys off the dot-prefix convention on Unix but the
+      // `FILE_ATTRIBUTE_HIDDEN` attribute on Windows, so a dot-prefixed entry
+      // slips through there. Filter dot-prefixed components explicitly to keep
+      // the same hidden-file semantics on every platform.
+      if hasHiddenComponent(url, under: directory) { continue }
       let values: URLResourceValues
       do {
         values = try url.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey])
@@ -83,6 +88,20 @@ extension FileManager {
       result.append(url)
     }
     return result.sorted { $0.path < $1.path }
+  }
+
+  /// True when `url` lies under a dot-prefixed path component relative to
+  /// `directory`. Mirrors `.skipsHiddenFiles` on platforms (Windows) where that
+  /// option keys off the hidden *attribute* rather than the dot-prefix
+  /// convention — and matches Unix's behavior of not descending into hidden
+  /// directories by also excluding files nested under them.
+  private func hasHiddenComponent(_ url: URL, under directory: URL) -> Bool {
+    let base = directory.standardizedFileURL.pathComponents
+    let full = url.standardizedFileURL.pathComponents
+    guard full.count > base.count else {
+      return false
+    }
+    return full[base.count...].contains { $0.hasPrefix(".") }
   }
 
   /// Writes `data` to `destination`, first creating any missing intermediate

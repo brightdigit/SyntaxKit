@@ -62,7 +62,10 @@ import Testing
     }
   }
 
-  @Test("renderFailed carries the session's toolchain verification and diagnostics")
+  @Test(
+    "renderFailed carries the session's toolchain verification and diagnostics",
+    .disabled(if: Platform.isWASI, "Render needs host filesystem/subprocess; not on WASI")
+  )
   internal func carriesUnverifiedToolchain() async {
     guard
       case .renderFailed(let exitCode, let stderr, let toolchain)? =
@@ -76,7 +79,10 @@ import Testing
     #expect(toolchain == .unverified)
   }
 
-  @Test("renderFailed reflects a verified toolchain unchanged")
+  @Test(
+    "renderFailed reflects a verified toolchain unchanged",
+    .disabled(if: Platform.isWASI, "Render needs host filesystem/subprocess; not on WASI")
+  )
   internal func reflectsVerifiedToolchain() async {
     guard
       case .renderFailed(_, _, let toolchain)? =

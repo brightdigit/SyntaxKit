@@ -47,9 +47,15 @@ extension Task where Failure == any Error, Success: Sendable {
         try await Task<Never, Never>.sleep(nanoseconds: UInt64(seconds) * 1_000_000_000)
         return nil
       }
-      let first = try await group.next()!
-      group.cancelAll()
-      return first
+      for try await first in group {
+        group.cancelAll()
+        return first
+      }
+      // Unreachable: two child tasks were added above, so the group always
+      // yields at least one result before draining. Trip loudly in debug if
+      // that invariant is ever broken; fall back to `nil` in release.
+      assertionFailure("task group drained without yielding a result")
+      return nil
     }
   }
 }

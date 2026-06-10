@@ -81,7 +81,9 @@ import Testing
   @Test("The same inputs always derive the same key")
   internal func stableKey() {
     let cache = cache()
-    #expect(key(cache) == key(cache))
+    let firstKey = key(cache)
+    let secondKey = key(cache)
+    #expect(firstKey == secondKey)
   }
 
   @Test("Different source bytes derive different keys")
