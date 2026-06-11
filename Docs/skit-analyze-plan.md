@@ -741,15 +741,15 @@ User runs: skit analyze examples/subscript-feature Sources/SyntaxKit output/Synt
 
 ### 4. Package.swift Changes
 
-Add the OpenAPI Generator dependencies, the two new targets, and wire `AiSTKit`
-into the existing `skit` executable target:
+Add the OpenAPI runtime dependencies, the two new targets, and wire `AiSTKit`
+into the existing `skit` executable target. swift-openapi-generator is a
+development tool, not a package dependency: it is managed by mise
+(`"spm:apple/swift-openapi-generator"` in `mise.toml`), invoked via
+`Scripts/generate-openapi.sh`, and the generated code is committed under
+`Sources/ClaudeKit/Generated/`.
 
 ```swift
 // In dependencies:
-.package(
-    url: "https://github.com/apple/swift-openapi-generator",
-    from: "1.0.0"
-),
 .package(
     url: "https://github.com/apple/swift-openapi-runtime",
     from: "1.0.0"
@@ -759,17 +759,16 @@ into the existing `skit` executable target:
     from: "1.0.0"
 ),
 
-// New target: OpenAPI-generated Claude API client
+// New target: OpenAPI-generated Claude API client (committed sources)
 .target(
     name: "ClaudeKit",
     dependencies: [
         .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
         .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession")
     ],
-    plugins: [
-        .plugin(name: "OpenAPIGenerator", package: "swift-openapi-generator")
-    ],
-    swiftSettings: swiftSettings
+    // No shared swiftSettings: upcoming features like InternalImportsByDefault
+    // reject the generator's plain `import OpenAPIRuntime` in package-access API.
+    exclude: ["openapi.json", "openapi-generator-config.yaml"]
 ),
 
 // New target: SDK/bridge layer with the analyzer domain logic
@@ -809,13 +808,23 @@ inside it.
      - types
      - client
    accessModifier: package
+   filter:
+     paths:
+       - /v1/messages
    ```
+   The `filter` is required: the unofficial spec's `?beta=true` path variants
+   carry duplicate operationIds that fail generator validation, and
+   `/v1/messages` is the only endpoint the analyzer needs.
 
-3. The OpenAPI Generator plugin will automatically generate type-safe client code during build
+3. Run `Scripts/generate-openapi.sh` (mise provides `swift-openapi-generator`)
+   and commit the output under `Sources/ClaudeKit/Generated/`
 
 **Notes**:
-- OpenAPI Generator runs as a build plugin and generates Swift code from the OpenAPI spec at build time
+- The generator runs as a mise-managed CLI, not an SPM build plugin; regenerate
+  with `Scripts/generate-openapi.sh` after changing the spec or config
 - Generated code includes type-safe request/response models and client methods
+- Generated code is excluded from SwiftLint (`.swiftlint.yml`) and Periphery
+  (`.periphery.yml`) reporting
 - Adding `AiSTKit` to `skit` pulls the OpenAPI runtime into the `skit` binary; this is acceptable for a developer tool
 
 ### 5. Configuration & Environment

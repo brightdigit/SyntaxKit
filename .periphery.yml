@@ -1,2 +1,4 @@
 retain_public: true
 retain_codable_properties: true
+report_exclude:
+  - "Sources/ClaudeKit/Generated/*"
