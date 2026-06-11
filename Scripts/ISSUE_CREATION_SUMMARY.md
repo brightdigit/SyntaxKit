@@ -18,7 +18,7 @@ Successfully created 18 GitHub issues from the skit-analyze-plan.md implementati
 - Dependencies: #107
 - Files: Package.swift
 
-**Issue #109: Create ConfigKeyKit Target Structure**
+**Issue #109: Create ConfigKeyKit Target Structure** *(closed — ConfigKeyKit dropped in favor of ArgumentParser)*
 - Labels: infrastructure, setup
 - Dependencies: #108
 - Files: Package.swift
@@ -27,13 +27,13 @@ Successfully created 18 GitHub issues from the skit-analyze-plan.md implementati
 
 **Issue #110: Implement AnalyzerConfiguration and AnalyzerError**
 - Labels: enhancement, configuration
-- Dependencies: #109
+- Dependencies: #108
 - Files: Sources/AiSTKit/AnalyzerConfiguration.swift, Sources/AiSTKit/AnalyzerError.swift
 
-**Issue #111: Implement AnalyzeCommand and Main Entry Point**
+**Issue #111: Implement skit analyze Subcommand (ArgumentParser)**
 - Labels: enhancement, cli
 - Dependencies: #110
-- Files: Sources/skit-aist/AnalyzeCommand.swift, Sources/skit-aist/main.swift
+- Files: Sources/skit/Skit+Analyze.swift, Sources/skit/Skit.swift
 
 ### Phase 3: Input/Output Handlers (Issues #112-#115)
 
@@ -103,7 +103,7 @@ Successfully created 18 GitHub issues from the skit-analyze-plan.md implementati
 **Issue #123: Create Example Usage Documentation**
 - Labels: documentation
 - Dependencies: #120
-- Files: Docs/skit-aist-usage.md
+- Files: Docs/skit-analyze-usage.md
 
 **Issue #124: Create Integration Tests**
 - Labels: testing, integration
@@ -146,7 +146,7 @@ Issues should be worked on in dependency order:
 ## Quick Reference Commands
 
 ```bash
-# View all skit-aist issues
+# View all skit analyze issues
 gh issue list --label infrastructure,configuration,cli,io,api,orchestration
 
 # View issues by phase (using labels)
@@ -187,5 +187,5 @@ gh issue view 107
 
 ```bash
 # Optional: Create a project board
-gh project create --title "skit-aist Implementation" --body "Track skit-aist tool development"
+gh project create --title "skit analyze Implementation" --body "Track skit analyze tool development"
 ```
