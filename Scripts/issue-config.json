@@ -457,7 +457,7 @@
         "Sources/skit/SubprocessLibraryVerifier.swift",
         "Sources/skit/Skit+Analyze.swift"
       ],
-      "spec": "Wrap the single-shot generation pipeline (#120) in a convergence loop: build the generated library, render dsl.swift against it (compile-and-run, like skit run), diff the rendered Swift against expected.swift, and re-prompt Claude with the build errors or diff until the output matches or --max-iterations is reached. AiSTKit defines the LibraryVerifying protocol and ConvergenceLoop driver; skit supplies the Subprocess-backed verifier, keeping Subprocess out of AiSTKit per the SDK/CLI boundary.",
+      "spec": "Wrap the single-shot generation pipeline (#120) in a convergence loop: build the generated library, render dsl.swift against it (compile-and-run, like skit run), diff the rendered Swift against expected.swift, and re-prompt Claude with the build errors or diff until the output matches or --max-iterations is reached. AiSTKit defines the LibraryVerifying protocol and ConvergenceLoop driver; skit supplies the Subprocess-backed verifier, keeping Subprocess out of AiSTKit per the SDK/CLI boundary. Consider using swift-service-lifecycle (https://github.com/swift-server/swift-service-lifecycle) to run the loop: it is a long-running process and ServiceLifecycle's graceful-shutdown handling would cancel in-flight API calls/subprocesses, clean up temp build artifacts, and report partial progress on Ctrl-C. Evaluate versus plain structured concurrency.",
       "acceptance": [
         "LibraryVerifying protocol defined in AiSTKit with no Subprocess dependency",
         "Subprocess-backed verifier in skit: builds the generated library, renders dsl.swift against it via compile-and-run, captures build errors and rendered output",

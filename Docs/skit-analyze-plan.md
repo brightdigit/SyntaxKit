@@ -1179,6 +1179,17 @@ skit analyze examples/feature Sources/SyntaxKit output/updated --max-iterations 
 skit analyze examples/feature Sources/SyntaxKit output/updated --max-iterations 5
 ```
 
+### Consideration: swift-service-lifecycle
+
+Consider using [swift-service-lifecycle](https://github.com/swift-server/swift-service-lifecycle)
+to run the loop. The loop is a long-running process (multiple Claude API
+calls, `swift build` invocations, and renders per run), and ServiceLifecycle's
+`Service` protocol + graceful-shutdown handling would give it clean Ctrl-C
+behavior: cancel the in-flight API call or subprocess, clean up temporary
+build artifacts, and report partial progress (iterations completed, last
+diff) before exiting. Evaluate during #168 whether the dependency is worth
+it versus plain structured concurrency with `withTaskCancellationHandler`.
+
 ## Future Enhancements (Not in Scope)
 
 - **Interactive Review**: Show diff before writing, allow user to approve/reject changes
