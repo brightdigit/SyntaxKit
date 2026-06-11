@@ -1,5 +1,5 @@
 //
-//  Function+Modifiers.swift
+//  Class+Modifiers.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,45 +27,47 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import SwiftSyntax
-
-extension Function {
-  /// Marks the function as `static`.
-  /// - Returns: A copy of the function marked as `static`.
-  public func `static`() -> Self {
+extension Class {
+  /// Sets the generic parameters for the class.
+  /// - Parameter generics: The list of generic parameter names.
+  /// - Returns: A copy of the class with the generic parameters set.
+  public func generic(_ generics: String...) -> Self {
     var copy = self
-    copy.isStatic = true
+    copy.genericParameters = generics
     return copy
   }
 
-  /// Marks the function as `mutating`.
-  /// - Returns: A copy of the function marked as `mutating`.
-  public func mutating() -> Self {
+  /// Sets the inheritance for the class.
+  /// - Parameter inheritance: The types to inherit from.
+  /// - Returns: A copy of the class with the inheritance set.
+  public func inherits(_ inheritance: String...) -> Self {
     var copy = self
-    copy.isMutating = true
+    copy.inheritance = inheritance
     return copy
   }
 
-  /// Sets the access modifier for the function declaration.
+  /// Marks the class declaration as `final`.
+  /// - Returns: A copy of the class marked as `final`.
+  public func final() -> Self {
+    var copy = self
+    copy.isFinal = true
+    return copy
+  }
+
+  /// Sets the access modifier for the class declaration.
   /// - Parameter access: The access modifier.
-  /// - Returns: A copy of the function with the access modifier set.
+  /// - Returns: A copy of the class with the access modifier set.
   public func access(_ access: AccessModifier) -> Self {
     var copy = self
     copy.accessModifier = access
     return copy
   }
 
-  /// Marks the function as `throws` (alias for `.throws()` that avoids keyword escaping).
-  /// - Returns: A copy of the function marked as `throws`.
-  public func throwing() -> Self {
-    `throws`()
-  }
-
-  /// Adds an attribute to the function declaration.
+  /// Adds an attribute to the class declaration.
   /// - Parameters:
   ///   - attribute: The attribute name (without the @ symbol).
   ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the function with the attribute added.
+  /// - Returns: A copy of the class with the attribute added.
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))

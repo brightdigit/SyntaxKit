@@ -31,12 +31,13 @@ public import SwiftSyntax
 
 /// A Swift `class` declaration.
 public struct Class: CodeBlock, Sendable {
-  private let name: String
-  private let members: [any CodeBlock]
-  private var inheritance: [String] = []
-  private var genericParameters: [String] = []
-  private var isFinal: Bool = false
-  private var attributes: [AttributeInfo] = []
+  internal let name: String
+  internal let members: [any CodeBlock]
+  internal var inheritance: [String] = []
+  internal var genericParameters: [String] = []
+  internal var isFinal: Bool = false
+  internal var attributes: [AttributeInfo] = []
+  internal var accessModifier: AccessModifier?
 
   /// The SwiftSyntax representation of this class declaration.
   public var syntax: any SyntaxProtocol {
@@ -107,10 +108,15 @@ public struct Class: CodeBlock, Sendable {
 
     // Modifiers
     var modifiers: DeclModifierListSyntax = []
-    if isFinal {
+    if let access = accessModifier {
       modifiers = DeclModifierListSyntax([
-        DeclModifierSyntax(name: .keyword(.final, trailingTrivia: .space))
+        DeclModifierSyntax(name: .keyword(access.keyword, trailingTrivia: .space))
       ])
+    }
+    if isFinal {
+      modifiers = DeclModifierListSyntax(
+        modifiers + [DeclModifierSyntax(name: .keyword(.final, trailingTrivia: .space))]
+      )
     }
 
     return ClassDeclSyntax(
@@ -135,43 +141,6 @@ public struct Class: CodeBlock, Sendable {
     self.members = try content()
   }
 
-  /// Sets the generic parameters for the class.
-  /// - Parameter generics: The list of generic parameter names.
-  /// - Returns: A copy of the class with the generic parameters set.
-  public func generic(_ generics: String...) -> Self {
-    var copy = self
-    copy.genericParameters = generics
-    return copy
-  }
-
-  /// Sets the inheritance for the class.
-  /// - Parameter inheritance: The types to inherit from.
-  /// - Returns: A copy of the class with the inheritance set.
-  public func inherits(_ inheritance: String...) -> Self {
-    var copy = self
-    copy.inheritance = inheritance
-    return copy
-  }
-
-  /// Marks the class declaration as `final`.
-  /// - Returns: A copy of the class marked as `final`.
-  public func final() -> Self {
-    var copy = self
-    copy.isFinal = true
-    return copy
-  }
-
-  /// Adds an attribute to the class declaration.
-  /// - Parameters:
-  ///   - attribute: The attribute name (without the @ symbol).
-  ///   - arguments: The arguments for the attribute, if any.
-  /// - Returns: A copy of the class with the attribute added.
-  public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
-    var copy = self
-    copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))
-    return copy
-  }
-
   private func buildAttributeList(from attributes: [AttributeInfo]) -> AttributeListSyntax {
     if attributes.isEmpty {
       return AttributeListSyntax([])
@@ -189,13 +158,13 @@ public struct Class: CodeBlock, Sendable {
         rightParen = .rightParenToken()
 
         let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
+          ExprSyntax(attributeArgument: argument)
         }
 
         argumentsSyntax = .argumentList(
           LabeledExprListSyntax(
             argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
+              var element = LabeledExprSyntax(expression: expr)
               if index < argumentList.count - 1 {
                 element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
               }
@@ -213,6 +182,7 @@ public struct Class: CodeBlock, Sendable {
           arguments: argumentsSyntax,
           rightParen: rightParen
         )
+        .with(\.trailingTrivia, .newline)
       )
     }
 

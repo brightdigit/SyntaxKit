@@ -39,6 +39,7 @@ public struct Function: CodeBlock {
   internal var isMutating: Bool = false
   internal var effect: Effect = .none
   internal var attributes: [AttributeInfo] = []
+  internal var accessModifier: AccessModifier?
 
   /// Creates a `func` declaration.
   /// - Parameters:

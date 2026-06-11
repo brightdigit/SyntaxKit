@@ -1,5 +1,5 @@
 //
-//  AttributeTests.swift
+//  ExprSyntax+AttributeArgument.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,7 +27,28 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Testing
+import SwiftSyntax
 
-/// Namespace for the attribute generation test suites.
-@Suite("Attributes") internal enum AttributeTests {}
+extension ExprSyntax {
+  /// Creates an expression from an attribute-argument string.
+  ///
+  /// A double-quoted value becomes a string literal expression; anything else
+  /// becomes an identifier reference expression.
+  /// - Parameter argument: The raw attribute-argument text.
+  internal init(attributeArgument argument: String) {
+    if argument.hasPrefix("\"") && argument.hasSuffix("\"") && argument.count >= 2 {
+      let content = String(argument.dropFirst().dropLast())
+      self = ExprSyntax(
+        StringLiteralExprSyntax(
+          openingQuote: .stringQuoteToken(),
+          segments: StringLiteralSegmentListSyntax([
+            .stringSegment(StringSegmentSyntax(content: .stringSegment(content)))
+          ]),
+          closingQuote: .stringQuoteToken()
+        )
+      )
+    } else {
+      self = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(argument)))
+    }
+  }
+}
