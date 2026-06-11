@@ -68,7 +68,7 @@ extension Variable {
     let rightParen: TokenSyntax = .rightParenToken()
 
     let argumentList = arguments.map { argument in
-      buildAttributeArgumentExpr(from: argument)
+      ExprSyntax(attributeArgument: argument)
     }
 
     let argumentsSyntax = AttributeSyntax.Arguments.argumentList(

@@ -31,6 +31,7 @@ public import SwiftSyntax
 
 /// A Swift `init` declaration.
 public struct InitializerDecl: CodeBlock, Sendable {
+  private let parameters: [Parameter]
   private let body: [any CodeBlock]
   private var accessModifier: AccessModifier?
   private var isAsync: Bool = false
@@ -48,12 +49,22 @@ public struct InitializerDecl: CodeBlock, Sendable {
     var effectSpecifiers: FunctionEffectSpecifiersSyntax?
     if isAsync || isThrowing {
       effectSpecifiers = FunctionEffectSpecifiersSyntax(
-        asyncSpecifier: isAsync
-          ? .keyword(.async, leadingTrivia: .space, trailingTrivia: .space)
-          : nil,
-        throwsSpecifier: isThrowing ? .keyword(.throws, leadingTrivia: .space) : nil
+        asyncSpecifier: isAsync ? .keyword(.async, leadingTrivia: .space) : nil,
+        throwsClause: isThrowing
+          ? ThrowsClauseSyntax(throwsSpecifier: .keyword(.throws, leadingTrivia: .space))
+          : nil
       )
     }
+
+    let parameterList = FunctionParameterListSyntax(
+      parameters.enumerated().compactMap { index, param in
+        FunctionParameterSyntax.create(
+          from: param,
+          attributes: AttributeListSyntax([]),
+          isLast: index >= parameters.count - 1
+        )
+      }
+    )
 
     let bodyBlock = CodeBlockSyntax(
       leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
@@ -79,7 +90,7 @@ public struct InitializerDecl: CodeBlock, Sendable {
       signature: FunctionSignatureSyntax(
         parameterClause: FunctionParameterClauseSyntax(
           leftParen: .leftParenToken(),
-          parameters: FunctionParameterListSyntax([]),
+          parameters: parameterList,
           rightParen: .rightParenToken()
         ),
         effectSpecifiers: effectSpecifiers
@@ -88,9 +99,22 @@ public struct InitializerDecl: CodeBlock, Sendable {
     )
   }
 
-  /// Creates an `init` declaration.
+  /// Creates an `init` declaration with no parameters.
   /// - Parameter content: A ``CodeBlockBuilder`` that provides the body of the initializer.
   public init(@CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]) rethrows {
+    self.parameters = []
+    self.body = try content()
+  }
+
+  /// Creates an `init` declaration with parameters.
+  /// - Parameters:
+  ///   - params: A ``ParameterBuilderResult`` that provides the initializer parameters.
+  ///   - content: A ``CodeBlockBuilder`` that provides the body of the initializer.
+  public init(
+    @ParameterBuilderResult _ params: () -> [Parameter],
+    @CodeBlockBuilderResult _ content: () throws -> [any CodeBlock]
+  ) rethrows {
+    self.parameters = params()
     self.body = try content()
   }
 

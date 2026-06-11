@@ -1,5 +1,5 @@
 //
-//  AttributeArgument.swift
+//  ExprSyntax+AttributeArgument.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,23 +29,26 @@
 
 import SwiftSyntax
 
-/// Builds an expression syntax node from an attribute argument string.
-/// - Parameter argument: If surrounded by double-quotes, produces a string literal expression;
-///   otherwise produces an identifier reference expression.
-/// - Returns: An `ExprSyntax` representing the argument.
-internal func buildAttributeArgumentExpr(from argument: String) -> ExprSyntax {
-  if argument.hasPrefix("\"") && argument.hasSuffix("\"") && argument.count >= 2 {
-    let content = String(argument.dropFirst().dropLast())
-    return ExprSyntax(
-      StringLiteralExprSyntax(
-        openingQuote: .stringQuoteToken(),
-        segments: StringLiteralSegmentListSyntax([
-          .stringSegment(StringSegmentSyntax(content: .stringSegment(content)))
-        ]),
-        closingQuote: .stringQuoteToken()
+extension ExprSyntax {
+  /// Creates an expression from an attribute-argument string.
+  ///
+  /// A double-quoted value becomes a string literal expression; anything else
+  /// becomes an identifier reference expression.
+  /// - Parameter argument: The raw attribute-argument text.
+  internal init(attributeArgument argument: String) {
+    if argument.hasPrefix("\"") && argument.hasSuffix("\"") && argument.count >= 2 {
+      let content = String(argument.dropFirst().dropLast())
+      self = ExprSyntax(
+        StringLiteralExprSyntax(
+          openingQuote: .stringQuoteToken(),
+          segments: StringLiteralSegmentListSyntax([
+            .stringSegment(StringSegmentSyntax(content: .stringSegment(content)))
+          ]),
+          closingQuote: .stringQuoteToken()
+        )
       )
-    )
-  } else {
-    return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(argument)))
+    } else {
+      self = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(argument)))
+    }
   }
 }

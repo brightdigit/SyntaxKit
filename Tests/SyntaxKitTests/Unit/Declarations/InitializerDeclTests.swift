@@ -100,4 +100,67 @@ internal struct InitializerDeclTests {
     let normalizedExpected = expected.normalize()
     #expect(normalizedGenerated == normalizedExpected)
   }
+
+  @Test internal func testAsyncThrowingInit() {
+    let initDecl = InitializerDecl {}.async().throwing()
+
+    // Fix 2 regression: async and throws must be single-spaced, not "async  throws".
+    let generated = initDecl.syntax.description
+    #expect(generated.contains("async throws"))
+    #expect(!generated.contains("async  throws"))
+
+    let expected = """
+      init() async throws {
+      }
+      """
+    #expect(initDecl.generateCode().normalize() == expected.normalize())
+  }
+
+  @Test internal func testInitWithParameters() {
+    let initDecl = InitializerDecl {
+      Parameter(name: "name", type: "String")
+      Parameter(name: "age", type: "Int")
+    } _: {
+      Call("print") {
+        ParameterExp(unlabeled: Literal.string("hi"))
+      }
+    }
+
+    let expected = """
+      init(name: String, age: Int) {
+        print("hi")
+      }
+      """
+
+    let normalizedGenerated = initDecl.generateCode().normalize()
+    let normalizedExpected = expected.normalize()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
+
+  @Test internal func testInitWithParameterDefault() {
+    let initDecl = InitializerDecl {
+      Parameter(name: "count", type: "Int", defaultValue: "0")
+    } _: {
+    }
+
+    let generated = initDecl.generateCode().normalize()
+    #expect(generated.contains("count: Int = 0"))
+  }
+
+  @Test internal func testPublicInitWithParameters() {
+    let initDecl = InitializerDecl {
+      Parameter(name: "value", type: "String")
+    } _: {
+    }
+    .access(.public)
+
+    let expected = """
+      public init(value: String) {
+      }
+      """
+
+    let normalizedGenerated = initDecl.generateCode().normalize()
+    let normalizedExpected = expected.normalize()
+    #expect(normalizedGenerated == normalizedExpected)
+  }
 }

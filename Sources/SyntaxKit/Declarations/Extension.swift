@@ -131,7 +131,7 @@ public struct Extension: CodeBlock, Sendable {
         rightParen = .rightParenToken()
 
         let argumentList = arguments.map { argument in
-          buildAttributeArgumentExpr(from: argument)
+          ExprSyntax(attributeArgument: argument)
         }
 
         argumentsSyntax = .argumentList(
