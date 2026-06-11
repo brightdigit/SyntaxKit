@@ -1,8 +1,8 @@
-# skit-aist Implementation Status
+# skit analyze Implementation Status
 
 ## Overview
 
-This document tracks the implementation of the skit-aist tool, an AI-powered AST generation system for automatically implementing missing SyntaxKit features using the Claude API.
+This document tracks the implementation of the `skit analyze` subcommand, an AI-powered AST generation system for automatically implementing missing SyntaxKit features using the Claude API. It is built as an ArgumentParser subcommand on the existing `skit` CLI (no new executable) backed by two new targets, ClaudeKit and AiSTKit.
 
 **Plan Document**: [Docs/skit-analyze-plan.md](Docs/skit-analyze-plan.md)
 
@@ -10,7 +10,7 @@ This document tracks the implementation of the skit-aist tool, an AI-powered AST
 
 All implementation tasks have been broken down into 18 GitHub issues organized into 7 phases.
 
-**Issue Range**: #107 - #124
+**Issue Range**: #107 - #124, #168
 
 ### Quick Links
 
@@ -26,11 +26,11 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 ### Phase 1: Project Setup & Infrastructure ✓ Planned
 
-**Issues**: #107, #108, #109
+**Issues**: #107, #108
 
 - [x] Issue #107: Setup OpenAPI Specification and Generator Configuration
 - [x] Issue #108: Update Package.swift with Dependencies and Targets
-- [x] Issue #109: Create ConfigKeyKit Target Structure
+- ~~Issue #109: Create ConfigKeyKit Target Structure~~ (closed — ConfigKeyKit dropped in favor of ArgumentParser)
 
 **Status**: Ready to implement
 **Estimated Effort**: 2-3 hours
@@ -41,7 +41,7 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 **Issues**: #110, #111
 
 - [ ] Issue #110: Implement AnalyzerConfiguration and AnalyzerError
-- [ ] Issue #111: Implement AnalyzeCommand and Main Entry Point
+- [ ] Issue #111: Implement skit analyze Subcommand (ArgumentParser)
 
 **Status**: Blocked by Phase 1
 **Estimated Effort**: 3-4 hours
@@ -75,13 +75,14 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 ### Phase 5: Main Orchestration ⏳ Waiting
 
-**Issues**: #120
+**Issues**: #120, #168
 
-- [ ] Issue #120: Implement SyntaxKitAnalyzer Orchestration
+- [ ] Issue #120: Implement SyntaxKitAnalyzer Orchestration (Part 1: single-shot pipeline)
+- [ ] Issue #168: Implement Convergence Loop (Part 2: iterate until rendered output matches expected.swift)
 
-**Status**: Blocked by #112, #113, #114, #115, #116
-**Estimated Effort**: 3-4 hours
-**Critical Path**: Yes - integrates all components
+**Status**: #120 blocked by #112, #113, #114, #115, #116; #168 blocked by #120
+**Estimated Effort**: 6-8 hours (3-4 each)
+**Critical Path**: Yes - #120 integrates all components; #168 delivers the feature's core purpose
 
 ### Phase 6: Testing Infrastructure ⏳ Waiting
 
@@ -109,10 +110,10 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 ### Overall Progress
 
-- **Issues Created**: 18/18 ✓
+- **Issues Created**: 19 total ✓ (#109 since closed — ConfigKeyKit dropped; #168 added for the convergence loop)
 - **Issues Completed**: 0/18
 - **Phases Completed**: 0/7
-- **Estimated Total Effort**: 24-31 hours
+- **Estimated Total Effort**: 27-35 hours
 
 ### Current Status
 
@@ -124,15 +125,16 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 The minimum viable implementation follows this path:
 
-1. #107 → #108 → #109 (Infrastructure)
+1. #107 → #108 (Infrastructure)
 2. #110 (Configuration)
 3. #111 (CLI Command)
 4. #112, #113, #115 (I/O and AST - parallel)
 5. #117, #118, #119 (API components - parallel)
 6. #116 (ClaudeKit wrapper)
 7. #114 (Library writer)
-8. #120 (Orchestration)
-9. #123 (Documentation)
+8. #120 (Orchestration, Part 1: single-shot)
+9. #168 (Convergence loop, Part 2)
+10. #123 (Documentation)
 
 **Minimum Path Effort**: ~18-22 hours
 **Can Skip for MVP**: Issues #121, #122, #124 (testing infrastructure)
@@ -145,7 +147,6 @@ The minimum viable implementation follows this path:
 # Start with Phase 1
 gh issue view 107
 gh issue view 108
-gh issue view 109
 
 # Then move to Phase 2
 gh issue view 110
@@ -169,17 +170,16 @@ gh issue list --state closed --label infrastructure,configuration,cli,io,api,orc
 
 ## Architecture Overview
 
-### Three-Target Design
+### Target Design
 
-1. **ClaudeKit** - OpenAPI-generated Claude API client
-2. **AiSTKit** - SDK/bridge layer for domain logic
-3. **skit-aist** - CLI executable for user interaction
+1. **ClaudeKit** (new) - OpenAPI-generated Claude API client
+2. **AiSTKit** (new) - SDK/bridge layer for domain logic
+3. **skit** (existing) - gains an `analyze` subcommand for user interaction
 
 ### Key Dependencies
 
 - **Swift OpenAPI Generator** - Type-safe API client generation
-- **swift-configuration** - CLI/ENV configuration management
-- **ConfigKeyKit** - Configuration key abstraction
+- **swift-argument-parser** - CLI argument parsing (already used by skit)
 - **SyntaxParser** - Existing AST generation (reused)
 
 ### Data Flow
@@ -233,7 +233,7 @@ Input Folder (dsl.swift, expected.swift)
 
 ```bash
 # Optional: Create project board
-gh project create --title "skit-aist Implementation" \
+gh project create --title "skit analyze Implementation" \
   --body "Track implementation of AI-powered AST generation tool"
 ```
 
@@ -253,5 +253,5 @@ For questions or issues, please comment on the relevant GitHub issue or create a
 
 ---
 
-**Last Updated**: 2026-02-09
+**Last Updated**: 2026-06-11
 **Status**: Planning Complete, Implementation Ready
