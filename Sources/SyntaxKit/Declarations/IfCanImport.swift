@@ -3,11 +3,11 @@
 //  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the "Software"), to deal in the Software without
+//  files (the “Software”), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -34,27 +34,15 @@ public struct IfCanImport: CodeBlock, Sendable {
   private let moduleName: String
   private let content: [any CodeBlock]
 
-  /// Creates a `#if canImport(moduleName)` block wrapping the given content.
-  /// - Parameters:
-  ///   - moduleName: The module name passed to `canImport`.
-  ///   - content: The code blocks to emit when the module is available.
-  public init(_ moduleName: String, @CodeBlockBuilderResult _ content: () -> [any CodeBlock]) {
-    self.moduleName = moduleName
-    self.content = content()
-  }
-
+  /// The SwiftSyntax representation of this conditional compilation block.
   public var syntax: any SyntaxProtocol {
+    let canImportRef = DeclReferenceExprSyntax(baseName: .identifier("canImport"))
+    let moduleRef = DeclReferenceExprSyntax(baseName: .identifier(moduleName))
     let condition = FunctionCallExprSyntax(
-      calledExpression: ExprSyntax(DeclReferenceExprSyntax(
-        baseName: .identifier("canImport")
-      )),
+      calledExpression: ExprSyntax(canImportRef),
       leftParen: .leftParenToken(),
       arguments: LabeledExprListSyntax([
-        LabeledExprSyntax(
-          expression: ExprSyntax(DeclReferenceExprSyntax(
-            baseName: .identifier(moduleName)
-          ))
-        )
+        LabeledExprSyntax(expression: ExprSyntax(moduleRef))
       ]),
       rightParen: .rightParenToken()
     )
@@ -77,5 +65,14 @@ public struct IfCanImport: CodeBlock, Sendable {
       clauses: IfConfigClauseListSyntax([clause]),
       poundEndif: .poundEndifToken(leadingTrivia: .newline)
     )
+  }
+
+  /// Creates a `#if canImport(moduleName)` block wrapping the given content.
+  /// - Parameters:
+  ///   - moduleName: The module name passed to `canImport`.
+  ///   - content: The code blocks to emit when the module is available.
+  public init(_ moduleName: String, @CodeBlockBuilderResult _ content: () -> [any CodeBlock]) {
+    self.moduleName = moduleName
+    self.content = content()
   }
 }
