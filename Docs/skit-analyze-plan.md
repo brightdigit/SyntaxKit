@@ -916,6 +916,14 @@ Include full API request/response, intermediate parsing steps, file collection d
 19. **Sources/AiSTKit/Testing/TestValidator.swift** - Validates results against expectations
 20. **Sources/AiSTKit/Testing/TestModels.swift** - Test data structures
 
+### Convergence Loop Files (Section 9, Part 2)
+21. **Sources/AiSTKit/LibraryVerifying.swift** - Build/render/compare protocol (no Subprocess)
+22. **Sources/AiSTKit/VerificationResult.swift** - Verification outcome value type
+23. **Sources/AiSTKit/ConvergenceLoop.swift** - Generate → verify → re-prompt loop driver
+24. **Sources/AiSTKit/PromptTemplate+Feedback.swift** - Follow-up prompt with errors/diff
+25. **Sources/skit/SubprocessLibraryVerifier.swift** - Subprocess-backed verifier
+26. **Sources/skit/Skit+Analyze.swift** (modify) - Add --max-iterations option
+
 ## Verification Steps
 
 1. **Build Test**:
@@ -1107,9 +1115,72 @@ skit analyze --test --test-cases=custom-tests/
 5. **Confidence**: Developers can iterate on prompts with confidence
 6. **Debugging**: Failed tests pinpoint exactly what's wrong with generated code
 
+## 9. Convergence Loop (Part 2)
+
+The single-shot pipeline (Sections 2–3, issue #120) generates once and stops.
+Part 2 — tracked as issue #168, depending on #120 — wraps it in a loop that
+verifies the generated library actually renders the DSL into the expected
+Swift, and keeps fixing it until it does. This is the core purpose of the
+analyze feature.
+
+### Loop Algorithm
+
+```
+1. Generate: run the single-shot pipeline (SyntaxKitAnalyzer)
+2. Build:    swift build the generated library in the output folder
+3. Render:   compile-and-run dsl.swift against the generated library
+             (the same approach skit run uses — the Swift JIT cannot
+             load the dynamic library, so rendering must compile with
+             swiftc and execute the binary)
+4. Compare:  diff the rendered Swift against expected.swift
+             (normalize whitespace/formatting before comparing)
+5. Decide:
+   - Match                          → converged: report success, exit 0
+   - Mismatch or build failure,
+     iteration < --max-iterations   → re-prompt Claude with the swift
+                                       build errors or a unified diff of
+                                       rendered vs expected, go to 2
+   - Iteration cap reached          → diverged: report status, iteration
+                                       count, and last diff; exit non-zero
+```
+
+### Architecture: Respecting the SDK/CLI Boundary
+
+Verification needs subprocess execution (`swift build`, `swiftc`, running
+the rendered binary). Subprocess usage stays in the `skit` target, so the
+loop splits across the boundary the same way `Runner` does today:
+
+- **`AiSTKit`** defines:
+  - `LibraryVerifying` — protocol describing build/render/compare, with no
+    Subprocess dependency (`Sources/AiSTKit/LibraryVerifying.swift`)
+  - `VerificationResult` — built/rendered/diff outcome value type
+    (`Sources/AiSTKit/VerificationResult.swift`)
+  - `ConvergenceLoop` — the loop driver: generate → verify → re-prompt,
+    capped by max iterations (`Sources/AiSTKit/ConvergenceLoop.swift`)
+  - `PromptTemplate+Feedback` — builds the follow-up prompt embedding build
+    errors or the rendered-vs-expected diff
+    (`Sources/AiSTKit/PromptTemplate+Feedback.swift`)
+- **`skit`** supplies:
+  - `SubprocessLibraryVerifier` — Subprocess-backed `LibraryVerifying`
+    implementation (`Sources/skit/SubprocessLibraryVerifier.swift`)
+  - `Skit.Analyze` gains `--max-iterations <n>` (default 3); `1` behaves as
+    the Part 1 single-shot pipeline
+
+### CLI Surface
+
+```bash
+# Default: loop up to 3 iterations
+skit analyze examples/feature Sources/SyntaxKit output/updated
+
+# Single-shot (Part 1 behavior)
+skit analyze examples/feature Sources/SyntaxKit output/updated --max-iterations 1
+
+# Allow more attempts for hard features
+skit analyze examples/feature Sources/SyntaxKit output/updated --max-iterations 5
+```
+
 ## Future Enhancements (Not in Scope)
 
-- **Validation Mode**: Run `swift build` on generated code and retry if compilation fails
 - **Interactive Review**: Show diff before writing, allow user to approve/reject changes
 - **Batch Processing**: Process multiple feature folders in one run
 - **Incremental Updates**: Only update changed files, preserve git history

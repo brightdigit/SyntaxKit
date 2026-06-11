@@ -10,7 +10,7 @@ This document tracks the implementation of the `skit analyze` subcommand, an AI-
 
 All implementation tasks have been broken down into 18 GitHub issues organized into 7 phases.
 
-**Issue Range**: #107 - #124
+**Issue Range**: #107 - #124, #168
 
 ### Quick Links
 
@@ -75,13 +75,14 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 ### Phase 5: Main Orchestration ⏳ Waiting
 
-**Issues**: #120
+**Issues**: #120, #168
 
-- [ ] Issue #120: Implement SyntaxKitAnalyzer Orchestration
+- [ ] Issue #120: Implement SyntaxKitAnalyzer Orchestration (Part 1: single-shot pipeline)
+- [ ] Issue #168: Implement Convergence Loop (Part 2: iterate until rendered output matches expected.swift)
 
-**Status**: Blocked by #112, #113, #114, #115, #116
-**Estimated Effort**: 3-4 hours
-**Critical Path**: Yes - integrates all components
+**Status**: #120 blocked by #112, #113, #114, #115, #116; #168 blocked by #120
+**Estimated Effort**: 6-8 hours (3-4 each)
+**Critical Path**: Yes - #120 integrates all components; #168 delivers the feature's core purpose
 
 ### Phase 6: Testing Infrastructure ⏳ Waiting
 
@@ -109,10 +110,10 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 ### Overall Progress
 
-- **Issues Created**: 18/18 ✓ (#109 since closed — ConfigKeyKit dropped)
-- **Issues Completed**: 0/17
+- **Issues Created**: 19 total ✓ (#109 since closed — ConfigKeyKit dropped; #168 added for the convergence loop)
+- **Issues Completed**: 0/18
 - **Phases Completed**: 0/7
-- **Estimated Total Effort**: 24-31 hours
+- **Estimated Total Effort**: 27-35 hours
 
 ### Current Status
 
@@ -131,8 +132,9 @@ The minimum viable implementation follows this path:
 5. #117, #118, #119 (API components - parallel)
 6. #116 (ClaudeKit wrapper)
 7. #114 (Library writer)
-8. #120 (Orchestration)
-9. #123 (Documentation)
+8. #120 (Orchestration, Part 1: single-shot)
+9. #168 (Convergence loop, Part 2)
+10. #123 (Documentation)
 
 **Minimum Path Effort**: ~18-22 hours
 **Can Skip for MVP**: Issues #121, #122, #124 (testing infrastructure)
