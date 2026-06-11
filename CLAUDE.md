@@ -307,7 +307,6 @@ When working with SyntaxKit, remember:
 - Consider using `SyntaxRewriter` for complex transformations
 - Use `SyntaxVisitor` for analysis and inspection tasks
 
-## Task Master AI Instructions
-**Import Task Master's development workflow commands and guidelines, treat as if import is in the main CLAUDE.md file.**
-@./.taskmaster/CLAUDE.md
+## Notes
+
 - We suggest using the Swift OpenAPI Generator
