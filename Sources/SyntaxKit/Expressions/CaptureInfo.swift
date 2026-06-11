@@ -52,10 +52,8 @@ internal struct CaptureInfo {
     if let varExp = refExp.captureExpression as? VariableExp {
       self.name = .identifier(varExp.name)
     } else {
+      // TODO: Review fallback for non-VariableExp capture expression.
       self.name = .identifier("self")  // fallback
-      #warning(
-        "TODO: Review fallback for non-VariableExp capture expression"
-      )
     }
   }
 
@@ -65,10 +63,8 @@ internal struct CaptureInfo {
     if let varExp = param.value as? VariableExp {
       self.name = .identifier(varExp.name)
     } else {
+      // TODO: Review fallback for non-VariableExp parameter value.
       self.name = .identifier("self")  // fallback
-      #warning(
-        "TODO: Review fallback for non-VariableExp parameter value"
-      )
     }
   }
 }

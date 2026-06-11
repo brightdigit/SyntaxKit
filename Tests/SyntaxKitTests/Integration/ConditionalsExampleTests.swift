@@ -1,3 +1,32 @@
+//
+//  ConditionalsExampleTests.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion.
+//  Copyright © 2026 BrightDigit.
+//
+//  Permission is hereby granted, free of charge, to any person
+//  obtaining a copy of this software and associated documentation
+//  files (the “Software”), to deal in the Software without
+//  restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following
+//  conditions:
+//
+//  The above copyright notice and this permission notice shall be
+//  included in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+//  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+//  OTHER DEALINGS IN THE SOFTWARE.
+//
+
 import Foundation
 import SyntaxKit
 import Testing
@@ -7,21 +36,18 @@ import Testing
   internal func testCompletedConditionalsExample() throws {
     // Build DSL equivalent of Examples/Completed/conditionals/dsl.swift
 
-    let program = try Group {
+    let program = Group {
       // MARK: Basic If Statements
       Variable(.let, name: "temperature", equals: 25)
         .comment {
           Line("Simple if statement")
         }
 
-      try If {
-        try Infix(">") {
-          VariableExp("temperature")
-          Literal.integer(30)
-        }
+      If {
+        Infix(">", lhs: VariableExp("temperature"), rhs: Literal.integer(30))
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "\"It's hot outside!\"")
+          ParameterExp(unlabeled: VariableExp("\"It's hot outside!\""))
         }
       }
 
@@ -31,38 +57,29 @@ import Testing
           Line("If-else statement")
         }
 
-      try If {
-        try Infix(">=") {
-          VariableExp("score")
-          Literal.integer(90)
-        }
+      If {
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "\"Excellent!\"")
+          ParameterExp(unlabeled: VariableExp("\"Excellent!\""))
         }
       } else: {
-        try If {
-          try Infix(">=") {
-            VariableExp("score")
-            Literal.integer(80)
-          }
+        If {
+          Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
         } then: {
           Call("print") {
-            ParameterExp(unlabeled: "\"Good job!\"")
+            ParameterExp(unlabeled: VariableExp("\"Good job!\""))
           }
         } else: {
-          try If {
-            try Infix(">=") {
-              VariableExp("score")
-              Literal.integer(70)
-            }
+          If {
+            Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(70))
           } then: {
             Call("print") {
-              ParameterExp(unlabeled: "\"Passing\"")
+              ParameterExp(unlabeled: VariableExp("\"Passing\""))
             }
           } else: {
             Call("print") {
-              ParameterExp(unlabeled: "\"Needs improvement\"")
+              ParameterExp(unlabeled: VariableExp("\"Needs improvement\""))
             }
           }
         }
@@ -81,8 +98,9 @@ import Testing
           Call("print") {
             ParameterExp(
               name: "",
-              value:
+              value: VariableExp(
                 "\"The string \"\\(possibleNumber)\" has an integer value of \\(actualNumber)\""
+              )
             )
           }
         },
@@ -90,7 +108,9 @@ import Testing
           Call("print") {
             ParameterExp(
               name: "",
-              value: "\"The string \"\\(possibleNumber)\" could not be converted to an integer\""
+              value: VariableExp(
+                "\"The string \"\\(possibleNumber)\" could not be converted to an integer\""
+              )
             )
           }
         }
@@ -110,12 +130,12 @@ import Testing
         Let("age", "possibleAge")
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"\\(name) is \\(age) years old\"")
+          ParameterExp(name: "", value: VariableExp("\"\\(name) is \\(age) years old\""))
         }
       }
 
       // MARK: - Guard Statements
-      try Function(
+      Function(
         "greet",
         {
           Parameter(name: "person", type: "[String: String]")
@@ -125,7 +145,7 @@ import Testing
             Let("name", "person[\"name\"]")
           } else: {
             Call("print") {
-              ParameterExp(name: "", value: "\"No name provided\"")
+              ParameterExp(name: "", value: VariableExp("\"No name provided\""))
             }
           }
 
@@ -134,12 +154,15 @@ import Testing
             Let("ageInt", "Int(age)")
           } else: {
             Call("print") {
-              ParameterExp(name: "", value: "\"Invalid age provided\"")
+              ParameterExp(name: "", value: VariableExp("\"Invalid age provided\""))
             }
           }
 
           Call("print") {
-            ParameterExp(name: "", value: "\"Hello \\(name), you are \\(ageInt) years old\"")
+            ParameterExp(
+              name: "",
+              value: VariableExp("\"Hello \\(name), you are \\(ageInt) years old\"")
+            )
           }
         }
       )
@@ -176,7 +199,10 @@ import Testing
         }
       }
       Call("print") {
-        ParameterExp(name: "", value: "\"There are \\(naturalCount) \\(countedThings).\"")
+        ParameterExp(
+          name: "",
+          value: VariableExp("\"There are \\(naturalCount) \\(countedThings).\"")
+        )
       }
 
       // MARK: - Tuple literal and tuple pattern switch
@@ -187,30 +213,32 @@ import Testing
       Switch("somePoint") {
         SwitchCase(Tuple.pattern([0, 0])) {
           Call("print") {
-            ParameterExp(name: "", value: "\"(0, 0) is at the origin\"")
+            ParameterExp(name: "", value: VariableExp("\"(0, 0) is at the origin\""))
           }
         }
         SwitchCase(Tuple.pattern([nil, 0])) {
           Call("print") {
-            ParameterExp(name: "", value: "\"(\\(somePoint.0), 0) is on the x-axis\"")
+            ParameterExp(name: "", value: VariableExp("\"(\\(somePoint.0), 0) is on the x-axis\""))
           }
         }
         SwitchCase(Tuple.pattern([0, nil])) {
           Call("print") {
-            ParameterExp(name: "", value: "\"(0, \\(somePoint.1)) is on the y-axis\"")
+            ParameterExp(name: "", value: VariableExp("\"(0, \\(somePoint.1)) is on the y-axis\""))
           }
         }
         SwitchCase(Tuple.pattern([(-2...2), (-2...2)])) {
           Call("print") {
             ParameterExp(
-              name: "", value: "\"(\\(somePoint.0), \\(somePoint.1)) is inside the box\""
+              name: "",
+              value: VariableExp("\"(\\(somePoint.0), \\(somePoint.1)) is inside the box\"")
             )
           }
         }
         Default {
           Call("print") {
             ParameterExp(
-              name: "", value: "\"(\\(somePoint.0), \\(somePoint.1)) is outside of the box\""
+              name: "",
+              value: VariableExp("\"(\\(somePoint.0), \\(somePoint.1)) is outside of the box\"")
             )
           }
         }
@@ -225,23 +253,17 @@ import Testing
       Switch("anotherPoint") {
         SwitchCase(Tuple.pattern([Pattern.let("x"), 0])) {
           Call("print") {
-            ParameterExp(
-              name: "", value: "\"on the x-axis with an x value of \\(x)\""
-            )
+            ParameterExp(name: "", value: VariableExp("\"on the x-axis with an x value of \\(x)\""))
           }
         }
         SwitchCase(Tuple.pattern([0, Pattern.let("y")])) {
           Call("print") {
-            ParameterExp(
-              name: "", value: "\"on the y-axis with a y value of \\(y)\""
-            )
+            ParameterExp(name: "", value: VariableExp("\"on the y-axis with a y value of \\(y)\""))
           }
         }
         SwitchCase(Tuple.pattern([Pattern.let("x"), Pattern.let("y")])) {
           Call("print") {
-            ParameterExp(
-              name: "", value: "\"somewhere else at (\\(x), \\(y))\""
-            )
+            ParameterExp(name: "", value: VariableExp("\"somewhere else at (\\(x), \\(y))\""))
           }
         }
       }
@@ -255,15 +277,19 @@ import Testing
       Variable(.var, name: "description", equals: "The number \\(integerToDescribe) is")
       Switch("integerToDescribe") {
         SwitchCase(2, 3, 5, 7, 11, 13, 17, 19) {
-          PlusAssign("description", " a prime number, and also")
+          Infix(
+            "+=",
+            lhs: VariableExp("description"),
+            rhs: Literal.string(" a prime number, and also")
+          )
           Fallthrough()
         }
         Default {
-          PlusAssign("description", " an integer.")
+          Infix("+=", lhs: VariableExp("description"), rhs: Literal.string(" an integer."))
         }
       }
       Call("print") {
-        ParameterExp(name: "", value: "description")
+        ParameterExp(name: "", value: VariableExp("description"))
       }
 
       // MARK: - Labeled Statements
@@ -272,15 +298,12 @@ import Testing
           Line("MARK: - Labeled Statements")
           Line("Using labeled statements with break")
         }
-      try Variable(.var, name: "board") {
-        try Init("[Int]") {
+      Variable(.var, name: "board") {
+        Init("[Int]") {
           ParameterExp(name: "repeating", value: Literal.integer(0))
           ParameterExp(
             name: "count",
-            value: try Infix("+") {
-              VariableExp("finalSquare")
-              Literal.integer(1)
-            }
+            value: Infix("+", lhs: VariableExp("finalSquare"), rhs: Literal.integer(1))
           )
         }
       }
@@ -297,48 +320,30 @@ import Testing
 
       Variable(.var, name: "square", equals: Literal.integer(0))
       Variable(.var, name: "diceRoll", equals: Literal.integer(0))
-      try While(
-        try Infix("!=") {
-          VariableExp("square")
-          VariableExp("finalSquare")
-        }
+      While(
+        Infix("!=", lhs: VariableExp("square"), rhs: VariableExp("finalSquare"))
       ) {
-        PlusAssign("diceRoll", 1)
-        try If {
-          try Infix("==") {
-            VariableExp("diceRoll")
-            Literal.integer(7)
-          }
+        Infix("+=", lhs: VariableExp("diceRoll"), rhs: Literal.integer(1))
+        If {
+          Infix("==", lhs: VariableExp("diceRoll"), rhs: Literal.integer(7))
         } then: {
           Assignment("diceRoll", 1)
         }
-        try Switch(
-          try Infix("+") {
-            VariableExp("square")
-            VariableExp("diceRoll")
-          }
+        Switch(
+          Infix("+", lhs: VariableExp("square"), rhs: VariableExp("diceRoll"))
         ) {
           SwitchCase("finalSquare") {
             Break()
           }
-          try SwitchCase {
+          SwitchCase {
             SwitchLet("newSquare")
-            try Infix(">") {
-              VariableExp("newSquare")
-              VariableExp("finalSquare")
-            }
+            Infix(">", lhs: VariableExp("newSquare"), rhs: VariableExp("finalSquare"))
           } content: {
             Continue()
           }
-          try Default {
-            try Infix("+=") {
-              VariableExp("square")
-              VariableExp("diceRoll")
-            }
-            try Infix("+=") {
-              VariableExp("square")
-              VariableExp("board[square]")
-            }
+          Default {
+            Infix("+=", lhs: VariableExp("square"), rhs: VariableExp("diceRoll"))
+            Infix("+=", lhs: VariableExp("square"), rhs: VariableExp("board[square]"))
           }
         }
       }
@@ -498,48 +503,36 @@ import Testing
 
   @Test("Conditionals example generates correct syntax")
   internal func testConditionalsExample() throws {
-    _ = try If {
-      try Infix(">") {
-        VariableExp("temperature")
-        Literal.integer(30)
-      }
+    _ = If {
+      Infix(">", lhs: VariableExp("temperature"), rhs: Literal.integer(30))
     } then: {
       Call("print") {
-        ParameterExp(unlabeled: "It's hot!")
+        ParameterExp(unlabeled: VariableExp("It's hot!"))
       }
     } else: {
-      try If {
-        try Infix(">=") {
-          VariableExp("score")
-          Literal.integer(90)
-        }
+      If {
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "Excellent!")
+          ParameterExp(unlabeled: VariableExp("Excellent!"))
         }
       } else: {
-        try If {
-          try Infix(">=") {
-            VariableExp("score")
-            Literal.integer(80)
-          }
+        If {
+          Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
         } then: {
           Call("print") {
-            ParameterExp(unlabeled: "Good!")
+            ParameterExp(unlabeled: VariableExp("Good!"))
           }
         } else: {
-          try If {
-            try Infix(">=") {
-              VariableExp("score")
-              Literal.integer(70)
-            }
+          If {
+            Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(70))
           } then: {
             Call("print") {
-              ParameterExp(unlabeled: "Pass")
+              ParameterExp(unlabeled: VariableExp("Pass"))
             }
           } else: {
             Call("print") {
-              ParameterExp(unlabeled: "Fail")
+              ParameterExp(unlabeled: VariableExp("Fail"))
             }
           }
         }

@@ -1,13 +1,13 @@
 //
 //  CallTests.swift
-//  SyntaxKitTests
+//  SyntaxKit
 //
 //  Created by Leo Dion.
-//  Copyright © 2025 BrightDigit.
+//  Copyright © 2026 BrightDigit.
 //
 //  Permission is hereby granted, free of charge, to any person
 //  obtaining a copy of this software and associated documentation
-//  files (the "Software"), to deal in the Software without
+//  files (the “Software”), to deal in the Software without
 //  restriction, including without limitation the rights to use,
 //  copy, modify, merge, publish, distribute, sublicense, and/or
 //  sell copies of the Software, and to permit persons to whom the
@@ -17,7 +17,7 @@
 //  The above copyright notice and this permission notice shall be
 //  included in all copies or substantial portions of the Software.
 //
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
 //  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
 //  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
 //  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -42,7 +42,7 @@ import Testing
   @Test("Call with string parameter generates correct syntax")
   internal func testCallWithStringParameter() throws {
     let call = Call("print") {
-      ParameterExp(name: "", value: "\"Hello, World!\"")
+      ParameterExp(name: "", value: VariableExp("\"Hello, World!\""))
     }
     let generated = call.generateCode()
     #expect(generated.contains("print(\"Hello, World!\")"))
@@ -51,7 +51,7 @@ import Testing
   @Test("Call with named parameter generates correct syntax")
   internal func testCallWithNamedParameter() throws {
     let call = Call("function") {
-      ParameterExp(name: "value", value: "42")
+      ParameterExp(name: "value", value: VariableExp("42"))
     }
     let generated = call.generateCode()
     #expect(generated.contains("function(value:42)"))
@@ -60,8 +60,8 @@ import Testing
   @Test("Call with multiple parameters generates correct syntax")
   internal func testCallWithMultipleParameters() throws {
     let call = Call("print") {
-      ParameterExp(name: "", value: "\"Count:\"")
-      ParameterExp(name: "count", value: "5")
+      ParameterExp(name: "", value: VariableExp("\"Count:\""))
+      ParameterExp(name: "count", value: VariableExp("5"))
     }
     let generated = call.generateCode()
     #expect(generated.contains("print(\"Count:\", count:5)"))
@@ -70,7 +70,7 @@ import Testing
   @Test("Call with string interpolation generates correct syntax")
   internal func testCallWithStringInterpolation() throws {
     let call = Call("print") {
-      ParameterExp(name: "", value: "\"Starting \\(brand) vehicle...\"")
+      ParameterExp(name: "", value: VariableExp("\"Starting \\(brand) vehicle...\""))
     }
     let generated = call.generateCode()
     #expect(generated.contains("print(\"Starting \\(brand) vehicle...\")"))
@@ -80,7 +80,7 @@ import Testing
   internal func testCallInFunctionBody() throws {
     let function = Function("test") {
       Call("print") {
-        ParameterExp(name: "", value: "\"Hello\"")
+        ParameterExp(name: "", value: VariableExp("\"Hello\""))
       }
     }
     let generated = function.generateCode()
@@ -93,7 +93,7 @@ import Testing
     let extSyntax = Extension("Vehicle") {
       Function("start") {
         Call("print") {
-          ParameterExp(name: "", value: "\"Starting \\(brand) vehicle...\"")
+          ParameterExp(name: "", value: VariableExp("\"Starting \\(brand) vehicle...\""))
         }
       }
     }
@@ -108,7 +108,7 @@ import Testing
     let structExp = Struct("Car") {
       Function("start") {
         Call("print") {
-          ParameterExp(name: "", value: "\"Starting \\(brand) car engine...\"")
+          ParameterExp(name: "", value: VariableExp("\"Starting \\(brand) car engine...\""))
         }
       }
     }

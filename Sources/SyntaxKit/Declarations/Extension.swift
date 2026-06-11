@@ -36,6 +36,7 @@ public struct Extension: CodeBlock, Sendable {
   private var inheritance: [String] = []
   private var attributes: [AttributeInfo] = []
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let extensionKeyword = TokenSyntax.keyword(.extension, trailingTrivia: .space)
     let identifier = TokenSyntax.identifier(extendedType, trailingTrivia: .space)
@@ -130,13 +131,13 @@ public struct Extension: CodeBlock, Sendable {
         rightParen = .rightParenToken()
 
         let argumentList = arguments.map { argument in
-          DeclReferenceExprSyntax(baseName: .identifier(argument))
+          ExprSyntax(attributeArgument: argument)
         }
 
         argumentsSyntax = .argumentList(
           LabeledExprListSyntax(
             argumentList.enumerated().map { index, expr in
-              var element = LabeledExprSyntax(expression: ExprSyntax(expr))
+              var element = LabeledExprSyntax(expression: expr)
               if index < argumentList.count - 1 {
                 element = element.with(\.trailingComma, .commaToken(trailingTrivia: .space))
               }
@@ -154,6 +155,7 @@ public struct Extension: CodeBlock, Sendable {
           arguments: argumentsSyntax,
           rightParen: rightParen
         )
+        .with(\.trailingTrivia, .newline)
       )
     }
     return AttributeListSyntax(attributeElements)

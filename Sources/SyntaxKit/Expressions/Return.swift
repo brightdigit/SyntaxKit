@@ -33,6 +33,7 @@ public import SwiftSyntax
 public struct Return: CodeBlock {
   private let exprs: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     if let expr = exprs.first {
       if let varExp = expr as? VariableExp {
@@ -49,10 +50,8 @@ public struct Return: CodeBlock {
       } else if let syntax = expr.syntax.as(ExprSyntax.self) {
         exprSyntax = syntax
       } else {
+        // TODO: Review fallback for no valid expression - consider if this should be an error instead.
         // fallback: no valid expression
-        #warning(
-          "TODO: Review fallback for no valid expression - consider if this should be an error instead"
-        )
         return ReturnStmtSyntax(
           returnKeyword: .keyword(.return, trailingTrivia: .space)
         )

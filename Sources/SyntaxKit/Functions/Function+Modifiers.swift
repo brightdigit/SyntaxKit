@@ -46,6 +46,21 @@ extension Function {
     return copy
   }
 
+  /// Sets the access modifier for the function declaration.
+  /// - Parameter access: The access modifier.
+  /// - Returns: A copy of the function with the access modifier set.
+  public func access(_ access: AccessModifier) -> Self {
+    var copy = self
+    copy.accessModifier = access
+    return copy
+  }
+
+  /// Marks the function as `throws` (alias for `.throws()` that avoids keyword escaping).
+  /// - Returns: A copy of the function marked as `throws`.
+  public func throwing() -> Self {
+    `throws`()
+  }
+
   /// Adds an attribute to the function declaration.
   /// - Parameters:
   ///   - attribute: The attribute name (without the @ symbol).

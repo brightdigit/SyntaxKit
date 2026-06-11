@@ -66,7 +66,7 @@ public struct While: CodeBlock, Sendable {
     switch kind {
     case .repeatWhile:
       return StmtSyntax(
-        RepeatWhileStmtSyntax(
+        RepeatStmtSyntax(
           repeatKeyword: .keyword(.repeat, trailingTrivia: .space),
           body: bodyBlock,
           whileKeyword: .keyword(.while, trailingTrivia: .space),
@@ -107,8 +107,8 @@ public struct While: CodeBlock, Sendable {
 
   /// Creates a `while` loop statement with a builder closure for the condition.
   /// - Parameters:
-  ///   - condition: A `CodeBlockBuilder` that produces exactly one condition expression.
   ///   - kind: The kind of loop (default is `.while`).
+  ///   - condition: A `CodeBlockBuilder` that produces exactly one condition expression.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   public init(
     kind: Kind = .while,
@@ -122,8 +122,8 @@ public struct While: CodeBlock, Sendable {
 
   /// Creates a `while` loop.
   /// - Parameters:
-  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
   ///   - kind: The kind of loop (default is `.while`).
+  ///   - condition: A ``CodeBlockBuilder`` that provides the condition expression.
   ///   - then: A ``CodeBlockBuilder`` that provides the body of the loop.
   @available(
     *, deprecated,

@@ -35,6 +35,7 @@ public struct Catch: CodeBlock {
   private let pattern: (any CodeBlock)?
   private let body: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this catch clause.
   public var catchClauseSyntax: CatchClauseSyntax {
     // Build catch items (patterns)
     var catchItems: CatchItemListSyntax?
@@ -51,40 +52,8 @@ public struct Catch: CodeBlock {
           let memberAccess = MemberAccessExprSyntax(
             base: typeName.isEmpty
               ? nil : ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(typeName))),
-            dot: .periodToken(),
-            name: .identifier(caseName)
-          )
-          let patternWithTuple = PatternSyntax(
-            ValueBindingPatternSyntax(
-              bindingSpecifier: .keyword(.case, trailingTrivia: .space),
-              pattern: PatternSyntax(
-                ExpressionPatternSyntax(
-                  expression: ExprSyntax(memberAccess)
-                )
-              )
-            )
-          )
-          // Actually, Swift's catch pattern for associated values is: .caseName(let a, let b)
-          // So we want: ExpressionPatternSyntax(MemberAccessExprSyntax + tuplePattern)
-          let tuplePattern = TuplePatternSyntax(
-            leftParen: .leftParenToken(),
-            elements: TuplePatternElementListSyntax(
-              enumCase.caseAssociatedValues.enumerated().map { index, associated in
-                TuplePatternElementSyntax(
-                  pattern: PatternSyntax(
-                    ValueBindingPatternSyntax(
-                      bindingSpecifier: .keyword(.let, trailingTrivia: .space),
-                      pattern: PatternSyntax(
-                        IdentifierPatternSyntax(identifier: .identifier(associated.name))
-                      )
-                    )
-                  ),
-                  trailingComma: index < enumCase.caseAssociatedValues.count - 1
-                    ? .commaToken(trailingTrivia: .space) : nil
-                )
-              }
-            ),
-            rightParen: .rightParenToken()
+            period: .periodToken(),
+            declName: DeclReferenceExprSyntax(baseName: .identifier(caseName))
           )
           let patternSyntaxExpr = ExprSyntax(
             FunctionCallExprSyntax(
@@ -163,6 +132,7 @@ public struct Catch: CodeBlock {
     )
   }
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     catchClauseSyntax
   }
@@ -197,6 +167,7 @@ public struct Catch: CodeBlock {
   /// - Parameters:
   ///   - enumCase: The enum case to catch.
   ///   - content: A ``CodeBlockBuilder`` that provides the body of the catch clause.
+  /// - Returns: A configured ``Catch`` clause that matches the given enum case.
   public static func `catch`(
     _ enumCase: EnumCase,
     @CodeBlockBuilderResult _ content: () -> [any CodeBlock]

@@ -50,7 +50,7 @@ extension Literal: ExprCodeBlock {
     case .float(let value):
       return ExprSyntax(FloatLiteralExprSyntax(literal: .floatLiteral(String(value))))
     case .integer(let value):
-      return ExprSyntax(IntegerLiteralExprSyntax(digits: .integerLiteral(String(value))))
+      return ExprSyntax(IntegerLiteralExprSyntax(literal: .integerLiteral(String(value))))
     case .nil:
       return ExprSyntax(NilLiteralExprSyntax(nilKeyword: .keyword(.nil)))
     case .boolean(let value):
@@ -62,7 +62,7 @@ extension Literal: ExprCodeBlock {
     case .ref(let value):
       return ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(value)))
     case .tuple(let elements):
-      let tupleElements = TupleExprElementListSyntax(
+      let tupleElements = LabeledExprListSyntax(
         elements.enumerated().map { index, element in
           let elementExpr: ExprSyntax
           if let element = element {
@@ -71,7 +71,7 @@ extension Literal: ExprCodeBlock {
             // Wildcard pattern - use underscore
             elementExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("_")))
           }
-          return TupleExprElementSyntax(
+          return LabeledExprSyntax(
             label: nil,
             colon: nil,
             expression: elementExpr,
@@ -123,9 +123,9 @@ extension Literal: ExprCodeBlock {
           elements.enumerated().map { index, keyValue in
             let (key, value) = keyValue
             return DictionaryElementSyntax(
-              keyExpression: key.exprSyntax,
+              key: key.exprSyntax,
               colon: .colonToken(),
-              valueExpression: value.exprSyntax,
+              value: value.exprSyntax,
               trailingComma: index < elements.count - 1
                 ? .commaToken(trailingTrivia: .space)
                 : nil

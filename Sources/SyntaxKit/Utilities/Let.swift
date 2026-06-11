@@ -34,6 +34,7 @@ public struct Let: CodeBlock {
   internal let name: String
   internal let value: any CodeBlock
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     CodeBlockItemSyntax(
       item: .decl(

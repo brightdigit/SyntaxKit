@@ -27,24 +27,31 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-import Foundation
-import SyntaxParser
+import ArgumentParser
 
+/// The `skit` CLI entry point.
+///
+/// `Skit` itself is just an ArgumentParser shell that wires up two subcommands:
+/// `Run` (the default, rendering SyntaxKit DSL into Swift source) and `Parse`
+/// (the inverse, reading Swift source on stdin and emitting JSON). Their bodies
+/// live in `Skit+Run.swift` and `Skit+Parse.swift` respectively.
 @main
-internal enum Skit {
-  internal static func main() throws {
-    // Read Swift code from stdin
-    let code = String(data: FileHandle.standardInput.readDataToEndOfFile(), encoding: .utf8) ?? ""
+internal struct Skit: AsyncParsableCommand {
+  /// The top-level command name as invoked on the command line.
+  internal static let commandName = "skit"
 
-    // Parse the code using SyntaxKit
-    let treeNodes = SyntaxParser.parse(code: code)
+  /// Name of the `swift` executable resolved on `PATH`. Shared by the
+  /// toolchain-version capture and the Subprocess `swift` configuration.
+  internal static let swiftExecutableName = "swift"
 
-    // Convert to JSON for output
-    let encoder = JSONEncoder()
-    let data = try encoder.encode(treeNodes)
-    let json = String(decoding: data, as: UTF8.self)
+  /// Name of the `swiftc` compiler resolved on `PATH`. Used to compile a
+  /// wrapped DSL program into a temporary executable before running it.
+  internal static let swiftcExecutableName = "swiftc"
 
-    // Output the JSON
-    print(json)
-  }
+  internal static let configuration = CommandConfiguration(
+    commandName: commandName,
+    abstract: "Render SyntaxKit DSL into Swift source, or parse Swift into JSON.",
+    subcommands: [Run.self, Parse.self],
+    defaultSubcommand: Run.self
+  )
 }

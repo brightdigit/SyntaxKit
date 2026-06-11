@@ -1,3 +1,32 @@
+//
+//  ConditionalsTests.swift
+//  SyntaxKit
+//
+//  Created by Leo Dion.
+//  Copyright © 2026 BrightDigit.
+//
+//  Permission is hereby granted, free of charge, to any person
+//  obtaining a copy of this software and associated documentation
+//  files (the “Software”), to deal in the Software without
+//  restriction, including without limitation the rights to use,
+//  copy, modify, merge, publish, distribute, sublicense, and/or
+//  sell copies of the Software, and to permit persons to whom the
+//  Software is furnished to do so, subject to the following
+//  conditions:
+//
+//  The above copyright notice and this permission notice shall be
+//  included in all copies or substantial portions of the Software.
+//
+//  THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND,
+//  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+//  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+//  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+//  HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+//  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+//  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+//  OTHER DEALINGS IN THE SOFTWARE.
+//
+
 import Foundation
 import Testing
 
@@ -7,33 +36,27 @@ import Testing
   @Test("If / else-if / else chain generates correct syntax")
   internal func testIfElseChain() throws {
     // Arrange: build the DSL example using the updated APIs
-    let conditional = try Group {
+    let conditional = Group {
       Variable(.let, name: "score", type: "Int", equals: "85")
 
-      try If {
-        try Infix(">=") {
-          VariableExp("score")
-          Literal.integer(90)
-        }
+      If {
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
       } then: {
         Call("print") {
-          ParameterExp(name: "", value: "\"Excellent!\"")
+          ParameterExp(name: "", value: VariableExp("\"Excellent!\""))
         }
       } else: {
-        try If {
-          try Infix(">=") {
-            VariableExp("score")
-            Literal.integer(80)
-          }
+        If {
+          Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
         } then: {
           Call("print") {
-            ParameterExp(name: "", value: "\"Good job!\"")
+            ParameterExp(name: "", value: VariableExp("\"Good job!\""))
           }
         }
 
         Then {
           Call("print") {
-            ParameterExp(name: "", value: "\"Needs improvement\"")
+            ParameterExp(name: "", value: VariableExp("\"Needs improvement\""))
           }
         }
       }
@@ -51,24 +74,18 @@ import Testing
 
   @Test("If with multiple conditions generates correct syntax")
   internal func testIfWithMultipleConditions() throws {
-    let ifStatement = try If {
-      try Infix(">=") {
-        VariableExp("score")
-        Literal.integer(90)
-      }
+    let ifStatement = If {
+      Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(90))
     } then: {
       Call("print") {
-        ParameterExp(unlabeled: "Excellent!")
+        ParameterExp(unlabeled: VariableExp("Excellent!"))
       }
     } else: {
-      try If {
-        try Infix(">=") {
-          VariableExp("score")
-          Literal.integer(80)
-        }
+      If {
+        Infix(">=", lhs: VariableExp("score"), rhs: Literal.integer(80))
       } then: {
         Call("print") {
-          ParameterExp(unlabeled: "Good!")
+          ParameterExp(unlabeled: VariableExp("Good!"))
         }
       }
     }

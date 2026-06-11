@@ -34,6 +34,7 @@ public struct Guard: CodeBlock, Sendable {
   private let conditions: [any CodeBlock]
   private let elseBody: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     // MARK: Build conditions list (mirror implementation from `If`)
     let condList = ConditionElementListSyntax(
@@ -135,8 +136,7 @@ public struct Guard: CodeBlock, Sendable {
   }
 
   /// Creates a `guard` statement without a condition (uses true as default).
-  /// - Parameters:
-  ///   - elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
+  /// - Parameter elseBody: A ``CodeBlockBuilder`` that provides the body when the condition is false.
   public init(
     @CodeBlockBuilderResult else elseBody: () throws -> [any CodeBlock]
   ) rethrows {

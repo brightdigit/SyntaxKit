@@ -33,14 +33,17 @@ public import SwiftSyntax
 public struct VariableExp: CodeBlock, PatternConvertible, ExprCodeBlock {
   internal let name: String
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
   }
 
+  /// The SwiftSyntax expression representation of this code block.
   public var exprSyntax: ExprSyntax {
     ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(name)))
   }
 
+  /// The SwiftSyntax pattern representation of this code block.
   public var patternSyntax: PatternSyntax {
     PatternSyntax(IdentifierPatternSyntax(identifier: .identifier(name)))
   }

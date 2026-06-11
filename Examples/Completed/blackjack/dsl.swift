@@ -1,7 +1,7 @@
 import SyntaxKit
 
 // Example of generating a BlackjackCard struct with a nested Suit enum
-let structExample = Struct("BlackjackCard") {
+Struct("BlackjackCard") {
     Enum("Suit") {
         EnumCase("spades").equals("♠")
         EnumCase("hearts").equals("♡")
@@ -28,29 +28,29 @@ let structExample = Struct("BlackjackCard") {
             Variable(.let, name: "first", type: "Int")
             Variable(.let, name: "second", type: "Int?")
         }
-        ComputedProperty("values") {
+        ComputedProperty("values", type: "Values") {
             Switch("self") {
                 SwitchCase(".ace") {
-                    Return{
+                    Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "1")
-                            Parameter(name: "second", value: "11")
+                            ParameterExp(name: "first", value: "1")
+                            ParameterExp(name: "second", value: "11")
                         }
                     }
                 }
                 SwitchCase(".jack", ".queen", ".king") {
-                    Return{
+                    Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "10")
-                            Parameter(name: "second", value: "nil")
+                            ParameterExp(name: "first", value: "10")
+                            ParameterExp(name: "second", value: "nil")
                         }
                     }
                 }
                 Default {
-                    Return{
+                    Return {
                         Init("Values") {
-                            Parameter(name: "first", value: "self.rawValue")
-                            Parameter(name: "second", value: "nil")
+                            ParameterExp(name: "first", value: "self.rawValue")
+                            ParameterExp(name: "second", value: "nil")
                         }
                     }
                 }
@@ -62,17 +62,14 @@ let structExample = Struct("BlackjackCard") {
     Variable(.let, name: "rank", type: "Rank")
     Variable(.let, name: "suit", type: "Suit")
 
-    ComputedProperty("description") {
-        VariableDecl(.var, name: "output", equals: "suit is \(suit.rawValue),")
-        PlusAssign("output", " value is \(rank.values.first)")
+    ComputedProperty("description", type: "String") {
+        Variable(.var, name: "output", equals: "suit is \\(suit.rawValue),")
+        PlusAssign("output", " value is \\(rank.values.first)")
         If(Let("second", "rank.values.second"), then: {
-            PlusAssign("output", " or \(second)")
+            PlusAssign("output", " or \\(second)")
         })
         Return {
             VariableExp("output")
         }
     }
 }
-
-// Generate and print the code
-print(structExample.generateCode())

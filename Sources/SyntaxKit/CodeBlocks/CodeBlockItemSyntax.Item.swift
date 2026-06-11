@@ -45,11 +45,9 @@ extension CodeBlockItemSyntax.Item {
       let expr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(token.text)))
       return .expr(expr)
     } else if let switchCase = syntax.as(SwitchCaseSyntax.self) {
-      // Wrap SwitchCaseSyntax in a SwitchExprSyntax and treat it as an expression
-      // This is a fallback for when SwitchCase is used standalone
-      #warning(
-        "TODO: Review fallback for SwitchCase used standalone - consider if this should be an error instead"
-      )
+      // TODO: Review fallback for SwitchCase used standalone - consider if this should be an error instead.
+      // Wrap SwitchCaseSyntax in a SwitchExprSyntax and treat it as an expression so
+      // standalone SwitchCase usage continues to work.
       let switchExpr = SwitchExprSyntax(
         switchKeyword: .keyword(.switch, trailingTrivia: .space),
         subject: ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("_"))),

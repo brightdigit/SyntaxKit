@@ -46,6 +46,7 @@ public struct Then: CodeBlock {
   /// The statements that make up the `else` body.
   public let body: [any CodeBlock]
 
+  /// The SwiftSyntax representation of this code block.
   public var syntax: any SyntaxProtocol {
     let statements = CodeBlockItemListSyntax(
       body.compactMap { element in

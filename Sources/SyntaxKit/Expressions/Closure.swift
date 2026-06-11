@@ -161,8 +161,7 @@ public struct Closure: CodeBlock {
   }
 
   /// Creates a simple closure with only a body.
-  /// - Parameters:
-  ///   - body: A ``CodeBlockBuilder`` that provides the body of the closure.
+  /// - Parameter body: A ``CodeBlockBuilder`` that provides the body of the closure.
   public init(
     @CodeBlockBuilderResult body: () throws -> [any CodeBlock]
   ) rethrows {
@@ -175,8 +174,7 @@ public struct Closure: CodeBlock {
   }
 
   /// Creates a closure with just a CodeBlock array.
-  /// - Parameters:
-  ///   - body: An array of CodeBlock elements that form the body of the closure.
+  /// - Parameter body: An array of CodeBlock elements that form the body of the closure.
   public init(body: [any CodeBlock]) {
     self.capture = []
     self.parameters = []
@@ -200,6 +198,7 @@ public struct Closure: CodeBlock {
     )
   }
 
+  /// Adds an attribute to the closure with optional arguments.
   public func attribute(_ attribute: String, arguments: [String] = []) -> Self {
     var copy = self
     copy.attributes.append(AttributeInfo(name: attribute, arguments: arguments))

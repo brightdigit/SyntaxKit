@@ -119,7 +119,7 @@ public enum Literal: CodeBlock, CodeBlockable, Sendable {
       return FloatLiteralExprSyntax(literal: .floatLiteral(String(value)))
 
     case .integer(let value):
-      return IntegerLiteralExprSyntax(digits: .integerLiteral(String(value)))
+      return IntegerLiteralExprSyntax(literal: .integerLiteral(String(value)))
     case .nil:
       return NilLiteralExprSyntax(nilKeyword: .keyword(.nil))
     case .boolean(let value):
@@ -127,7 +127,7 @@ public enum Literal: CodeBlock, CodeBlockable, Sendable {
     case .ref(let value):
       return DeclReferenceExprSyntax(baseName: .identifier(value))
     case .tuple(let elements):
-      let tupleElements = TupleExprElementListSyntax(
+      let tupleElements = LabeledExprListSyntax(
         elements.enumerated().map { index, element in
           let elementExpr: ExprSyntax
           if let element = element {
@@ -138,7 +138,7 @@ public enum Literal: CodeBlock, CodeBlockable, Sendable {
             // Wildcard pattern - use underscore
             elementExpr = ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier("_")))
           }
-          return TupleExprElementSyntax(
+          return LabeledExprSyntax(
             label: nil,
             colon: nil,
             expression: elementExpr,
@@ -175,10 +175,10 @@ public enum Literal: CodeBlock, CodeBlockable, Sendable {
           elements.enumerated().map { index, keyValue in
             let (key, value) = keyValue
             return DictionaryElementSyntax(
-              keyExpression: key.syntax.as(ExprSyntax.self)
+              key: key.syntax.as(ExprSyntax.self)
                 ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(""))),
               colon: .colonToken(),
-              valueExpression: value.syntax.as(ExprSyntax.self)
+              value: value.syntax.as(ExprSyntax.self)
                 ?? ExprSyntax(DeclReferenceExprSyntax(baseName: .identifier(""))),
               trailingComma: index < elements.count - 1 ? .commaToken(trailingTrivia: .space) : nil
             )

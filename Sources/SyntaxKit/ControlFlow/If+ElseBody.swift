@@ -83,9 +83,8 @@ extension If {
     } else if let nestedIf = nested.as(IfExprSyntax.self) {
       return IfExprSyntax.ElseBody(nestedIf)
     } else {
+      // TODO: Review fallback to empty code block - consider if this should be an error instead.
       // Fallback to empty code block
-      #warning(
-        "TODO: Review fallback to empty code block - consider if this should be an error instead")
       return IfExprSyntax.ElseBody(
         CodeBlockSyntax(
           leftBrace: .leftBraceToken(leadingTrivia: .space, trailingTrivia: .newline),
