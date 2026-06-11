@@ -1,5 +1,5 @@
 //
-//  Initializer.swift
+//  InitializerDecl.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -30,7 +30,7 @@
 public import SwiftSyntax
 
 /// A Swift `init` declaration.
-public struct Initializer: CodeBlock, Sendable {
+public struct InitializerDecl: CodeBlock, Sendable {
   private let body: [any CodeBlock]
   private var accessModifier: AccessModifier?
   private var isAsync: Bool = false

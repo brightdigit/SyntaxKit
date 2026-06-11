@@ -1,5 +1,5 @@
 //
-//  InitializerTests.swift
+//  InitializerDeclTests.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -32,9 +32,9 @@ import Testing
 
 @testable import SyntaxKit
 
-internal struct InitializerTests {
+internal struct InitializerDeclTests {
   @Test internal func testEmptyInit() {
-    let initDecl = Initializer {}
+    let initDecl = InitializerDecl {}
 
     let expected = """
       init() {
@@ -47,7 +47,7 @@ internal struct InitializerTests {
   }
 
   @Test internal func testPublicInit() {
-    let initDecl = Initializer {}.access(.public)
+    let initDecl = InitializerDecl {}.access(.public)
 
     let expected = """
       public init() {
@@ -60,7 +60,7 @@ internal struct InitializerTests {
   }
 
   @Test internal func testThrowingInit() {
-    let initDecl = Initializer {}.throwing()
+    let initDecl = InitializerDecl {}.throwing()
 
     let expected = """
       init() throws {
@@ -73,7 +73,7 @@ internal struct InitializerTests {
   }
 
   @Test internal func testAsyncInit() {
-    let initDecl = Initializer {}.async()
+    let initDecl = InitializerDecl {}.async()
 
     let expected = """
       init() async {
@@ -86,7 +86,7 @@ internal struct InitializerTests {
   }
 
   @Test internal func testPublicInitWithBody() {
-    let initDecl = Initializer {
+    let initDecl = InitializerDecl {
       Call("setup")
     }.access(.internal)
 

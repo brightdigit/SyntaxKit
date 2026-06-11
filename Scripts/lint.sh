@@ -25,12 +25,6 @@ fi
 
 # Ensure mise-managed tools are on PATH outside CI (CI uses jdx/mise-action)
 if command -v mise >/dev/null 2>&1 && [ -z "$CI" ]; then
-	# Trust the config (no-op if already trusted) so `mise env` doesn't silently
-	# emit nothing when mise.toml is new/untrusted, which would leave the
-	# mise-managed tools (swiftlint, periphery, ...) off PATH.
-	mise trust --quiet "$PACKAGE_DIR/mise.toml" >/dev/null 2>&1 || true
-	# Install any declared-but-missing tools so they resolve on PATH.
-	mise -C "$PACKAGE_DIR" install >/dev/null 2>&1 || true
 	eval "$(mise -C "$PACKAGE_DIR" env -s bash)"
 fi
 
