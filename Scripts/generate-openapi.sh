@@ -3,6 +3,12 @@
 # Regenerates the ClaudeKit client from the Anthropic OpenAPI spec.
 # swift-openapi-generator is managed by mise (see mise.toml); the generated
 # code is committed under Sources/ClaudeKit/Generated.
+#
+# Sources/ClaudeKit/openapi.json is the unofficial Anthropic OpenAPI spec
+# (hosted_spec.json, retrieved 2026-06-11) from
+# https://github.com/laszukdawid/anthropic-openapi-spec — to refresh it:
+#   curl -o Sources/ClaudeKit/openapi.json \
+#     https://raw.githubusercontent.com/laszukdawid/anthropic-openapi-spec/main/hosted_spec.json
 
 set -e
 
