@@ -28,8 +28,7 @@ swift-openapi-generator generate \
 	--output-directory Sources/ClaudeKit/Generated \
 	Sources/ClaudeKit/openapi.json
 
-# Match the formatting and license headers lint.sh applies to Sources, so the
-# committed generated code passes CI's swift-format lint and stays stable
-# across regenerations.
-swift-format format --configuration .swift-format --recursive --parallel --in-place Sources/ClaudeKit/Generated
-"$PACKAGE_DIR/Scripts/header.sh" -d "$PACKAGE_DIR/Sources/ClaudeKit/Generated" -c "Leo Dion" -o "BrightDigit" -p "SyntaxKit"
+# Generated files opt out of swift-format, Periphery, and the license header
+# via the additionalFileComments in openapi-generator-config.yaml (header.sh
+# skips files carrying swift-format-ignore-file); SwiftLint excludes the
+# Generated directory in .swiftlint.yml.
