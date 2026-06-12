@@ -24,16 +24,20 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 
 ## Implementation Phases
 
-### Phase 1: Project Setup & Infrastructure ✓ Planned
+### Phase 1: Project Setup & Infrastructure ✅ Complete
 
 **Issues**: #107, #108
 
-- [x] Issue #107: Setup OpenAPI Specification and Generator Configuration
-- [x] Issue #108: Update Package.swift with Dependencies and Targets
+- [x] Issue #107: Setup OpenAPI Specification and Generator Configuration — **Done**
+- [x] Issue #108: Update Package.swift with Dependencies and Targets — **Done**
 - ~~Issue #109: Create ConfigKeyKit Target Structure~~ (closed — ConfigKeyKit dropped in favor of ArgumentParser)
 
-**Status**: Ready to implement
-**Estimated Effort**: 2-3 hours
+**Status**: Complete (branch `107-108-openapi-setup`)
+**Deviation from plan**: swift-openapi-generator is a mise-managed CLI tool
+(`mise.toml`, `Scripts/generate-openapi.sh`), not an SPM build plugin; generated
+code is committed under `Sources/ClaudeKit/Generated/`. The generator config
+filters to `/v1/messages` because the unofficial spec's `?beta=true` path
+variants carry duplicate operationIds that fail validation.
 **Critical Path**: Yes - blocks all other work
 
 ### Phase 2: Core Configuration & Command Infrastructure ⏳ Waiting
@@ -43,7 +47,7 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 - [ ] Issue #110: Implement AnalyzerConfiguration and AnalyzerError
 - [ ] Issue #111: Implement skit analyze Subcommand (ArgumentParser)
 
-**Status**: Blocked by Phase 1
+**Status**: Ready to implement (Phase 1 complete)
 **Estimated Effort**: 3-4 hours
 **Critical Path**: Yes
 
@@ -111,15 +115,15 @@ All implementation tasks have been broken down into 18 GitHub issues organized i
 ### Overall Progress
 
 - **Issues Created**: 19 total ✓ (#109 since closed — ConfigKeyKit dropped; #168 added for the convergence loop)
-- **Issues Completed**: 0/18
-- **Phases Completed**: 0/7
+- **Issues Completed**: 2/18 (#107, #108)
+- **Phases Completed**: 1/7
 - **Estimated Total Effort**: 27-35 hours
 
 ### Current Status
 
-**Current Phase**: Phase 1 (Project Setup)
-**Next Actionable Issue**: #107
-**Blocked Issues**: 15 (waiting on dependencies)
+**Current Phase**: Phase 2 (Core Configuration & Command Infrastructure)
+**Next Actionable Issue**: #110 (also unblocked: #117, #118, #119)
+**Blocked Issues**: 12 (waiting on dependencies)
 
 ## Critical Path
 
@@ -254,4 +258,4 @@ For questions or issues, please comment on the relevant GitHub issue or create a
 ---
 
 **Last Updated**: 2026-06-11
-**Status**: Planning Complete, Implementation Ready
+**Status**: Phase 1 Complete (#107, #108), Phase 2 Ready

@@ -1,0 +1,10 @@
+generate:
+  - types
+  - client
+accessModifier: package
+additionalFileComments:
+  - periphery:ignore:all
+  - swift-format-ignore-file
+filter:
+  paths:
+    - /v1/messages

@@ -104,7 +104,9 @@ let package = Package(
     .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),
     .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
     .package(url: "https://github.com/swiftlang/swift-subprocess.git", from: "0.4.0"),
-    .package(url: "https://github.com/apple/swift-system.git", from: "1.0.0")
+    .package(url: "https://github.com/apple/swift-system.git", from: "1.0.0"),
+    .package(url: "https://github.com/apple/swift-openapi-runtime", from: "1.12.0"),
+    .package(url: "https://github.com/apple/swift-openapi-urlsession", from: "1.3.0")
   ],
   targets: [
     .target(
@@ -145,11 +147,30 @@ let package = Package(
       ],
       swiftSettings: swiftSettings
     ),
+    .target(
+      name: "ClaudeKit",
+      dependencies: [
+        .product(name: "OpenAPIRuntime", package: "swift-openapi-runtime"),
+        .product(name: "OpenAPIURLSession", package: "swift-openapi-urlsession")
+      ],
+      // No shared swiftSettings: upcoming features like InternalImportsByDefault
+      // reject the generator's plain `import OpenAPIRuntime` in package-access API.
+      exclude: ["openapi.json", "openapi-generator-config.yaml"]
+    ),
+    .target(
+      name: "AiSTKit",
+      dependencies: [
+        "ClaudeKit",
+        "SyntaxParser"
+      ],
+      swiftSettings: swiftSettings
+    ),
     .executableTarget(
       name: "skit",
       dependencies: [
         "SyntaxKit",
         "SyntaxParser",
+        "AiSTKit",
         .product(name: "SwiftSyntax", package: "swift-syntax"),
         .product(name: "SwiftParser", package: "swift-syntax"),
         .product(name: "ArgumentParser", package: "swift-argument-parser"),
