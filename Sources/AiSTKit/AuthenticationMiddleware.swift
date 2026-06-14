@@ -61,6 +61,7 @@ public struct AuthenticationMiddleware: ClientMiddleware {
   ///   - operationID: The OpenAPI operation identifier for the request.
   ///   - next: The next handler in the middleware chain.
   /// - Returns: The HTTP response and body from the next handler.
+  /// - Throws: Any error thrown by the `next` handler.
   public func intercept(
     _ request: HTTPRequest,
     body: HTTPBody?,

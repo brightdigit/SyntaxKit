@@ -204,5 +204,10 @@ let package = Package(
       dependencies: ["SyntaxKit", "DocumentationHarness"],
       swiftSettings: swiftSettings
     ),
+    .testTarget(
+      name: "AiSTKitTests",
+      dependencies: ["AiSTKit"],
+      swiftSettings: swiftSettings
+    ),
   ]
 )
