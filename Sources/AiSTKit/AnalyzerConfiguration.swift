@@ -31,8 +31,10 @@
 /// subcommand from parsed command-line arguments and handed to
 /// `SyntaxKitAnalyzer`.
 public struct AnalyzerConfiguration: Sendable {
-  /// Folder containing `dsl.swift` and `expected.swift`.
-  public let inputFolderPath: String
+  /// Path to the DSL input file (`dsl.swift`).
+  public let dslFilePath: String
+  /// Path to the expected Swift output file (`expected.swift`).
+  public let expectedFilePath: String
   /// Path to the existing SyntaxKit library sources.
   public let syntaxKitPath: String
   /// Where to write the updated library.
@@ -47,21 +49,24 @@ public struct AnalyzerConfiguration: Sendable {
   /// Creates an analyzer configuration.
   ///
   /// - Parameters:
-  ///   - inputFolderPath: Folder containing `dsl.swift` and `expected.swift`.
+  ///   - dslFilePath: Path to the DSL input file (`dsl.swift`).
+  ///   - expectedFilePath: Path to the expected Swift output file (`expected.swift`).
   ///   - syntaxKitPath: Path to the existing SyntaxKit library sources.
   ///   - outputFolderPath: Where to write the updated library.
   ///   - apiKey: Claude API key.
   ///   - model: Claude model identifier.
   ///   - verbose: Enables verbose progress output.
   public init(
-    inputFolderPath: String,
+    dslFilePath: String,
+    expectedFilePath: String,
     syntaxKitPath: String,
     outputFolderPath: String,
     apiKey: String,
     model: String,
     verbose: Bool
   ) {
-    self.inputFolderPath = inputFolderPath
+    self.dslFilePath = dslFilePath
+    self.expectedFilePath = expectedFilePath
     self.syntaxKitPath = syntaxKitPath
     self.outputFolderPath = outputFolderPath
     self.apiKey = apiKey
