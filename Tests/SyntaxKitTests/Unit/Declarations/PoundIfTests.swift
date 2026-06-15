@@ -62,6 +62,14 @@ internal struct PoundIfTests {
     #expect(generated.contains("import UIKit"))
   }
 
+  @Test internal func testAnyAppleOS() {
+    let block = PoundIf(.os(.anyAppleOS)) {
+      Import("Foundation")
+    }
+    let generated = block.generateCode().normalize()
+    #expect(generated.contains("#if os(anyAppleOS)"))
+  }
+
   @Test internal func testArch() {
     let block = PoundIf(.arch(.arm64)) {
       Import("Foundation")
@@ -92,6 +100,16 @@ internal struct PoundIfTests {
     }
     let generated = block.generateCode().normalize()
     #expect(generated.contains("#if compiler(>=5.9)"))
+  }
+
+  @Test internal func testVersionComparisons() {
+    func gen(_ condition: some PoundIf.Condition) -> String {
+      PoundIf(condition) { Import("Foundation") }.generateCode().normalize()
+    }
+    #expect(gen(.swift(.greaterThan(6))).contains("#if swift(>6)"))
+    #expect(gen(.compiler(.atMost(6, 1))).contains("#if compiler(<=6.1)"))
+    #expect(gen(.swift(.lessThan(7))).contains("#if swift(<7)"))
+    #expect(gen(.compiler(.exact(6, 0, 1))).contains("#if compiler(==6.0.1)"))
   }
 
   @Test internal func testHasFeature() {

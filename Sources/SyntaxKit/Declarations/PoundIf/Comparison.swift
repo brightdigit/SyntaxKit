@@ -1,5 +1,5 @@
 //
-//  PoundIf.SwiftCheck.swift
+//  Comparison.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,23 +27,17 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-extension PoundIf {
-  /// `swift(>=5.9)` and friends.
-  public struct SwiftCheck: LeafCondition {
-    /// The Swift language version check.
-    public let check: VersionCheck
-    /// The `swift` keyword.
-    public var keyword: String? { "swift" }
-    /// The version comparison rendered inside the parentheses.
-    public var argument: String { check.rendered }
-  }
-}
-
-extension PoundIf.Condition where Self == PoundIf.SwiftCheck {
-  /// `swift(>=5.9)` and friends.
-  /// - Parameter check: The Swift language version comparison.
-  /// - Returns: A `swift` version condition.
-  public static func swift(_ check: VersionCheck) -> PoundIf.SwiftCheck {
-    .init(check: check)
-  }
+/// The comparison operator used between a keyword and a version in a
+/// `swift(...)` / `compiler(...)` version check.
+public enum Comparison: String, Sendable {
+  /// `>=`
+  case greaterThanOrEqual = ">="
+  /// `>`
+  case greaterThan = ">"
+  /// `<=`
+  case lessThanOrEqual = "<="
+  /// `<`
+  case lessThan = "<"
+  /// `==`
+  case equal = "=="
 }

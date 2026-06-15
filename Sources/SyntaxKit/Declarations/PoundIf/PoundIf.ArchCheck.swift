@@ -43,7 +43,7 @@ extension PoundIf.Condition where Self == PoundIf.ArchCheck {
   /// `arch(<Architecture>)`
   /// - Parameter value: The CPU architecture to test for.
   /// - Returns: An `arch` condition.
-  public static func arch(_ value: PoundIf.Architecture) -> PoundIf.ArchCheck {
+  public static func arch(_ value: Architecture) -> PoundIf.ArchCheck {
     .init(value: value)
   }
 }

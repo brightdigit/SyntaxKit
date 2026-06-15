@@ -1,5 +1,5 @@
 //
-//  PoundIf.SwiftCheck.swift
+//  OperatingSystem.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,23 +27,28 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-extension PoundIf {
-  /// `swift(>=5.9)` and friends.
-  public struct SwiftCheck: LeafCondition {
-    /// The Swift language version check.
-    public let check: VersionCheck
-    /// The `swift` keyword.
-    public var keyword: String? { "swift" }
-    /// The version comparison rendered inside the parentheses.
-    public var argument: String { check.rendered }
-  }
-}
-
-extension PoundIf.Condition where Self == PoundIf.SwiftCheck {
-  /// `swift(>=5.9)` and friends.
-  /// - Parameter check: The Swift language version comparison.
-  /// - Returns: A `swift` version condition.
-  public static func swift(_ check: VersionCheck) -> PoundIf.SwiftCheck {
-    .init(check: check)
-  }
+/// Operating-system identifiers used in `os(...)` checks.
+public enum OperatingSystem: String, Sendable {
+  /// `os(iOS)`
+  case iOS
+  /// `os(macOS)`
+  case macOS
+  /// `os(tvOS)`
+  case tvOS
+  /// `os(watchOS)`
+  case watchOS
+  /// `os(visionOS)`
+  case visionOS
+  /// `os(anyAppleOS)` — matches any Apple operating system (Swift 6.4+).
+  case anyAppleOS
+  /// `os(Linux)`
+  case linux = "Linux"
+  /// `os(Windows)`
+  case windows = "Windows"
+  /// `os(FreeBSD)`
+  case freeBSD = "FreeBSD"
+  /// `os(Android)`
+  case android = "Android"
+  /// `os(WASI)`
+  case wasi = "WASI"
 }

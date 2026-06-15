@@ -43,7 +43,7 @@ extension PoundIf.Condition where Self == PoundIf.OSCheck {
   /// `os(<OperatingSystem>)`
   /// - Parameter value: The operating system to test for.
   /// - Returns: An `os` condition.
-  public static func os(_ value: PoundIf.OperatingSystem) -> PoundIf.OSCheck {
+  public static func os(_ value: OperatingSystem) -> PoundIf.OSCheck {
     .init(value: value)
   }
 }

@@ -1,5 +1,5 @@
 //
-//  PoundIf.OperatingSystem.swift
+//  Version.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,28 +27,35 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-extension PoundIf {
-  /// Operating-system identifiers used in `os(...)` checks.
-  public enum OperatingSystem: String, Sendable {
-    /// `os(iOS)`
-    case iOS
-    /// `os(macOS)`
-    case macOS
-    /// `os(tvOS)`
-    case tvOS
-    /// `os(watchOS)`
-    case watchOS
-    /// `os(visionOS)`
-    case visionOS
-    /// `os(Linux)`
-    case linux = "Linux"
-    /// `os(Windows)`
-    case windows = "Windows"
-    /// `os(FreeBSD)`
-    case freeBSD = "FreeBSD"
-    /// `os(Android)`
-    case android = "Android"
-    /// `os(WASI)`
-    case wasi = "WASI"
+/// A `major.minor.patch` version, with optional minor and patch components.
+public struct Version: Sendable {
+  /// The major version component.
+  public let major: Int
+  /// The optional minor version component.
+  public let minor: Int?
+  /// The optional patch version component.
+  public let patch: Int?
+
+  /// The dotted string form, e.g. `5`, `5.9`, or `5.9.1`.
+  internal var versionString: String {
+    var result = String(major)
+    if let minor = minor {
+      result += ".\(minor)"
+      if let patch = patch {
+        result += ".\(patch)"
+      }
+    }
+    return result
+  }
+
+  /// Create a version from its components.
+  /// - Parameters:
+  ///   - major: The major version component.
+  ///   - minor: The optional minor version component.
+  ///   - patch: The optional patch version component.
+  public init(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil) {
+    self.major = major
+    self.minor = minor
+    self.patch = patch
   }
 }

@@ -44,7 +44,7 @@ extension PoundIf.Condition where Self == PoundIf.TargetEnvironmentCheck {
   /// - Parameter value: The target environment to test for.
   /// - Returns: A `targetEnvironment` condition.
   public static func targetEnvironment(
-    _ value: PoundIf.TargetEnvironment
+    _ value: TargetEnvironment
   ) -> PoundIf.TargetEnvironmentCheck {
     .init(value: value)
   }

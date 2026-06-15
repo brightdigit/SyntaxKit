@@ -43,7 +43,7 @@ extension PoundIf.Condition where Self == PoundIf.CompilerCheck {
   /// `compiler(>=5.9)` and friends.
   /// - Parameter check: The compiler version comparison.
   /// - Returns: A `compiler` version condition.
-  public static func compiler(_ check: PoundIf.VersionCheck) -> PoundIf.CompilerCheck {
+  public static func compiler(_ check: VersionCheck) -> PoundIf.CompilerCheck {
     .init(check: check)
   }
 }

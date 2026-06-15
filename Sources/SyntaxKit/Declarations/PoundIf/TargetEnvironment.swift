@@ -1,5 +1,5 @@
 //
-//  PoundIf.Architecture.swift
+//  TargetEnvironment.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,18 +27,10 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-extension PoundIf {
-  /// CPU-architecture identifiers used in `arch(...)` checks.
-  public enum Architecture: String, Sendable {
-    /// `arch(arm64)`
-    case arm64
-    /// `arch(x86_64)`
-    case x86 = "x86_64"
-    /// `arch(i386)`
-    case i386
-    /// `arch(arm)`
-    case arm
-    /// `arch(wasm32)`
-    case wasm32
-  }
+/// Target-environment identifiers used in `targetEnvironment(...)` checks.
+public enum TargetEnvironment: String, Sendable {
+  /// `targetEnvironment(simulator)`
+  case simulator
+  /// `targetEnvironment(macCatalyst)`
+  case macCatalyst
 }
