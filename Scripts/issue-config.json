@@ -1,0 +1,472 @@
+{
+  "labels": {
+    "infrastructure": "0052CC",
+    "setup": "0052CC",
+    "configuration": "5319E7",
+    "cli": "1D76DB",
+    "io": "006B75",
+    "api": "0E8A16",
+    "models": "FBCA04",
+    "prompts": "D93F0B",
+    "orchestration": "C5DEF5",
+    "ast": "BFD4F2",
+    "enhancement": "a2eeef",
+    "documentation": "0075ca",
+    "testing": "d876e3"
+  },
+  "milestone": null,
+  "issues": [
+    {
+      "id": 1,
+      "phase": "Phase 1: Project Setup & Infrastructure",
+      "title": "Setup OpenAPI Specification and Generator Configuration",
+      "labels": [
+        "infrastructure",
+        "setup"
+      ],
+      "dependencies": [],
+      "files": [
+        "Sources/ClaudeKit/openapi.json",
+        "Sources/ClaudeKit/openapi-generator-config.yaml"
+      ],
+      "spec": "Download Anthropic OpenAPI spec from laszukdawid/anthropic-openapi-spec repository and configure Swift OpenAPI Generator build plugin.",
+      "acceptance": [
+        "OpenAPI spec downloaded to Sources/ClaudeKit/openapi.json",
+        "openapi-generator-config.yaml created with types and client generation enabled",
+        "Configuration specifies internal access modifier",
+        "Files are ready for Package.swift integration"
+      ]
+    },
+    {
+      "id": 2,
+      "phase": "Phase 1: Project Setup & Infrastructure",
+      "title": "Update Package.swift with Dependencies and Targets",
+      "labels": [
+        "infrastructure",
+        "setup"
+      ],
+      "dependencies": [
+        1
+      ],
+      "files": [
+        "Package.swift"
+      ],
+      "spec": "Add the OpenAPI package dependencies and create two new targets (ClaudeKit, AiSTKit), then add AiSTKit as a dependency of the existing skit executable target. No new executable or product is created; the analyze command ships inside skit.",
+      "acceptance": [
+        "swift-openapi-generator, swift-openapi-runtime, swift-openapi-urlsession dependencies added",
+        "ClaudeKit target created with OpenAPIGenerator plugin",
+        "AiSTKit target created with dependencies on ClaudeKit and SyntaxParser",
+        "AiSTKit added to the existing skit executable target's dependencies",
+        "No new executable target or product is added",
+        "Package builds successfully: swift build"
+      ]
+    },
+    {
+      "id": 4,
+      "phase": "Phase 2: Core Configuration & Command Infrastructure",
+      "title": "Implement AnalyzerConfiguration and AnalyzerError",
+      "labels": [
+        "enhancement",
+        "configuration"
+      ],
+      "dependencies": [
+        2
+      ],
+      "files": [
+        "Sources/AiSTKit/AnalyzerConfiguration.swift",
+        "Sources/AiSTKit/AnalyzerError.swift"
+      ],
+      "spec": "Create AnalyzerConfiguration as a plain Sendable value type in AiSTKit (no configuration framework; the skit analyze subcommand assembles it from ArgumentParser-parsed arguments). Define comprehensive error types.",
+      "acceptance": [
+        "AnalyzerConfiguration is a plain Sendable struct with inputFolderPath, syntaxKitPath, outputFolderPath, apiKey, model, and verbose properties",
+        "No dependency on any configuration framework",
+        "AnalyzerError enum defines all error cases",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 5,
+      "phase": "Phase 2: Core Configuration & Command Infrastructure",
+      "title": "Implement skit analyze Subcommand (ArgumentParser)",
+      "labels": [
+        "enhancement",
+        "cli"
+      ],
+      "dependencies": [
+        4
+      ],
+      "files": [
+        "Sources/skit/Skit+Analyze.swift",
+        "Sources/skit/Skit.swift"
+      ],
+      "spec": "Add an Analyze subcommand to the existing skit CLI using ArgumentParser, following the same pattern as Skit.Run and Skit.Parse. Register it in Skit.swift's subcommand list. No new executable or main.swift is needed.",
+      "acceptance": [
+        "Skit.Analyze implements AsyncParsableCommand in Sources/skit/Skit+Analyze.swift",
+        "Three required positional @Arguments: input folder, SyntaxKit path, output folder",
+        "@Option --api-key (optional, falls back to ANTHROPIC_API_KEY), @Option --model with default, @Flag --verbose",
+        "validate() checks input folder and SyntaxKit path exist",
+        "run() resolves the API key, builds AnalyzerConfiguration, and delegates to SyntaxKitAnalyzer",
+        "Analyze registered in Skit.swift subcommands alongside Run and Parse",
+        "skit analyze --help shows generated usage information",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 6,
+      "phase": "Phase 3: Input/Output Handlers",
+      "title": "Implement InputFolderReader",
+      "labels": [
+        "enhancement",
+        "io"
+      ],
+      "dependencies": [
+        4
+      ],
+      "files": [
+        "Sources/AiSTKit/InputFolderReader.swift"
+      ],
+      "spec": "Create input folder reader that validates and reads dsl.swift and expected.swift files.",
+      "acceptance": [
+        "InputFolderReader struct created with folderPath property",
+        "Inputs nested struct defined with dslCode and expectedSwift properties",
+        "readInputs() validates presence of required files",
+        "readInputs() reads file contents with error handling",
+        "Appropriate errors thrown for missing files",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 7,
+      "phase": "Phase 3: Input/Output Handlers",
+      "title": "Implement LibraryCollector",
+      "labels": [
+        "enhancement",
+        "io"
+      ],
+      "dependencies": [
+        4
+      ],
+      "files": [
+        "Sources/AiSTKit/LibraryCollector.swift"
+      ],
+      "spec": "Create library collector that recursively scans SyntaxKit directory for Swift source files.",
+      "acceptance": [
+        "LibraryCollector struct created",
+        "Recursive .swift file scanning implemented",
+        "Test files and build artifacts are skipped",
+        "Output formatted with file path markers",
+        "File count tracking for verbose output",
+        "Relative paths preserved",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 8,
+      "phase": "Phase 3: Input/Output Handlers",
+      "title": "Implement LibraryWriter",
+      "labels": [
+        "enhancement",
+        "io"
+      ],
+      "dependencies": [
+        12
+      ],
+      "files": [
+        "Sources/AiSTKit/LibraryWriter.swift"
+      ],
+      "spec": "Create library writer that writes LibraryUpdateResult to output directory with proper structure.",
+      "acceptance": [
+        "LibraryWriter struct created with outputPath property",
+        "writeUpdatedLibrary() creates output directory with intermediate directories",
+        "Updated files written to correct paths",
+        "New files written to correct paths",
+        "Optional: unchanged files copied if needed",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 9,
+      "phase": "Phase 3: Input/Output Handlers",
+      "title": "Implement ASTGenerator",
+      "labels": [
+        "enhancement",
+        "ast"
+      ],
+      "dependencies": [
+        4
+      ],
+      "files": [
+        "Sources/AiSTKit/ASTGenerator.swift"
+      ],
+      "spec": "Create AST generator that wraps SyntaxParser to produce JSON AST from Swift code.",
+      "acceptance": [
+        "ASTGenerator struct created",
+        "generateAST() uses SyntaxParser.parse()",
+        "TreeNode array formatted as JSON",
+        "JSONEncoder uses prettyPrinted and sortedKeys",
+        "Error handling for encoding failures",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 10,
+      "phase": "Phase 4: Claude API Integration",
+      "title": "Implement ClaudeKit Wrapper",
+      "labels": [
+        "enhancement",
+        "api"
+      ],
+      "dependencies": [
+        2,
+        11,
+        13
+      ],
+      "files": [
+        "Sources/AiSTKit/ClaudeKit.swift"
+      ],
+      "spec": "Create ClaudeKit wrapper around OpenAPI-generated client for code generation API calls.",
+      "acceptance": [
+        "ClaudeKit struct created with apiKey, model, and client properties",
+        "init creates OpenAPI client with URLSession transport and AuthenticationMiddleware",
+        "generateUpdatedLibrary() calls OpenAPI client.postV1Messages()",
+        "Response content extracted from API response",
+        "parseCodeGenerationResponse() called to parse response",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 11,
+      "phase": "Phase 4: Claude API Integration",
+      "title": "Implement AuthenticationMiddleware",
+      "labels": [
+        "enhancement",
+        "api"
+      ],
+      "dependencies": [
+        2
+      ],
+      "files": [
+        "Sources/AiSTKit/AuthenticationMiddleware.swift"
+      ],
+      "spec": "Create OpenAPI middleware that adds Anthropic API authentication headers.",
+      "acceptance": [
+        "AuthenticationMiddleware implements ClientMiddleware protocol",
+        "intercept() adds x-api-key header with API key",
+        "intercept() adds anthropic-version header",
+        "Middleware correctly forwards request to next handler",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 12,
+      "phase": "Phase 4: Claude API Integration",
+      "title": "Implement LibraryUpdateResult and FileReference Models",
+      "labels": [
+        "enhancement",
+        "models"
+      ],
+      "dependencies": [
+        4
+      ],
+      "files": [
+        "Sources/AiSTKit/LibraryUpdateResult.swift",
+        "Sources/AiSTKit/FileReference.swift"
+      ],
+      "spec": "Create data models for library update results including updated files, new files, and file references.",
+      "acceptance": [
+        "LibraryUpdateResult struct created as Codable",
+        "UpdatedFile nested struct defined",
+        "NewFile nested struct defined",
+        "FileReference struct created as Codable",
+        "All necessary properties included (paths, content, descriptions)",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 13,
+      "phase": "Phase 4: Claude API Integration",
+      "title": "Implement PromptTemplate",
+      "labels": [
+        "enhancement",
+        "prompts"
+      ],
+      "dependencies": [],
+      "files": [
+        "Sources/AiSTKit/PromptTemplate.swift"
+      ],
+      "spec": "Create prompt template that combines Workbench analysis prompt with code generation instructions.",
+      "acceptance": [
+        "PromptTemplate struct created",
+        "createAnalysisAndCodeGeneration() static method implemented",
+        "Original Workbench prompt integrated",
+        "Code generation instructions added",
+        "Structured output format defined with XML-style markers",
+        "Prompt requests complete file content (not diffs)",
+        "Compilation validity emphasized",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 14,
+      "phase": "Phase 5: Main Orchestration",
+      "title": "Implement SyntaxKitAnalyzer Orchestration",
+      "labels": [
+        "enhancement",
+        "orchestration"
+      ],
+      "dependencies": [
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "files": [
+        "Sources/AiSTKit/SyntaxKitAnalyzer.swift"
+      ],
+      "spec": "Create main orchestrator that coordinates the entire workflow from input reading through library writing.",
+      "acceptance": [
+        "SyntaxKitAnalyzer struct created with config property",
+        "run() method orchestrates: read inputs, generate AST, collect library, call API, write output",
+        "Verbose output at each step when enabled",
+        "writeUpdatedLibrary() helper implemented",
+        "Success message printed with output path",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 15,
+      "phase": "Phase 6: Testing Infrastructure",
+      "title": "Implement Test/Validation Mode Components",
+      "labels": [
+        "enhancement",
+        "testing"
+      ],
+      "dependencies": [
+        14
+      ],
+      "files": [
+        "Sources/AiSTKit/Testing/TestRunner.swift",
+        "Sources/AiSTKit/Testing/TestCaseDiscoverer.swift",
+        "Sources/AiSTKit/Testing/TestValidator.swift",
+        "Sources/AiSTKit/Testing/TestModels.swift"
+      ],
+      "spec": "Create comprehensive test mode infrastructure for validating Claude's generated code against expected outputs.",
+      "acceptance": [
+        "TestRunner implements test case discovery and execution",
+        "TestCaseDiscoverer loads test cases from test-cases/ directory",
+        "TestValidator implements validation strategies (structural, content, build, functional)",
+        "TestModels defines TestCase, TestConfig, TestManifest, ValidationResult",
+        "AnalyzerConfiguration updated with test mode flags (--test, --test-stop-on-fail, --test-filter, --test-cases)",
+        "Test mode can run all tests or filtered subset",
+        "Code follows one-type-per-file organization"
+      ]
+    },
+    {
+      "id": 16,
+      "phase": "Phase 7: Verification & Documentation",
+      "title": "Create Verification Test Cases",
+      "labels": [
+        "testing"
+      ],
+      "dependencies": [
+        15
+      ],
+      "files": [
+        "examples/simple-property/dsl.swift",
+        "examples/simple-property/expected.swift",
+        "examples/subscript-feature/dsl.swift",
+        "examples/subscript-feature/expected.swift",
+        "examples/defer-statement/dsl.swift",
+        "examples/defer-statement/expected.swift"
+      ],
+      "spec": "Create comprehensive test inputs and verify the tool works end-to-end including error handling.",
+      "acceptance": [
+        "simple-property test input created",
+        "subscript-feature test input created",
+        "defer-statement test input created",
+        "Build test verification works",
+        "Generated code compilation test passes",
+        "Error handling tests pass (missing API key, invalid paths, missing files)"
+      ]
+    },
+    {
+      "id": 17,
+      "phase": "Phase 7: Verification & Documentation",
+      "title": "Create Example Usage Documentation",
+      "labels": [
+        "documentation"
+      ],
+      "dependencies": [
+        14
+      ],
+      "files": [
+        "Docs/skit-analyze-usage.md"
+      ],
+      "spec": "Create comprehensive usage documentation with examples for basic and advanced usage scenarios.",
+      "acceptance": [
+        "Basic example workflow documented",
+        "Advanced usage examples documented (custom model, verbose, API key flag)",
+        "Custom model configuration documented",
+        "Verbose output usage documented",
+        "API key configuration documented",
+        "Help command documented",
+        "Full workflow example provided"
+      ]
+    },
+    {
+      "id": 18,
+      "phase": "Phase 7: Verification & Documentation",
+      "title": "Create Integration Tests",
+      "labels": [
+        "testing",
+        "integration"
+      ],
+      "dependencies": [
+        16
+      ],
+      "files": [
+        "Tests/AiSTKitTests/IntegrationTests.swift"
+      ],
+      "spec": "Create end-to-end integration test using a real missing feature to verify the entire pipeline.",
+      "acceptance": [
+        "Integration test using real missing feature (e.g., subscript syntax)",
+        "Test verifies generated code validity",
+        "Test verifies code follows SyntaxKit patterns",
+        "Test verifies code compiles",
+        "Test verifies feature works as expected"
+      ]
+    },
+    {
+      "id": 19,
+      "githubNumber": 168,
+      "phase": "Phase 5: Main Orchestration (Part 2)",
+      "title": "Implement Convergence Loop (iterate until rendered output matches expected.swift)",
+      "labels": [
+        "enhancement",
+        "orchestration"
+      ],
+      "dependencies": [
+        14
+      ],
+      "files": [
+        "Sources/AiSTKit/LibraryVerifying.swift",
+        "Sources/AiSTKit/VerificationResult.swift",
+        "Sources/AiSTKit/ConvergenceLoop.swift",
+        "Sources/AiSTKit/PromptTemplate+Feedback.swift",
+        "Sources/skit/SubprocessLibraryVerifier.swift",
+        "Sources/skit/Skit+Analyze.swift"
+      ],
+      "spec": "Wrap the single-shot generation pipeline (#120) in a convergence loop: build the generated library, render dsl.swift against it (compile-and-run, like skit run), diff the rendered Swift against expected.swift, and re-prompt Claude with the build errors or diff until the output matches or --max-iterations is reached. AiSTKit defines the LibraryVerifying protocol and ConvergenceLoop driver; skit supplies the Subprocess-backed verifier, keeping Subprocess out of AiSTKit per the SDK/CLI boundary. Consider using swift-service-lifecycle (https://github.com/swift-server/swift-service-lifecycle) to run the loop: it is a long-running process and ServiceLifecycle's graceful-shutdown handling would cancel in-flight API calls/subprocesses, clean up temp build artifacts, and report partial progress on Ctrl-C. Evaluate versus plain structured concurrency.",
+      "acceptance": [
+        "LibraryVerifying protocol defined in AiSTKit with no Subprocess dependency",
+        "Subprocess-backed verifier in skit: builds the generated library, renders dsl.swift against it via compile-and-run, captures build errors and rendered output",
+        "ConvergenceLoop drives generate \u2192 verify \u2192 re-prompt cycles, capped by --max-iterations (default 3)",
+        "Re-prompt includes swift build errors or a unified diff of rendered vs expected output",
+        "skit analyze reports converged/diverged status and iteration count; non-zero exit on divergence",
+        "Diff comparison normalizes whitespace/formatting before declaring a mismatch",
+        "Code follows one-type-per-file organization"
+      ]
+    }
+  ]
+}

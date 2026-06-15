@@ -1,0 +1,10 @@
+{
+  "name": "skit-issue-creator",
+  "version": "1.0.0",
+  "description": "Creates GitHub issues from skit-analyze-plan.md",
+  "type": "module",
+  "scripts": {
+    "create-issues": "node create-issues.js"
+  },
+  "dependencies": {}
+}

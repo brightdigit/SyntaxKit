@@ -33,6 +33,11 @@ import Testing
 @testable import SyntaxKit
 
 internal struct PoundIfTests {
+  /// Renders a `#if` block wrapping a single import, normalized for assertions.
+  private func rendered(_ condition: some PoundIf.Condition) -> String {
+    PoundIf(condition) { Import("Foundation") }.generateCode().normalize()
+  }
+
   @Test internal func testCanImport() {
     let block = PoundIf(.canImport("SwiftUI")) {
       Import("SwiftUI")
@@ -62,68 +67,62 @@ internal struct PoundIfTests {
     #expect(generated.contains("import UIKit"))
   }
 
+  @Test internal func testAnyAppleOS() {
+    #expect(rendered(.os(.anyAppleOS)).contains("#if os(anyAppleOS)"))
+  }
+
   @Test internal func testArch() {
-    let block = PoundIf(.arch(.arm64)) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
-    #expect(generated.contains("#if arch(arm64)"))
+    #expect(rendered(.arch(.arm64)).contains("#if arch(arm64)"))
   }
 
   @Test internal func testTargetEnvironment() {
-    let block = PoundIf(.targetEnvironment(.simulator)) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
-    #expect(generated.contains("#if targetEnvironment(simulator)"))
+    #expect(rendered(.targetEnvironment(.simulator)).contains("#if targetEnvironment(simulator)"))
+    #expect(
+      rendered(.targetEnvironment(.macCatalyst)).contains("#if targetEnvironment(macCatalyst)"))
   }
 
   @Test internal func testSwiftVersion() {
-    let block = PoundIf(.swift(.atLeast(5, 9))) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
-    #expect(generated.contains("#if swift(>=5.9)"))
+    #expect(rendered(.swift(.greaterThanOrEqual(5, 9))).contains("#if swift(>=5.9)"))
   }
 
   @Test internal func testCompilerVersion() {
-    let block = PoundIf(.compiler(.atLeast(5, 9))) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
-    #expect(generated.contains("#if compiler(>=5.9)"))
+    #expect(rendered(.compiler(.greaterThanOrEqual(5, 9))).contains("#if compiler(>=5.9)"))
+  }
+
+  @Test internal func testVersionComparisons() {
+    #expect(rendered(.swift(.greaterThan(6))).contains("#if swift(>6)"))
+    #expect(rendered(.compiler(.lessThanOrEqual(6, 1))).contains("#if compiler(<=6.1)"))
+    #expect(rendered(.swift(.lessThan(7))).contains("#if swift(<7)"))
+    #expect(rendered(.compiler(.equal(6, 0, 1))).contains("#if compiler(==6.0.1)"))
   }
 
   @Test internal func testHasFeature() {
-    let block = PoundIf(.hasFeature("StrictConcurrency")) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
-    #expect(generated.contains("#if hasFeature(StrictConcurrency)"))
+    #expect(
+      rendered(.hasFeature("StrictConcurrency")).contains("#if hasFeature(StrictConcurrency)"))
   }
 
   @Test internal func testHasAttribute() {
-    let block = PoundIf(.hasAttribute("retroactive")) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
-    #expect(generated.contains("#if hasAttribute(retroactive)"))
+    #expect(rendered(.hasAttribute("retroactive")).contains("#if hasAttribute(retroactive)"))
   }
 
   @Test internal func testAnd() {
-    let block = PoundIf(.and(.os(.iOS), .arch(.arm64))) {
-      Import("UIKit")
-    }
-    let generated = block.generateCode().normalize()
+    let generated = rendered(.and(.os(.iOS), .arch(.arm64)))
     #expect(generated.contains("os(iOS) && arch(arm64)"))
   }
 
   @Test internal func testOrNot() {
-    let block = PoundIf(.or(.canImport("UIKit"), .not(.os(.macOS)))) {
-      Import("Foundation")
-    }
-    let generated = block.generateCode().normalize()
+    let generated = rendered(.or(.canImport("UIKit"), .not(.os(.macOS))))
     #expect(generated.contains("canImport(UIKit) || !os(macOS)"))
+  }
+
+  @Test internal func testNestedBinaryParenthesization() {
+    let generated = rendered(.and(.or(.os(.iOS), .os(.macOS)), .arch(.arm64)))
+    #expect(generated.contains("(os(iOS) || os(macOS)) && arch(arm64)"))
+  }
+
+  @Test internal func testNotOfBinary() {
+    let generated = rendered(.not(.and(.os(.iOS), .os(.macOS))))
+    #expect(generated.contains("!(os(iOS) && os(macOS))"))
   }
 
   @Test internal func testRawStringCondition() {

@@ -127,6 +127,7 @@ excluded:
   - Macros
   - Sources/SyntaxKit/Parser
   - Sources/SyntaxKit/Documentation.docc/Tutorials/Resources
+  - Sources/ClaudeKit/Generated
 indentation_width:
   indentation_width: 2
 file_name:
