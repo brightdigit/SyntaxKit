@@ -28,38 +28,6 @@
 //
 
 extension PoundIf {
-  // swiftlint:disable identifier_name
-
-  /// Canonical `#if` checks, mirroring Swift's conditional-compilation grammar.
-  public indirect enum Condition: Sendable {
-    /// `canImport(<module>)`
-    case canImport(String)
-    /// A bare compilation flag such as `DEBUG`.
-    case flag(String)
-    /// `os(<OperatingSystem>)`
-    case os(OperatingSystem)
-    /// `arch(<Architecture>)`
-    case arch(Architecture)
-    /// `targetEnvironment(<TargetEnvironment>)`
-    case targetEnvironment(TargetEnvironment)
-    /// `swift(>=5.9)` and friends.
-    case swift(VersionCheck)
-    /// `compiler(>=5.9)` and friends.
-    case compiler(VersionCheck)
-    /// `hasFeature(<name>)`
-    case hasFeature(String)
-    /// `hasAttribute(<name>)`
-    case hasAttribute(String)
-    /// `<lhs> && <rhs>`
-    case and(Condition, Condition)
-    /// `<lhs> || <rhs>`
-    case or(Condition, Condition)
-    /// `!<operand>`
-    case not(Condition)
-  }
-
-  // swiftlint:enable identifier_name
-
   /// Operating-system identifiers used in `os(...)` checks.
   public enum OperatingSystem: String, Sendable {
     /// `os(iOS)`
@@ -158,5 +126,54 @@ extension PoundIf {
     {
       VersionCheck(comparison: .equal, major: major, minor: minor, patch: patch)
     }
+  }
+}
+
+extension PoundIf {
+  /// A canonical `#if` check that can render itself as conditional-compilation
+  /// syntax, mirroring Swift's grammar.
+  public protocol Condition: Sendable {
+    /// Render this condition as `#if` source text.
+    /// - Parameter atTopLevel: When `true`, a binary combinator omits its
+    ///   surrounding parentheses (it is the outermost expression).
+    /// - Returns: The rendered conditional-compilation expression.
+    func render(atTopLevel: Bool) -> String
+  }
+
+  /// A single check rendered as `keyword(argument)`, or a bare `argument` when
+  /// ``LeafCondition/keyword`` is `nil` (a flag such as `DEBUG`).
+  public protocol LeafCondition: Condition {
+    /// The leading keyword, e.g. `os`, or `nil` for a bare flag.
+    var keyword: String? { get }
+    /// The text placed inside the parentheses, or the bare flag identifier.
+    var argument: String { get }
+  }
+
+  /// A `lhs <symbol> rhs` combinator, parenthesized unless at the top level.
+  public protocol BinaryCondition: Condition {
+    /// The infix operator rendered between the operands, e.g. `&&`.
+    var symbol: String { get }
+    /// The left-hand operand.
+    var lhs: any Condition { get }
+    /// The right-hand operand.
+    var rhs: any Condition { get }
+  }
+}
+
+extension PoundIf.LeafCondition {
+  /// Render the leaf as `keyword(argument)`, or bare `argument` for a flag.
+  public func render(atTopLevel _: Bool) -> String {
+    guard let keyword else {
+      return argument
+    }
+    return "\(keyword)(\(argument))"
+  }
+}
+
+extension PoundIf.BinaryCondition {
+  /// Render as `lhs symbol rhs`, wrapping in parentheses unless at the top level.
+  public func render(atTopLevel: Bool) -> String {
+    let inner = "\(lhs.render(atTopLevel: false)) \(symbol) \(rhs.render(atTopLevel: false))"
+    return atTopLevel ? inner : "(\(inner))"
   }
 }

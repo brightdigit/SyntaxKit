@@ -33,7 +33,7 @@ public import SwiftSyntax
 public struct PoundIf: CodeBlock, Sendable {
   /// One of the three accepted condition forms attached to a `#if` / `#elseif` clause.
   internal enum ConditionForm: Sendable {
-    case helper(Condition)
+    case helper(any Condition)
     case raw(String)
     case codeBlock(any CodeBlock)
   }
@@ -89,7 +89,7 @@ public struct PoundIf: CodeBlock, Sendable {
   ///   - condition: The structured condition for the `#if` clause.
   ///   - content: The code blocks to emit when the condition is satisfied.
   public init(
-    _ condition: Condition,
+    _ condition: some Condition,
     @CodeBlockBuilderResult _ content: () -> [any CodeBlock]
   ) {
     self.head = Clause(condition: .helper(condition), body: content())
@@ -123,7 +123,7 @@ public struct PoundIf: CodeBlock, Sendable {
   ///   - content: The code blocks to emit when the condition is satisfied.
   /// - Returns: A copy of `self` with the new clause appended.
   public func elseif(
-    _ condition: Condition,
+    _ condition: some Condition,
     @CodeBlockBuilderResult _ content: () -> [any CodeBlock]
   ) -> Self {
     var copy = self
