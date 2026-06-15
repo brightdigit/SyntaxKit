@@ -28,7 +28,7 @@
 //
 
 /// A `major.minor.patch` version, with optional minor and patch components.
-public struct Version: Sendable {
+public struct Version: Sendable, CustomStringConvertible {
   /// The major version component.
   public let major: Int
   /// The optional minor version component.
@@ -37,7 +37,7 @@ public struct Version: Sendable {
   public let patch: Int?
 
   /// The dotted string form, e.g. `5`, `5.9`, or `5.9.1`.
-  internal var versionString: String {
+  public var description: String {
     var result = String(major)
     if let minor = minor {
       result += ".\(minor)"
@@ -47,6 +47,9 @@ public struct Version: Sendable {
     }
     return result
   }
+
+  /// The dotted string form, e.g. `5`, `5.9`, or `5.9.1`.
+  internal var versionString: String { description }
 
   /// Create a version from its components.
   /// - Parameters:

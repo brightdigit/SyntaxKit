@@ -49,7 +49,7 @@ public struct VersionCheck: Sendable {
   }
 
   /// Build a `>= major.minor[.patch]` check.
-  public static func atLeast(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil)
+  public static func greaterThanOrEqual(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil)
     -> VersionCheck
   {
     VersionCheck(comparison: .greaterThanOrEqual, version: Version(major, minor, patch))
@@ -63,7 +63,7 @@ public struct VersionCheck: Sendable {
   }
 
   /// Build a `<= major.minor[.patch]` check.
-  public static func atMost(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil)
+  public static func lessThanOrEqual(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil)
     -> VersionCheck
   {
     VersionCheck(comparison: .lessThanOrEqual, version: Version(major, minor, patch))
@@ -77,7 +77,7 @@ public struct VersionCheck: Sendable {
   }
 
   /// Build an `== major.minor[.patch]` check.
-  public static func exact(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil) -> VersionCheck {
+  public static func equal(_ major: Int, _ minor: Int? = nil, _ patch: Int? = nil) -> VersionCheck {
     VersionCheck(comparison: .equal, version: Version(major, minor, patch))
   }
 }

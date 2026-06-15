@@ -1,5 +1,5 @@
 //
-//  PoundIf.BinaryCondition.swift
+//  VersionCheckTests.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -27,17 +27,34 @@
 //  OTHER DEALINGS IN THE SOFTWARE.
 //
 
-extension PoundIf {
-  /// A `lhs <symbol> rhs` combinator, parenthesized unless at the top level.
-  public protocol BinaryCondition: Condition {
-    /// The infix operator rendered between the operands, e.g. `&&`.
-    ///
-    /// Conformers must return a valid `#if` boolean operator (`&&` or `||`);
-    /// any other value produces invalid conditional-compilation syntax.
-    var symbol: String { get }
-    /// The left-hand operand.
-    var lhs: any Condition { get }
-    /// The right-hand operand.
-    var rhs: any Condition { get }
+import Testing
+
+@testable import SyntaxKit
+
+internal struct VersionCheckTests {
+  @Test internal func greaterThanOrEqualRendersOperatorAndVersion() {
+    #expect(VersionCheck.greaterThanOrEqual(5, 9).rendered == ">=5.9")
+  }
+
+  @Test internal func greaterThanRendersOperatorAndVersion() {
+    #expect(VersionCheck.greaterThan(6).rendered == ">6")
+  }
+
+  @Test internal func lessThanOrEqualRendersOperatorAndVersion() {
+    #expect(VersionCheck.lessThanOrEqual(6, 1).rendered == "<=6.1")
+  }
+
+  @Test internal func lessThanRendersOperatorAndVersion() {
+    #expect(VersionCheck.lessThan(7).rendered == "<7")
+  }
+
+  @Test internal func equalRendersOperatorAndVersion() {
+    #expect(VersionCheck.equal(6, 0, 1).rendered == "==6.0.1")
+  }
+
+  @Test internal func versionDescriptionMatchesDottedForm() {
+    #expect(Version(5).description == "5")
+    #expect(Version(5, 9).description == "5.9")
+    #expect(Version(5, 9, 1).description == "5.9.1")
   }
 }

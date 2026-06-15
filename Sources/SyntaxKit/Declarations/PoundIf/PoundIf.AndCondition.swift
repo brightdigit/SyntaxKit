@@ -1,5 +1,5 @@
 //
-//  PoundIf.And.swift
+//  PoundIf.AndCondition.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -29,7 +29,7 @@
 
 extension PoundIf {
   /// `<lhs> && <rhs>`
-  public struct And: BinaryCondition {
+  public struct AndCondition: BinaryCondition {
     /// The left-hand operand.
     public let lhs: any Condition
     /// The right-hand operand.
@@ -39,7 +39,7 @@ extension PoundIf {
   }
 }
 
-extension PoundIf.Condition where Self == PoundIf.And {
+extension PoundIf.Condition where Self == PoundIf.AndCondition {
   /// `<lhs> && <rhs>`
   /// - Parameters:
   ///   - lhs: The left-hand condition.
@@ -48,7 +48,7 @@ extension PoundIf.Condition where Self == PoundIf.And {
   public static func and<L: PoundIf.Condition, R: PoundIf.Condition>(
     _ lhs: L,
     _ rhs: R
-  ) -> PoundIf.And {
+  ) -> PoundIf.AndCondition {
     .init(lhs: lhs, rhs: rhs)
   }
 }

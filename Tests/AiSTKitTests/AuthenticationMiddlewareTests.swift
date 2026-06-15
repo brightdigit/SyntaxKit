@@ -51,6 +51,21 @@ internal struct AuthenticationMiddlewareTests {
       lock.withLock { stored = newValue }
     }
   }
+
+  /// Thread-safe call counter, so the `@Sendable` `next` closure can record how
+  /// many times it was invoked.
+  private final class CallCounter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored = 0
+
+    var count: Int {
+      lock.withLock { stored }
+    }
+
+    func increment() {
+      lock.withLock { stored += 1 }
+    }
+  }
   // swiftlint:enable no_unchecked_sendable
 
   private static let baseURLString = "https://api.anthropic.com"
@@ -123,5 +138,27 @@ internal struct AuthenticationMiddlewareTests {
   @Test internal func acceptsEmptyAPIKey() async throws {
     let request = try await interceptedRequest(apiKey: "")
     #expect(request.headerFields[try #require(.init("x-api-key"))]?.isEmpty == true)
+  }
+
+  @Test internal func callsNextExactlyOnce() async throws {
+    let middleware = AuthenticationMiddleware(apiKey: "test-key-123")
+    let request = HTTPRequest(
+      method: .post,
+      scheme: "https",
+      authority: "api.anthropic.com",
+      path: "/v1/messages"
+    )
+    let baseURL = try #require(URL(string: Self.baseURLString))
+    let counter = CallCounter()
+    _ = try await middleware.intercept(
+      request,
+      body: nil,
+      baseURL: baseURL,
+      operationID: "createMessage"
+    ) { _, _, _ in
+      counter.increment()
+      return (HTTPResponse(status: .ok), nil)
+    }
+    #expect(counter.count == 1)
   }
 }

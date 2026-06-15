@@ -83,9 +83,13 @@ public struct AuthenticationMiddleware: ClientMiddleware {
     var request = request
     if let apiKeyFieldName = Self.apiKeyFieldName {
       request.headerFields[apiKeyFieldName] = apiKey
+    } else {
+      assertionFailure("\"x-api-key\" is a valid header name and must never be nil.")
     }
     if let anthropicVersionFieldName = Self.anthropicVersionFieldName {
       request.headerFields[anthropicVersionFieldName] = Self.anthropicVersion
+    } else {
+      assertionFailure("\"anthropic-version\" is a valid header name and must never be nil.")
     }
     return try await next(request, body, baseURL)
   }
