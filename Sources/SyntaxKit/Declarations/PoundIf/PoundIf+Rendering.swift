@@ -78,3 +78,21 @@ extension PoundIf {
     return nil
   }
 }
+
+extension PoundIf.LeafCondition {
+  /// Render the leaf as `keyword(argument)`, or bare `argument` for a flag.
+  public func render(atTopLevel _: Bool) -> String {
+    guard let keyword else {
+      return argument
+    }
+    return "\(keyword)(\(argument))"
+  }
+}
+
+extension PoundIf.BinaryCondition {
+  /// Render as `lhs symbol rhs`, wrapping in parentheses unless at the top level.
+  public func render(atTopLevel: Bool) -> String {
+    let inner = "\(lhs.render(atTopLevel: false)) \(symbol) \(rhs.render(atTopLevel: false))"
+    return atTopLevel ? inner : "(\(inner))"
+  }
+}
