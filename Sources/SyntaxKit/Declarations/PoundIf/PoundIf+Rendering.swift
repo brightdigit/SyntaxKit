@@ -57,7 +57,7 @@ extension PoundIf {
   private static func renderCondition(_ form: ConditionForm) -> ExprSyntax? {
     switch form {
     case .helper(let condition):
-      return parseExpression(renderHelper(condition, atTopLevel: true))
+      return parseExpression(condition.render(atTopLevel: true))
     case .raw(let text):
       return parseExpression(text)
     case .codeBlock(let block):
@@ -77,43 +77,22 @@ extension PoundIf {
     }
     return nil
   }
+}
 
-  private static func renderHelper(_ condition: Condition, atTopLevel: Bool) -> String {
-    if let leaf = renderLeaf(condition) {
-      return leaf
+extension PoundIf.LeafCondition {
+  /// Render the leaf as `keyword(argument)`, or bare `argument` for a flag.
+  public func render(atTopLevel _: Bool) -> String {
+    guard let keyword else {
+      return argument
     }
-    return renderCombinator(condition, atTopLevel: atTopLevel)
+    return "\(keyword)(\(argument))"
   }
+}
 
-  private static func renderLeaf(_ condition: Condition) -> String? {
-    switch condition {
-    case .canImport(let module): return "canImport(\(module))"
-    case .flag(let name): return name
-    case .os(let value): return "os(\(value.rawValue))"
-    case .arch(let value): return "arch(\(value.rawValue))"
-    case .targetEnvironment(let value): return "targetEnvironment(\(value.rawValue))"
-    case .swift(let check): return "swift(\(check.rendered))"
-    case .compiler(let check): return "compiler(\(check.rendered))"
-    case .hasFeature(let name): return "hasFeature(\(name))"
-    case .hasAttribute(let name): return "hasAttribute(\(name))"
-    case .and, .or, .not: return nil
-    }
-  }
-
-  private static func renderCombinator(_ condition: Condition, atTopLevel: Bool) -> String {
-    switch condition {
-    case .and(let lhs, let rhs):
-      let inner =
-        "\(renderHelper(lhs, atTopLevel: false)) && \(renderHelper(rhs, atTopLevel: false))"
-      return atTopLevel ? inner : "(\(inner))"
-    case .or(let lhs, let rhs):
-      let inner =
-        "\(renderHelper(lhs, atTopLevel: false)) || \(renderHelper(rhs, atTopLevel: false))"
-      return atTopLevel ? inner : "(\(inner))"
-    case .not(let operand):
-      return "!\(renderHelper(operand, atTopLevel: false))"
-    default:
-      return ""
-    }
+extension PoundIf.BinaryCondition {
+  /// Render as `lhs symbol rhs`, wrapping in parentheses unless at the top level.
+  public func render(atTopLevel: Bool) -> String {
+    let inner = "\(lhs.render(atTopLevel: false)) \(symbol) \(rhs.render(atTopLevel: false))"
+    return atTopLevel ? inner : "(\(inner))"
   }
 }
