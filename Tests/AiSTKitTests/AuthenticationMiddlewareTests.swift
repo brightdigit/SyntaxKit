@@ -35,7 +35,7 @@ import Testing
 @testable import AiSTKit
 
 internal struct AuthenticationMiddlewareTests {
-  private static let baseURLString = "https://api.anthropic.com"
+  // swiftlint:disable no_unchecked_sendable
 
   /// Thread-safe one-shot holder, so the `@Sendable` `next` closure can hand
   /// the request it received back to the test.
@@ -51,6 +51,9 @@ internal struct AuthenticationMiddlewareTests {
       lock.withLock { stored = newValue }
     }
   }
+  // swiftlint:enable no_unchecked_sendable
+
+  private static let baseURLString = "https://api.anthropic.com"
 
   /// Invokes the middleware with a stub `next` handler and returns the request
   /// the handler received, so tests can assert on the injected headers.
@@ -107,5 +110,18 @@ internal struct AuthenticationMiddlewareTests {
     let request = try await interceptedRequest(apiKey: "test-key-123")
     #expect(request.method == .post)
     #expect(request.path == "/v1/messages")
+  }
+
+  @Test internal func overridesExistingAPIKeyHeader() async throws {
+    let apiKeyName = try #require(HTTPField.Name("x-api-key"))
+    let request = try await interceptedRequest(apiKey: "new-key") { request in
+      request.headerFields[apiKeyName] = "stale-key"
+    }
+    #expect(request.headerFields[apiKeyName] == "new-key")
+  }
+
+  @Test internal func acceptsEmptyAPIKey() async throws {
+    let request = try await interceptedRequest(apiKey: "")
+    #expect(request.headerFields[try #require(.init("x-api-key"))]?.isEmpty == true)
   }
 }

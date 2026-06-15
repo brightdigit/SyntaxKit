@@ -1,5 +1,5 @@
 //
-//  PoundIf.Or.swift
+//  PoundIf.OrCondition.swift
 //  SyntaxKit
 //
 //  Created by Leo Dion.
@@ -28,10 +28,8 @@
 //
 
 extension PoundIf {
-  // swiftlint:disable type_name
-
   /// `<lhs> || <rhs>`
-  public struct Or: BinaryCondition {
+  public struct OrCondition: BinaryCondition {
     /// The left-hand operand.
     public let lhs: any Condition
     /// The right-hand operand.
@@ -39,11 +37,9 @@ extension PoundIf {
     /// The `||` operator.
     public var symbol: String { "||" }
   }
-
-  // swiftlint:enable type_name
 }
 
-extension PoundIf.Condition where Self == PoundIf.Or {
+extension PoundIf.Condition where Self == PoundIf.OrCondition {
   /// `<lhs> || <rhs>`
   /// - Parameters:
   ///   - lhs: The left-hand condition.
@@ -52,7 +48,7 @@ extension PoundIf.Condition where Self == PoundIf.Or {
   public static func or<L: PoundIf.Condition, R: PoundIf.Condition>(
     _ lhs: L,
     _ rhs: R
-  ) -> PoundIf.Or {
+  ) -> PoundIf.OrCondition {
     .init(lhs: lhs, rhs: rhs)
   }
 }

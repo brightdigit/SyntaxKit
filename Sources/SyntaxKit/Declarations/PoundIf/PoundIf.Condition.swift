@@ -32,6 +32,10 @@ extension PoundIf {
   /// syntax, mirroring Swift's grammar.
   public protocol Condition: Sendable {
     /// Render this condition as `#if` source text.
+    ///
+    /// This is part of the public API: a condition renders itself, so custom
+    /// types conforming to ``Condition`` (or ``LeafCondition``) participate in
+    /// rendering alongside the built-in conditions.
     /// - Parameter atTopLevel: When `true`, a binary combinator omits its
     ///   surrounding parentheses (it is the outermost expression).
     /// - Returns: The rendered conditional-compilation expression.

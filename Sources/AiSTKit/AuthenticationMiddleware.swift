@@ -44,6 +44,14 @@ public struct AuthenticationMiddleware: ClientMiddleware {
   /// The Anthropic API version sent with every request.
   private static let anthropicVersion = "2023-06-01"
 
+  /// The `x-api-key` header name, constructed once. `"x-api-key"` is a valid
+  /// RFC 9110 token, so this is always non-`nil`.
+  private static let apiKeyFieldName = HTTPField.Name("x-api-key")
+
+  /// The `anthropic-version` header name, constructed once. `"anthropic-version"`
+  /// is a valid RFC 9110 token, so this is always non-`nil`.
+  private static let anthropicVersionFieldName = HTTPField.Name("anthropic-version")
+
   /// The Anthropic API key used to authenticate requests.
   private let apiKey: String
 
@@ -54,6 +62,9 @@ public struct AuthenticationMiddleware: ClientMiddleware {
   }
 
   /// Adds the Anthropic authentication headers, then forwards the request.
+  ///
+  /// Any `x-api-key` or `anthropic-version` header already present on the
+  /// request is silently overwritten with this middleware's values.
   /// - Parameters:
   ///   - request: The outgoing HTTP request.
   ///   - body: The outgoing HTTP request body, if any.
@@ -70,11 +81,11 @@ public struct AuthenticationMiddleware: ClientMiddleware {
     next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
   ) async throws -> (HTTPResponse, HTTPBody?) {
     var request = request
-    if let name = HTTPField.Name("x-api-key") {
-      request.headerFields[name] = apiKey
+    if let apiKeyFieldName = Self.apiKeyFieldName {
+      request.headerFields[apiKeyFieldName] = apiKey
     }
-    if let name = HTTPField.Name("anthropic-version") {
-      request.headerFields[name] = Self.anthropicVersion
+    if let anthropicVersionFieldName = Self.anthropicVersionFieldName {
+      request.headerFields[anthropicVersionFieldName] = Self.anthropicVersion
     }
     return try await next(request, body, baseURL)
   }
