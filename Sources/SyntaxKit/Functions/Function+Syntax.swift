@@ -89,11 +89,7 @@ extension Function {
       ])
     }
     if isStatic {
-      modifiers = DeclModifierListSyntax(
-        modifiers + [
-          DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space))
-        ]
-      )
+      modifiers.append(DeclModifierSyntax(name: .keyword(.static, trailingTrivia: .space)))
     }
     if isMutating {
       modifiers += [

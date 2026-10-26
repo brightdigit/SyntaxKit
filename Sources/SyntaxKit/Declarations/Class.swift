@@ -114,9 +114,7 @@ public struct Class: CodeBlock, Sendable {
       ])
     }
     if isFinal {
-      modifiers = DeclModifierListSyntax(
-        modifiers + [DeclModifierSyntax(name: .keyword(.final, trailingTrivia: .space))]
-      )
+      modifiers.append(DeclModifierSyntax(name: .keyword(.final, trailingTrivia: .space)))
     }
 
     return ClassDeclSyntax(

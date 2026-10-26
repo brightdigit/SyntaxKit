@@ -63,14 +63,12 @@ import Testing
     do {
       _ = try await runner.render(source: "let x = 1\n")
       Issue.record("expected render to throw")
-    } catch let error as RunError {
+    } catch {
       guard case .unexpected(let underlying) = error else {
         Issue.record("expected .unexpected, got \(error)")
         return
       }
       #expect(underlying is BackendBoom)
-    } catch {
-      Issue.record("expected RunError, got \(error)")
     }
   }
 
@@ -93,7 +91,7 @@ import Testing
     do {
       _ = try await runner.render(source: "let x = 1\n", originalPath: "/work/in.swift")
       Issue.record("expected render to throw")
-    } catch let error as RunError {
+    } catch {
       guard case .renderFailed(_, let stderr, _) = error else {
         Issue.record("expected .renderFailed, got \(error)")
         return
@@ -101,8 +99,6 @@ import Testing
       #expect(stderr.contains("/work/in.swift"))
       // The wrapper filename must be gone — proof the rewrite replaced the path.
       #expect(!stderr.contains("Input.wrapped.swift"))
-    } catch {
-      Issue.record("expected RunError, got \(error)")
     }
   }
 }

@@ -83,9 +83,9 @@ let package = Package(
   name: "SyntaxKit",
   platforms: [
     .macOS(.v13),
-    .iOS(.v13),
-    .watchOS(.v6),
-    .tvOS(.v13),
+    .iOS(.v15),
+    .watchOS(.v9),
+    .tvOS(.v15),
     .visionOS(.v1)
   ],
   products: [
@@ -164,6 +164,7 @@ let package = Package(
           condition: .when(platforms: [.linux, .windows])
         )
       ],
+      exclude: ["README.md"],
       swiftSettings: swiftSettings
     ),
     .testTarget(

@@ -73,14 +73,12 @@ import Testing
     do {
       _ = try RunInput.resolve(input: missing, output: nil)
       Issue.record("expected resolve to throw")
-    } catch let error as RunError {
+    } catch {
       guard case .invalidInput(let message) = error else {
         Issue.record("expected .invalidInput, got \(error)")
         return
       }
       #expect(message.contains("does not exist"))
-    } catch {
-      Issue.record("expected RunError, got \(error)")
     }
   }
 
@@ -94,14 +92,12 @@ import Testing
     do {
       _ = try RunInput.resolve(input: dir.path, output: nil)
       Issue.record("expected resolve to throw")
-    } catch let error as RunError {
+    } catch {
       guard case .invalidInput(let message) = error else {
         Issue.record("expected .invalidInput, got \(error)")
         return
       }
       #expect(message.contains("-o"))
-    } catch {
-      Issue.record("expected RunError, got \(error)")
     }
   }
 }

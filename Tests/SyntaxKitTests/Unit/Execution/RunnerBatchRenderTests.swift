@@ -94,7 +94,7 @@ import Testing
     "A failing input is isolated: peers still render, failureCount reflects it",
     .disabled(if: Platform.isWASI, "Render needs host filesystem/subprocess; not on WASI")
   )
-  internal func failureIsIsolated() async {
+  internal func failureIsIsolated() async throws {
     let outcomes = await runner().render(sources: [
       input("ok.swift", "let ok = 1\n"),
       input("bad.swift", "\(Self.failMarker)\nlet bad = 2\n"),
@@ -107,13 +107,13 @@ import Testing
     #expect(outcomes.count == 2)
     #expect(outcomes.failureCount == 1)
 
-    let okOutcome = try? #require(byName["ok.swift"])
-    #expect(okOutcome?.result == nil)
-    #expect(okOutcome?.stdout == Data("RENDERED".utf8))
+    let okOutcome = try #require(byName["ok.swift"])
+    #expect(okOutcome.result == nil)
+    #expect(okOutcome.stdout == Data("RENDERED".utf8))
 
-    let badOutcome = try? #require(byName["bad.swift"])
-    #expect(badOutcome?.stdout.isEmpty == true)
-    guard case .renderFailed(let exitCode, let stderr, let toolchain)? = badOutcome?.result else {
+    let badOutcome = try #require(byName["bad.swift"])
+    #expect(badOutcome.stdout.isEmpty)
+    guard case .renderFailed(let exitCode, let stderr, let toolchain)? = badOutcome.result else {
       Issue.record("expected .renderFailed for the marked input")
       return
     }

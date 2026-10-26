@@ -67,7 +67,7 @@ import Testing
   }
 
   @Test("Imports are hoisted and the body fence reports the body's line")
-  internal func mixedImportsAndBody() {
+  internal func mixedImportsAndBody() throws {
     let out = rendered("import Foundation\nlet x = 1\n")
     expectScaffold(out)
     #expect(out.contains("import Foundation"))
@@ -78,11 +78,9 @@ import Testing
     #expect(out.contains("#sourceLocation(file: \"\(Self.path)\", line: 1)"))
 
     // The hoisted import must sit ahead of the `Group {` scaffold, not inside it.
-    let importIndex = try? #require(out.range(of: "import Foundation"))
-    let groupIndex = try? #require(out.range(of: "let __skit_root = Group {"))
-    if let importIndex, let groupIndex {
-      #expect(importIndex.lowerBound < groupIndex.lowerBound)
-    }
+    let importIndex = try #require(out.range(of: "import Foundation"))
+    let groupIndex = try #require(out.range(of: "let __skit_root = Group {"))
+    #expect(importIndex.lowerBound < groupIndex.lowerBound)
   }
 
   @Test("A comment before a non-import statement stays in the body")
